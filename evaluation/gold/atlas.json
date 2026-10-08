@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "description": "Human-specified source checkpoints; not a universal semantic ground truth.",
+  "description": "Human-specified source checkpoints with strict and explicit acceptable alternative labels. Reaffirmation is a distinct documented event, not the same decision. Lexical evidence matching does not establish semantic truth.",
   "expected_assertions": [
     {
       "id": "mysql-accepted",
@@ -55,6 +55,16 @@
       "phases": [
         "initial",
         "after_mutation"
+      ],
+      "acceptable_pairs": [
+        [
+          "observation",
+          "completed"
+        ],
+        [
+          "reported_outcome",
+          "completed"
+        ]
       ]
     },
     {
@@ -77,6 +87,12 @@
       "phases": [
         "initial",
         "after_mutation"
+      ],
+      "acceptable_pairs": [
+        [
+          "observation",
+          "active"
+        ]
       ]
     },
     {
@@ -88,6 +104,12 @@
       "phases": [
         "initial",
         "after_mutation"
+      ],
+      "acceptable_pairs": [
+        [
+          "procedure",
+          "unknown"
+        ]
       ]
     },
     {
@@ -99,6 +121,12 @@
       "phases": [
         "initial",
         "after_mutation"
+      ],
+      "acceptable_pairs": [
+        [
+          "plan",
+          "active"
+        ]
       ]
     },
     {
@@ -119,20 +147,27 @@
       "lifecycle": "completed",
       "phases": [
         "after_mutation"
+      ],
+      "acceptable_pairs": [
+        [
+          "reported_outcome",
+          "unknown"
+        ]
       ]
     }
   ],
   "expected_relations": [
     {
-      "id": "mysql-reaffirmation-equivalence",
-      "type": "equivalent",
+      "id": "mysql-reaffirmation-evidence",
+      "type": "reaffirms",
       "from": "mysql-reaffirmed",
       "to": "mysql-accepted",
       "expected": true,
       "phases": [
         "initial",
         "after_mutation"
-      ]
+      ],
+      "description": "January review is a distinct historical reaffirmation event supporting the November ADR, not an interchangeable decision event."
     },
     {
       "id": "proposal-must-not-supersede",

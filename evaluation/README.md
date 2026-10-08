@@ -65,3 +65,17 @@ The Atlas corpus contains nine initial files, two added in the evolution phase, 
 Before describing Lore as validated, require no fabricated source citations in the reviewed pages, no confirmed promotion of unapproved plans into deployed facts, explicit historical preservation of superseded decisions, and correct no-op and interrupted-publication behavior. Investigate Atlas lexical and typed checkpoint coverage below roughly 90 percent, while recognizing these figures are provisional targets rather than observed results. Have at least two independent people review each real generated wiki, including whether the page hierarchy provides genuine value beyond the source files. Compare the same source revision under different models, prompts, and optional decision-model strategies, recording wall-clock time, model calls, measured billed charges, omissions, and wrong conclusions.
 
 Only after this baseline exists should we choose whether to invest next in more reliable extraction, global topic planning, human review resolution, provider routing, or scalable candidate retrieval. Fast decisions must not silently exclude potentially material new knowledge just to reduce cost.
+
+## Compare independent runs and review historical knowledge
+
+Use the new `compare_runs.py` command to compare separate evaluation directories without any model calls. It hashes the original Markdown paths and bytes, checks provider/model settings and Lore binary fingerprints, and reports overlap in topic names and normalized knowledge statements. These are **lexical stability measurements, not factual accuracy**. Comparisons with different source corpora, model configurations, or unknown build identities are flagged rather than presented as proof of repeatability.
+
+```bash
+python3 evaluation/compare_runs.py \
+  evaluation-results/atlas-run-a evaluation-results/atlas-run-b \
+  --output evaluation-results/repeatability.json
+```
+
+The benchmark now records the executed Lore binary SHA-256 and source-file SHA-256 manifest for newly created runs. Reuse the same pinned model version and repeat the *same initial source corpus* several times to separate model-output variation from intentional incremental changes. Earlier results that did not record build hashes can still be compared descriptively, but are not considered strictly comparable. The stricter source-checkpoint gold matching remains visible; separately labelled acceptable kinds/lifecycles avoid incorrectly treating a documented outcome as categorically false because of one narrowly specified metadata label.
+
+Read [ATLAS_FINDINGS.md](ATLAS_FINDINGS.md) for the source-backed defects found in the first real Atlas run, the reason a reaffirmation is distinct from equivalence, and the criteria for a validated follow-up. Never commit the raw `.lore` evidence database or exported evaluation results from a confidential project.

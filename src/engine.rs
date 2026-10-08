@@ -2,6 +2,7 @@
 mod reconcile;
 mod render;
 mod runner;
+mod timeline;
 use crate::{
     config::ResolvedConfig,
     domain::{self, Extraction},
