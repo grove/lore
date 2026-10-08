@@ -112,6 +112,14 @@ pub struct KnowledgeView {
 }
 impl KnowledgeView {
     pub fn same_semantics(&self, a: &AssertionProposal) -> bool {
+        // An undated reversal is not automatically the same historical decision.
+        // Include edges created during this run, before lifecycle consolidation.
+        let incoming = format!(" supersedes {} (current documentary evidence)", self.id);
+        let superseded = self.lifecycle == "superseded"
+            || self.relations.iter().any(|edge| edge.contains(&incoming));
+        if self.kind == "decision" && superseded && a.effective_at.is_empty() {
+            return false;
+        }
         self.subject.eq_ignore_ascii_case(&a.subject)
             && self.kind == a.kind
             && self.scope.eq_ignore_ascii_case(&a.scope)
