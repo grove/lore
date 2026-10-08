@@ -23,6 +23,13 @@ class BenchmarkTests(unittest.TestCase):
             bench.manifest_gold_check(project,gold,["initial","after_mutation"])
             with self.assertRaises(ValueError): bench.prepare("atlas",project)
 
+    def test_lore_self_checkpoints_track_current_docs(self):
+        with tempfile.TemporaryDirectory() as temp:
+            project=Path(temp)/"project"
+            manifest=bench.prepare("lore-self",project)
+            self.assertGreaterEqual(len(manifest["files"]),3)
+            bench.manifest_gold_check(project,bench.ROOT/"gold"/"lore-self.json",["initial"])
+
     def test_hosted_requires_explicit_consent(self):
         with tempfile.TemporaryDirectory() as temp:
             path=Path(temp)
