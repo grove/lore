@@ -85,7 +85,7 @@ pub(super) async fn apply(
                 INSTRUCTIONS,
                 input,
                 domain::reconciliation_schema_for(&allowed, &chunk.text),
-                |r: &Reconciliation| {
+                |r: &mut Reconciliation| {
                     ensure!(
                         r.equivalent_to.is_empty() || allowed.contains(&r.equivalent_to),
                         "unknown equivalence target"

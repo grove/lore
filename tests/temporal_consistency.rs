@@ -116,3 +116,114 @@ fn publication_date_is_not_decision_effective_date() {
         ""
     ));
 }
+
+struct RepeatedBadEffectiveDate {
+    inner: FakeModel,
+    extraction_calls: std::sync::atomic::AtomicUsize,
+}
+impl RepeatedBadEffectiveDate {
+    fn new() -> Self {
+        Self {
+            inner: FakeModel::new(),
+            extraction_calls: std::sync::atomic::AtomicUsize::new(0),
+        }
+    }
+}
+impl lore::inference::GenerativeModel for RepeatedBadEffectiveDate {
+    fn descriptor(&self) -> &lore::inference::ModelDescriptor {
+        lore::inference::GenerativeModel::descriptor(&self.inner)
+    }
+
+    fn generate<'a>(
+        &'a self,
+        request: &'a lore::inference::GenerationRequest,
+    ) -> lore::inference::ModelFuture<'a, lore::inference::GenerationResponse> {
+        use std::sync::atomic::Ordering;
+        use lore::inference::GenerativeModel;
+
+        Box::pin(async move {
+            let mut response = self.inner.generate(request).await?;
+            let input: serde_json::Value = serde_json::from_str(&request.input).unwrap();
+            if input["task"] == "extract" {
+                self.extraction_calls.fetch_add(1, Ordering::SeqCst);
+                let mut payload: serde_json::Value =
+                    serde_json::from_str(&response.text).unwrap();
+                for assertion in payload["assertions"].as_array_mut().unwrap() {
+                    let quote = assertion["quote"].as_str().unwrap();
+                    let date = if quote.contains("became the primary on 2026-08-18") {
+                        "2026-08-18"
+                    } else {
+                        "2026-01-19"
+                    };
+                    assertion["effective_at"] = serde_json::json!(date);
+                }
+                response.text = payload.to_string();
+            }
+            Ok(response)
+        })
+    }
+}
+
+#[tokio::test]
+async fn unsupported_model_effective_dates_are_cleared_without_aborting_extraction() {
+    use std::sync::atomic::Ordering;
+
+    let (_directory, cfg, _) = project();
+    put(
+        &cfg,
+        "notes/architecture-review.md",
+        "# Architecture review — 2026-01-19\n\nDECISION history: The review reaffirmed that MySQL is selected.\n",
+    );
+    put(
+        &cfg,
+        "notes/rollout.md",
+        "# Rollout record\n\nDECISION rollout: PostgreSQL became the primary on 2026-08-18.\n",
+    );
+    let model = RepeatedBadEffectiveDate::new();
+    let result = engine::update(&cfg, &model, None, UpdateOptions::default())
+        .await
+        .unwrap();
+    assert!(!result.no_op);
+    assert_eq!(result.processed_sections, 2);
+    // An unsupported *optional* date must not consume a failed repair call.
+    assert_eq!(model.extraction_calls.load(Ordering::SeqCst), 2);
+    assert!(result
+        .warnings
+        .iter()
+        .any(|w| w.contains("Cleared 1 unsupported effective time")));
+
+    let conn = storage::read_only(&cfg.state.join("state.db")).unwrap();
+    let units = storage::views(&conn).unwrap();
+    let past = units.iter().find(|u| u.topic == "history").unwrap();
+    let active = units.iter().find(|u| u.topic == "rollout").unwrap();
+    assert_eq!(past.effective_at, "");
+    assert_eq!(active.effective_at, "2026-08-18");
+
+    // The cached typed extraction must itself contain canonicalized dates.
+    let mut checked = 0;
+    for file in fs::read_dir(cfg.state.join("cache")).unwrap() {
+        let cached: serde_json::Value =
+            serde_json::from_slice(&fs::read(file.unwrap().path()).unwrap()).unwrap();
+        let payload: serde_json::Value =
+            serde_json::from_str(cached["text"].as_str().unwrap()).unwrap();
+        if let Some(assertions) = payload["assertions"].as_array() {
+            for assertion in assertions {
+                let quote = assertion["quote"].as_str().unwrap();
+                let date = assertion["effective_at"].as_str().unwrap();
+                if quote.contains("review reaffirmed") {
+                    assert_eq!(date, "");
+                    checked += 1;
+                } else if quote.contains("became the primary") {
+                    assert_eq!(date, "2026-08-18");
+                    checked += 1;
+                }
+            }
+        }
+    }
+    assert_eq!(checked, 2);
+    let noop = engine::update(&cfg, &model, None, UpdateOptions::default())
+        .await
+        .unwrap();
+    assert!(noop.no_op);
+    assert_eq!(noop.model_calls, 0);
+}

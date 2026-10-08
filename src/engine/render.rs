@@ -86,7 +86,7 @@ pub(super) async fn build(
                         WRITE_INSTRUCTIONS,
                         input.clone(),
                         domain::page_schema(),
-                        |p: &PageDraft| validate_draft(p, &allowed),
+                        |p: &mut PageDraft| validate_draft(p, &allowed),
                     )
                     .await?;
                 if runner.config.config.processing.verify_synthesis {
@@ -97,7 +97,7 @@ pub(super) async fn build(
                             VERIFY_INSTRUCTIONS,
                             verify_input,
                             domain::verification_schema(),
-                            |v: &Verification| {
+                            |v: &mut Verification| {
                                 ensure!(v.issues.len() <= 100, "oversized verification result");
                                 Ok(())
                             },
