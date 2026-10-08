@@ -66,7 +66,12 @@ impl Server {
                         };
                         let (status, body) = f(&request, count);
                         let body = body.to_string();
-                        let _ = write!(stream,"HTTP/1.1 {status} {}\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\nRetry-After: 0\r\n\r\n{body}",if status==200{"OK"}else{"Error"},body.len());
+                        let _ = write!(
+                            stream,
+                            "HTTP/1.1 {status} {}\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\nRetry-After: 0\r\n\r\n{body}",
+                            if status == 200 { "OK" } else { "Error" },
+                            body.len()
+                        );
                     }
                     Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
                         thread::sleep(Duration::from_millis(5))
