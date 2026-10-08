@@ -311,7 +311,7 @@ pub async fn update(
             let (extraction, model): (Extraction, String) = runner
                 .ask(
                     "extract",
-                    EXTRACT_INSTRUCTIONS,
+                    &format!("{EXTRACT_INSTRUCTIONS} {}", domain::CLASSIFICATION_GUIDANCE),
                     input,
                     domain::extraction_schema_for(&chunk.text),
                     |e: &mut Extraction| {
@@ -393,6 +393,7 @@ pub async fn update(
         [&generation],
     )?;
     storage::refresh_knowledge(&conn, &config.project_id)?;
+    crate::reviews::refresh(&conn)?;
     let knowledge = storage::views(&conn)?;
     report.knowledge_units = knowledge.len();
     conn.execute(
@@ -528,6 +529,85 @@ pub fn audit(config: &ResolvedConfig) -> Result<Value> {
     let reviews=q.query_map([],|r|Ok(json!({"id":r.get::<_,String>(0)?,"reason":r.get::<_,String>(1)?,"status":r.get::<_,String>(2)?})))?.collect::<rusqlite::Result<Vec<_>>>()?;
     Ok(json!({"ok":issues.is_empty(),"issues":issues,"reviews":reviews,"status":status}))
 }
+/// Change review disposition without inference or graph mutation. Uses the
+/// same recoverable publication protocol as knowledge compilation.
+pub fn change_review(
+    config: &ResolvedConfig,
+    id: &str,
+    state: &str,
+    reason: &str,
+    actor: &str,
+) -> Result<Value> {
+    let _lock = publish::ProjectLock::acquire(config)?;
+    publish::recover(config)?;
+    let inventory = sources::scan(config)?;
+    let old_path = config.state.join("state.db");
+    let old = storage::read_only(&old_path)?;
+    let plan = make_plan(config, &inventory, Some(&old))?;
+    ensure!(
+        plan.status.initialized && !plan.status.needs_update,
+        "run lore update before changing review state: sources, configuration and output must match the baseline"
+    );
+    let old_pages = storage::pages(&old)?;
+    publish::validate_existing(config, &old_pages, false)?;
+    drop(old);
+    publish::cleanup_abandoned(config)?;
+    let generation = util::id("run");
+    let _stage = publish::StageGuard::new(config, &generation)?;
+    let conn = storage::stage_database(
+        &old_path,
+        &publish::stage_dir(config, &generation).join("state.db"),
+    )?;
+    conn.execute_batch("BEGIN IMMEDIATE")?;
+    let changed = crate::reviews::manual(&conn, id, state, reason, actor)?;
+    if !changed {
+        conn.execute_batch("ROLLBACK")?;
+        return Ok(json!({"changed":false,"review_id":id,"status":state,"model_calls":0}));
+    }
+    let detail = crate::reviews::show(&conn, id)?;
+    let mut pages = old_pages.clone();
+    let rp = crate::reviews::page(&conn)?;
+    pages.insert(rp.path.clone(), rp);
+    let index = pages
+        .get_mut("index.md")
+        .context("missing project overview")?;
+    let start = index
+        .content
+        .find(crate::reviews::START)
+        .context("run lore update to add review status to the overview")?;
+    let end = index.content[start..]
+        .find(crate::reviews::END)
+        .context("invalid overview review marker")?
+        + start
+        + crate::reviews::END.len();
+    index
+        .content
+        .replace_range(start..end, &crate::reviews::status_block(&conn)?);
+    index.output_digest = util::digest(&index.content);
+    storage::save_pages(&conn, &pages)?;
+    conn.execute("INSERT INTO runs(id,project_id,phase,source_inventory_digest,started_at,finished_at) VALUES(?1,?2,'completed',?3,?4,?4)",params![generation,config.project_id,inventory.digest,util::now()])?;
+    let wiki_digest = util::json_digest(
+        &pages
+            .iter()
+            .map(|(p, v)| (p, &v.output_digest))
+            .collect::<Vec<_>>(),
+    )?;
+    conn.execute(
+        "INSERT INTO publications VALUES(?1,?2,?3,?4)",
+        params![generation, generation, wiki_digest, util::now()],
+    )?;
+    storage::set_meta(&conn, "generation", &generation)?;
+    ensure!(
+        sources::scan(config)?.digest == inventory.digest,
+        "source documents changed while updating a review"
+    );
+    publish::validate_existing(config, &old_pages, false)?;
+    conn.execute_batch("COMMIT")?;
+    conn.close().map_err(|(_, e)| e)?;
+    publish::commit(config, &generation, &pages)?;
+    Ok(json!({"changed":true,"review_id":id,"status":state,"model_calls":0,"detail":detail}))
+}
+
 pub fn evidence(config: &ResolvedConfig, id: &str) -> Result<Value> {
     let conn = storage::read_only(&config.state.join("state.db"))?;
     conn.query_row("SELECT e.source_id,s.root_id,r.observed_path,e.exact_excerpt,e.context_before,e.context_after,e.excerpt_digest,e.line_start,e.line_end,e.captured_at FROM evidence_snapshots e JOIN sources s ON s.id=e.source_id JOIN source_revisions r ON r.id=e.source_revision_id WHERE e.id=?1",[id],|r|Ok(json!({"id":id,"source_id":r.get::<_,String>(0)?,"root":r.get::<_,String>(1)?,"observed_path":r.get::<_,String>(2)?,"excerpt":r.get::<_,String>(3)?,"context_before":r.get::<_,String>(4)?,"context_after":r.get::<_,String>(5)?,"digest":r.get::<_,String>(6)?,"line_start":r.get::<_,Option<i64>>(7)?,"line_end":r.get::<_,Option<i64>>(8)?,"captured_at":r.get::<_,String>(9)?,"qualification":"Historical observation; not proof of current implementation."}))).context("evidence ID not found")

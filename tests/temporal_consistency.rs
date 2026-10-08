@@ -77,7 +77,7 @@ fn v2_database_can_upgrade_without_losing_records() {
     let version: i64 = db
         .pragma_query_value(None, "user_version", |r| r.get(0))
         .unwrap();
-    assert_eq!(version, 3);
+    assert_eq!(version, lore::storage::SCHEMA_VERSION);
     let count: i64 = db
         .query_row("SELECT count(*) FROM projects", [], |r| r.get(0))
         .unwrap();

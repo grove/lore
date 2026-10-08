@@ -58,7 +58,7 @@ pub(super) async fn build(
                 let u = units[end];
                 let mut evidence = u.evidence.iter().collect::<Vec<_>>();
                 evidence.sort_by_key(|e| !e.active);
-                let row = json!({"id":u.id,"statement":u.statement,"kind":u.kind,"lifecycle":u.lifecycle,"scope":u.scope,"effective_at":u.effective_at,"support_state":u.support_state,"relationships":u.relations,"evidence":evidence.into_iter().take(2).collect::<Vec<_>>()});
+                let row = json!({"id":u.id,"statement":u.statement,"kind":u.kind,"basis":domain::documentary_basis(&u.kind),"lifecycle":u.lifecycle,"scope":u.scope,"effective_at":u.effective_at,"support_state":u.support_state,"relationships":u.relations,"evidence":evidence.into_iter().take(2).collect::<Vec<_>>()});
                 let mut trial = data.clone();
                 trial.push(row.clone());
                 if json!({"task":"synthesize","topic":title,"knowledge":trial,"documented_decision_relationships":&topic_decisions})
@@ -260,13 +260,8 @@ pub(super) async fn build(
             },
         );
     }
-    let reviews: i64 = runner.conn.query_row(
-        "SELECT count(*) FROM review_items WHERE status='pending'",
-        [],
-        |r| r.get(0),
-    )?;
     let mut index = format!(
-        "# {} — project knowledge\n\nLore brings together the project's documented decisions, ideas, plans, observations and open questions. Follow a topic to its supporting sources. Archived statements explain history; they are not automatically current facts.\n\nThis wiki contains {} knowledge units across {} topics. There are {reviews} review items; run `lore audit` to inspect them.\n\n## Topics\n\n",
+        "# {} — project knowledge\n\nLore brings together the project's documented decisions, ideas, plans, observations and open questions. Follow a topic to its supporting sources. Archived statements explain history; they are not automatically current facts.\n\nThis wiki contains {} knowledge units across {} topics. See the review queue below for unresolved questions.\n\n## Topics\n\n",
         util::markdown_text(&runner.config.config.project.name),
         knowledge.len(),
         topics.len()
@@ -306,6 +301,12 @@ pub(super) async fn build(
             "These are documented decisions and relationships, not independent verification of a rollout.\n\n"
         );
     }
+    index.push_str(&format!(
+        "\n{}\n",
+        crate::reviews::status_block(runner.conn)?
+    ));
+    let review_page = crate::reviews::page(runner.conn)?;
+    pages.insert(review_page.path.clone(), review_page);
     pages.insert(
         "index.md".into(),
         StoredPage {
@@ -364,7 +365,10 @@ fn label(unit: &KnowledgeView) -> &'static str {
         return "Superseded decision";
     }
     match unit.kind.as_str() {
+        "design" => "Documented design, not independently verified",
         "plan" | "proposal" => "Proposed or planned work",
+        "constraint" => "Documented requirement",
+        "procedure" => "Documented procedure",
         "reported_outcome" => "Reported outcome, not independently verified",
         "decision" => "Documented decision",
         "question" | "risk" => "Open question or risk",
