@@ -81,7 +81,11 @@ pub fn openai_decisions_response(r:&DecisionRequest,raw:&Value)->Result<Decision
 pub fn systemone_response(r:&DecisionRequest,raw:&Value)->Result<DecisionResponse,ModelError>{
     let map=raw.get("answers").and_then(Value::as_object).ok_or_else(||invalid("expected answer map"))?;
     let mut answers=Vec::new();
-    for (name,answer) in map{
+    // Normalize to the request's declared question order. System One answers
+    // arrive in a JSON map, whose iteration order need not match the request.
+    for q in &r.questions {
+        let name=&q.name;
+        let answer=map.get(name).ok_or_else(||invalid("missing System One answer"))?;
         let value=match string(answer,"type")?{
             "noul"=>DecisionValue::Predicate(number(answer,"noul")?),
             "choice"=>DecisionValue::Choice{
