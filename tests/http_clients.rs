@@ -18,6 +18,10 @@ use std::{
     time::Duration,
 };
 
+// Isolate fixture runtimes and subprocesses across test-harness workers. The
+// compiler itself deliberately uses sequential inference in this release.
+static HTTP_FIXTURE_LOCK: Mutex<()> = Mutex::new(());
+
 #[derive(Debug, Clone)]
 struct Request {
     path: String,
@@ -78,7 +82,13 @@ impl Drop for Server {
     fn drop(&mut self) {
         self.stopped.store(true, Ordering::SeqCst);
         if let Some(h) = self.handle.take() {
-            h.join().unwrap();
+            if let Err(panic) = h.join() {
+                // A second panic during unwinding aborts the test executable and
+                // hides the original HTTP/client failure on Windows.
+                if !thread::panicking() {
+                    std::panic::resume_unwind(panic);
+                }
+            }
         }
     }
 }
@@ -179,6 +189,7 @@ fn question() -> DecisionRequest {
 }
 #[tokio::test]
 async fn calls_openai_responses_with_strict_schema_and_no_storage() {
+    let _serial = HTTP_FIXTURE_LOCK.lock().unwrap_or_else(|p| p.into_inner());
     let (_dir, cfg, _) = project();
     let server = Server::new(|r, _| {
         assert_eq!(r.path, "/v1/responses");
@@ -200,6 +211,7 @@ async fn calls_openai_responses_with_strict_schema_and_no_storage() {
 }
 #[tokio::test]
 async fn decision_http_paths_and_predicate_mappings_match_each_backend() {
+    let _serial = HTTP_FIXTURE_LOCK.lock().unwrap_or_else(|p| p.into_inner());
     let (_dir, cfg, _) = project();
     for provider in ["openai", "ollama", "typesafe"] {
         let p = provider.to_owned();
@@ -230,6 +242,7 @@ async fn decision_http_paths_and_predicate_mappings_match_each_backend() {
 }
 #[tokio::test]
 async fn retries_transient_errors_and_withholds_failure_body() {
+    let _serial = HTTP_FIXTURE_LOCK.lock().unwrap_or_else(|p| p.into_inner());
     let (_dir, cfg, _) = project();
     let server = Server::new(|_, attempt| {
         if attempt == 1 {
@@ -297,6 +310,7 @@ fn local_only_rejects_remote_hosts_before_network_io() {
 }
 #[test]
 fn real_cli_compiles_over_http_then_updates_with_server_offline() {
+    let _serial = HTTP_FIXTURE_LOCK.lock().unwrap_or_else(|p| p.into_inner());
     let (_dir, cfg, _) = project();
     put(
         &cfg,
@@ -342,7 +356,8 @@ fn real_cli_compiles_over_http_then_updates_with_server_offline() {
     let first = run(&["init"]);
     assert!(
         first.status.success(),
-        "{}",
+        "stdout: {}\nstderr: {}",
+        String::from_utf8_lossy(&first.stdout),
         String::from_utf8_lossy(&first.stderr)
     );
     assert_eq!(
@@ -353,7 +368,8 @@ fn real_cli_compiles_over_http_then_updates_with_server_offline() {
     let noop = run(&["update"]);
     assert!(
         noop.status.success(),
-        "{}",
+        "stdout: {}\nstderr: {}",
+        String::from_utf8_lossy(&noop.stdout),
         String::from_utf8_lossy(&noop.stderr)
     );
     let result: Value = serde_json::from_slice(&noop.stdout).unwrap();
