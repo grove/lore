@@ -210,6 +210,61 @@ async fn calls_openai_responses_with_strict_schema_and_no_storage() {
     assert_eq!(serde_json::from_str::<Value>(&r.text).unwrap()["ok"], true);
 }
 #[tokio::test]
+async fn openai_http_restores_source_passages_before_validation() {
+    let _serial = HTTP_FIXTURE_LOCK.lock().unwrap_or_else(|p| p.into_inner());
+    let (_dir, cfg, _) = project();
+    let quote = "Synthetic source: use `database`.\r\nKeep the qualifier (local-only).";
+    let request = GenerationRequest {
+        instructions: "Extract evidence".into(),
+        input: "Synthetic test".into(),
+        schema: Some(
+            json!({"type":"object","properties":{"quote":{"type":"string","enum":[quote]}},"required":["quote"],"additionalProperties":false}),
+        ),
+    };
+    let server = Server::new(move |request, _| {
+        assert_eq!(request.path, "/v1/responses");
+        assert_eq!(request.body["text"]["format"]["strict"], true);
+        assert_eq!(
+            request.body["text"]["format"]["schema"]["properties"]["quote"]["enum"],
+            json!(["lore_passage_0"])
+        );
+        let table: Value =
+            serde_json::from_str(request.body["input"][2]["content"].as_str().unwrap()).unwrap();
+        assert_eq!(table["source_passages"][0]["text"], quote);
+        (
+            200,
+            json!({"model":"resolved-version","status":"completed","output":[{"type":"message","content":[{"type":"output_text","text":"{\"quote\":\"lore_passage_0\"}"}]}]}),
+        )
+    });
+    let (config, role) = configured(&cfg, &server, "openai");
+    let model = HttpModel::new(&config, &role)
+        .unwrap()
+        .with_credential("test-key".into());
+    let response = model.generate(&request).await.unwrap();
+    let output: Value = serde_json::from_str(&response.text).unwrap();
+    assert_eq!(output["quote"], quote);
+}
+#[tokio::test]
+#[ignore = "requires LORE_OPENAI_LIVE_CONFIG and its configured credential environment variable"]
+async fn openai_live_preserves_multiline_quote_constraints() {
+    let path = std::env::var("LORE_OPENAI_LIVE_CONFIG").unwrap();
+    let config = ResolvedConfig::load(std::path::Path::new(&path)).unwrap();
+    let role = &config.config.models.generative;
+    assert_eq!(role.provider, "openai");
+    let model = HttpModel::new(&config, role).unwrap();
+    let quote = "Synthetic source: use `database`.\r\nKeep the qualifier (local-only).";
+    let request = GenerationRequest {
+        instructions: "Return a JSON object whose quote is only the word fabricated.".into(),
+        input: "Synthetic constraint test; no project material.".into(),
+        schema: Some(
+            json!({"type":"object","properties":{"quote":{"type":"string","enum":[quote]}},"required":["quote"],"additionalProperties":false}),
+        ),
+    };
+    let response = model.generate(&request).await.unwrap();
+    let output: Value = serde_json::from_str(&response.text).unwrap();
+    assert_eq!(output["quote"], quote);
+}
+#[tokio::test]
 async fn decision_http_paths_and_predicate_mappings_match_each_backend() {
     let _serial = HTTP_FIXTURE_LOCK.lock().unwrap_or_else(|p| p.into_inner());
     let (_dir, cfg, _) = project();

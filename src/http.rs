@@ -271,7 +271,13 @@ impl GenerativeModel for HttpModel {
                 }
             };
             let raw = self.send(endpoint, Some(&body)).await?;
-            decode_generation(&self.descriptor.provider, &raw)
+            let mut response = decode_generation(&self.descriptor.provider, &raw)?;
+            if self.descriptor.provider == Provider::OpenAi {
+                if let Some(schema) = &request.schema {
+                    response.text = restore_openai_output(schema, &response.text)?;
+                }
+            }
+            Ok(response)
         })
     }
 }

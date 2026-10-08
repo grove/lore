@@ -141,3 +141,75 @@ fn generative_requests_are_provider_specific_and_remote_is_opt_in() {
 }
 #[allow(dead_code)]
 fn ensure_object_safe_traits(_: &dyn GenerativeModel, _: &dyn DecisionModel) {}
+
+#[test]
+fn openai_uses_passage_ids_without_changing_ollama_schema() {
+    let schema = lore::domain::extraction_schema_for("First source line.\nSecond source line.");
+    let request = GenerationRequest {
+        instructions: "Extract assertions".into(),
+        input: "First source line.\nSecond source line.".into(),
+        schema: Some(schema.clone()),
+    };
+    let hosted = openai_responses_request(&request, "gpt-6-luna");
+    let properties =
+        &hosted["text"]["format"]["schema"]["properties"]["assertions"]["items"]["properties"];
+    assert_eq!(properties["quote"]["type"], "string");
+    assert_eq!(
+        properties["quote"]["enum"],
+        json!(["lore_passage_0", "lore_passage_1", "lore_passage_2"])
+    );
+    assert!(properties["quote"].get("pattern").is_none());
+    let table: serde_json::Value =
+        serde_json::from_str(hosted["input"][2]["content"].as_str().unwrap()).unwrap();
+    assert_eq!(
+        table["source_passages"][1]["text"],
+        "First source line.\nSecond source line."
+    );
+    let output =
+        json!({"assertions":[{"quote":"lore_passage_1","statement":"unchanged"}]}).to_string();
+    let restored: serde_json::Value = serde_json::from_str(
+        &lore::provider_wire::restore_openai_output(&schema, &output).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(
+        restored["assertions"][0]["quote"],
+        table["source_passages"][1]["text"]
+    );
+    assert_eq!(restored["assertions"][0]["statement"], "unchanged");
+    let invented = json!({"assertions":[{"quote":"lore_passage_999"}]}).to_string();
+    assert!(lore::provider_wire::restore_openai_output(&schema, &invented).is_err());
+    assert_eq!(
+        properties["kind"],
+        schema["properties"]["assertions"]["items"]["properties"]["kind"]
+    );
+    assert_eq!(
+        ollama_chat_request(&request, "gemma4:12b")["format"],
+        schema
+    );
+    assert_eq!(request.schema, Some(schema));
+}
+
+#[test]
+fn openai_passage_ids_preserve_source_bytes_and_empty_quotes() {
+    let request = GenerationRequest {
+        instructions: "Reconcile assertions".into(),
+        input: "Source text".into(),
+        schema: Some(json!({"type":"string","enum":["", "(a)[b]{c}.*+?^$|\\\r\n\t"]})),
+    };
+    let hosted = openai_responses_request(&request, "gpt-6-luna");
+    assert_eq!(
+        hosted["text"]["format"]["schema"]["enum"],
+        json!(["", "lore_passage_0"])
+    );
+    let schema = request.schema.as_ref().unwrap();
+    assert_eq!(
+        lore::provider_wire::restore_openai_output(schema, "\"\"").unwrap(),
+        "\"\""
+    );
+    let restored =
+        lore::provider_wire::restore_openai_output(schema, "\"lore_passage_0\"").unwrap();
+    assert_eq!(
+        serde_json::from_str::<String>(&restored).unwrap(),
+        "(a)[b]{c}.*+?^$|\\\r\n\t"
+    );
+}
