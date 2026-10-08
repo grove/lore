@@ -35,6 +35,11 @@ pub fn reject_symlinks(path: &Path) -> Result<()> {
     let mut current = PathBuf::new();
     for component in path.components() {
         current.push(component);
+        // A Windows drive/UNC prefix alone is not a filesystem entry. Inspect
+        // the complete root on the next component, then every descendant.
+        if matches!(component, Component::Prefix(_)) {
+            continue;
+        }
         match fs::symlink_metadata(&current) {
             Ok(metadata) => ensure!(
                 !metadata.file_type().is_symlink(),
