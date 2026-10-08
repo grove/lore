@@ -24,6 +24,11 @@ jobs:
         run: cargo test --all-targets --locked
       - name: Benchmark harness tests (no inference)
         run: python -m unittest discover -s evaluation/tests -v
+      - name: Pinned public corpus preparation (no inference)
+        if: runner.os == 'Linux'
+        run: |
+          python evaluation/benchmark.py prepare --target openwiki --output /tmp/lore-eval-openwiki
+          python evaluation/benchmark.py prepare --target llm-wiki --output /tmp/lore-eval-llm-wiki
       - name: CLI help
         run: cargo run --locked -- --help
       - name: CLI version
