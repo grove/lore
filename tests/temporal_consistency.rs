@@ -138,7 +138,6 @@ impl lore::inference::GenerativeModel for RepeatedBadEffectiveDate {
         &'a self,
         request: &'a lore::inference::GenerationRequest,
     ) -> lore::inference::ModelFuture<'a, lore::inference::GenerationResponse> {
-        use lore::inference::GenerativeModel;
         use std::sync::atomic::Ordering;
 
         Box::pin(async move {

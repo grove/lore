@@ -268,7 +268,13 @@ fn extraction_schema_only_offers_unique_verbatim_source_passages() {
     let reconciliation = lore::domain::reconciliation_schema();
     assert_eq!(
         reconciliation["properties"]["relations"]["items"]["properties"]["kind"]["enum"],
-        serde_json::json!(["elaborates", "contradicts", "supersedes", "uncertain"])
+        serde_json::json!([
+            "elaborates",
+            "contradicts",
+            "supersedes",
+            "reaffirms",
+            "uncertain"
+        ])
     );
     let targets = ["unit-example".to_owned()].into_iter().collect();
     let reconciliation = lore::domain::reconciliation_schema_for(&targets, &chunk.text);
