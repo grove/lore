@@ -158,22 +158,47 @@ fn object(properties: Value, required: &[&str]) -> Value {
 /// explicitly named effective-time metadata field actually grounds it.
 /// A document's "Date:" / "Created:" field is *not* event effective time.
 pub fn effective_time_grounded(quote: &str, context: &str, effective_at: &str) -> bool {
-    let time=effective_at.trim();
-    if time.is_empty() { return true; }
-    let lower=quote.to_lowercase();
-    let mentioned=quote.contains(time);
-    let explicit= [
-        "effective", "as of", "since", "went live", "took effect",
-        "deployed", "rolled out", "became", "completed on", "started on",
-        "approved on"
-    ].iter().any(|token|lower.contains(token))
-        || lower.contains(&format!("on {}",time.to_lowercase()));
-    if mentioned && explicit { return true; }
+    let time = effective_at.trim();
+    if time.is_empty() {
+        return true;
+    }
+    let lower = quote.to_lowercase();
+    let mentioned = quote.contains(time);
+    let explicit = [
+        "effective",
+        "as of",
+        "since",
+        "went live",
+        "took effect",
+        "deployed",
+        "rolled out",
+        "became",
+        "completed on",
+        "started on",
+        "approved on",
+    ]
+    .iter()
+    .any(|token| lower.contains(token))
+        || lower.contains(&format!("on {}", time.to_lowercase()));
+    if mentioned && explicit {
+        return true;
+    }
     context.lines().any(|line| {
-        let line=line.trim().trim_start_matches(|c: char| c == '-' || c == '*' || c == ' ').to_lowercase();
-        ["effective:", "effective_at:", "effective date:", "effective-date:",
-         "in effect from:", "deployed on:", "deployed_at:"]
-            .iter().any(|prefix|line.starts_with(prefix))
+        let line = line
+            .trim()
+            .trim_start_matches(|c: char| c == '-' || c == '*' || c == ' ')
+            .to_lowercase();
+        [
+            "effective:",
+            "effective_at:",
+            "effective date:",
+            "effective-date:",
+            "in effect from:",
+            "deployed on:",
+            "deployed_at:",
+        ]
+        .iter()
+        .any(|prefix| line.starts_with(prefix))
             && line.contains(&time.to_lowercase())
     })
 }

@@ -110,5 +110,9 @@ fn publication_date_is_not_decision_effective_date() {
         "Effective date: 2026-07-15",
         "2026-07-15"
     ));
-    assert!(effective_time_grounded("Any source text","Date: 2026-07-01",""));
+    assert!(effective_time_grounded(
+        "Any source text",
+        "Date: 2026-07-01",
+        ""
+    ));
 }
