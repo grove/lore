@@ -4,7 +4,7 @@ This report deliberately separates implemented tooling from measured model quali
 
 | Area | Current evidence | Status |
 | --- | --- | --- |
-| Evaluation harness | Five offline standard-library unit tests | Passing locally before GitHub integration |
+| Evaluation harness | Six offline standard-library unit tests | Run in GitHub CI; see Actions for the measured result |
 | Atlas sources | Nine initial Markdown files plus two explicit later changes | Prepared |
 | Atlas gold labels | Eleven source checkpoints and three relationship checks | Source text verified, model output **not scored** |
 | Lore-self | Current README and implementation documentation | Target defined; real inference not run |
