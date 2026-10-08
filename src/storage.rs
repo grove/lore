@@ -1,5 +1,5 @@
 use anyhow::{Context, Result, ensure};
-use rusqlite::{Connection, DatabaseName, OpenFlags, OptionalExtension, params};
+use rusqlite::{Connection, MAIN_DB, OpenFlags, OptionalExtension, params};
 use serde::{Deserialize, Serialize};
 use std::{collections::{BTreeMap, BTreeSet}, path::Path};
 use crate::{domain::{AssertionProposal, EvidenceView, KnowledgeView}, sources::{Chunk, Document, locate_quote}, util};
@@ -23,7 +23,7 @@ pub fn read_only(path: &Path) -> Result<Connection> {
     Ok(Connection::open_with_flags(path, OpenFlags::SQLITE_OPEN_READ_ONLY)?)
 }
 pub fn stage_database(old: &Path, stage: &Path) -> Result<Connection> {
-    if old.exists() { read_only(old)?.backup(DatabaseName::Main, stage, None)?; }
+    if old.exists() { read_only(old)?.backup(MAIN_DB, stage, None)?; }
     let conn = Connection::open(stage)?;
     migrate(&conn).context("database migration failed")?;
     conn.pragma_update(None, "journal_mode", "DELETE")?;
@@ -31,7 +31,6 @@ pub fn stage_database(old: &Path, stage: &Path) -> Result<Connection> {
     Ok(conn)
 }
 pub fn meta(conn: &Connection, key: &str) -> Result<Option<String>> {
-    // Foundation-only databases have no runtime metadata and require rebuilding.
     let exists: i64 = conn.query_row("SELECT count(*) FROM sqlite_master WHERE name='lore_meta'", [], |r| r.get(0))?;
     if exists == 0 { return Ok(None); }
     Ok(conn.query_row("SELECT value FROM lore_meta WHERE key=?1", [key], |r| r.get(0)).optional()?)
@@ -84,7 +83,6 @@ pub fn begin_section(conn: &Connection, source: &str, revision: &str, chunk: &Ch
     conn.execute("INSERT INTO current_sections VALUES(?1,?2,?3,?4,?5)", params![section,source,chunk.key,section_revision,chunk.input_digest])?;
     Ok((section,section_revision))
 }
-
 pub struct AssertionCapture<'a> {
     pub document: &'a Document, pub chunk: &'a Chunk, pub proposal: &'a AssertionProposal,
     pub source: &'a str, pub source_revision: &'a str, pub section: &'a str,
@@ -95,8 +93,7 @@ pub fn capture_assertion(conn: &Connection, c: AssertionCapture<'_>) -> Result<(
     if !c.proposal.effective_at.is_empty() { ensure!(c.chunk.text.contains(&c.proposal.effective_at) || c.chunk.context.contains(&c.proposal.effective_at), "effective time is not an explicit source phrase"); }
     let (first,last,before,after) = locate_quote(c.document,c.chunk,&c.proposal.quote)?;
     let evidence = format!("ev_{}", &util::json_digest(&(c.source_revision,c.section_revision,&c.proposal.quote,first,last))?[7..]);
-    conn.execute("INSERT OR IGNORE INTO evidence_snapshots(id,source_id,source_revision_id,section_revision_id,exact_excerpt,context_before,context_after,excerpt_digest,line_start,line_end,captured_at) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11)",
-        params![evidence,c.source,c.source_revision,c.section_revision,c.proposal.quote,before,after,util::digest(&c.proposal.quote),first as i64,last as i64,util::now()])?;
+    conn.execute("INSERT OR IGNORE INTO evidence_snapshots(id,source_id,source_revision_id,section_revision_id,exact_excerpt,context_before,context_after,excerpt_digest,line_start,line_end,captured_at) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11)",params![evidence,c.source,c.source_revision,c.section_revision,c.proposal.quote,before,after,util::digest(&c.proposal.quote),first as i64,last as i64,util::now()])?;
     let lineage = util::json_digest(&(c.source,c.section,&c.proposal.subject,&c.proposal.statement,&c.proposal.kind,&c.proposal.scope,&c.proposal.effective_at))?;
     let assertion = format!("as_{}", &lineage[7..]);
     conn.execute("INSERT OR IGNORE INTO source_assertions VALUES(?1,?2,?3)", params![assertion,c.source,util::now()])?;
@@ -128,7 +125,6 @@ pub fn create_unit(conn: &Connection, project: &str, assertion: &str, a: &Assert
     conn.execute("INSERT INTO knowledge_details VALUES(?1,?2,?3,?4,?5,?6)",params![unit,topic,a.subject,a.scope,a.effective_at,a.lifecycle])?;
     conn.execute("INSERT INTO topic_units VALUES(?1,?2)",params![topic,unit])?;
     assign(conn,assertion,&unit)?;
-    // Initial revision establishes a valid target for later relationship edges.
     write_revision(conn,&unit,&a.statement,&a.kind,&a.lifecycle,"current_documentary_support", "", "initial")?;
     Ok(unit)
 }
@@ -141,7 +137,6 @@ fn write_revision(conn: &Connection, unit: &str, statement: &str, kind: &str, li
     conn.execute("INSERT INTO knowledge_current VALUES(?1,?2,?3) ON CONFLICT(knowledge_id) DO UPDATE SET revision_id=excluded.revision_id,input_digest=excluded.input_digest",params![unit,revision,fingerprint])?;
     Ok(revision)
 }
-
 #[derive(Debug,Clone,Serialize)]
 pub struct RelationRow { pub from: String, pub to: String, pub kind: String, pub active: bool }
 pub fn relations(conn: &Connection) -> Result<Vec<RelationRow>> {
@@ -150,6 +145,8 @@ pub fn relations(conn: &Connection) -> Result<Vec<RelationRow>> {
 }
 pub fn add_relation(conn: &Connection, from: &str, to: &str, kind: &str, assertion: &str, evidence: &str) -> Result<()> {
     ensure!(from!=to,"self-relationship is not allowed");
+    let same_source_revision:bool=conn.query_row("SELECT EXISTS(SELECT 1 FROM assertion_revisions a JOIN evidence_snapshots e ON e.source_revision_id=a.source_revision_id AND e.source_id=a.source_id WHERE a.id=?1 AND e.id=?2)",params![assertion,evidence],|r|r.get(0))?;
+    ensure!(same_source_revision,"relationship evidence belongs to a different source revision");
     if kind=="supersedes" {
         let edges=relations(conn)?; let mut stack=vec![to.to_owned()]; let mut seen=BTreeSet::new();
         while let Some(node)=stack.pop() {
