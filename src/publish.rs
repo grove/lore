@@ -276,7 +276,12 @@ pub fn commit(
     util::sync_directory(&wiki_stage)?;
     let db = stage_dir(config, generation).join("state.db");
     ensure!(db.is_file(), "staged database missing");
-    File::open(&db)?.sync_all()?;
+    // Windows FlushFileBuffers requires write access, even when no bytes change.
+    OpenOptions::new()
+        .read(true)
+        .write(true)
+        .open(&db)?
+        .sync_all()?;
     let journal = Journal {
         project_id: config.project_id.clone(),
         generation: generation.to_owned(),
