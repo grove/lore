@@ -138,16 +138,15 @@ impl lore::inference::GenerativeModel for RepeatedBadEffectiveDate {
         &'a self,
         request: &'a lore::inference::GenerationRequest,
     ) -> lore::inference::ModelFuture<'a, lore::inference::GenerationResponse> {
-        use std::sync::atomic::Ordering;
         use lore::inference::GenerativeModel;
+        use std::sync::atomic::Ordering;
 
         Box::pin(async move {
             let mut response = self.inner.generate(request).await?;
             let input: serde_json::Value = serde_json::from_str(&request.input).unwrap();
             if input["task"] == "extract" {
                 self.extraction_calls.fetch_add(1, Ordering::SeqCst);
-                let mut payload: serde_json::Value =
-                    serde_json::from_str(&response.text).unwrap();
+                let mut payload: serde_json::Value = serde_json::from_str(&response.text).unwrap();
                 for assertion in payload["assertions"].as_array_mut().unwrap() {
                     let quote = assertion["quote"].as_str().unwrap();
                     let date = if quote.contains("became the primary on 2026-08-18") {
@@ -187,10 +186,12 @@ async fn unsupported_model_effective_dates_are_cleared_without_aborting_extracti
     assert_eq!(result.processed_sections, 2);
     // An unsupported *optional* date must not consume a failed repair call.
     assert_eq!(model.extraction_calls.load(Ordering::SeqCst), 2);
-    assert!(result
-        .warnings
-        .iter()
-        .any(|w| w.contains("Cleared 1 unsupported effective time")));
+    assert!(
+        result
+            .warnings
+            .iter()
+            .any(|w| w.contains("Cleared 1 unsupported effective time"))
+    );
 
     let conn = storage::read_only(&cfg.state.join("state.db")).unwrap();
     let units = storage::views(&conn).unwrap();

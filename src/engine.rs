@@ -330,7 +330,9 @@ pub async fn update(
                                 .with_context(|| format!("assertion {} evidence", index + 1))?;
                             if !a.effective_at.is_empty()
                                 && (!domain::effective_time_grounded(
-                                    &a.quote, &chunk.context, &a.effective_at
+                                    &a.quote,
+                                    &chunk.context,
+                                    &a.effective_at,
                                 ) || !(chunk.text.contains(&a.effective_at)
                                     || chunk.context.contains(&a.effective_at)))
                             {
