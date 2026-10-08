@@ -22,14 +22,16 @@ jobs:
         run: cargo fmt --all -- --check
       - name: Build and run offline Rust tests
         run: cargo test --all-targets --locked
-      - name: Benchmark harness tests (no inference)
+      - name: Benchmark and assessment tests (no inference)
         run: python -m unittest discover -s evaluation/tests -v
-      - name: Pinned public corpus preparation (no inference)
+      - name: Prepare validation corpora (no inference)
         if: runner.os == 'Linux'
         run: |
-          python evaluation/benchmark.py prepare --target openwiki --output /tmp/lore-eval-openwiki
+          python evaluation/suite.py prepare --output /tmp/lore-v02-corpora
           python evaluation/benchmark.py prepare --target llm-wiki --output /tmp/lore-eval-llm-wiki
       - name: CLI help
         run: cargo run --locked -- --help
+      - name: Review CLI help
+        run: cargo run --locked -- review --help
       - name: CLI version
         run: cargo run --locked -- --version
