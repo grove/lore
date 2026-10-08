@@ -23,11 +23,19 @@ pub(super) async fn build(
     // relationship in the old topic's digest so that the old page is revalidated.
     let decisions = timeline::decision_links(knowledge, &crate::storage::relations(runner.conn)?);
     for (slug, units) in &topics {
-        let topic_decisions: Vec<_> = decisions.iter()
-            .filter(|r| r.touches(slug)).cloned().collect();
+        let topic_decisions: Vec<_> = decisions
+            .iter()
+            .filter(|r| r.touches(slug))
+            .cloned()
+            .collect();
         util::safe_slug(slug)?;
         let path = format!("topics/{slug}.md");
-        let input_digest = util::json_digest(&("page-v2", units, &topic_decisions, &runner.config.fingerprint))?;
+        let input_digest = util::json_digest(&(
+            "page-v2",
+            units,
+            &topic_decisions,
+            &runner.config.fingerprint,
+        ))?;
         if !force {
             if let Some(page) = old.get(&path) {
                 if page.input_digest == input_digest {
@@ -143,10 +151,15 @@ pub(super) async fn build(
                 };
                 content.push_str(&format!(
                     "- **[{}]({}.md)** {} **[{}]({}.md)**. {} ({}). {} ({}).",
-                    util::markdown_text(&link.from_title), link.from_topic, verb,
-                    util::markdown_text(&link.to_title), link.to_topic,
-                    util::markdown_text(&link.from_statement), link.from_id,
-                    util::markdown_text(&link.to_statement), link.to_id
+                    util::markdown_text(&link.from_title),
+                    link.from_topic,
+                    verb,
+                    util::markdown_text(&link.to_title),
+                    link.to_topic,
+                    util::markdown_text(&link.from_statement),
+                    link.from_id,
+                    util::markdown_text(&link.to_statement),
+                    link.to_id
                 ));
                 if let Some(time) = &link.claimed_effective_at {
                     content.push_str(&format!(
@@ -278,8 +291,11 @@ pub(super) async fn build(
             };
             index.push_str(&format!(
                 "- [{}](topics/{}.md) {} [{}](topics/{}.md).",
-                util::markdown_text(&link.from_title), link.from_topic, verb,
-                util::markdown_text(&link.to_title), link.to_topic
+                util::markdown_text(&link.from_title),
+                link.from_topic,
+                verb,
+                util::markdown_text(&link.to_title),
+                link.to_topic
             ));
             if let Some(evidence) = &link.evidence_id {
                 index.push_str(&format!(" Evidence snapshot: {}.", evidence));

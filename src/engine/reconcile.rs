@@ -40,7 +40,10 @@ pub(super) async fn apply(
     let mut proposals = Vec::<RelationProposal>::new();
     let mut uncertain = false;
     for v in &candidates {
-        if v.same_semantics(assertion) && v.statement == assertion.statement && !is_reaffirmation_event(assertion) {
+        if v.same_semantics(assertion)
+            && v.statement == assertion.statement
+            && !is_reaffirmation_event(assertion)
+        {
             equivalents.insert(v.id.clone());
         }
     }
@@ -95,8 +98,14 @@ pub(super) async fn apply(
                             "unknown relationship target"
                         );
                         ensure!(
-                            ["elaborates", "contradicts", "supersedes", "reaffirms", "uncertain"]
-                                .contains(&p.kind.as_str()),
+                            [
+                                "elaborates",
+                                "contradicts",
+                                "supersedes",
+                                "reaffirms",
+                                "uncertain"
+                            ]
+                            .contains(&p.kind.as_str()),
                             "invalid relationship type"
                         );
                         ensure!(
@@ -120,7 +129,10 @@ pub(super) async fn apply(
                 .iter()
                 .find(|v| v.id == answer.equivalent_to)
                 .unwrap();
-            if candidate.same_semantics(assertion) && !answer.uncertain && !is_reaffirmation_event(assertion) {
+            if candidate.same_semantics(assertion)
+                && !answer.uncertain
+                && !is_reaffirmation_event(assertion)
+            {
                 equivalents.insert(candidate.id.clone());
             } else {
                 uncertain = true;
@@ -221,15 +233,19 @@ pub(super) async fn apply(
             "reaffirms" => {
                 if explicit_reaffirmation(assertion, old, &relation, chunk) {
                     let quote_id = capture_relation_quote(
-                        conn, document, chunk, source, source_revision,
-                        section_revision, &relation.quote
+                        conn,
+                        document,
+                        chunk,
+                        source,
+                        source_revision,
+                        section_revision,
+                        &relation.quote,
                     )?;
-                    storage::add_reaffirmation(
-                        conn, &target, &old.id, assertion_id, &quote_id
-                    )?;
+                    storage::add_reaffirmation(conn, &target, &old.id, assertion_id, &quote_id)?;
                 } else {
                     storage::review(
-                        conn, &config.project_id,
+                        conn,
+                        &config.project_id,
                         &format!("reaffirmation:{assertion_id}:{}", old.id),
                         &format!(
                             "Suggested reaffirmation of {} by {target} lacks explicit, scoped evidence.",
@@ -283,8 +299,14 @@ fn is_reaffirmation_event(a: &AssertionProposal) -> bool {
     }
     let quote = a.quote.to_ascii_lowercase();
     let statement = a.statement.to_ascii_lowercase();
-    ["reaffirm", "reconfirm", "remains committed", "still committed"]
-        .iter().any(|phrase| quote.contains(phrase) || statement.contains(phrase))
+    [
+        "reaffirm",
+        "reconfirm",
+        "remains committed",
+        "still committed",
+    ]
+    .iter()
+    .any(|phrase| quote.contains(phrase) || statement.contains(phrase))
 }
 fn explicit_reaffirmation(
     new: &AssertionProposal,
@@ -303,17 +325,30 @@ fn explicit_reaffirmation(
         return false;
     }
     let quote = relation.quote.to_ascii_lowercase();
-    if !["reaffirm", "reconfirm", "remains committed", "still committed"]
-        .iter().any(|phrase| quote.contains(phrase))
+    if ![
+        "reaffirm",
+        "reconfirm",
+        "remains committed",
+        "still committed",
+    ]
+    .iter()
+    .any(|phrase| quote.contains(phrase))
     {
         return false;
     }
     // Prefer explicit predecessor identification over overlapping topic words.
     old.evidence.iter().any(|e| {
-        let path = e.source.split_once(':').map_or(e.source.as_str(), |(_, p)| p);
+        let path = e
+            .source
+            .split_once(':')
+            .map_or(e.source.as_str(), |(_, p)| p);
         let stem = std::path::Path::new(path)
-            .file_stem().and_then(|s| s.to_str()).unwrap_or("").to_ascii_lowercase();
-        stem.len() >= 4 && !matches!(stem.as_str(), "readme" | "index" | "design")
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .unwrap_or("")
+            .to_ascii_lowercase();
+        stem.len() >= 4
+            && !matches!(stem.as_str(), "readme" | "index" | "design")
             && quote.contains(&stem)
     }) || quote.contains(&old.statement.to_ascii_lowercase())
 }

@@ -404,26 +404,44 @@ pub struct RelationRow {
 }
 pub fn relations(conn: &Connection) -> Result<Vec<RelationRow>> {
     let mut s=conn.prepare("SELECT f.knowledge_id,t.knowledge_id,r.relation,EXISTS(SELECT 1 FROM active_assertions a WHERE a.assertion_revision_id=ra.assertion_revision_id) FROM knowledge_relations r JOIN knowledge_revisions f ON f.id=r.from_revision_id JOIN knowledge_revisions t ON t.id=r.to_revision_id JOIN relation_assertions ra ON ra.relation_id=r.id ORDER BY r.id")?;
-    let mut edges=s.query_map([], |r| {
-        Ok(RelationRow {from:r.get(0)?,to:r.get(1)?,kind:r.get(2)?,active:r.get(3)?})
-    })?.collect::<rusqlite::Result<Vec<_>>>()?;
+    let mut edges = s
+        .query_map([], |r| {
+            Ok(RelationRow {
+                from: r.get(0)?,
+                to: r.get(1)?,
+                kind: r.get(2)?,
+                active: r.get(3)?,
+            })
+        })?
+        .collect::<rusqlite::Result<Vec<_>>>()?;
     let mut s=conn.prepare("SELECT from_unit_id,to_unit_id,EXISTS(SELECT 1 FROM active_assertions a WHERE a.assertion_revision_id=reaffirmation_links.assertion_revision_id) FROM reaffirmation_links ORDER BY id")?;
-    let reaffirmations=s.query_map([], |r| {
-        Ok(RelationRow {from:r.get(0)?,to:r.get(1)?,kind:"reaffirms".into(),active:r.get(2)?})
-    })?.collect::<rusqlite::Result<Vec<_>>>()?;
+    let reaffirmations = s
+        .query_map([], |r| {
+            Ok(RelationRow {
+                from: r.get(0)?,
+                to: r.get(1)?,
+                kind: "reaffirms".into(),
+                active: r.get(2)?,
+            })
+        })?
+        .collect::<rusqlite::Result<Vec<_>>>()?;
     edges.extend(reaffirmations);
     Ok(edges)
 }
 /// A reaffirmation is a distinct historical project event, not equivalent
 /// support for the original decision. Link only exact source-backed evidence.
 pub fn add_reaffirmation(
-    conn: &Connection, from: &str, to: &str, assertion: &str, evidence: &str
+    conn: &Connection,
+    from: &str,
+    to: &str,
+    assertion: &str,
+    evidence: &str,
 ) -> Result<()> {
     ensure!(from != to, "a decision cannot reaffirm itself");
-    let id=format!("reaf_{}", &util::json_digest(&(from,to,assertion))?[7..]);
+    let id = format!("reaf_{}", &util::json_digest(&(from, to, assertion))?[7..]);
     conn.execute(
         "INSERT OR IGNORE INTO reaffirmation_links VALUES(?1,?2,?3,?4,?5,?6)",
-        params![id,from,to,assertion,evidence,util::now()]
+        params![id, from, to, assertion, evidence, util::now()],
     )?;
     Ok(())
 }
