@@ -1,6 +1,8 @@
 # Lore — Technical Design
 
-**Status:** Draft v0.3 · **Date:** 2026-10-08 · **Implementation status:** Proposed, not yet implemented
+**Status:** Draft v0.4 · **Date:** 2026-10-08 · **Implementation status:** Proposed, not yet implemented
+
+The first implementation foundation is now committed: [Rust inference contracts, offline provider wire-format tests, and a versioned SQLite migration](docs/FOUNDATION.md). The CLI, live HTTP clients, and full reconciliation engine remain future implementation work.
 
 ## 1. Overview
 

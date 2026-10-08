@@ -1,0 +1,13 @@
+[package]
+name = "lore"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+description = "Foundation contracts for a project knowledge compiler"
+
+[dependencies]
+rusqlite = { version = "0.37", features = ["bundled"] }
+serde_json = "1"
+
+[lib]
+path = "src/lib.rs"

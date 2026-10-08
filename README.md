@@ -6,7 +6,7 @@ Projects accumulate knowledge in all sorts of places. Architecture documents exp
 
 Lore is not meant to produce a stack of summaries, one for each source file. Instead, it will look across documents for important concepts, decisions, proposals, relationships, and unresolved questions, then explain those subjects in pages organized around the project itself. Every meaningful conclusion should remain traceable to the material that supports it. The result is intended to be useful whether you're joining the project, working on a feature, reviewing an old decision, or giving a coding agent the context it needs.
 
-> **Project status:** Lore is currently in the design phase. The CLI, commands, and configuration examples below describe the intended experience; they are **not yet available to install or run**. See [DESIGN.md](DESIGN.md) for the technical design and implementation plan.
+> **Project status:** Lore now has an initial Rust foundation for model interfaces, offline provider contracts, and persistent knowledge storage, but it does **not** yet have a working CLI or live inference implementation. The commands and configuration below describe the intended experience. See [DESIGN.md](DESIGN.md) for the technical design and [the foundation notes](docs/FOUNDATION.md) for what is implemented.
 
 ## A project is more than its documentation
 
