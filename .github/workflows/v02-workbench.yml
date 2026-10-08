@@ -1,0 +1,20 @@
+name: V02 workbench
+on:
+  push:
+    branches: [feat/v02-knowledge-quality]
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Export tracked source only
+        run: git archive --format=tar.gz HEAD > /tmp/lore-v02-source.tar.gz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lore-v02-source
+          path: /tmp/lore-v02-source.tar.gz
+          retention-days: 2
