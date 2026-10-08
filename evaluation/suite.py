@@ -52,6 +52,7 @@ def automated_checks(report:dict)->tuple[bool,list[str]]:
     failures=[];noop=report.get("no_op",{})
     if report.get("synthesis_verification") is not True:failures.append("Synthesis verification was disabled or not recorded")
     if not report.get("lore_binary_sha256"):failures.append("Binary identity missing")
+    if not report.get("provider") or not report.get("model"):failures.append("Configured model identity missing")
     for field in ("no_op","zero_generations","pages_unchanged"):
         if noop.get(field) is not True:failures.append("No-op invariant absent or failed: "+field)
     phases=report.get("phases",{})

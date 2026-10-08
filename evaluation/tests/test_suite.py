@@ -59,4 +59,14 @@ class SuiteTests(unittest.TestCase):
   design=next(x for x in current['expected_assertions'] if x['id']=='mysql-architecture');original=next(x for x in prior['expected_assertions'] if x['id']=='mysql-architecture')
   self.assertEqual(design['kind'],'design');self.assertEqual(original['kind'],'observation');self.assertNotIn('plan',[x[0] for x in design['acceptable_pairs']])
   gate=next(x for x in current['expected_assertions'] if x['id']=='release-gate');self.assertIn(['procedure','active'],gate['acceptable_pairs']);self.assertTrue(gate['label_rationale'])
+ def test_missing_model_identity_and_disabled_verification_cannot_pass(self):
+  with tempfile.TemporaryDirectory() as temp:
+   run=completed(Path(temp)/'a');reviewed(run)
+   path=run/'metrics.json';report=json.loads(path.read_text())
+   report.pop('model');self.assertFalse(suite.automated_checks(report)[0])
+   report['model']='fixture';report['synthesis_verification']=False
+   self.assertFalse(suite.automated_checks(report)[0])
+   report['synthesis_verification']=True;report['lore_binary_sha256']=None
+   self.assertFalse(suite.automated_checks(report)[0])
+
 if __name__=='__main__':unittest.main()
