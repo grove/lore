@@ -21,7 +21,7 @@ jobs:
       - name: Check formatting
         run: cargo fmt --all -- --check
       - name: Build and run offline tests
-        run: cargo test --all-targets --locked -- --nocapture --test-threads=1
+        run: cargo test --all-targets --locked -- --nocapture
       - name: CLI help
         run: cargo run --locked -- --help
       - name: CLI version
