@@ -3,11 +3,35 @@ name = "lore"
 version = "0.1.0"
 edition = "2024"
 license = "Apache-2.0"
-description = "Foundation contracts for a project knowledge compiler"
+description = "A local-first incremental project knowledge compiler"
+repository = "https://github.com/grove/lore"
 
 [dependencies]
-rusqlite = { version = "0.37", features = ["bundled"] }
+anyhow = "1"
+blake3 = "1"
+chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
+clap = { version = "4", features = ["derive"] }
+fs2 = "0.4"
+globset = "0.4"
+ignore = "0.4"
+pathdiff = "0.2"
+percent-encoding = "2"
+pulldown-cmark = "0.13"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+rusqlite = { version = "0.37", features = ["bundled", "backup"] }
+serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+serde_yaml = "0.9"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "time", "signal"] }
+url = "2"
+uuid = { version = "1", features = ["v4"] }
+
+[dev-dependencies]
+tempfile = "3"
 
 [lib]
 path = "src/lib.rs"
+
+[[bin]]
+name = "lore"
+path = "src/main.rs"

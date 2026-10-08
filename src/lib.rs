@@ -1,5 +1,11 @@
-//! Lore foundations: inference contracts and immutable evidence storage.
-//! No CLI or live model clients are implemented yet.
+//! Local-first project knowledge compilation with auditable evidence.
+pub mod config;
+pub mod domain;
+pub mod engine;
+pub mod http;
 pub mod inference;
 pub mod provider_wire;
+pub mod publish;
+pub mod sources;
 pub mod storage;
+pub mod util;

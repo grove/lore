@@ -1,7 +1,7 @@
-name: Rust foundation contracts
+name: Lore tests
 on:
   push:
-    branches: [main]
+    branches: [main, feat/knowledge-compiler]
   pull_request:
 permissions:
   contents: read
@@ -10,5 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Run offline contracts
+      - name: Build and run offline tests
         run: cargo test --all-targets
+      - name: CLI smoke tests
+        run: |
+          cargo run -- --help
+          cargo run -- --version
