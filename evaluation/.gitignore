@@ -1,0 +1,3 @@
+# Evaluator workspaces may contain copied source text and model caches.
+results/
+__pycache__/

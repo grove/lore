@@ -6,6 +6,10 @@ Projects collect their history in architecture notes, ADRs, plans, issue exports
 
 Lore now has a working initial implementation: Markdown ingestion, live model clients, source-evidence storage, conservative reconciliation, incremental updates, and recoverable wiki publication. The test suite exercises the full compiler with deterministic models and the real CLI with local HTTP fixtures. This is early software, not a claim that every model has been evaluated for factual quality. Live hosted-account eligibility and local model behavior should be checked with `lore doctor --inference` before processing your project.
 
+## Evaluating Lore
+
+Lore's first CLI implementation is available, but we are still validating how accurately **real inference models** understand heterogeneous project documents. The [evaluation toolkit](evaluation/README.md) includes a controlled, evolving project with reviewed source checkpoints, Lore's own documentation, and pinned public OpenWiki and LLM Wiki corpora. It can run local Ollama or explicitly authorized hosted OpenAI inference, report provenance and incremental-update checks, and produce a human review sheet. Automated fixture tests and source hashes cannot establish semantic correctness, so [the baseline](evaluation/BASELINE.md) clearly separates what is already measured from the quality and billing data we still need to collect.
+
 ## Why a project needs more than a summary
 
 Suppose an accepted ADR selects MySQL, a later idea proposes PostgreSQL, and an issue asks someone to investigate migration. A summary that treats every sentence as a current fact might announce that the project is moving to PostgreSQL. Lore instead preserves the distinction between an accepted decision, a proposal, and a work item. Closing the issue does not establish that anything shipped. A later document explicitly replacing the ADR can change the documented decision, while a deployment report remains a report rather than independent verification of production.

@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "description": "Human-specified source checkpoints; not a universal semantic ground truth.",
+  "expected_assertions": [
+    {
+      "id": "mysql-accepted",
+      "source": "docs:decisions/ADR-001.md",
+      "needle": "We selected MySQL as the primary database for the production payments ledger.",
+      "kind": "decision",
+      "lifecycle": "accepted",
+      "phases": [
+        "initial",
+        "after_mutation"
+      ]
+    },
+    {
+      "id": "mysql-architecture",
+      "source": "docs:architecture/ledger.md",
+      "needle": "writes payment transactions to MySQL in the production environment",
+      "kind": "observation",
+      "lifecycle": "unknown",
+      "phases": [
+        "initial",
+        "after_mutation"
+      ]
+    },
+    {
+      "id": "mysql-reaffirmed",
+      "source": "docs:notes/architecture-review.md",
+      "needle": "production payments ledger remains committed to the accepted MySQL decision",
+      "kind": "decision",
+      "lifecycle": "accepted",
+      "phases": [
+        "initial",
+        "after_mutation"
+      ]
+    },
+    {
+      "id": "postgres-proposed",
+      "source": "docs:ideas/postgresql-migration.md",
+      "needle": "We propose evaluating PostgreSQL as a possible future replacement",
+      "kind": "proposal",
+      "lifecycle": "proposed",
+      "phases": [
+        "initial",
+        "after_mutation"
+      ]
+    },
+    {
+      "id": "study-closed",
+      "source": "docs:issues/DB-123.md",
+      "needle": "The issue was closed when the feasibility study was delivered",
+      "kind": "issue_state",
+      "lifecycle": "completed",
+      "phases": [
+        "initial",
+        "after_mutation"
+      ]
+    },
+    {
+      "id": "redis-decision",
+      "source": "docs:decisions/ADR-009.md",
+      "needle": "We chose Redis for session caching in the production authentication service.",
+      "kind": "decision",
+      "lifecycle": "accepted",
+      "phases": [
+        "initial",
+        "after_mutation"
+      ]
+    },
+    {
+      "id": "staging-cache",
+      "source": "docs:operations/staging-cache.md",
+      "needle": "staging authentication service uses an in-process cache",
+      "kind": "observation",
+      "lifecycle": "unknown",
+      "phases": [
+        "initial",
+        "after_mutation"
+      ]
+    },
+    {
+      "id": "release-gate",
+      "source": "docs:operations/release-process.md",
+      "needle": "Every production database migration requires sign-off",
+      "kind": "constraint",
+      "lifecycle": "unknown",
+      "phases": [
+        "initial",
+        "after_mutation"
+      ]
+    },
+    {
+      "id": "ratelimit-investigation",
+      "source": "docs:issues/SEC-77.md",
+      "needle": "security team is assessing whether to add rate limiting",
+      "kind": "issue_state",
+      "lifecycle": "active",
+      "phases": [
+        "initial",
+        "after_mutation"
+      ]
+    },
+    {
+      "id": "postgres-accepted",
+      "source": "docs:decisions/ADR-027.md",
+      "needle": "ADR-027 explicitly supersedes ADR-001 for the production payments ledger",
+      "kind": "decision",
+      "lifecycle": "accepted",
+      "phases": [
+        "after_mutation"
+      ]
+    },
+    {
+      "id": "reported-deployment",
+      "source": "docs:issues/DB-200.md",
+      "needle": "platform team reports that PostgreSQL became the production ledger primary",
+      "kind": "reported_outcome",
+      "lifecycle": "completed",
+      "phases": [
+        "after_mutation"
+      ]
+    }
+  ],
+  "expected_relations": [
+    {
+      "id": "mysql-reaffirmation-equivalence",
+      "type": "equivalent",
+      "from": "mysql-reaffirmed",
+      "to": "mysql-accepted",
+      "expected": true,
+      "phases": [
+        "initial",
+        "after_mutation"
+      ]
+    },
+    {
+      "id": "proposal-must-not-supersede",
+      "type": "supersedes",
+      "from": "postgres-proposed",
+      "to": "mysql-accepted",
+      "expected": false,
+      "phases": [
+        "initial",
+        "after_mutation"
+      ]
+    },
+    {
+      "id": "explicit-postgres-replacement",
+      "type": "supersedes",
+      "from": "postgres-accepted",
+      "to": "mysql-accepted",
+      "expected": true,
+      "phases": [
+        "after_mutation"
+      ]
+    }
+  ]
+}

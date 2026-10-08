@@ -25,3 +25,6 @@ rustc-ice-*.txt
 
 # Lore local state may contain retained project evidence and credentials.
 /.lore/
+
+# Evaluation workspaces contain retained source excerpts and model caches.
+/evaluation-results/

@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "description": "Human starting hypotheses about current Lore docs; these require manual review.",
+  "expected_assertions": [
+    {
+      "id": "lore-purpose",
+      "source": "docs:README.md",
+      "needle": "Rust command-line application that reads your project's Markdown directories",
+      "kind": "observation",
+      "lifecycle": "unknown"
+    },
+    {
+      "id": "lore-provenance",
+      "source": "docs:README.md",
+      "needle": "Each source keeps its own assertions and provenance.",
+      "kind": "observation",
+      "lifecycle": "unknown"
+    },
+    {
+      "id": "lore-incremental",
+      "source": "docs:README.md",
+      "needle": "A genuinely unchanged run makes no model calls",
+      "kind": "observation",
+      "lifecycle": "unknown"
+    },
+    {
+      "id": "lore-no-connectors",
+      "source": "docs:docs/IMPLEMENTATION.md",
+      "needle": "direct issue-tracker connectors and independent implementation verification",
+      "kind": "observation",
+      "lifecycle": "unknown"
+    },
+    {
+      "id": "lore-supersession",
+      "source": "docs:docs/IMPLEMENTATION.md",
+      "needle": "The current supersession guard is intentionally narrow",
+      "kind": "constraint",
+      "lifecycle": "unknown"
+    },
+    {
+      "id": "lore-historical",
+      "source": "docs:docs/IMPLEMENTATION.md",
+      "needle": "Removing a source retires its assertions from current support",
+      "kind": "observation",
+      "lifecycle": "unknown"
+    },
+    {
+      "id": "lore-privacy",
+      "source": "docs:docs/IMPLEMENTATION.md",
+      "needle": "Local-only mode rejects remote endpoints and hosted provider roles",
+      "kind": "constraint",
+      "lifecycle": "unknown"
+    }
+  ],
+  "expected_relations": []
+}
