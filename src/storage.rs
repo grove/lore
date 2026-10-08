@@ -215,6 +215,9 @@ pub struct AssertionCapture<'a> {
 pub fn capture_assertion(conn: &Connection, c: AssertionCapture<'_>) -> Result<(String, String)> {
     c.proposal.validate()?;
     if !c.proposal.effective_at.is_empty() {
+        ensure!(crate::domain::effective_time_grounded(
+            &c.proposal.quote, &c.chunk.context, &c.proposal.effective_at
+        ), "claimed effective date lacks event evidence");
         ensure!(
             c.chunk.text.contains(&c.proposal.effective_at)
                 || c.chunk.context.contains(&c.proposal.effective_at),

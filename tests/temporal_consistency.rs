@@ -91,3 +91,24 @@ fn v2_database_can_upgrade_without_losing_records() {
         .unwrap();
     assert_eq!(exists, 1);
 }
+
+#[test]
+fn publication_date_is_not_decision_effective_date() {
+    use lore::domain::effective_time_grounded;
+    assert!(!effective_time_grounded(
+        "We selected PostgreSQL for the ledger.",
+        "# ADR-027\nDate: 2026-07-01\nStatus: Accepted",
+        "2026-07-01"
+    ));
+    assert!(effective_time_grounded(
+        "The service went live on 2026-08-18.",
+        "# Deployment\nDate: 2026-08-20",
+        "2026-08-18"
+    ));
+    assert!(effective_time_grounded(
+        "PostgreSQL is selected.",
+        "Effective date: 2026-07-15",
+        "2026-07-15"
+    ));
+    assert!(effective_time_grounded("Any source text","Date: 2026-07-01",""));
+}
