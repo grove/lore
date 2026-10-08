@@ -7,7 +7,8 @@ permissions:
   contents: write
 jobs:
   finalize:
-    if: github.repository == 'grove/lore' && github.event.head_commit.message == 'chore: finalize validated compiler sources'
+    if: >-
+      github.repository == 'grove/lore' && github.event.head_commit.message == 'chore: finalize validated compiler sources'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -16,7 +17,7 @@ jobs:
       - name: Apply reviewed hardening and run all tests
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^)" = "8780878a211087364efcba3ff2ac1fd8134cc402"
+          test "$(git rev-parse HEAD^)" = "27f3da25fecd54b45bb5348135fb04292cec5614"
           cargo fmt --all
           git apply --check .github/lore-code.patch
           git apply .github/lore-code.patch
