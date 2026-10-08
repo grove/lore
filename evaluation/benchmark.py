@@ -30,6 +30,16 @@ def load_json(path: Path) -> dict:
 def now_utc() -> str:
     return dt.datetime.now(dt.timezone.utc).isoformat()
 
+def corpus_fingerprint(doc_root: Path) -> dict:
+    """SHA-256 over both normalized relative paths and original Markdown bytes."""
+    files = {p.relative_to(doc_root).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
+             for p in sorted(doc_root.rglob("*")) if p.is_file() and not p.is_symlink()
+             and p.suffix.lower() in (".md", ".markdown")}
+    canonical = json.dumps(files, sort_keys=True, separators=(",", ":"))
+    return {"sha256": hashlib.sha256(canonical.encode("utf-8")).hexdigest(),
+            "files_sha256": files, "file_count": len(files)}
+
+
 def err(message: str) -> None:
     raise ValueError(message)
 
@@ -117,6 +127,7 @@ def prepare(target: str, project_dir: Path) -> dict:
         else:
             err("Unrecognized target kind")
         manifest = collect_docs(root, spec["include"], corpus_root)
+        manifest["corpus_fingerprint"] = corpus_fingerprint(corpus_root)
         manifest.update({"target": target, "source_kind": spec["kind"],
                          "source_commit": spec.get("revision"), "prepared_at": now_utc()})
         (project_dir / "corpus-manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
@@ -232,9 +243,17 @@ def score_project(project: Path, gold_path: Path | None = None,
                           and overlap_match(expected["needle"], a["excerpt"])]
             match = next((a for a in candidates if a["proposal"].get("kind") == expected["kind"]
                           and a["proposal"].get("lifecycle") == expected["lifecycle"]), None)
+            # Alternatives are explicitly gold-labelled, and scored separately.
+            # They never inflate the original strict type/lifecycle proxy.
+            accepted_pairs = {(expected["kind"], expected["lifecycle"])}
+            accepted_pairs.update(tuple(x) for x in expected.get("acceptable_pairs", []))
+            acceptable = next((a for a in candidates if
+                (a["proposal"].get("kind"), a["proposal"].get("lifecycle")) in accepted_pairs), None)
+            best = match or acceptable
             source_expectations.append({"id": expected["id"], "quote_found": bool(candidates),
                 "kind_and_lifecycle_match": bool(match),
-                "matching_knowledge_id": match["knowledge_id"] if match else None})
+                "acceptable_type_and_lifecycle_match": bool(acceptable),
+                "matching_knowledge_id": best["knowledge_id"] if best else None})
         matched_units = {x["id"]: x["matching_knowledge_id"] for x in source_expectations}
         relation_rows = [tuple(row) for row in conn.execute("""
             SELECT fr.knowledge_id, tr.knowledge_id, rel.relation
@@ -244,6 +263,18 @@ def score_project(project: Path, gold_path: Path | None = None,
             JOIN relation_assertions ra ON ra.relation_id=rel.id
             JOIN active_assertions act ON act.assertion_revision_id=ra.assertion_revision_id
         """)]
+        # Version 3 records reaffirmation as a separate, immutable,
+        # source-backed event rather than incorrectly merging two decisions.
+        has_reaffirmations = conn.execute(
+            "SELECT count(*) FROM sqlite_master WHERE type='table' AND name='reaffirmation_links'"
+        ).fetchone()[0] > 0
+        if has_reaffirmations:
+            relation_rows.extend(tuple(row) for row in conn.execute("""
+                SELECT from_unit_id,to_unit_id,'reaffirms'
+                FROM reaffirmation_links link
+                JOIN active_assertions act
+                  ON act.assertion_revision_id=link.assertion_revision_id
+            """))
         gold_relations = []
         if gold_path:
             for rule in load_json(gold_path).get("expected_relations", []):
@@ -287,6 +318,11 @@ def score_project(project: Path, gold_path: Path | None = None,
                     "matched_type_and_lifecycle": typed,
                     "lexical_coverage_proxy": round(matched / len(gold), 3) if gold else None,
                     "typed_coverage_proxy": round(typed / len(gold), 3) if gold else None,
+                    "acceptable_type_coverage_proxy": round(
+                        sum(x["acceptable_type_and_lifecycle_match"] for x in source_expectations)
+                        / len(gold), 3) if gold else None,
+                    "acceptable_type_and_lifecycle_count": sum(
+                        x["acceptable_type_and_lifecycle_match"] for x in source_expectations),
                     "matches": source_expectations, "relations": gold_relations,
                     "relation_tests_passed": sum(1 for x in gold_relations if x["passed"]),
                     "relation_tests_total": len(gold_relations),
@@ -336,7 +372,8 @@ def report_markdown(report: dict) -> str:
             f"- Recorded successful generative calls: {sum(x['n'] for x in score['model_calls_by_task'] if x['cache_hit'] == 0)}"]
         gold = score["gold"]
         if gold["total"]:
-            lines.append(f"- Labeled excerpt proxy: {gold['matched_quote']}/{gold['total']}; typed: {gold['matched_type_and_lifecycle']}/{gold['total']}")
+            lines.append(f"- Labeled excerpt proxy: {gold['matched_quote']}/{gold['total']}; strict type/lifecycle: {gold['matched_type_and_lifecycle']}/{gold['total']}")
+            lines.append(f"- Acceptable labelled type alternatives (still lexical): {gold.get('acceptable_type_and_lifecycle_count', gold['matched_type_and_lifecycle'])}/{gold['total']}")
         if gold["relation_tests_total"]:
             lines.append(f"- Labeled relationship checks: {gold['relation_tests_passed']}/{gold['relation_tests_total']} (unassessable count as failed)")
         if "elapsed_seconds" in entry:
@@ -383,6 +420,10 @@ def run_command(args: argparse.Namespace) -> dict:
     doctor, doctor_time = subprocess_json(args.lore_binary, project, "doctor", "--inference", timeout=1200)
     if not doctor:
         err("Doctor returned an empty result")
+    binary = Path(args.lore_binary)
+    if not binary.is_file():
+        err(f"Lore binary not found: {binary}")
+    binary_digest = hashlib.sha256(binary.read_bytes()).hexdigest()
     first, first_time = subprocess_json(args.lore_binary, project, "init", timeout=args.timeout)
     score_first = score_project(project, gold_path, "initial", first.get("generation"))
     before = file_hashes(project / "wiki")
@@ -394,7 +435,8 @@ def run_command(args: argparse.Namespace) -> dict:
     if not all([noop["no_op"], noop["zero_generations"], noop["pages_unchanged"]]):
         err("Incremental no-op invariant failed")
     result = {"schema_version": 1, "target": args.target, "run_at": now_utc(),
-              "source_manifest": manifest, "provider": args.provider, "model": args.model,
+              "source_manifest": manifest, "lore_binary_sha256": binary_digest,
+              "provider": args.provider, "model": args.model,
               "decision_provider": args.decision_provider, "decision_model": args.decision_model,
               "hosted_opt_in": args.allow_hosted, "doctor_elapsed_seconds": doctor_time,
               "phases": {"initial": {"report": first, "elapsed_seconds": first_time, "score": score_first}},
@@ -408,6 +450,7 @@ def run_command(args: argparse.Namespace) -> dict:
         previous_pages = file_hashes(project / "wiki")
         updated, elapsed = subprocess_json(args.lore_binary, project, "update", timeout=args.timeout)
         current_pages = file_hashes(project / "wiki")
+        result["after_mutation_corpus_fingerprint"] = corpus_fingerprint(project / "docs")
         result["phases"]["after_mutation"] = {
             "report": updated, "elapsed_seconds": elapsed,
             "score": score_project(project, gold_path, "after_mutation", updated.get("generation")),

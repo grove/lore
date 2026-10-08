@@ -53,7 +53,12 @@ impl Server {
                         stream
                             .set_write_timeout(Some(Duration::from_secs(5)))
                             .unwrap();
-                        let request = read_request(&mut stream);
+                        // A client can close an accepted connection before sending
+                        // a request. This is a normal network race, not a malformed
+                        // test HTTP call; keep the fixture listener alive.
+                        let Some(request) = read_request(&mut stream) else {
+                            continue;
+                        };
                         let count = {
                             let mut r = reqs.lock().unwrap();
                             r.push(request.clone());
@@ -61,7 +66,12 @@ impl Server {
                         };
                         let (status, body) = f(&request, count);
                         let body = body.to_string();
-                        write!(stream,"HTTP/1.1 {status} {}\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\nRetry-After: 0\r\n\r\n{body}",if status==200{"OK"}else{"Error"},body.len()).unwrap();
+                        let _ = write!(
+                            stream,
+                            "HTTP/1.1 {status} {}\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\nRetry-After: 0\r\n\r\n{body}",
+                            if status == 200 { "OK" } else { "Error" },
+                            body.len()
+                        );
                     }
                     Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
                         thread::sleep(Duration::from_millis(5))
@@ -92,13 +102,17 @@ impl Drop for Server {
         }
     }
 }
-fn read_request(stream: &mut TcpStream) -> Request {
+fn read_request(stream: &mut TcpStream) -> Option<Request> {
     let mut bytes = Vec::new();
     let mut buffer = [0; 4096];
     let header_end;
     loop {
-        let n = stream.read(&mut buffer).unwrap();
-        assert!(n > 0);
+        let n = match stream.read(&mut buffer) {
+            Ok(0) => return None,
+            Ok(n) => n,
+            Err(e) if e.kind() == std::io::ErrorKind::Interrupted => continue,
+            Err(_) => return None,
+        };
         bytes.extend_from_slice(&buffer[..n]);
         if let Some(i) = bytes.windows(4).position(|w| w == b"\r\n\r\n") {
             header_end = i + 4;
@@ -116,11 +130,15 @@ fn read_request(stream: &mut TcpStream) -> Request {
         })
         .unwrap_or(0);
     while bytes.len() < header_end + size {
-        let n = stream.read(&mut buffer).unwrap();
-        assert!(n > 0);
+        let n = match stream.read(&mut buffer) {
+            Ok(0) => return None,
+            Ok(n) => n,
+            Err(e) if e.kind() == std::io::ErrorKind::Interrupted => continue,
+            Err(_) => return None,
+        };
         bytes.extend_from_slice(&buffer[..n]);
     }
-    Request {
+    Some(Request {
         path: headers
             .lines()
             .next()
@@ -137,7 +155,7 @@ fn read_request(stream: &mut TcpStream) -> Request {
         authorized: headers
             .to_lowercase()
             .contains("authorization: bearer test-key"),
-    }
+    })
 }
 fn configured(
     cfg: &ResolvedConfig,

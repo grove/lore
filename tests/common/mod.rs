@@ -95,7 +95,12 @@ impl GenerativeModel for FakeModel {
                             continue;
                         }
                         let old = c["statement"].as_str().unwrap();
-                        if statement.contains("replaces ADR-001")
+                        if statement.contains("reaffirms ADR-001")
+                            && old.contains("MySQL")
+                            && c["kind"] == "decision"
+                        {
+                            relations.push(json!({"target_id":c["id"],"kind":"reaffirms","quote":a["quote"],"reason":"The review explicitly reaffirms ADR-001."}));
+                        } else if statement.contains("replaces ADR-001")
                             && old.contains("MySQL")
                             && c["kind"] == "decision"
                         {

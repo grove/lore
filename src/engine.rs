@@ -2,6 +2,7 @@
 mod reconcile;
 mod render;
 mod runner;
+mod timeline;
 use crate::{
     config::ResolvedConfig,
     domain::{self, Extraction},
@@ -322,6 +323,10 @@ pub async fn update(
                             sources::locate_quote(document, chunk, &a.quote)
                                 .with_context(|| format!("assertion {} evidence", index + 1))?;
                             if !a.effective_at.is_empty() {
+                                ensure!(
+                                    domain::effective_time_grounded(&a.quote, &chunk.context, &a.effective_at),
+                                    "claimed effective time is not explicitly grounded in cited event evidence"
+                                );
                                 ensure!(
                                     chunk.text.contains(&a.effective_at)
                                         || chunk.context.contains(&a.effective_at),

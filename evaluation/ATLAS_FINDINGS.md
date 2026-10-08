@@ -1,0 +1,27 @@
+# Atlas findings and validation plan
+
+**Status: source-backed findings from the user-supplied 2026-10-08 evaluation, not a passing quality benchmark.** No user-provided raw model responses, wiki output, local state database, or credentials are committed here.
+
+## What the first real run established
+
+One complete Atlas benchmark used OpenAI-style hosted generative inference with the configured `gpt-6-luna` model and Ollama's `clef-flash` decision backend. The initial compilation processed nine sources in about 225 seconds, producing 35 source assertions and 35 knowledge units. The subsequent mutation added two Markdown documents and completed in about 83 seconds, bringing the knowledge-unit count to 40. Across both phases, the benchmark recorded 73 generative calls and 18 advisory decision calls. The unchanged follow-up run performed no inference and left generated Markdown unchanged. After the mutation, all 40 current source-excerpt checks passed. The SQLite referential-integrity checks also passed.
+
+The original *strict, lexical gold-label proxy* matched kinds and lifecycles for 6 of 11 source checkpoints after mutation. Two of three original relationship expectations passed. These figures are not truthfulness or semantic-recall scores. The originally expected MySQL **equivalence** was itself an unsuitable gold rule: a January review that reaffirms an earlier accepted decision is a distinct documented event, not necessarily the same decision object. The benchmark now expects a source-grounded `reaffirms` relationship and keeps strict type labels alongside explicitly documented acceptable alternatives. **The updated benchmark must not be reported as improved model quality without a fresh real inference run.**
+
+## Primary observed defect: chronology across topic pages
+
+In the submitted generated wiki, one topic correctly identifies the later ADR that superseded the MySQL selection, while another describes an earlier MySQL reaffirmation as a conflict with the superseded state and implies the replacement was not identified. Both statements concern the same project decision history and must be consistent across topics. The wiki also treats one ADR's date as though it were necessarily the effective date of a deployment or state change. A date of publication, a decision event, and a reported production deployment are separate concepts.
+
+The fix tracks explicitly supported decision relationships across topic boundaries, adds those relationships to the affected pages' synthesis and verification contexts, and displays a deterministic source-backed relationship section. The old topic is invalidated when a new cross-topic successor appears. This still cannot guarantee that any selected generative model will never make a temporal error; semantic review and a representative live-model rerun remain required.
+
+## How to evaluate a meaningful improvement
+
+Run the pinned Atlas benchmark again using the same exact source documents, declared provider settings, and supported model identifiers. Preserve the Lore binary SHA-256 and corpus file digests, and record the provider's resolved model identities where available. Review the actual pages, especially the pages containing original decision, reaffirmation, successor ADR, and reported deployment. Check that source evidence remains valid, no fabricated quote appears, none of the source events is silently erased, the reaffirmation is not forced to equal the original decision, and the initial MySQL selection is never described as the current accepted choice after explicit supersession.
+
+Use `python3 evaluation/compare_runs.py <run-a> <run-b>` to compare separately generated runs. It reports lexical topic/statement overlap only when the original Markdown bytes match and flags differing or unknown build/provider identities. A high overlap does not prove correctness, and low overlap in intentionally different mutation phases is **not** a reproducibility failure. For more informative stability measurement, obtain at least three fresh runs of the identical initial Atlas corpus and exactly one pinned inference configuration, each with an empty cache. Have a human reviewer complete the seven criteria in each generated `REVIEW.md`; that is the source of semantic usefulness judgments.
+
+The original evaluation did not record billed USD or input/output tokens. Never derive charges from call counts, and do not claim a speedup until similarly configured new runs establish one. More efficient candidate ranking and token/cost instrumentation remain separate follow-up work.
+
+## Release gates before calling this beta validated
+
+The required gates are no-op updates with zero calls and no changed output, preserved historical snapshots after source deletion, no ungrounded supersession, and consistent cross-topic decision history after an explicit ADR replacement. Each relevant page must accurately qualify the observed decision event versus reported deployment; an issue being closed is not implementation verification. Real-provider tests must exercise the chosen OpenAI/Ollama paths with actual credentials and model weights, and a human must assess semantic correctness. Target scores should be stated before scoring new runs, not retrofitted to the output.
