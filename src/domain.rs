@@ -170,16 +170,58 @@ pub fn extraction_schema() -> Value {
     for field in fields {
         properties.insert(field.into(), json!({"type":"string"}));
     }
+    properties.insert(
+        "topic".into(),
+        json!({"type":"string","maxLength":80,"pattern":"^[a-z0-9]([a-z0-9-]{0,78}[a-z0-9])?$"}),
+    );
+    properties.insert(
+        "kind".into(),
+        json!({"type":"string","enum":["decision","plan","proposal","observation","reported_outcome","constraint","question","issue_state","risk","procedure"]}),
+    );
+    properties.insert(
+        "lifecycle".into(),
+        json!({"type":"string","enum":["proposed","accepted","active","completed","rejected","superseded","unknown"]}),
+    );
     object(
         json!({"assertions":{"type":"array", "items":object(Value::Object(properties), &fields)}}),
         &["assertions"],
     )
 }
+pub fn extraction_schema_for(text: &str) -> Value {
+    let mut schema = extraction_schema();
+    schema["properties"]["assertions"]["items"]["properties"]["quote"] = quote_schema(text, false);
+    schema
+}
+fn quote_schema(text: &str, allow_empty: bool) -> Value {
+    let mut quotes: std::collections::BTreeSet<_> = text
+        .lines()
+        .chain(text.split("\n\n"))
+        .chain(std::iter::once(text))
+        .filter(|quote| !quote.trim().is_empty() && text.match_indices(quote).count() == 1)
+        .collect();
+    if allow_empty {
+        quotes.insert("");
+    }
+    json!({"type":"string","enum":quotes})
+}
 pub fn reconciliation_schema() -> Value {
     object(
-        json!({"equivalent_to":{"type":"string"}, "uncertain":{"type":"boolean"}, "relations":{"type":"array", "items":object(json!({"target_id":{"type":"string"},"kind":{"type":"string"},"quote":{"type":"string"},"reason":{"type":"string"}}), &["target_id","kind","quote","reason"])}}),
+        json!({"equivalent_to":{"type":"string"}, "uncertain":{"type":"boolean"}, "relations":{"type":"array", "items":object(json!({"target_id":{"type":"string"},"kind":{"type":"string","enum":["elaborates","contradicts","supersedes","uncertain"]},"quote":{"type":"string"},"reason":{"type":"string"}}), &["target_id","kind","quote","reason"])}}),
         &["equivalent_to", "uncertain", "relations"],
     )
+}
+pub fn reconciliation_schema_for(
+    targets: &std::collections::BTreeSet<String>,
+    text: &str,
+) -> Value {
+    let mut schema = reconciliation_schema();
+    let mut equivalents = targets.clone();
+    equivalents.insert(String::new());
+    schema["properties"]["equivalent_to"] = json!({"type":"string","enum":equivalents});
+    schema["properties"]["relations"]["items"]["properties"]["target_id"] =
+        json!({"type":"string","enum":targets});
+    schema["properties"]["relations"]["items"]["properties"]["quote"] = quote_schema(text, true);
+    schema
 }
 pub fn page_schema() -> Value {
     let paragraph = object(

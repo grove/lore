@@ -13,6 +13,7 @@ pub struct FakeModel {
     pub calls: AtomicUsize,
     pub fail_synthesis: AtomicBool,
     pub invalid_quote: AtomicBool,
+    pub repair_quote: AtomicBool,
     pub reject_verification: AtomicBool,
 }
 impl FakeModel {
@@ -26,6 +27,7 @@ impl FakeModel {
             calls: AtomicUsize::new(0),
             fail_synthesis: AtomicBool::new(false),
             invalid_quote: AtomicBool::new(false),
+            repair_quote: AtomicBool::new(false),
             reject_verification: AtomicBool::new(false),
         }
     }
@@ -67,7 +69,10 @@ impl GenerativeModel for FakeModel {
                             "MySQL remains our database.",
                             "MySQL is the selected database.",
                         );
-                        let quote = if self.invalid_quote.load(Ordering::SeqCst) {
+                        let repaired = self.repair_quote.load(Ordering::SeqCst)
+                            && r.instructions
+                                .contains("evidence quote is missing or ambiguous");
+                        let quote = if self.invalid_quote.load(Ordering::SeqCst) && !repaired {
                             "This passage does not exist."
                         } else {
                             line

@@ -218,6 +218,105 @@ async fn failed_synthesis_preserves_database_and_wiki_and_retry_reuses_valid_wor
     assert!(retry.cache_hits > 0);
 }
 #[tokio::test]
+async fn evidence_quote_repair_receives_specific_validation_feedback() {
+    let (_dir, cfg, model) = project();
+    put(
+        &cfg,
+        "doc.md",
+        "# Database\nDECISION database: MySQL is the selected database.\n",
+    );
+    model.invalid_quote.store(true, Ordering::SeqCst);
+    model.repair_quote.store(true, Ordering::SeqCst);
+    let report = engine::update(&cfg, &model, None, UpdateOptions::default())
+        .await
+        .unwrap();
+    assert_eq!(report.extracted_assertions, 1);
+    assert_eq!(engine::audit(&cfg).unwrap()["ok"], true);
+}
+#[test]
+fn extraction_schema_only_offers_unique_verbatim_source_passages() {
+    let (_dir, cfg, _) = project();
+    put(
+        &cfg,
+        "doc.md",
+        "# Database\n\nDECISION database: Use `MySQL`.\r\nPreserve this qualifier.\n\nRepeated.\n\nRepeated.\n",
+    );
+    let inventory = lore::sources::scan(&cfg).unwrap();
+    let document = &inventory.documents[0];
+    let chunk = &document.chunks[0];
+    let schema = lore::domain::extraction_schema_for(&chunk.text);
+    let properties = &schema["properties"]["assertions"]["items"]["properties"];
+    let quotes = properties["quote"]["enum"].as_array().unwrap();
+    assert!(quotes.iter().any(|quote| quote == &chunk.text));
+    assert!(
+        quotes
+            .iter()
+            .any(|quote| quote == "DECISION database: Use `MySQL`.")
+    );
+    assert!(!quotes.iter().any(|quote| quote == "Repeated."));
+    assert!(
+        quotes
+            .iter()
+            .any(|quote| quote.as_str().unwrap().contains("\r\nPreserve"))
+    );
+    for quote in quotes {
+        lore::sources::locate_quote(document, chunk, quote.as_str().unwrap()).unwrap();
+    }
+    assert!(properties["topic"]["pattern"].is_string());
+    assert!(properties["kind"]["enum"].is_array());
+    assert!(properties["lifecycle"]["enum"].is_array());
+    let reconciliation = lore::domain::reconciliation_schema();
+    assert_eq!(
+        reconciliation["properties"]["relations"]["items"]["properties"]["kind"]["enum"],
+        serde_json::json!(["elaborates", "contradicts", "supersedes", "uncertain"])
+    );
+    let targets = ["unit-example".to_owned()].into_iter().collect();
+    let reconciliation = lore::domain::reconciliation_schema_for(&targets, &chunk.text);
+    assert_eq!(
+        reconciliation["properties"]["equivalent_to"]["enum"],
+        serde_json::json!(["", "unit-example"])
+    );
+    let properties = &reconciliation["properties"]["relations"]["items"]["properties"];
+    assert_eq!(
+        properties["target_id"]["enum"],
+        serde_json::json!(["unit-example"])
+    );
+    for quote in properties["quote"]["enum"].as_array().unwrap() {
+        let quote = quote.as_str().unwrap();
+        if !quote.is_empty() {
+            lore::sources::locate_quote(document, chunk, quote).unwrap();
+        }
+    }
+}
+#[tokio::test]
+#[ignore = "requires local Ollama and LORE_LIVE_CONFIG/LORE_LIVE_SECTION"]
+async fn local_ollama_extracts_selected_source_section() {
+    let path = std::env::var("LORE_LIVE_CONFIG").unwrap();
+    let heading = std::env::var("LORE_LIVE_SECTION").unwrap();
+    let original = lore::config::ResolvedConfig::load(std::path::Path::new(&path)).unwrap();
+    assert!(original.config.privacy.local_only);
+    let inventory = lore::sources::scan(&original).unwrap();
+    let chunk = inventory
+        .documents
+        .iter()
+        .flat_map(|document| &document.chunks)
+        .find(|chunk| chunk.heading == heading)
+        .expect("requested source section must exist");
+    let (_dir, fixture, _) = project();
+    let mut config = original.config.clone();
+    config.sources = fixture.config.sources.clone();
+    config.output = fixture.config.output.clone();
+    config.models.decision = None;
+    let config = lore::config::ResolvedConfig::resolve(config, &fixture.config_path).unwrap();
+    put(&config, "probe.md", &chunk.text);
+    let model = lore::http::HttpModel::new(&config, &config.config.models.generative).unwrap();
+    let report = engine::update(&config, &model, None, UpdateOptions::default())
+        .await
+        .unwrap();
+    assert!(report.extracted_assertions > 0);
+    assert_eq!(engine::audit(&config).unwrap()["ok"], true);
+}
+#[tokio::test]
 async fn invented_evidence_is_rejected_before_publication() {
     let (_dir, cfg, model) = project();
     put(

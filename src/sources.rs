@@ -269,7 +269,8 @@ pub fn locate_quote(
     let matches: Vec<_> = chunk.text.match_indices(quote).collect();
     ensure!(
         matches.len() == 1,
-        "evidence quote is missing or ambiguous; use a longer verbatim passage"
+        "evidence quote is missing or ambiguous ({} exact matches in section); use a longer verbatim passage",
+        matches.len()
     );
     let start = chunk.offset + matches[0].0;
     let end = start + quote.len();

@@ -81,7 +81,7 @@ pub(super) async fn apply(
                 "reconcile",
                 INSTRUCTIONS,
                 input,
-                domain::reconciliation_schema(),
+                domain::reconciliation_schema_for(&allowed, &chunk.text),
                 |r: &Reconciliation| {
                     ensure!(
                         r.equivalent_to.is_empty() || allowed.contains(&r.equivalent_to),

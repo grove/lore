@@ -96,15 +96,21 @@ impl<'a> Runner<'a> {
             }
             std::fs::remove_file(&path)?;
         }
+        let mut validation_error = String::new();
         for attempt in 0..2 {
             let start = Instant::now();
             let instructions = if attempt == 0 {
                 instructions.to_owned()
             } else {
                 format!(
-                    "{instructions}\nThe previous attempt failed validation. Recheck the JSON fields, source quotes, identifiers and completeness. Do not add explanations outside the JSON object."
+                    "{instructions}\nThe previous attempt failed validation: {validation_error}\nCorrect that error. Recheck the JSON fields, source quotes, identifiers and completeness. Copy quotes exactly from text, preserving Markdown, punctuation and whitespace; extend repeated quotes until they are unique. Do not add explanations outside the JSON object."
                 )
             };
+            ensure!(
+                serialized.len() + instructions.len()
+                    <= self.config.config.processing.max_context_bytes,
+                "{task} repair context exceeds configured budget"
+            );
             let request = GenerationRequest {
                 instructions,
                 input: serialized.clone(),
@@ -142,10 +148,14 @@ impl<'a> Runner<'a> {
                             format!("{task} output failed validation after repair")
                         });
                     }
-                    Err(_) => {}
+                    Err(error) => {
+                        validation_error = format!("{error:#}").chars().take(1024).collect();
+                    }
                 }
             } else if attempt == 1 {
                 anyhow::bail!("{task} output did not match the required JSON schema after repair");
+            } else {
+                validation_error = "output did not match the required JSON schema".into();
             }
         }
         anyhow::bail!("{task} output validation failed")
