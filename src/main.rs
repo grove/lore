@@ -84,8 +84,11 @@ enum Command {
     Read { topic: String },
     /// Inspect an immutable, verbatim source evidence snapshot.
     Evidence { id: String },
-    /// List unresolved reconciliation questions without changing their status.
-    Review,
+    /// Inspect and disposition review questions; never edits source knowledge.
+    Review {
+        #[command(subcommand)]
+        action: Option<ReviewCommand>,
+    },
     /// Erase all Lore-managed evidence, caches and output, never original sources.
     Purge {
         #[arg(long)]
@@ -94,6 +97,41 @@ enum Command {
         yes: bool,
     },
 }
+#[derive(Subcommand)]
+enum ReviewCommand {
+    /// List pending questions, or all retained records with --all.
+    List {
+        #[arg(long)]
+        all: bool,
+    },
+    /// Show one review, its evidence binding and immutable history.
+    Show { id: String },
+    /// Record a human resolution without changing the knowledge graph.
+    Resolve {
+        id: String,
+        #[arg(long)]
+        reason: String,
+        #[arg(long, default_value = "user")]
+        actor: String,
+    },
+    /// Dismiss a false-positive question with a recorded reason.
+    Dismiss {
+        id: String,
+        #[arg(long)]
+        reason: String,
+        #[arg(long, default_value = "user")]
+        actor: String,
+    },
+    /// Reopen a retained review for investigation.
+    Reopen {
+        id: String,
+        #[arg(long)]
+        reason: String,
+        #[arg(long, default_value = "user")]
+        actor: String,
+    },
+}
+
 #[tokio::main]
 async fn main() {
     let cli = Cli::parse();
@@ -259,8 +297,8 @@ async fn run(cli: Cli) -> Result<i32> {
             emit(json!({"results":results}), cli.json)?;
         }
         Command::Read { topic } => {
-            let path = if topic == "index" {
-                "index.md".into()
+            let path = if topic == "index" || topic == "reviews" {
+                format!("{topic}.md")
             } else {
                 util::safe_slug(&topic)?;
                 format!("topics/{topic}.md")
@@ -273,20 +311,38 @@ async fn run(cli: Cli) -> Result<i32> {
             }
         }
         Command::Evidence { id } => emit(engine::evidence(&config, &id)?, cli.json)?,
-        Command::Review => {
-            let conn = storage::read_only(&config.state.join("state.db"))?;
-            let mut q = conn
-                .prepare("SELECT id,reason FROM review_items WHERE status='pending' ORDER BY id")?;
-            let items = q
-                .query_map([], |r| {
-                    Ok(json!({"id":r.get::<_,String>(0)?,"reason":r.get::<_,String>(1)?}))
-                })?
-                .collect::<rusqlite::Result<Vec<_>>>()?;
-            emit(
-                json!({"reviews":items,"note":"Resolve documentary ambiguity in the source material; audit --deep re-examines it. Review records are retained for audit."}),
+        Command::Review { action } => match action {
+            None | Some(ReviewCommand::List { all: false }) => {
+                let conn = storage::read_only(&config.state.join("state.db"))?;
+                emit(
+                    json!({"reviews":lore::reviews::list(&conn,false)?}),
+                    cli.json,
+                )?;
+            }
+            Some(ReviewCommand::List { all: true }) => {
+                let conn = storage::read_only(&config.state.join("state.db"))?;
+                emit(
+                    json!({"reviews":lore::reviews::list(&conn,true)?}),
+                    cli.json,
+                )?;
+            }
+            Some(ReviewCommand::Show { id }) => {
+                let conn = storage::read_only(&config.state.join("state.db"))?;
+                emit(lore::reviews::show(&conn, &id)?, cli.json)?;
+            }
+            Some(ReviewCommand::Resolve { id, reason, actor }) => emit(
+                engine::change_review(&config, &id, "resolved", &reason, &actor)?,
                 cli.json,
-            )?;
-        }
+            )?,
+            Some(ReviewCommand::Dismiss { id, reason, actor }) => emit(
+                engine::change_review(&config, &id, "dismissed", &reason, &actor)?,
+                cli.json,
+            )?,
+            Some(ReviewCommand::Reopen { id, reason, actor }) => emit(
+                engine::change_review(&config, &id, "pending", &reason, &actor)?,
+                cli.json,
+            )?,
+        },
         Command::Purge { all, yes } => {
             ensure!(
                 all && yes,

@@ -138,7 +138,8 @@ def prepare(target: str, project_dir: Path) -> dict:
 
 def config_for(project_dir: Path, target: str, provider: str, model: str,
                decision_provider: str | None, decision_model: str | None,
-               allow_hosted: bool, base_url: str | None, verify: bool) -> dict:
+               allow_hosted: bool, base_url: str | None, verify: bool, *,
+               generative_base_url: str | None = None, decision_base_url: str | None = None) -> dict:
     if provider not in ("ollama", "openai"):
         err("Initial generative providers are ollama or openai")
     if (decision_provider is None) != (decision_model is None):
@@ -150,6 +151,12 @@ def config_for(project_dir: Path, target: str, provider: str, model: str,
         err("Hosted evaluation transmits copied source text: pass --allow-hosted explicitly")
     if base_url and len({provider, decision_provider} - {None}) > 1:
         err("--base-url is ambiguous with mixed providers; use their default endpoints")
+    if base_url and (generative_base_url or decision_base_url):
+        err("Use either --base-url or role-specific endpoint flags, not both")
+    if decision_base_url and not decision_provider:
+        err("--decision-base-url requires a decision provider and model")
+    if provider == decision_provider and generative_base_url and decision_base_url and generative_base_url.rstrip("/") != decision_base_url.rstrip("/"):
+        err("This configuration stores one endpoint per provider; role endpoints for the same provider must agree")
     providers = {}
     roles = {"generative": {"provider": provider, "model": model}}
     for name in {provider, decision_provider} - {None}:
@@ -161,6 +168,10 @@ def config_for(project_dir: Path, target: str, provider: str, model: str,
         else:
             providers[name] = {"base_url": base_url or "https://api.typesafe.ai/v1",
                                "api_key_env": "TYPESAFE_API_KEY"}
+    if generative_base_url:
+        providers[provider]["base_url"] = generative_base_url
+    if decision_base_url:
+        providers[decision_provider]["base_url"] = decision_base_url
     if decision_provider:
         roles["decision"] = {"provider": decision_provider, "model": decision_model}
     return {"schema_version": 1, "project": {"name": f"lore-evaluation-{target}"},
@@ -327,6 +338,8 @@ def score_project(project: Path, gold_path: Path | None = None,
                     "relation_tests_passed": sum(1 for x in gold_relations if x["passed"]),
                     "relation_tests_total": len(gold_relations),
                     "limitations": "Lexical excerpt and relation proxies, not semantic precision or truth. Human review required."},
+                "rubric": {"version": load_json(gold_path).get("rubric_version", "legacy-v1") if gold_path else None,
+                           "sha256": hashlib.sha256(gold_path.read_bytes()).hexdigest() if gold_path else None},
                 "model_calls_by_task": calls,
                 "limitations": ["Historical excerpts are intentionally not counted as current evidence",
                                 "BLAKE3 digests are not independently recomputed by this standard-library scorer",
@@ -409,7 +422,9 @@ def run_command(args: argparse.Namespace) -> dict:
     # Fail before preparing a workspace if the selected provider violates egress policy.
     checked_config = config_for(out / "project", args.target, args.provider, args.model,
                                 args.decision_provider, args.decision_model,
-                                args.allow_hosted, args.base_url, not args.skip_verification)
+                                args.allow_hosted, args.base_url, not args.skip_verification,
+                                generative_base_url=getattr(args, "generative_base_url", None),
+                                decision_base_url=getattr(args, "decision_base_url", None))
     out.mkdir(parents=True)
     project = out / "project"
     manifest = prepare(args.target, project)
@@ -436,6 +451,10 @@ def run_command(args: argparse.Namespace) -> dict:
         err("Incremental no-op invariant failed")
     result = {"schema_version": 1, "target": args.target, "run_at": now_utc(),
               "source_manifest": manifest, "lore_binary_sha256": binary_digest,
+              "configuration_sha256": hashlib.sha256(json.dumps(checked_config, sort_keys=True).encode()).hexdigest(),
+              "synthesis_verification": checked_config["processing"]["verify_synthesis"],
+              "rubric": {"version": load_json(gold_path).get("rubric_version", "legacy-v1") if gold_path else None,
+                         "sha256": hashlib.sha256(gold_path.read_bytes()).hexdigest() if gold_path else None},
               "provider": args.provider, "model": args.model,
               "decision_provider": args.decision_provider, "decision_model": args.decision_model,
               "hosted_opt_in": args.allow_hosted, "doctor_elapsed_seconds": doctor_time,
@@ -480,6 +499,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     run.add_argument("--decision-model")
     run.add_argument("--allow-hosted", action="store_true")
     run.add_argument("--base-url")
+    run.add_argument("--generative-base-url", help="Explicit generative endpoint; supports Foundry with a different decision provider")
+    run.add_argument("--decision-base-url", help="Explicit decision-provider endpoint")
     run.add_argument("--output", required=True, type=Path)
     run.add_argument("--lore-binary", default="lore")
     run.add_argument("--mutate", action="store_true")

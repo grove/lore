@@ -38,6 +38,7 @@ impl AssertionProposal {
         ensure!(
             [
                 "decision",
+                "design",
                 "plan",
                 "proposal",
                 "observation",
@@ -203,6 +204,18 @@ pub fn effective_time_grounded(quote: &str, context: &str, effective_at: &str) -
     })
 }
 
+/// Classification and epistemic confidence are independent dimensions.
+pub const CLASSIFICATION_GUIDANCE: &str = "Use design for an existing documented architecture/specification: components, data flows and intended system behavior described as the selected design. Lack of independent runtime verification does not make that design a future plan. Use proposal for suggestions not adopted and plan for explicit future work; preserve future-intent and uncertainty even if the document is titled Architecture. Use decision for a documented choice or reaffirmation, reported_outcome for a source report of delivery or deployment, and observation for source-described observed behavior. Use constraint for a mandatory rule or invariant; use procedure for an ordered operational workflow. A release gate can be a constraint and its operational checklist a procedure. Lifecycle describes the source's object, not model confidence: default unknown unless active, accepted, completed, proposed, rejected or superseded is documented. Never infer independently verified implementation from any kind. Classify each assertion, not the file as a whole.";
+pub fn documentary_basis(kind: &str) -> &'static str {
+    match kind {
+        "design" => "documented_design_not_runtime_verification",
+        "plan" | "proposal" => "documented_future_intent",
+        "reported_outcome" => "source_report_not_independent_verification",
+        "observation" => "documented_observation_not_independent_verification",
+        _ => "documented_record_not_independent_verification",
+    }
+}
+
 pub fn extraction_schema() -> Value {
     let mut properties = serde_json::Map::new();
     let fields = [
@@ -225,7 +238,7 @@ pub fn extraction_schema() -> Value {
     );
     properties.insert(
         "kind".into(),
-        json!({"type":"string","enum":["decision","plan","proposal","observation","reported_outcome","constraint","question","issue_state","risk","procedure"]}),
+        json!({"type":"string","description":CLASSIFICATION_GUIDANCE,"enum":["decision","design","plan","proposal","observation","reported_outcome","constraint","question","issue_state","risk","procedure"]}),
     );
     properties.insert(
         "lifecycle".into(),
@@ -255,7 +268,7 @@ fn quote_schema(text: &str, allow_empty: bool) -> Value {
 }
 pub fn reconciliation_schema() -> Value {
     object(
-        json!({"equivalent_to":{"type":"string"}, "uncertain":{"type":"boolean"}, "relations":{"type":"array", "items":object(json!({"target_id":{"type":"string"},"kind":{"type":"string","enum":["elaborates","contradicts","supersedes","uncertain"]},"quote":{"type":"string"},"reason":{"type":"string"}}), &["target_id","kind","quote","reason"])}}),
+        json!({"equivalent_to":{"type":"string"}, "uncertain":{"type":"boolean"}, "relations":{"type":"array", "items":object(json!({"target_id":{"type":"string"},"kind":{"type":"string","enum":["elaborates","contradicts","supersedes","reaffirms","uncertain"]},"quote":{"type":"string"},"reason":{"type":"string"}}), &["target_id","kind","quote","reason"])}}),
         &["equivalent_to", "uncertain", "relations"],
     )
 }

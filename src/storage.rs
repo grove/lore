@@ -14,10 +14,12 @@ use std::{
 pub const SCHEMA_V1: &str = include_str!("../migrations/0001_knowledge.sql");
 pub const SCHEMA_V2: &str = include_str!("../migrations/0002_runtime.sql");
 pub const SCHEMA_V3: &str = include_str!("../migrations/0003_reaffirmations.sql");
+pub const SCHEMA_V4: &str = include_str!("../migrations/0004_review_history.sql");
+pub const SCHEMA_VERSION: i64 = 4;
 pub fn migrate(conn: &Connection) -> rusqlite::Result<()> {
     conn.pragma_update(None, "foreign_keys", "ON")?;
     let version: i64 = conn.pragma_query_value(None, "user_version", |r| r.get(0))?;
-    if version > 3 {
+    if version > SCHEMA_VERSION {
         return Err(rusqlite::Error::InvalidQuery);
     }
     let result = (|| {
@@ -29,6 +31,9 @@ pub fn migrate(conn: &Connection) -> rusqlite::Result<()> {
         }
         if version < 3 {
             conn.execute_batch(SCHEMA_V3)?;
+        }
+        if version < 4 {
+            conn.execute_batch(SCHEMA_V4)?;
         }
         Ok(())
     })();
@@ -410,6 +415,38 @@ pub struct RelationRow {
     pub kind: String,
     pub active: bool,
 }
+#[derive(Debug, Clone, Serialize)]
+pub struct RelationFact {
+    pub id: String,
+    pub from: String,
+    pub to: String,
+    pub kind: String,
+    pub evidence_id: String,
+    pub assertion_revision_id: String,
+    pub source_id: String,
+    pub source_revision_id: String,
+    pub source_locator: String,
+    pub active: bool,
+}
+pub fn relation_facts(conn: &Connection) -> Result<Vec<RelationFact>> {
+    let mut q=conn.prepare("SELECT r.id,f.knowledge_id,t.knowledge_id,r.relation,r.evidence_id,ra.assertion_revision_id,ar.source_id,ar.source_revision_id,s.root_id||':'||s.relative_path,EXISTS(SELECT 1 FROM active_assertions a WHERE a.assertion_revision_id=ar.id) FROM knowledge_relations r JOIN knowledge_revisions f ON f.id=r.from_revision_id JOIN knowledge_revisions t ON t.id=r.to_revision_id JOIN relation_assertions ra ON ra.relation_id=r.id JOIN assertion_revisions ar ON ar.id=ra.assertion_revision_id JOIN sources s ON s.id=ar.source_id UNION ALL SELECT r.id,r.from_unit_id,r.to_unit_id,'reaffirms',r.evidence_id,r.assertion_revision_id,ar.source_id,ar.source_revision_id,s.root_id||':'||s.relative_path,EXISTS(SELECT 1 FROM active_assertions a WHERE a.assertion_revision_id=ar.id) FROM reaffirmation_links r JOIN assertion_revisions ar ON ar.id=r.assertion_revision_id JOIN sources s ON s.id=ar.source_id ORDER BY 1")?;
+    Ok(q.query_map([], |r| {
+        Ok(RelationFact {
+            id: r.get(0)?,
+            from: r.get(1)?,
+            to: r.get(2)?,
+            kind: r.get(3)?,
+            evidence_id: r.get(4)?,
+            assertion_revision_id: r.get(5)?,
+            source_id: r.get(6)?,
+            source_revision_id: r.get(7)?,
+            source_locator: r.get(8)?,
+            active: r.get(9)?,
+        })
+    })?
+    .collect::<rusqlite::Result<_>>()?)
+}
+
 pub fn relations(conn: &Connection) -> Result<Vec<RelationRow>> {
     let mut s=conn.prepare("SELECT f.knowledge_id,t.knowledge_id,r.relation,EXISTS(SELECT 1 FROM active_assertions a WHERE a.assertion_revision_id=ra.assertion_revision_id) FROM knowledge_relations r JOIN knowledge_revisions f ON f.id=r.from_revision_id JOIN knowledge_revisions t ON t.id=r.to_revision_id JOIN relation_assertions ra ON ra.relation_id=r.id ORDER BY r.id")?;
     let mut edges = s
@@ -508,12 +545,7 @@ pub fn add_relation(
     Ok(())
 }
 pub fn review(conn: &Connection, project: &str, key: &str, reason: &str) -> Result<()> {
-    let id = format!("review_{}", &util::digest(key)[7..]);
-    conn.execute(
-        "INSERT OR IGNORE INTO review_items VALUES(?1,?2,?3,'pending')",
-        params![id, project, reason],
-    )?;
-    Ok(())
+    crate::reviews::record(conn, project, key, reason)
 }
 fn evidence_for(conn: &Connection, unit: &str) -> Result<Vec<EvidenceView>> {
     let mut s=conn.prepare("SELECT e.id,a.assertion_revision_id,s.id,s.root_id||':'||s.relative_path,e.exact_excerpt,e.captured_at,EXISTS(SELECT 1 FROM active_assertions x WHERE x.assertion_revision_id=a.assertion_revision_id) FROM assertion_assignments a JOIN assertion_evidence ae ON ae.assertion_revision_id=a.assertion_revision_id JOIN evidence_snapshots e ON e.id=ae.evidence_id JOIN sources s ON s.id=e.source_id WHERE a.knowledge_id=?1 ORDER BY e.id")?;

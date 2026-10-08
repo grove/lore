@@ -8,7 +8,7 @@ fn migration_is_versioned_and_enforces_foreign_keys() {
     let version: i64 = db
         .pragma_query_value(None, "user_version", |r| r.get(0))
         .unwrap();
-    assert_eq!(version, 3);
+    assert_eq!(version, lore::storage::SCHEMA_VERSION);
     let fk: i64 = db
         .pragma_query_value(None, "foreign_keys", |r| r.get(0))
         .unwrap();

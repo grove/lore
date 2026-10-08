@@ -1,6 +1,6 @@
 //! Cross-topic documentary decision relationships. These are explicit source-backed
 //! transitions, not guessed chronological dates or verified deployments.
-use crate::{domain::KnowledgeView, storage::RelationRow};
+use crate::{domain::KnowledgeView, storage::RelationFact};
 use serde::Serialize;
 use std::collections::BTreeMap;
 
@@ -14,6 +14,8 @@ pub(super) struct DecisionLink {
     pub from_topic: String,
     pub to_topic: String,
     pub from_title: String,
+    pub from_label: String,
+    pub to_label: String,
     pub to_title: String,
     pub claimed_effective_at: Option<String>,
     pub supporting_source: Option<String>,
@@ -26,7 +28,7 @@ impl DecisionLink {
 }
 pub(super) fn decision_links(
     units: &[KnowledgeView],
-    relations: &[RelationRow],
+    relations: &[RelationFact],
 ) -> Vec<DecisionLink> {
     let by_id: BTreeMap<&str, &KnowledgeView> =
         units.iter().map(|unit| (unit.id.as_str(), unit)).collect();
@@ -44,7 +46,7 @@ pub(super) fn decision_links(
         if from.kind != "decision" || to.kind != "decision" {
             continue;
         }
-        let observed = from.evidence.iter().find(|e| e.active);
+
         out.push(DecisionLink {
             relation: relation.kind.clone(),
             from_id: from.id.clone(),
@@ -54,14 +56,16 @@ pub(super) fn decision_links(
             from_topic: from.topic.clone(),
             to_topic: to.topic.clone(),
             from_title: from.topic_title.clone(),
+            from_label: source_label(&relation.source_locator),
+            to_label: predecessor_label(to),
             to_title: to.topic_title.clone(),
             claimed_effective_at: if from.effective_at.trim().is_empty() {
                 None
             } else {
                 Some(from.effective_at.clone())
             },
-            supporting_source: observed.map(|e| e.source.clone()),
-            evidence_id: observed.map(|e| e.id.clone()),
+            supporting_source: Some(relation.source_locator.clone()),
+            evidence_id: Some(relation.evidence_id.clone()),
         });
     }
     out.sort_by(|a, b| {
@@ -73,4 +77,63 @@ pub(super) fn decision_links(
         ))
     });
     out
+}
+
+fn source_label(locator: &str) -> String {
+    let path = locator.split_once(':').map_or(locator, |(_, p)| p);
+    let stem = std::path::Path::new(path)
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or(path);
+    if stem.contains('-') && stem.chars().any(|c| c.is_ascii_digit()) {
+        stem.to_owned()
+    } else {
+        path.to_owned()
+    }
+}
+fn predecessor_label(unit: &KnowledgeView) -> String {
+    let active = unit
+        .evidence
+        .iter()
+        .filter(|e| e.active)
+        .collect::<Vec<_>>();
+    let evidence = if active.is_empty() {
+        unit.evidence.iter().collect::<Vec<_>>()
+    } else {
+        active
+    };
+    let labels = evidence
+        .into_iter()
+        .map(|e| source_label(&e.source))
+        .collect::<std::collections::BTreeSet<_>>();
+    if labels.is_empty() {
+        format!("Decision {}", unit.id)
+    } else {
+        labels.into_iter().collect::<Vec<_>>().join(" / ")
+    }
+}
+/// A reaffirmation page must also see its predecessor's explicit successor.
+pub(super) fn context_for(slug: &str, links: &[DecisionLink]) -> Vec<DecisionLink> {
+    let mut ids = std::collections::BTreeSet::new();
+    for link in links.iter().filter(|l| l.touches(slug)) {
+        ids.insert(link.from_id.clone());
+        ids.insert(link.to_id.clone());
+    }
+    loop {
+        let before = ids.len();
+        for link in links {
+            if ids.contains(&link.from_id) || ids.contains(&link.to_id) {
+                ids.insert(link.from_id.clone());
+                ids.insert(link.to_id.clone());
+            }
+        }
+        if before == ids.len() {
+            break;
+        }
+    }
+    links
+        .iter()
+        .filter(|l| ids.contains(&l.from_id) || ids.contains(&l.to_id))
+        .cloned()
+        .collect()
 }
