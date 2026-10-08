@@ -115,7 +115,7 @@ impl GenerativeModel for FakeModel {
                     }
                     json!({"equivalent_to":equivalent,"relations":relations,"uncertain":false})
                 }
-                "synthesize" => {
+                "synthesize" | "overview" => {
                     if self.fail_synthesis.load(Ordering::SeqCst) {
                         return Err(ModelError::Unavailable("fixture failure".into()));
                     }
@@ -127,7 +127,7 @@ impl GenerativeModel for FakeModel {
                         .collect::<Vec<_>>();
                     json!({"sections":[{"heading":"Understanding","paragraphs":paragraphs}]})
                 }
-                "verify" => {
+                "verify" | "verify_overview" => {
                     if self.reject_verification.load(Ordering::SeqCst) {
                         json!({"supported":false,"issues":["fixture verification rejected the draft"]})
                     } else {

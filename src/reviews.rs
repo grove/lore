@@ -342,11 +342,13 @@ pub fn refresh(conn: &Connection) -> Result<usize> {
         else {
             continue;
         };
-        let identity: (String, String) = conn.query_row(
-            "SELECT source_id,source_revision_id FROM assertion_revisions WHERE id=?1",
-            [assertion],
-            |r| Ok((r.get(0)?, r.get(1)?)),
-        )?;
+        let identity: (String,String,String,String)=conn.query_row("SELECT ar.source_id,ar.source_revision_id,ar.modality,json_extract(ad.proposal_json,'$.lifecycle') FROM assertion_revisions ar JOIN assertion_details ad ON ad.assertion_revision_id=ar.id WHERE ar.id=?1",[assertion],|r|Ok((r.get(0)?,r.get(1)?,r.get(2)?,r.get(3)?)))?;
+        // A decision relationship cannot settle a proposal or report merely
+        // because both appear in the same document revision.
+        if identity.2 != "decision" || identity.3 != "accepted" {
+            continue;
+        }
+
         let matching: Vec<_> = facts
             .iter()
             .filter(|f| {

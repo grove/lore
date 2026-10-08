@@ -1,4 +1,4 @@
-use super::{runner::Runner, timeline};
+use super::{overview, runner::Runner, timeline};
 use crate::{
     domain::{self, KnowledgeView, PageDraft, Verification},
     storage::StoredPage,
@@ -21,13 +21,10 @@ pub(super) async fn build(
     let mut pages = BTreeMap::new();
     // A successor decision may live in another topic. Include its explicit
     // relationship in the old topic's digest so that the old page is revalidated.
-    let decisions = timeline::decision_links(knowledge, &crate::storage::relations(runner.conn)?);
+    let decisions =
+        timeline::decision_links(knowledge, &crate::storage::relation_facts(runner.conn)?);
     for (slug, units) in &topics {
-        let topic_decisions: Vec<_> = decisions
-            .iter()
-            .filter(|r| r.touches(slug))
-            .cloned()
-            .collect();
+        let topic_decisions = timeline::context_for(slug, &decisions);
         util::safe_slug(slug)?;
         let path = format!("topics/{slug}.md");
         let input_digest = util::json_digest(&(
@@ -151,10 +148,10 @@ pub(super) async fn build(
                 };
                 content.push_str(&format!(
                     "- **[{}]({}.md)** {} **[{}]({}.md)**. {} ({}). {} ({}).",
-                    util::markdown_text(&link.from_title),
+                    util::markdown_text(&link.from_label),
                     link.from_topic,
                     verb,
-                    util::markdown_text(&link.to_title),
+                    util::markdown_text(&link.to_label),
                     link.to_topic,
                     util::markdown_text(&link.from_statement),
                     link.from_id,
@@ -260,62 +257,10 @@ pub(super) async fn build(
             },
         );
     }
-    let mut index = format!(
-        "# {} — project knowledge\n\nLore brings together the project's documented decisions, ideas, plans, observations and open questions. Follow a topic to its supporting sources. Archived statements explain history; they are not automatically current facts.\n\nThis wiki contains {} knowledge units across {} topics. See the review queue below for unresolved questions.\n\n## Topics\n\n",
-        util::markdown_text(&runner.config.config.project.name),
-        knowledge.len(),
-        topics.len()
-    );
-    if topics.is_empty() {
-        index.push_str("No material project assertions have been extracted yet. Add Markdown source documents and run `lore update`.\n");
-    }
-    for (slug, units) in topics {
-        index.push_str(&format!(
-            "[{}](topics/{slug}.md) — {} documented knowledge units.\n\n",
-            util::markdown_text(&units[0].topic_title),
-            units.len()
-        ));
-    }
-    if !decisions.is_empty() {
-        index.push_str("## Documented decision relationships\n\n");
-        for link in &decisions {
-            let verb = if link.relation == "supersedes" {
-                "explicitly supersedes"
-            } else {
-                "reaffirms"
-            };
-            index.push_str(&format!(
-                "- [{}](topics/{}.md) {} [{}](topics/{}.md).",
-                util::markdown_text(&link.from_title),
-                link.from_topic,
-                verb,
-                util::markdown_text(&link.to_title),
-                link.to_topic
-            ));
-            if let Some(evidence) = &link.evidence_id {
-                index.push_str(&format!(" Evidence snapshot: {}.", evidence));
-            }
-            index.push_str("\n\n");
-        }
-        index.push_str(
-            "These are documented decisions and relationships, not independent verification of a rollout.\n\n"
-        );
-    }
-    index.push_str(&format!(
-        "\n{}\n",
-        crate::reviews::status_block(runner.conn)?
-    ));
+    let index = overview::build(runner, knowledge, &decisions, old.get("index.md"), force).await?;
+    pages.insert(index.path.clone(), index);
     let review_page = crate::reviews::page(runner.conn)?;
     pages.insert(review_page.path.clone(), review_page);
-    pages.insert(
-        "index.md".into(),
-        StoredPage {
-            path: "index.md".into(),
-            input_digest: util::digest(&index),
-            output_digest: util::digest(&index),
-            content: index,
-        },
-    );
     Ok(pages)
 }
 fn validate_draft(draft: &PageDraft, allowed: &BTreeSet<String>) -> Result<()> {
