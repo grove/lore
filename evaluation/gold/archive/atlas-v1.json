@@ -17,23 +17,12 @@
       "id": "mysql-architecture",
       "source": "docs:architecture/ledger.md",
       "needle": "writes payment transactions to MySQL in the production environment",
-      "kind": "design",
+      "kind": "observation",
       "lifecycle": "unknown",
       "phases": [
         "initial",
         "after_mutation"
-      ],
-      "acceptable_pairs": [
-        [
-          "observation",
-          "unknown"
-        ],
-        [
-          "design",
-          "active"
-        ]
-      ],
-      "label_rationale": "Selected documented design, not a future plan. An attributed observation also preserves documentary status; lack of runtime verification does not imply future intent."
+      ]
     },
     {
       "id": "mysql-reaffirmed",
@@ -120,17 +109,8 @@
         [
           "procedure",
           "unknown"
-        ],
-        [
-          "procedure",
-          "active"
-        ],
-        [
-          "constraint",
-          "active"
         ]
-      ],
-      "label_rationale": "Mandatory sign-off is a constraint; its ordered approval/rollback checklist is an applicable procedure. Neither is an implementation-completion claim."
+      ]
     },
     {
       "id": "ratelimit-investigation",
@@ -210,7 +190,5 @@
         "after_mutation"
       ]
     }
-  ],
-  "rubric_version": "atlas-v02-design-1",
-  "changes": "Introduces documented-design category, separate from future intent and runtime verification. Explicitly accepts procedure/active for an applicable mandatory approval workflow. Old rubric retained in archive/atlas-v1.json; different rubric scores are not model-quality improvement evidence."
+  ]
 }
