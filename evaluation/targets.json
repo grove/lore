@@ -1,0 +1,41 @@
+{
+  "atlas": {
+    "kind": "bundled",
+    "directory": "corpora/atlas",
+    "include": [
+      "**/*.md"
+    ],
+    "gold": "gold/atlas.json",
+    "mutation_directory": "mutations/atlas"
+  },
+  "lore-self": {
+    "kind": "self",
+    "include": [
+      "README.md",
+      "docs/IMPLEMENTATION.md",
+      "docs/FOUNDATION.md"
+    ],
+    "gold": "gold/lore-self.json"
+  },
+  "openwiki": {
+    "kind": "git",
+    "repo": "langchain-ai/openwiki",
+    "revision": "d1c7fc75a6a906da258cd94dbcb1602f98516480",
+    "include": [
+      "README.md",
+      "openwiki/concepts/*.md",
+      "openwiki/architecture/*.md",
+      "openwiki/workflows/*.md"
+    ]
+  },
+  "llm-wiki": {
+    "kind": "git",
+    "repo": "nashsu/llm_wiki",
+    "revision": "48fd970e206a02a6d2028d1dbfc41b7a0345bf0b",
+    "include": [
+      "README.md",
+      "llm-wiki.md",
+      "plans/*.md"
+    ]
+  }
+}
