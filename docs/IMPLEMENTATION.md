@@ -1,0 +1,59 @@
+# Lore implementation guide
+
+## Status and execution model
+
+The initial compiler is implemented as one Rust package with a library and a `lore` binary. The library separates source parsing, evidence storage, provider HTTP clients, semantic reconciliation, rendering, and recoverable publication. `DESIGN.md` remains the broader architectural specification; this guide describes what the current implementation actually does. Features listed as future directions in the design, such as direct issue-tracker connectors and independent implementation verification, are not implied by the presence of the CLI.
+
+An update scans configured roots, compares source and context fingerprints, retires affected assertions from the current projection, extracts source-specific replacements, considers relationships to existing knowledge, refreshes consolidated units, and writes affected topic pages. Deterministic code validates schemas, source identity, exact evidence, relationships, and publication state. Models supply interpretations; they do not receive filesystem mutation tools or execute instructions found in documents.
+
+## Configuration and providers
+
+Configuration uses schema version 1 and rejects unknown fields instead of silently ignoring misspelled settings. Root IDs must be stable and unique, and roots must not overlap. Relative paths are resolved from the configuration directory. Source roots may contain the output directories, which are always excluded, but cannot themselves be inside generated output. Missing roots are errors, not evidence that every file was deleted. Symlink traversal is refused at source and output boundaries. Markdown source paths must be valid UTF-8 without control characters.
+
+The `generative` and optional `decision` roles are configured independently. The implemented HTTP contracts are:
+
+| Provider | Generative | Decision | Credential |
+| --- | --- | --- | --- |
+| Ollama | `/api/chat`, nonstreaming, optional JSON `format` | `/v1/systemone`, `state` plus a question map | None by default |
+| OpenAI | `/v1/responses`, `store:false`, strict `text.format` schema | `/v1/decisions`, `input` plus a question array | `OPENAI_API_KEY` |
+| TypeSafe (experimental) | Not supported | `/v1/systemone`, `state` plus a question map | `TYPESAFE_API_KEY` |
+
+OpenAI's `predicate` corresponds to System One's `noul`; choices and ordered score rubrics retain stable option identifiers. Adapters normalize answer order, refuse unknown or missing answers, preserve refusals, and validate probability ranges and distributions. The common request contract currently limits batches to 64 questions, choices to 255 alternatives, and scores to ten levels. Decision inference is advisory classification rather than an authority to remove knowledge.
+
+Provider clients use bounded timeouts and retries, reject redirects, cap response bodies, and withhold raw provider error bodies from ordinary diagnostics. Retryable transport failures, HTTP 429, and server errors use bounded backoff; authorization and malformed-response failures do not turn into successful extraction. `doctor` checks configuration and model visibility without project content. `doctor --inference` additionally checks a small synthetic generation and decision call. Model listing alone does not prove access to a beta inference endpoint.
+
+The public contracts were checked against [OpenAI Decisions](https://developers.openai.com/api/docs/guides/decisions), [OpenAI Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=responses), [Ollama Chat](https://docs.ollama.com/api/chat), [Ollama Clef-Flash](https://ollama.com/library/clef-flash), and [TypeSafe System One](https://docs.typesafe.ai/api). Automated tests use synthetic local HTTP fixtures, not actual hosted accounts or downloaded model weights. Real provider compatibility, model availability, and semantic output quality must still be checked in the deployment environment.
+
+## Processing limits and cost
+
+Default processing settings are `timeout_seconds: 120`, `retry_attempts: 2`, `max_file_bytes: 2000000`, `max_section_bytes: 12000`, `max_context_bytes: 64000`, `candidate_limit: 40`, and `verify_synthesis: true`. File and context limits are byte limits, not token counts; leave headroom for a model's actual tokenizer and context window. Oversized documents and requests fail explicitly. Large Markdown sections are split at UTF-8-safe boundaries with heading and document context; no silent truncation pretends to cover omitted source material.
+
+`candidate_limit` controls the size of one reconciliation request, not a cutoff on candidate recall. The first implementation considers all stored units in batches, prioritizing matching subjects and topics. This avoids missing an important contradictory document merely because lexical search missed it, but initial compilation can approach quadratic comparison cost. Processing and provider requests are sequential. The decision model currently adds a classification hint; it is not yet a demonstrated cost-saving optimization. Measure a representative project before processing a large corpus.
+
+Validated model outputs are cached in `.lore/cache` using provider/model selection, configuration, task, prompt/schema version, and input fingerprints. Invalid outputs are not accepted as reusable results. A failed run can reuse valid earlier steps without advancing the published baseline. Mutable model aliases cannot be recognized as new weights without another provider call; use pinned model versions or `update --refresh` when an alias changes. The configuration fingerprint deliberately invalidates conservatively, so some configuration changes trigger more work than strictly necessary.
+
+## Provenance and historical interpretation
+
+The database distinguishes logical sources, observed source revisions, section revisions, exact evidence snapshots, assertion lineages/revisions, consolidated knowledge units/revisions, and current projections. An unchanged section can retain its previously observed snapshot even if an unrelated section changes the whole file hash. Its continued applicability is justified by the section's input fingerprint, which includes relevant headings and front matter. Exact snapshots are never rewritten to a new line number; current file links and archived observed locations remain separate concepts.
+
+Two different documents create distinct source assertions even when they support the same knowledge unit. Meaningful lifecycle or scope differences prevent automatic equivalence. Removing a source retires its assertions from current support but preserves their exact excerpts. A successor decision can be explicitly linked to a predecessor; if the replacement evidence later disappears, the old decision is flagged for review rather than silently reinstated as current. Documentary conflicts and uncertain matches remain visible.
+
+The current supersession guard is intentionally narrow: both units must be decisions in the same scope, the new decision must be accepted, and an exact passage must contain explicit English replacement language together with a predecessor source identifier or its statement. A new proposal or an issue closure is insufficient. This guard is conservative, not a general natural-language proof procedure. Extraction and synthesis still rely on fallible semantic judgments, and a checksum only establishes byte identity, not truth.
+
+Review records are append-preserving diagnostics. `lore review` lists pending records and `audit --deep` revisits documentary relationships, but the release does not include a graph-editing or review-resolution workflow. Changing sources does not silently erase the fact that a conflict was previously recorded. A later review interface can add explicit resolution events without changing historical evidence.
+
+## Publication, recovery and privacy
+
+All inference and reconciliation happen against a staged SQLite database. The visible wiki and its successful baseline are changed only after validation and a final source rescan. A publication journal records the intended generation, and sibling staging/backup directories keep the prior wiki available until installation is validated. On the next update, an interrupted switch rolls forward and checks the generation in both the wiki marker and the database before removing backups. SQLite transactions and filesystem renames are not advertised as a single cross-platform atomic operation.
+
+Normal commands detect missing or edited generated pages. `--rebuild` is an explicit instruction to replace Lore-owned generated output, including manual changes; it is not permission to overwrite an arbitrary directory. Source edits detected during compilation, invented citations, invalid semantic proposals, or failed synthesis do not advance the successful source baseline. Changed wiki files are checked again before publication to reduce the risk of overwriting concurrent human edits.
+
+The `.lore/` directory contains sensitive evidence snapshots and cached semantic results. It is made private on Unix-like systems, and Windows deployments should apply appropriate account/ACL protection. Provider credentials are read from environment variables, not persisted in project configuration. Local-only mode rejects remote endpoints and hosted provider roles; it also disables proxy use for literal loopback connections. It cannot control a separate inference server's own networking behavior.
+
+`purge --all --yes` is the explicit retention escape hatch: it removes managed output, snapshots, caches, staging and database history, without editing source documents. This release offers whole-project erasure rather than selective per-source pruning. It does not promise physical secure erasure, deletion from external backups, or control over a hosted provider's retention policy. OpenAI requests use `store:false`, which is not a claim of zero provider-side retention.
+
+## Tests and known boundaries
+
+The offline suite includes source parsing and Unicode splitting, repeated/fenced headings, root exclusions and symlinks, configuration validation, database migration and provenance constraints, provider normalization and refusals, actual HTTP requests against local fixtures, full CLI execution, unchanged reruns, equivalent sources, historical support, proposals versus decisions, explicit replacement, unchanged-source semantic invalidation, failure rollback, cache reuse, and a simulated interrupted publication. CI also builds and smoke-tests the CLI. These tests establish deterministic behavior for the fixtures, not universal model quality.
+
+Current limitations include exhaustive candidate cost, sequential inference, conservative source identity across ambiguous renames, bounded local context rather than autonomous research, no independent code/runtime verification, and no automatic review-resolution UI. Citation rendering uses source file links plus immutable evidence IDs; archived excerpts are inspected through the CLI rather than embedded in every wiki page. The initial layout uses a topic directory and deterministic index rather than a freely reorganizing hierarchy. Further improvements should preserve the evidence and no-op invariants rather than trade them away for a more impressive demo.
