@@ -56,8 +56,8 @@ impl<'a> Runner<'a> {
         mut validate: F,
     ) -> Result<(T, String)>
     where
-        T: DeserializeOwned,
-        F: FnMut(&T) -> Result<()>,
+        T: DeserializeOwned + Serialize,
+        F: FnMut(&mut T) -> Result<()>,
     {
         let serialized = serde_json::to_string(&input)?;
         ensure!(
@@ -85,8 +85,8 @@ impl<'a> Runner<'a> {
         if !self.refresh && path.exists() {
             if let Ok(text) = util::read_limited(&path, 4_000_000) {
                 if let Ok(cached) = serde_json::from_str::<Cached>(&text) {
-                    if let Ok(value) = serde_json::from_str::<T>(&cached.text) {
-                        if validate(&value).is_ok() {
+                    if let Ok(mut value) = serde_json::from_str::<T>(&cached.text) {
+                        if validate(&mut value).is_ok() {
                             self.cache_hits += 1;
                             self.record(task, &provider, &cached.model, &key, true, 0)?;
                             return Ok((value, cached.model));
@@ -131,14 +131,18 @@ impl<'a> Runner<'a> {
                 start.elapsed().as_millis() as i64,
             )?;
             let decoded = serde_json::from_str::<T>(&response.text);
-            if let Ok(value) = decoded {
-                match validate(&value) {
+            if let Ok(mut value) = decoded {
+                match validate(&mut value) {
                     Ok(()) => {
+                        // Persist the validated, canonicalized typed response.
+                        // Optional unsupported metadata must not survive in
+                        // either the knowledge registry or the inference cache.
+                        let canonical_text = serde_json::to_string(&value)?;
                         util::atomic_write(
                             &path,
                             &serde_json::to_vec(&Cached {
                                 model: response.model.clone(),
-                                text: response.text,
+                                text: canonical_text,
                             })?,
                         )?;
                         return Ok((value, response.model));
