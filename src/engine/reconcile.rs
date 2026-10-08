@@ -499,6 +499,33 @@ fn explicit_document_links(
     (links, ambiguous)
 }
 
+/// Preserve the earlier strict-scope fallback for an explicit quotation of
+/// the entire predecessor proposition even when a document has no stable ID.
+/// This path is intentionally narrower than a named ADR reference: the same
+/// extracted scope and exact old statement must both be present.
+fn quoted_statement_action(
+    new: &AssertionProposal,
+    old: &KnowledgeView,
+    quote: &str,
+) -> Option<&'static str> {
+    if !new.scope.eq_ignore_ascii_case(&old.scope) {
+        return None;
+    }
+    let statement = old.statement.to_ascii_lowercase();
+    if statement.len() < 24 || !quote.to_ascii_lowercase().contains(&statement) {
+        return None;
+    }
+    let first_sentence = statement
+        .split(['.', '\n', ';'])
+        .next()
+        .unwrap_or("")
+        .trim();
+    if first_sentence.len() < 24 {
+        return None;
+    }
+    quoted_document_action(quote, first_sentence)
+}
+
 fn explicit_reaffirmation(
     new: &AssertionProposal,
     old: &KnowledgeView,
@@ -518,6 +545,7 @@ fn explicit_reaffirmation(
     // A named predecessor takes precedence over unreliable model-paraphrased
     // scope fields, but the relationship verb itself must be explicit.
     anchored_action(&relation.quote, old, "") == Some("reaffirms")
+        || quoted_statement_action(new, old, &relation.quote) == Some("reaffirms")
 }
 
 fn explicit_replacement(
@@ -540,6 +568,7 @@ fn explicit_replacement(
     // differently. Document identity + positive quoted replacement is the
     // decisive evidence; vague cross-scope hints still require review.
     anchored_action(&relation.quote, old, "") == Some("supersedes")
+        || quoted_statement_action(new, old, &relation.quote) == Some("supersedes")
 }
 fn capture_relation_quote(
     conn: &rusqlite::Connection,
@@ -611,6 +640,47 @@ mod explicit_reference_tests {
         );
         assert_eq!(source_identifier("docs:README.md"), None);
         assert_eq!(source_identifier("docs:plans/current-plan.md"), None);
+    }
+
+    #[test]
+    fn retains_strict_scope_full_statement_replacement_without_a_document_id() {
+        use super::quoted_statement_action;
+        use crate::domain::{AssertionProposal, KnowledgeView};
+
+        let old = KnowledgeView {
+            id: "old".into(),
+            revision_id: "r1".into(),
+            statement: "The primary datastore must remain MySQL.".into(),
+            topic: "persistence".into(),
+            topic_title: "Persistence".into(),
+            subject: "database".into(),
+            kind: "decision".into(),
+            lifecycle: "accepted".into(),
+            base_lifecycle: "accepted".into(),
+            scope: "production".into(),
+            effective_at: String::new(),
+            support_state: "current_documentary_support".into(),
+            evidence: vec![],
+            relations: vec![],
+        };
+        let quote = "This accepted decision supersedes The primary datastore must remain MySQL.";
+        let new = AssertionProposal {
+            topic: "persistence".into(),
+            topic_title: "Persistence".into(),
+            subject: "database".into(),
+            statement: "The database decision has changed.".into(),
+            kind: "decision".into(),
+            lifecycle: "accepted".into(),
+            scope: "production".into(),
+            effective_at: String::new(),
+            quote: quote.into(),
+        };
+        assert_eq!(
+            quoted_statement_action(&new, &old, quote),
+            Some("supersedes")
+        );
+        let uncertain = "This decision does not supersede The primary datastore must remain MySQL.";
+        assert_eq!(quoted_statement_action(&new, &old, uncertain), None);
     }
 
     #[test]
