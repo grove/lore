@@ -1,12 +1,12 @@
 # Lore — Technical Design
 
-**Status:** Draft v0.2 · **Date:** 2026-10-08 · **Implementation status:** Proposed, not yet implemented
+**Status:** Draft v0.3 · **Date:** 2026-10-08 · **Implementation status:** Proposed, not yet implemented
 
 ## 1. Overview
 
 Lore is a local-first, incremental knowledge compiler for heterogeneous Markdown project artifacts. It ingests any number of configured source directories belonging to one project, captures immutable source-evidence excerpts, extracts versioned source assertions, reconciles consolidated knowledge with its history, and publishes a linked Markdown wiki. The source material may include architecture notes, ADRs, plans, proposals, exported issues, meeting notes, investigations, operating procedures, or informal ideas. Rather than summarize each file independently, Lore constructs a project-level understanding that distinguishes what is documented as current, what has been decided, what is proposed, and what remains uncertain.
 
-Lore will be implemented as a standalone Rust CLI. Ordinary Rust code owns file discovery, parsing, hashing, dependency management, persistence, validation, and publication. LLMs are used for semantic tasks such as knowledge extraction, concept discovery, equivalence assessment, reconciliation, and prose synthesis. Ollama is the first intended inference provider, with a generative model such as Gemma 4 and an optional System One decision model such as Clef-Flash; additional providers can be added behind stable interfaces. The output is portable Markdown, and the local knowledge registry is stored in SQLite.
+Lore will be implemented as a standalone Rust CLI. Ordinary Rust code owns file discovery, parsing, hashing, dependency management, persistence, validation, and publication. LLMs are used for semantic tasks such as knowledge extraction, concept discovery, equivalence assessment, reconciliation, and prose synthesis. Ollama and OpenAI are both initial inference providers: Ollama supports local generative and Clef-Flash decision inference, while OpenAI supports generative inference via the Responses API and decision inference via the Decisions API. TypeSafe AI's Jev is a candidate for a subsequent decision adapter. All providers operate behind stable, capability-specific interfaces. The output is portable Markdown, and the local knowledge registry is stored in SQLite.
 
 The central abstraction is **documented project knowledge with traceable evidence and historical assertions**, not “a fact asserted by an LLM.” This design deliberately treats documented statements, implementation verification, temporal lifecycle, and source authority as distinct concerns. The implementation should begin with topic-level incremental wiki regeneration while preserving a structured knowledge-unit layer that can support more precise updates later.
 
@@ -20,7 +20,7 @@ This is a provenance and lifecycle problem as much as a summarization problem. A
 
 ### Goals
 
-The MVP must accept multiple local Markdown directories for a single project, produce a coherent and navigable topic-oriented Markdown wiki, and associate material claims in that wiki with precise source evidence. It must represent decisions, proposals, plans, issues, observations, historical context, and unresolved questions without promoting intentions into implementation facts. The incremental engine must detect added, modified, deleted, and potentially moved sources, identify impacted knowledge and topic pages, and avoid model calls on a fully unchanged corpus. It must support local inference through Ollama, run on common desktop and CI platforms as a Rust binary, and make failures inspectable and recoverable.
+The MVP must accept multiple local Markdown directories for a single project, produce a coherent and navigable topic-oriented Markdown wiki, and associate material claims in that wiki with precise source evidence. It must represent decisions, proposals, plans, issues, observations, historical context, and unresolved questions without promoting intentions into implementation facts. The incremental engine must detect added, modified, deleted, and potentially moved sources, identify impacted knowledge and topic pages, and avoid model calls on a fully unchanged corpus. It must support local inference through Ollama and explicitly configured hosted inference through OpenAI's Responses and Decisions APIs in the initial release, run on common desktop and CI platforms as a Rust binary, and make failures inspectable and recoverable.
 
 The output should be useful to both humans and coding agents without requiring a special viewer. A user should be able to read a high-level project overview, navigate to a topic, inspect links to source material, and understand what is asserted versus uncertain. The system should not require a graph database, embeddings, MCP, or a separately installed coding agent for basic operation.
 
@@ -107,6 +107,27 @@ my-project/
 ```
 
 The SQLite state database is operational state, not a requirement for reading the wiki. Because it may be large and machine-specific, the default should be to ignore `.lore/` in Git while allowing the Markdown wiki to be committed. Incremental CI runs must restore the matching state database from a durable cache or else perform a safe rebuild. Loss of the state database must not make the published Markdown misleadingly claim that it has been incrementally verified.
+
+For the initial release, the same role-based configuration also supports OpenAI. Choosing this configuration is an **explicit opt-in to sending selected source excerpts and inference context to OpenAI**. The model IDs are examples that must pass provider capability and account-availability checks; no default should silently switch local documents to remote processing.
+
+```yaml
+# Alternate lore.yml model/provider settings — planned OpenAI configuration
+models:
+  decision:
+    provider: openai
+    model: gpt-6-luna
+    enabled: true
+  generative:
+    provider: openai
+    model: gpt-6-astra
+
+providers:
+  openai:
+    base_url: https://api.openai.com/v1
+    api_key_env: OPENAI_API_KEY
+```
+
+Users may also mix providers, for example Ollama for generative synthesis and OpenAI Decisions for fast classification. Roles never inherit a cloud provider implicitly: the effective provider must be visible in the resolved configuration and run diagnostics. A future TypeSafe decision adapter will use its own explicitly configured credentials, not an OpenAI or Ollama key.
 
 ## 5. Architecture and component boundaries
 
@@ -260,16 +281,90 @@ Use SQLite foreign keys, unique constraints, explicit indexes on source-to-asser
 A run journal tracks phases such as `scanning`, `extracting`, `reconciling`, `synthesizing`, `validating`, `publishing`, `completed`, and `failed`. Construct proposed mutations and Markdown output in staged state. Only a coherently validated publication advances the successful baseline. Filesystem swaps and SQLite transactions cannot be atomically combined across all platforms; the journal must support roll-forward or rollback after a crash and ensure that interrupted publication is recognized before a new run begins. No-op updates leave the live wiki unchanged.
 
 Evidence retention is reference-aware by default: snapshots needed for historical assertions remain even after the original file is removed. The storage layout should allow explicit, audited pruning and user-directed privacy purges, invalidating any derived records whose retained provenance was destroyed. Purges must include caches, staging content, and managed backups or clearly explain external backups beyond Lore's control. Sensitive snapshot text is never logged by default. Since `.lore/` can contain substantial duplicated project data, it should be ignored by Git by default and protected as confidential local state. CI jobs with no state cache must rebuild safely rather than treat the existing wiki files as a verified baseline.
-## 11. Model roles, Ollama, and provider abstraction
+## 11. Model interfaces and initial inference providers
 
-Lore has two distinct inference capabilities. `GenerativeModel` produces structured extraction/reconciliation proposals and prose, with JSON-schema validation and bounded retry/repair on malformed output. `DecisionModel` takes a state and a finite set of typed questions and returns options and probability distributions. These are capability interfaces rather than a single assumed chat endpoint; provider adapters should report unsupported capabilities at configuration/preflight time. An unavailable decision model should have a configurable generative fallback, so it is an optimization rather than a prerequisite for correct knowledge processing.
+### 11.1 Two capabilities, independently selectable
 
-For Ollama, generative inference uses `/api/chat` with a schema-constrained `format` when supported by the selected model and server. The Clef-Flash decision adapter uses `/v1/systemone` with a `state` and `questions` schema; its answer probabilities should be treated as model signals, not calibrated correctness guarantees. Ollama's Clef-Flash documentation specifies a minimum Ollama version of 0.35.1. A preflight command should inspect server availability, selected model tags, supported endpoints, and sufficient context capacity, then fail clearly if capabilities are missing. The model name `gemma4:12b` is an illustrative default rather than a required model or guarantee of quality.
+Lore distinguishes **generative inference** from **decision inference** at the application boundary. A `GenerativeModel` creates validated structured extraction and reconciliation proposals or narrative Markdown. A `DecisionModel` answers narrow, predefined typed questions for classification, candidate ranking, and review routing. They are separate interfaces, not merely modes of a shared chat API. Model roles (`generative` and `decision`, with potential extraction/synthesis-specific overrides later) may select different providers, models, endpoints, and credentials.
 
-Decision-model tasks include document-type classification, routing to candidate topics, ranking possible duplicate units, and flagging likely contradictions or low-impact edits. The model must not be permitted to suppress the processing of an unknown source or to resolve a consequential conflict alone. More capable generative inference handles extraction, substantive comparison, temporal interpretation, novel topic discovery, and prose writing. Requests should carry selected sections and evidence, not an unbounded concatenation of the project; concurrency and token budgets are configurable, and results may be cached using source/prompt/model digests.
+The initial release must include **Ollama and OpenAI as first-class providers** for both capabilities: Ollama's Chat API and Clef-Flash/System One API for local processing, and OpenAI's **Responses API** and **Decisions API** for hosted processing. The decision stage itself remains optional: when disabled, unavailable, refused, or insufficiently certain, Lore must use a conservative generative-model path or request review; it must not silently discard source knowledge. TypeSafe AI's **Jev** is a candidate for a later dedicated decision adapter, not a required initial dependency. Other hosted models can be added after this set is working and tested.
 
-Local Ollama is the initial provider. Future adapters may support OpenAI, Anthropic, and a hosted Cloudflare decision endpoint, but these are extension points rather than v0.1 dependencies. Remote providers require explicit configuration, clearly communicate the data that will be transmitted, and store credentials using environment variables or system credential facilities rather than committing secrets. The core pipeline must remain provider-agnostic and work in generative-only mode if Clef-Flash is not installed.
+A representative internal Rust contract (illustrative, not final signatures) keeps providers behind one canonical decision vocabulary:
 
+```rust
+enum DecisionQuestion {
+    Predicate { name: String, instructions: String },
+    Choice {
+        name: String,
+        instructions: String,
+        options: Vec<(String, String)>, // stable ID and description
+    },
+    Score {
+        name: String,
+        instructions: String,
+        levels: Vec<(String, String)>,  // ordered ID and description
+    },
+}
+
+enum DecisionAnswer {
+    Predicate { name: String, probability_true: f64 },
+    Choice {
+        name: String,
+        selected: String,
+        probabilities: Vec<(String, f64)>,
+        confidence: Option<f64>,
+    },
+    Score {
+        name: String,
+        expected_index: f64,
+        probabilities: Vec<(String, f64)>,
+        confidence: Option<f64>,
+    },
+    Refusal { name: String },
+}
+```
+
+The request also contains bounded project evidence as text or canonical structured state, question version, and trace metadata; the response tracks provider/model identifier, latency, usage when supplied, and validation diagnostics. Option IDs and names must be unique and stable. Every probability must be finite and in range, every returned option must be part of the request, and distributions must meet tolerance checks. Native per-provider details should remain available for diagnostics without leaking raw evidence into normal logs. An adapter must never invent a probability or silently coerce a refusal into a negative answer.
+
+### 11.2 OpenAI Responses API — initial generative backend
+
+Implement direct HTTP calls to `POST https://api.openai.com/v1/responses` using `reqwest`, with `OPENAI_API_KEY` read from the environment, configurable compatible endpoint for enterprise gateways where explicitly authorized, timeouts, bounded retries, rate-limit handling, and model selection. Use **Structured Outputs** via `text.format` with `type: "json_schema"` and `strict: true` for knowledge-extraction and reconciliation payloads when supported by the chosen model. A writing task may use ordinary text output; even schema-constrained responses require Rust-side semantic and source-evidence validation. Treat refusals, incomplete/truncated responses, and unsupported JSON Schema constructs as explicit errors or review/fallback conditions, not successful extraction.
+
+Do not assume any ChatGPT subscription provides API access or that every model supports every Responses capability. Preflight should verify credentials, endpoint reachability, selected model/capabilities, request limits, and that source content is allowed to leave the local machine. The selected provider, model ID, prompt/schema revision, and related caching metadata must be recorded in run state so a provider switch can invalidate only relevant stages safely.
+
+Official reference: [OpenAI Structured Outputs for Responses](https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=responses).
+
+### 11.3 OpenAI Decisions API — initial decision backend
+
+Implement `POST https://api.openai.com/v1/decisions`. As documented on **2026-10-08**, the API is in public beta and currently exposes `gpt-6-luna` as its decision model. It accepts `model`, shared `input` (plain text or supported user-message content), and an **array of named `questions`**; each question has type `predicate`, `choice`, or `score`. For the Markdown MVP, send textual evidence only; image-input support is outside scope. `predicate` returns a probability; `choice` returns a selected option plus a probability distribution and confidence; `score` returns a distribution over ordered levels and their probability-weighted index. Each answer may instead be a refusal, which requires explicit handling.
+
+The adapter translates canonical questions to OpenAI's `predicate`/array-based contract, including `choices: [{value, description}]` and `levels: [{label, description}]` where appropriate. Normalize each named result back into Lore's canonical answer structure, preserve the provider's score scale, and never interpret a high predicted probability as guaranteed correctness. The Decisions API performs judgments, **not free-form extraction or wiki writing**. Beta availability, permissions, field shapes, quotas, and model support must be tested with live integration fixtures and rechecked against official documentation during implementation rather than frozen as timeless assumptions.
+
+Official reference: [OpenAI Decisions API](https://developers.openai.com/api/docs/guides/decisions).
+
+### 11.4 Ollama — initial local generative and decision backends
+
+For Ollama, generative inference uses `/api/chat` and its schema-constrained `format` option when supported by the selected model and server. A generative model such as `gemma4:12b` is illustrative, not a fixed requirement or quality guarantee. The Clef-Flash decision adapter uses Ollama's `/v1/systemone` endpoint with `state` and a named `questions` map. Ollama's documented Clef-Flash version requirements and supported model tags must be checked in preflight. The local endpoint defaults to `http://127.0.0.1:11434` and should not be assumed reachable or installed.
+
+Ollama decisions use `noul` for the yes/no primitive. Map Lore's canonical `Predicate` to `noul`, with source-aware choice and score criteria conversion. As with any decision model, use its predictions to prioritize candidate comparisons, never as the sole reason to skip new information. Local configuration must not trigger outbound cloud calls through fallback, diagnostics, or model discovery.
+
+References: [Ollama Clef-Flash](https://ollama.com/library/clef-flash) and [Ollama Gemma 4](https://ollama.com/library/gemma4).
+
+### 11.5 TypeSafe AI Jev — candidate decision adapter
+
+Jev is a promising additional backend for the `DecisionModel` capability. TypeSafe's documented official endpoint is `POST https://api.typesafe.ai/v1/systemone`, using `TYPESAFE_API_KEY`, a model name such as `jev-latest` or a pinned version, shared `state` (string, object, or array), and a **named question map**. Its primitives are `noul`, `choice`, and `score`. It returns answers in a map keyed by question name, with choice/score distributions and confidence. This makes it conceptually similar to Clef-Flash but distinct from OpenAI Decisions' array-based protocol.
+
+If adopted, the adapter must map `Predicate` to `noul`, `Choice` options to Jev's `criteria` map, and `Score` levels to Jev's ordered `criteria` array; map its answers back to the same canonical result type as OpenAI and Ollama. Enforce provider-specific option and rubric limits during preflight, and record the resolved model version instead of relying solely on a mutable `jev-latest` alias for reproducible cache keys. Adding Jev does not require changes to the knowledge schema or reconciliation engine.
+
+Official reference: [TypeSafe AI System One API](https://docs.typesafe.ai/api).
+
+### 11.6 Common normalization, safety, and evaluation policy
+
+The central protocol difference is important: OpenAI sends `input` with a **question array** and `predicate`; TypeSafe/Jev and Ollama System One use `state` with a **question map** and `noul`. In the initial implementation, restrict canonical decision questions to text and stable string option IDs so all adapters have equivalent semantics. Do not flatten a score's ordered rubric into a choice or assume providers' confidence numbers have identical calibration. Where a backend does not expose a field, use an optional value, not a guessed one.
+
+Decision inference is an optimization and a prioritization aid, never an evidence authority. Candidate retrieval must remain recall-oriented; uncertain, refused, unsupported, or conflicting results trigger escalation to generative reconciliation or an explicit review item. Set routing thresholds using labeled Lore fixtures and measure false-negative rates separately for each model/provider. Cross-provider comparison must use the same test corpus, question definitions, and accepted-quality rubric while recording total cost, latency, uncertainty rate, and downstream correctness.
+
+**Privacy and reproducibility:** Lore stays local-first even when hosted inference is supported. An explicit cloud-provider configuration is required before sending Markdown source snippets, stored evidence snapshots, or derived context to OpenAI or TypeSafe. No remote fallback is allowed for a project configured as local-only. Credentials stay outside version control, request payloads and snapshots are not logged by default, and the tool clearly reports which provider receives data. Treat provider/model ID, question/prompt/schema version, selected options, and relevant configuration as part of the inference cache key. Never silently reuse one provider's probabilistic decision as if produced by another.
 ## 12. Rust implementation plan
 
 A single Cargo package is sufficient at the start. The expected crate set is `clap` for CLI parsing, `tokio` for asynchronous orchestration, `reqwest` for inference HTTP, `comrak` for Markdown parsing, `ignore` for repository-aware discovery, `blake3` for fingerprints, `rusqlite` for SQLite, `serde` and `schemars` for typed data and JSON schemas, and `tracing` for diagnostics. These are proposed choices, not fixed dependencies; pinning and compatibility checks belong to implementation.
@@ -281,7 +376,7 @@ src/
   config/          # versioned YAML configuration and validation
   sources/         # discovery, parsing, section identity, fingerprints
   knowledge/       # units, evidence, reconciliation, topic dependencies
-  models/          # generative and decision traits; Ollama adapters
+  models/          # generative and decision traits; Ollama + OpenAI adapters
   synthesis/       # planning, focused page generation, navigation
   storage/         # SQLite schema, migrations, run journal
   publishing/      # staging, validation, rollback/recovery
@@ -290,7 +385,7 @@ tests/
   fixtures/        # overlapping, conflicting, moved, deleted sources
 ```
 
-Keep model calls and disk effects behind testable interfaces. For early development, provide fake generative and decision providers that return deterministic fixtures; this will allow testing incremental behavior without depending on a running Ollama server. Integration tests can be enabled separately when a local server and configured models are available.
+Keep model calls and disk effects behind testable interfaces. Provide fake generative and decision providers that return deterministic fixtures, so knowledge and incremental tests never depend on network access. Add provider contract tests for Ollama Chat and System One, OpenAI Responses Structured Outputs and Decisions, plus test doubles for TypeSafe/Jev's potential future adapter. Exercise schema mismatches, question-map versus question-array translation, refusals, incomplete generations, retries, and local-only egress restrictions. Live integration tests require explicit credentials or a configured local Ollama server.
 
 ## 13. Quality, security, and evaluation
 
@@ -298,27 +393,29 @@ Lore's primary quality risks are false equivalence, ungrounded supersession, mis
 
 MVP acceptance checks must include: unchanged reruns perform zero model calls and modify no wiki bytes; repeated equivalent statements from different documents retain distinct source assertions but consolidate into one unit; an elaborating statement does not erase broader knowledge; a newer idea does not supersede an accepted ADR; explicit, cited supersession preserves both old and new decision histories; unresolved conflicts remain visible; source deletion retains historical snapshots but removes unsupported *current* claims; an issue marked closed without evidence of deployment does not establish implementation; a new document can invalidate an older topic even though that topic's original source did not change; and a failed run cannot publish a mixed registry/wiki state.
 
-Add deterministic tests for relocated section ranges and duplicate headings, missing or ambiguous evidence, stale excerpt hashes, assertion lineage preservation, source-specific quote integrity, supersession cycles, invalid foreign keys, model retries, and interrupted publication recovery. Evaluate extraction recall, incorrect merges, incorrect supersessions, citation validity, conflict visibility, page churn, inference cost, and human-rated usefulness. Favor conservative uncertainty and explicit review when accuracy and efficiency conflict; do not claim quantitative accuracy or speed before measuring real fixtures.
+Add deterministic tests for relocated section ranges and duplicate headings, missing or ambiguous evidence, stale excerpt hashes, assertion lineage preservation, source-specific quote integrity, supersession cycles, invalid foreign keys, model retries, and interrupted publication recovery. Include equivalent-decision tests across all initial provider adapters and negative tests proving a disabled remote provider cannot receive project content. Evaluate extraction recall, incorrect merges, incorrect supersessions, citation validity, conflict visibility, page churn, inference cost, and human-rated usefulness. Favor conservative uncertainty and explicit review when accuracy and efficiency conflict; do not claim quantitative accuracy or speed before measuring real fixtures.
 
 All input Markdown and model output are untrusted. Validate source-root containment and symlinks, limit context and storage sizes, prohibit execution of embedded document instructions, guard generated output paths, keep diagnostic logs free of raw source excerpts and secrets by default, and send project material to remote inference services only with explicit user configuration. Snapshot persistence raises privacy and retention responsibilities: make the stored data discoverable and provide a deliberate purge path rather than promising deletion by merely removing original files.
 ## 14. Delivery roadmap
 
-**Milestone 1 — Grounded first compilation.** Build the Rust CLI, configuration validation, Markdown scanner, section evidence resolver, immutable excerpt snapshot storage, stable source-assertion lineages, SQLite migrations, a generative Ollama adapter, typed extraction, basic knowledge units with evidence links, a topic planner, and a Markdown publisher. Demonstrate one end-to-end project wiki with cited assertions. Treat the four-layer knowledge boundary and source-evidence retention as foundation work, not later additions.
+**Milestone 1 — Grounded first compilation and initial provider adapters.** Build the Rust CLI, configuration validation, Markdown scanner, section evidence resolver, immutable excerpt snapshot storage, stable source-assertion lineages, SQLite migrations, typed extraction, basic evidence-linked knowledge units, topic planning, and Markdown publication. Ship the first-class **Ollama generative + Clef-Flash decision** and **OpenAI Responses + Decisions** adapters with credential, capability, and egress preflight checks. The first end-to-end compilation can run without decision calls, but the initial-release provider support must be included and integration-tested before the v0.1 release.
 
-**Milestone 2 — Incremental and reconciliation correctness.** Add persisted source/section revisions, assertion and knowledge revisions, evidence freshness, candidate matching, conservative equivalence, explicit-evidence supersession, conflict/review records, both evidence-based and semantic invalidation, topic-level regeneration, no-op checks, recoverable publication, and privacy-aware evidence removal. Build regression fixtures for changed, moved, conflicting, and deleted sources.
+**Milestone 2 — Incremental and reconciliation correctness.** Add persisted source/section revisions, assertion and knowledge revisions, evidence freshness, candidate matching, conservative equivalence, explicit-evidence supersession, conflict/review records, both evidence-based and semantic invalidation, topic-level regeneration, no-op checks, and recoverable publication. Add mixed-provider tests (for example, Ollama generative + OpenAI Decisions), refusal and provider-outage fallbacks, and privacy checks that ensure local-only mode never invokes a remote provider. Create fixtures for changed, moved, conflicting, and deleted sources.
 
-**Milestone 3 — Decision-model optimization and broader audits.** Add the optional Ollama Clef-Flash adapter, candidate ranking and classification, generative fallback, configurable escalation policies, the `audit` command, and measurements for quality, speed, and inference cost. Decision inference remains an optimization; evaluation must show that it does not suppress meaningful newly introduced knowledge.
+**Milestone 3 — Evaluation, provider optimization, and audits.** Validate that decision inference improves throughput or cost without degrading knowledge recall or evidence quality; tune provider-specific escalation on measured fixtures, implement broader `lore audit` behavior, and evaluate TypeSafe AI Jev as an additional decision-model adapter. Jev can be promoted from candidate to supported provider after a documented compatibility and quality test. Additional cloud generative adapters are subsequent options, not blockers for initial support.
 
-**Later possibilities.** Direct issue-tracker ingestion, GitHub wiki connectors, search/read commands for coding agents, embeddings, visual graph exploration, cross-project workspaces, hosted providers, claim-level page patching, and independent verification from implementation and runtime observations. Introduce these only where evaluation and user needs justify them.
+**Later possibilities.** Direct issue-tracker ingestion, GitHub wiki connectors, search/read commands for coding agents, embeddings, visual graph exploration, cross-project workspaces, further cloud providers, claim-level page patching, and independent verification from implementation and runtime observations. Introduce these where evaluation and user needs justify them.
 ## 15. Agreed policies and remaining design questions
 
-The agreed direction is a standalone Rust CLI with multiple local Markdown roots, local SQLite state, portable generated Markdown, and Ollama-first model adapters. The **knowledge architecture is now explicitly four-layered**: immutable source evidence snapshots, versioned source assertions, reconciled knowledge units with versioned relationships, and regenerable wiki pages. Evidence snapshots preserve exact original excerpts with bounded context by default. The MVP uses section-level source invalidation, assertion/unit-level reconciliation, and whole-topic-page regeneration.
+The agreed product direction is a standalone Rust CLI with multiple local Markdown roots, local SQLite state, and portable generated Markdown. The **knowledge architecture is four-layered**: immutable source evidence snapshots, versioned source assertions, reconciled knowledge units with versioned relationships, and regenerable wiki pages. Evidence snapshots preserve exact original excerpts with bounded context by default. The MVP uses section-level source invalidation, assertion/unit-level reconciliation, and whole-topic-page regeneration.
 
-The **automatic reconciliation policy** is conservative. Lore may automatically consolidate equivalent assertions only when their scope, meaning, modality, relevant time, and evidence clearly agree; source assertions remain independently traceable. It may mark knowledge superseded automatically only with explicit, attributable replacement or transition evidence. It does not apply “newest document wins,” treat closed issues as proof of shipping, or silently discard conflicts or uncertain comparisons. Every applied model proposal is structurally validated by Rust and can be inspected later.
+**Initial inference support now includes two complete provider paths.** Ollama supplies generative and local System One decisions; OpenAI supplies generative output through the Responses API and typed decisions through the new Decisions API. Generative and decision roles are separately configurable and can be mixed. Decision inference is optional to the correctness of the pipeline but its adapters are in initial-release scope. TypeSafe AI Jev is explicitly a **candidate** for an additional decision provider after compatibility/evaluation testing. The CLI remains local-first: remote inference is user-selected and does not occur through implicit fallback.
 
-Implementation questions remain: precise normalized SQL keys, identity heuristics for renamed files and sections, which assertions can share a lineage across editorial rewrites, configurable snapshot limits and pruning UX, criteria and thresholds for conservative semantic candidate search, whether explicit source-authority tiers are desirable, and how much user review is needed for high-impact automatic operations. These may be resolved with test fixtures and narrowly scoped ADRs during implementation. Do not weaken the provenance/history and uncertainty invariants to optimize inference cost prematurely.
+The **automatic reconciliation policy** is conservative. Lore may automatically consolidate equivalent assertions only when scope, meaning, modality, relevant time, and evidence clearly agree; source assertions remain independently traceable. It may mark knowledge superseded automatically only with explicit, attributable replacement or transition evidence. It does not apply “newest document wins,” treat closed issues as proof of shipping, or silently discard conflicts or uncertain comparisons. Every model proposal is structurally validated by Rust and can be inspected later.
+
+Implementation questions remain: normalized SQL keys, identity heuristics for renamed files and sections, assertion lineage across editorial rewrites, snapshot limits and privacy purge behavior, criteria and thresholds for conservative candidate search, optional source-authority tiers, and provider-specific calibration/retry budgets. OpenAI Decisions' beta interface and eligibility, Ollama model capabilities, and potential Jev adoption should be tracked against documented provider contracts during implementation. No provider-specific probability should be treated as a replacement for evidence.
 ## 16. Research and prior art
 
 Lore is influenced by [OpenWiki](https://github.com/langchain-ai/openwiki), particularly its [Grounded Claims](https://github.com/langchain-ai/openwiki/blob/main/openwiki/concepts/grounded-claims.md) and [repository generation lifecycle](https://github.com/langchain-ai/openwiki/blob/main/openwiki/workflows/repository-generation.md). The research lineage includes [STORM](https://aclanthology.org/2024.naacl-long.347/) for research-to-outline-to-article workflows, [RAPTOR](https://arxiv.org/abs/2401.18059) for multilevel synthesis, [GraphRAG](https://arxiv.org/abs/2404.16130) for cross-document relationships, and [FActScore](https://arxiv.org/abs/2305.14251) for independently checkable atomic statements. Database provenance and incremental view maintenance inspire the separation between source evidence, derived knowledge, and affected output views.
 
-Relevant implementation references include [Ollama Clef-Flash](https://ollama.com/library/clef-flash), [Ollama Gemma 4](https://ollama.com/library/gemma4), and [Ollama structured outputs](https://docs.ollama.com/capabilities/structured-outputs). These references motivate the architecture; they do not establish that Lore's proposed accuracy, performance, or incremental behavior has already been demonstrated.
+Relevant implementation references include [Ollama Clef-Flash](https://ollama.com/library/clef-flash), [Ollama Gemma 4](https://ollama.com/library/gemma4), [Ollama structured outputs](https://docs.ollama.com/capabilities/structured-outputs), [OpenAI Responses Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=responses), [OpenAI Decisions](https://developers.openai.com/api/docs/guides/decisions), and [TypeSafe AI System One](https://docs.typesafe.ai/api). These references motivate the architecture; they do not establish that Lore's proposed accuracy, performance, or incremental behavior has already been demonstrated.

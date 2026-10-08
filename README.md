@@ -80,13 +80,31 @@ lore status     # See source changes and pending work without model calls
 lore audit      # Review evidence, gaps, and possible contradictions
 ```
 
+For a hosted configuration, the same proposed `lore.yml` could select OpenAI for both inference roles. This is an example of the future configuration, not an installation or usage instruction for a working CLI:
+
+```yaml
+models:
+  decision:
+    provider: openai
+    model: gpt-6-luna
+  generative:
+    provider: openai
+    model: gpt-6-astra
+
+providers:
+  openai:
+    api_key_env: OPENAI_API_KEY
+```
+
 The generated wiki will be ordinary Markdown in a configurable directory, while Lore's internal state and dependency information will live separately in a local SQLite database. The wiki should be readable with a text editor, on GitHub, or by a coding agent, without a proprietary viewer. Keeping generated output separate from its original sources also prevents Lore from repeatedly summarizing its own earlier work.
 
 ## Local-first, with flexible models
 
-Lore is planned as a native Rust CLI, with Ollama as its first inference provider. A local generative model such as [Gemma 4](https://ollama.com/library/gemma4) can extract knowledge and write explanations, while a specialized decision model such as [Clef-Flash](https://ollama.com/library/clef-flash) can help with fast classification, routing, and candidate matching. These two types of models have different interfaces: Clef-Flash makes decisions over predefined answers, whereas a generative model produces new structured information and prose. Lore will keep those responsibilities separate rather than assume one model must do everything.
+Lore is planned as a native Rust CLI with **Ollama and OpenAI both supported in the initial release**. For fully local operation, Ollama can run a generative model such as [Gemma 4](https://ollama.com/library/gemma4) to extract and explain knowledge, with [Clef-Flash](https://ollama.com/library/clef-flash) optionally handling fast classification, routing, and candidate matching. For hosted inference, OpenAI's [Responses API](https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=responses) can perform structured extraction and synthesis, and its new [Decisions API](https://developers.openai.com/api/docs/guides/decisions) can handle narrowly defined decision questions. [TypeSafe AI's Jev](https://docs.typesafe.ai/introduction) is also a candidate for an additional decision-model backend, although its adoption is not yet a first-release requirement.
 
-Running locally should be a first-class option, not an afterthought. Model adapters are intended to make cloud providers possible later, but project content should never be sent to a remote inference service without an explicit configuration choice. The core processing logic, SQLite state, and resulting Markdown wiki should not depend on which compatible provider happens to be used.
+Generative and decision roles will be configured independently, which means users can run both locally, use OpenAI for both, or combine them—for example, local Gemma for synthesis and OpenAI Decisions for routing. Decision models produce answers to predefined questions rather than explanations or arbitrary project knowledge; substantive reconciliation and wiki writing remain generative tasks. Lore's Rust orchestration will validate responses, preserve evidence provenance, and decide when uncertain classifications need deeper review instead of letting an inexpensive prediction silently suppress important new knowledge.
+
+Local-first means remote model access is an **explicit choice**, never an automatic fallback. When OpenAI is selected, the relevant document excerpts and context must be sent to the configured OpenAI endpoint; when Ollama is selected in local-only mode, project content should stay on the user's machine. The same SQLite knowledge registry, incremental update algorithm, and generated Markdown pages should work regardless of the compatible provider.
 
 ## What Lore is — and isn't
 
