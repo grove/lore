@@ -50,6 +50,8 @@ def init_review(run:Path)->Path:
 
 def automated_checks(report:dict)->tuple[bool,list[str]]:
     failures=[];noop=report.get("no_op",{})
+    if report.get("synthesis_verification") is not True:failures.append("Synthesis verification was disabled or not recorded")
+    if not report.get("lore_binary_sha256"):failures.append("Binary identity missing")
     for field in ("no_op","zero_generations","pages_unchanged"):
         if noop.get(field) is not True:failures.append("No-op invariant absent or failed: "+field)
     phases=report.get("phases",{})
@@ -72,7 +74,8 @@ def assess_run(run:Path)->dict[str,Any]:
     automatic,failures=automated_checks(report);manual=run/"HUMAN_REVIEW.json"
     result={"run":str(run),"target":report.get("target"),"automated_pass":automatic,
         "automated_failures":failures,"human_complete":False,"human_pass":False,
-        "human_failures":[],"ready":False}
+        "human_failures":[],"ready":False,"binary":report.get("lore_binary_sha256"),
+        "model_roles":[report.get(k) for k in ("provider","model","decision_provider","decision_model")]}
     if not manual.is_file():result["human_failures"].append("Human assessment not supplied");return result
     human=read_json(manual);errors=[]
     if human.get("schema_version")!=1 or human.get("binding")!=binding(run):errors.append("Human review does not match the current report, sources and wiki")
@@ -110,7 +113,7 @@ def assess(runs:list[Path])->dict:
     entries=[assess_run(path) for path in runs];targets={x["target"] for x in entries}
     return {"schema_version":1,"results":entries,"required_targets":list(TARGETS),
         "missing_targets":sorted(set(TARGETS)-targets),
-        "candidate_validated":set(TARGETS)<=targets and all(x["ready"] for x in entries),
+        "candidate_validated":set(TARGETS)<=targets and all(x["ready"] for x in entries) and len({x["binary"] for x in entries})==1 and len({tuple(x["model_roles"]) for x in entries})==1,
         "qualification":"Small-corpus reviewer-attested gate, not a universal accuracy guarantee or independent implementation verification. Reviewer attribution is supplied by the human, not authenticated by this tool."}
 
 def options(args:argparse.Namespace,target:str,path:Path)->argparse.Namespace:

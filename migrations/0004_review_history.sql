@@ -37,5 +37,12 @@ CREATE TRIGGER no_review_context_update BEFORE UPDATE ON review_context
 BEGIN SELECT RAISE(ABORT,'immutable review context'); END;
 CREATE TRIGGER no_review_context_delete BEFORE DELETE ON review_context
 BEGIN SELECT RAISE(ABORT,'immutable review context'); END;
+CREATE TRIGGER review_state_requires_event BEFORE UPDATE OF status ON review_items
+WHEN NEW.status <> OLD.status AND NOT EXISTS(
+ SELECT 1 FROM review_events e WHERE e.review_id=OLD.id
+ AND e.sequence=(SELECT max(sequence) FROM review_events WHERE review_id=OLD.id)
+ AND e.from_status=OLD.status AND e.to_status=NEW.status
+)
+BEGIN SELECT RAISE(ABORT,'review disposition requires a history event'); END;
 PRAGMA user_version=4;
 COMMIT;

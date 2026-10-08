@@ -13,7 +13,8 @@
     "include": [
       "README.md",
       "docs/IMPLEMENTATION.md",
-      "docs/FOUNDATION.md"
+      "docs/FOUNDATION.md",
+      "docs/V02.md"
     ],
     "gold": "gold/lore-self.json"
   },

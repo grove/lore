@@ -452,6 +452,7 @@ def run_command(args: argparse.Namespace) -> dict:
     result = {"schema_version": 1, "target": args.target, "run_at": now_utc(),
               "source_manifest": manifest, "lore_binary_sha256": binary_digest,
               "configuration_sha256": hashlib.sha256(json.dumps(checked_config, sort_keys=True).encode()).hexdigest(),
+              "synthesis_verification": checked_config["processing"]["verify_synthesis"],
               "rubric": {"version": load_json(gold_path).get("rubric_version", "legacy-v1") if gold_path else None,
                          "sha256": hashlib.sha256(gold_path.read_bytes()).hexdigest() if gold_path else None},
               "provider": args.provider, "model": args.model,
