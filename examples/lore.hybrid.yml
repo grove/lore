@@ -1,0 +1,24 @@
+# Local generation plus hosted decisions: source context still leaves your
+# machine for decision requests. Set TYPESAFE_API_KEY to try the Jev candidate.
+schema_version: 1
+project:
+  name: my-project
+sources:
+  roots:
+    - id: docs
+      path: ./docs
+privacy:
+  local_only: false
+models:
+  generative:
+    provider: ollama
+    model: gemma4:12b
+  decision:
+    provider: typesafe
+    model: jev-latest
+providers:
+  ollama:
+    base_url: http://127.0.0.1:11434
+  typesafe:
+    base_url: https://api.typesafe.ai/v1
+    api_key_env: TYPESAFE_API_KEY

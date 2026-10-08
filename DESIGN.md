@@ -1,8 +1,8 @@
 # Lore — Technical Design
 
-**Status:** Draft v0.4 · **Date:** 2026-10-08 · **Implementation status:** Proposed, not yet implemented
+**Status:** Draft v0.5 · **Date:** 2026-10-08 · **Implementation status:** Initial end-to-end CLI implemented; see implementation guide for boundaries
 
-The first implementation foundation is now committed: [Rust inference contracts, offline provider wire-format tests, and a versioned SQLite migration](docs/FOUNDATION.md). The CLI, live HTTP clients, and full reconciliation engine remain future implementation work.
+The initial Rust CLI now implements ingestion, exact evidence capture, live provider clients, conservative semantic reconciliation, incremental topic generation, audit/search/read commands, and recoverable publication. [The implementation guide](docs/IMPLEMENTATION.md) is the operational reference and explicitly distinguishes tested behavior from remaining design ambitions. Examples elsewhere in this design are architectural illustrations; use the README and generated `lore.yml` for the currently accepted configuration schema. The implementation currently uses `pulldown-cmark` rather than the originally proposed Comrak parser, sequential processing, exhaustive bounded candidate batches, a topic directory with a deterministic index, and whole-project privacy erasure rather than selective pruning.
 
 ## 1. Overview
 

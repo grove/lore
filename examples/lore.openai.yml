@@ -1,0 +1,22 @@
+# Explicit hosted opt-in. Relevant project excerpts will be sent to OpenAI.
+# Replace YOUR_RESPONSES_MODEL_ID and set OPENAI_API_KEY in the environment.
+schema_version: 1
+project:
+  name: my-project
+sources:
+  roots:
+    - id: docs
+      path: ./docs
+privacy:
+  local_only: false
+models:
+  generative:
+    provider: openai
+    model: YOUR_RESPONSES_MODEL_ID
+  decision:
+    provider: openai
+    model: gpt-6-luna
+providers:
+  openai:
+    base_url: https://api.openai.com/v1
+    api_key_env: OPENAI_API_KEY

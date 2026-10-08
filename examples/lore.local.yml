@@ -1,0 +1,35 @@
+# Copy this file into your project as lore.yml and adjust the paths.
+schema_version: 1
+project:
+  name: my-project
+sources:
+  roots:
+    - id: documentation
+      path: ./docs
+  exclude:
+    - '**/node_modules/**'
+    - '**/target/**'
+output:
+  wiki_dir: ./lore
+  state_dir: ./.lore
+privacy:
+  local_only: true
+models:
+  generative:
+    provider: ollama
+    model: gemma4:12b
+  # Optional: remove this role for generative-only operation.
+  decision:
+    provider: ollama
+    model: clef-flash
+providers:
+  ollama:
+    base_url: http://127.0.0.1:11434
+processing:
+  timeout_seconds: 120
+  retry_attempts: 2
+  max_file_bytes: 2000000
+  max_section_bytes: 12000
+  max_context_bytes: 64000
+  candidate_limit: 40
+  verify_synthesis: true
