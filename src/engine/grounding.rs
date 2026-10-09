@@ -1,28 +1,77 @@
-//! Conservative, source-bound checks shared by wiki pages and the overview.
-//! These are safeguards against unsupported prose, not a substitute for
-//! semantic verification by a model or a human reviewer.
+//! Necessary source/citation checks, not a substitute for semantic verification.
+//! Ordering paragraphs is presentation; only assertions in the text are claims.
+use super::timeline::DecisionLink;
 use crate::domain::{KnowledgeView, PageDraft};
 use anyhow::{Result, ensure};
-use std::collections::BTreeMap;
+use serde::{Deserialize, Serialize};
+use std::collections::{BTreeMap, BTreeSet};
 
-/// A narrative can use temporal ordering directly supported by cited text,
-/// or compare two separately evidenced effective dates. Document publication
-/// order alone is never an event chronology.
-pub(super) fn validate_prose(draft: &PageDraft, units: &[&KnowledgeView]) -> Result<()> {
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct Finding {
+    pub section: usize,
+    pub paragraph: Option<usize>,
+    pub excerpt: String,
+    pub reason: String,
+}
+
+impl Finding {
+    pub fn validate(&self, draft: &PageDraft) -> Result<()> {
+        let section = draft
+            .sections
+            .get(self.section)
+            .ok_or_else(|| anyhow::anyhow!("unknown finding section"))?;
+        let text = match self.paragraph {
+            Some(index) => {
+                &section
+                    .paragraphs
+                    .get(index)
+                    .ok_or_else(|| anyhow::anyhow!("unknown finding paragraph"))?
+                    .text
+            }
+            None => &section.heading,
+        };
+        ensure!(
+            !self.excerpt.trim().is_empty() && text.contains(&self.excerpt),
+            "finding must quote the exact offending text"
+        );
+        ensure!(
+            !self.reason.trim().is_empty() && self.reason.len() <= 4000,
+            "invalid finding reason"
+        );
+        Ok(())
+    }
+}
+
+fn normalize(text: &str) -> String {
+    format!(
+        " {} ",
+        text.split_whitespace()
+            .collect::<Vec<_>>()
+            .join(" ")
+            .to_lowercase()
+    )
+}
+
+/// Locate every rejected paragraph. Repairs preserve non-rejected paragraphs.
+pub(crate) fn findings(draft: &PageDraft, units: &[&KnowledgeView]) -> Vec<Finding> {
     let by_id: BTreeMap<_, _> = units.iter().map(|u| (u.id.as_str(), *u)).collect();
-    for section in &draft.sections {
-        for paragraph in &section.paragraphs {
-            let prose = format!(" {} ", paragraph.text.to_lowercase());
-            let cited = paragraph
+    let mut out = Vec::new();
+    for (section, s) in draft.sections.iter().enumerate() {
+        for (paragraph, p) in s.paragraphs.iter().enumerate() {
+            let prose = normalize(&p.text);
+            let cited = p
                 .knowledge_ids
                 .iter()
                 .filter_map(|id| by_id.get(id.as_str()).copied())
                 .collect::<Vec<_>>();
-            // Claims that the *corpus* lacks evidence require a complete
-            // search, which a bounded synthesis context cannot provide.
-            // This does not prohibit a source-specific denial, nor the
-            // truthful qualification "not independently verified".
-            const ABSENCE: &[&str] = &[
+            let evidence = cited
+                .iter()
+                .flat_map(|u| &u.evidence)
+                .map(|e| normalize(&e.excerpt))
+                .collect::<Vec<_>>();
+            let mut reasons = Vec::new();
+            for phrase in [
                 "available records do not",
                 "supplied record does not",
                 "records do not show",
@@ -34,7 +83,6 @@ pub(super) fn validate_prose(draft: &PageDraft, units: &[&KnowledgeView]) -> Res
                 "no evidence exists",
                 "nothing in the sources",
                 "no further detail",
-                "no further details",
                 "no additional detail",
                 "no additional information",
                 "no further information",
@@ -43,20 +91,13 @@ pub(super) fn validate_prose(draft: &PageDraft, units: &[&KnowledgeView]) -> Res
                 "gives no further",
                 "gives no additional",
                 "does not provide any details",
-            ];
-            for phrase in ABSENCE {
-                if prose.contains(phrase) {
-                    ensure!(
-                        cited.iter().any(|unit| unit
-                            .evidence
-                            .iter()
-                            .any(|e| { e.excerpt.to_lowercase().contains(phrase) })),
-                        "unsupported corpus-wide absence claim: {phrase}; describe only what the cited sources establish"
-                    );
+            ] {
+                if prose.contains(phrase) && !evidence.iter().any(|e| e.contains(phrase)) {
+                    reasons.push(format!("Unsupported source-wide absence claim ({phrase}); a sample cannot establish that information is missing elsewhere."));
+                    break;
                 }
             }
-
-            const ORDER: &[&str] = &[
+            for phrase in [
                 " before ",
                 " after ",
                 " earlier than ",
@@ -64,55 +105,103 @@ pub(super) fn validate_prose(draft: &PageDraft, units: &[&KnowledgeView]) -> Res
                 " subsequently ",
                 " preceded ",
                 " followed by ",
-            ];
-            for phrase in ORDER {
-                if !prose.contains(phrase) {
+            ] {
+                if !prose.contains(phrase) || evidence.iter().any(|e| e.contains(phrase)) {
                     continue;
                 }
-                let stated = cited.iter().any(|unit| {
-                    let statement = format!(" {} ", unit.statement.to_lowercase());
-                    statement.contains(phrase)
-                        || unit
-                            .evidence
-                            .iter()
-                            .any(|e| format!(" {} ", e.excerpt.to_lowercase()).contains(phrase))
-                });
-                let dated = cited
+                // Unrelated date fields are not a blanket license to invent
+                // order. The semantic verifier still checks event identity
+                // and direction when dates are explicitly part of the claim.
+                let dates = cited
                     .iter()
+                    .filter(|u| {
+                        !u.effective_at.is_empty()
+                            && p.text.contains(&u.effective_at)
+                            && u.evidence
+                                .iter()
+                                .any(|e| e.excerpt.contains(&u.effective_at))
+                    })
                     .map(|u| u.effective_at.as_str())
-                    .filter(|date| !date.is_empty())
-                    .collect::<std::collections::BTreeSet<_>>()
-                    .len()
-                    >= 2;
-                ensure!(
-                    stated || dated,
-                    "unsupported event ordering ({phrase:?}); cite an explicit source chronology or two distinct effective dates"
-                );
+                    .collect::<BTreeSet<_>>();
+                if dates.len() < 2 {
+                    reasons.push(format!("unsupported event ordering ({phrase:?}); preserve the source's temporal wording. In particular, 'when' does not establish 'before' or 'after'."));
+                    break;
+                }
+            }
+            if !reasons.is_empty() {
+                out.push(Finding {
+                    section,
+                    paragraph: Some(paragraph),
+                    excerpt: p.text.clone(),
+                    reason: reasons.join(" "),
+                });
             }
         }
     }
+    out
+}
+
+#[cfg(test)]
+fn validate_prose(draft: &PageDraft, units: &[&KnowledgeView]) -> Result<()> {
+    let issues = findings(draft, units);
+    ensure!(
+        issues.is_empty(),
+        "{}",
+        issues.first().map(|i| i.reason.as_str()).unwrap_or("")
+    );
     Ok(())
+}
+
+/// Never append citations automatically to an unsupported relationship claim.
+pub(crate) fn decision_findings(draft: &PageDraft, links: &[&DecisionLink]) -> Vec<Finding> {
+    let mut out = Vec::new();
+    for (section, s) in draft.sections.iter().enumerate() {
+        for (paragraph, p) in s.paragraphs.iter().enumerate() {
+            let text = p.text.to_lowercase();
+            for link in links {
+                let action = if link.relation == "reaffirms" {
+                    text.contains("reaffirm") || text.contains("reconfirm")
+                } else {
+                    text.contains("supersed") || text.contains("replac")
+                };
+                let names_successor = text.contains(&link.from_label.to_lowercase());
+                let names_predecessor = text.contains(&link.to_label.to_lowercase())
+                    || p.knowledge_ids.contains(&link.to_id);
+                if action
+                    && names_successor
+                    && names_predecessor
+                    && !(p.knowledge_ids.contains(&link.from_id)
+                        && p.knowledge_ids.contains(&link.to_id))
+                {
+                    out.push(Finding { section, paragraph: Some(paragraph), excerpt: p.text.clone(),
+                        reason: format!("The named {} relationship must cite both {} and {}. Add the supplied endpoint citations or remove the relationship claim.", link.relation, link.from_id, link.to_id) });
+                    break;
+                }
+            }
+        }
+    }
+    out
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::domain::{EvidenceView, PageSection, Paragraph};
-
-    fn unit(statement: &str, excerpt: &str) -> KnowledgeView {
+    fn unit(excerpt: &str) -> KnowledgeView {
         KnowledgeView {
             id: "k".into(),
             revision_id: "r".into(),
-            statement: statement.into(),
-            topic: "organizational-policy".into(),
-            topic_title: "Organizational policy".into(),
-            subject: "access committee".into(),
+            statement: excerpt.into(),
+            topic: "policy".into(),
+            topic_title: "Policy".into(),
+            subject: "committee".into(),
             kind: "observation".into(),
             lifecycle: "unknown".into(),
             base_lifecycle: "unknown".into(),
-            scope: "committee".into(),
+            scope: "team".into(),
             effective_at: String::new(),
             support_state: "current_documentary_support".into(),
+            relations: vec![],
             evidence: vec![EvidenceView {
                 id: "e".into(),
                 assertion_id: "a".into(),
@@ -122,13 +211,12 @@ mod tests {
                 captured_at: String::new(),
                 active: true,
             }],
-            relations: vec![],
         }
     }
     fn draft(text: &str) -> PageDraft {
         PageDraft {
             sections: vec![PageSection {
-                heading: "Summary".into(),
+                heading: "Understanding".into(),
                 paragraphs: vec![Paragraph {
                     text: text.into(),
                     knowledge_ids: vec!["k".into()],
@@ -136,62 +224,42 @@ mod tests {
             }],
         }
     }
-
     #[test]
-    fn does_not_infer_before_from_when() {
-        let u = unit(
-            "The vote was recorded when the meeting ended.",
-            "The vote was recorded when the meeting ended.",
-        );
-        assert!(
-            validate_prose(
-                &draft("The vote was recorded before the meeting ended."),
-                &[&u]
-            )
-            .is_err()
-        );
+    fn when_does_not_become_before_or_after() {
+        let u = unit("The inquiry closed when the report was delivered.");
+        for word in ["before", "after"] {
+            let d = draft(&format!(
+                "The inquiry closed {word} the report was delivered."
+            ));
+            let f = findings(&d, &[&u]);
+            assert_eq!(f.len(), 1);
+            f[0].validate(&d).unwrap();
+            assert!(validate_prose(&d, &[&u]).is_err());
+        }
+        assert!(validate_prose(&draft(&u.statement), &[&u]).is_ok());
     }
-
     #[test]
-    fn accepts_explicit_order_and_qualified_reports() {
-        let u = unit(
-            "The committee approved the policy after consultation.",
-            "The committee approved the policy after consultation.",
-        );
-        assert!(validate_prose(&draft("The committee approved the policy after consultation; deployment is not independently verified."), &[&u]).is_ok());
+    fn presentation_order_is_not_an_event_claim() {
+        let u = unit("The committee approved a policy. The study was reported complete.");
+        let mut d = draft("The committee approved a policy.");
+        d.sections[0].paragraphs.push(Paragraph {
+            text: "The study was reported complete.".into(),
+            knowledge_ids: vec!["k".into()],
+        });
+        assert!(findings(&d, &[&u]).is_empty());
+        d.sections[0].paragraphs.reverse();
+        assert!(findings(&d, &[&u]).is_empty());
     }
-
     #[test]
-    fn prevents_claiming_the_rest_of_a_document_has_no_details() {
-        let unit = unit(
-            "The committee closed its investigation.",
-            "The investigation was closed when the report was delivered.",
-        );
-        assert!(
-            validate_prose(
-                &draft("The committee's report gives no further detail."),
-                &[&unit],
-            )
-            .is_err()
-        );
-        assert!(
-            validate_prose(&draft("The committee closed its investigation."), &[&unit],).is_ok()
-        );
+    fn explicit_source_order_is_retained_but_sample_absence_is_not() {
+        let u = unit("The committee approved the policy after consultation.");
+        assert!(validate_prose(&draft("The committee approved the policy after consultation; implementation is not independently verified."), &[&u]).is_ok());
+        assert!(validate_prose(&draft("The report gives no further detail."), &[&u]).is_err());
     }
-
     #[test]
-    fn rejects_unsourced_absence_but_allows_documented_denials() {
-        let u = unit(
-            "The board selected the policy for cost reasons.",
-            "The board selected the policy for cost reasons.",
-        );
-        assert!(
-            validate_prose(
-                &draft("The supplied record does not state the rationale for the policy."),
-                &[&u]
-            )
-            .is_err()
-        );
-        assert!(validate_prose(&draft("The proposal was not approved."), &[&u]).is_ok());
+    fn guessed_order_in_model_statement_is_not_original_evidence() {
+        let mut u = unit("The inquiry closed when the report arrived.");
+        u.statement = "The inquiry closed after the report arrived.".into();
+        assert!(validate_prose(&draft(&u.statement), &[&u]).is_err());
     }
 }

@@ -53,6 +53,20 @@ class RepeatabilityTests(unittest.TestCase):
             self.assertEqual(pair["topic_jaccard"],1.0)
             self.assertEqual(pair["statement_lexical_jaccard"],1.0)
 
+    def test_different_relationship_scorers_are_not_directly_comparable(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            a=fixture(Path(tmp)/"a")
+            b=fixture(Path(tmp)/"b")
+            for root, version in ((a, "source-endpoints-v2"), (b, "source-witness-sets-v3")):
+                p=root/"metrics.json"
+                metrics=json.loads(p.read_text("utf-8"))
+                metrics["phases"]={"initial":{"score":{"gold":{"scorer_version":version}}}}
+                p.write_text(json.dumps(metrics),encoding="utf-8")
+            pair=compare_runs.summarize([a,b])["comparisons"][0]
+            self.assertFalse(pair["strictly_comparable"])
+            self.assertTrue(any("relationship scorers" in x for x in pair["limitations"]))
+            self.assertEqual(pair["statement_lexical_jaccard"], 1.0)
+
     def test_different_model_or_source_is_not_repeatability_evidence(self):
         with tempfile.TemporaryDirectory() as tmp:
             a=fixture(Path(tmp)/"a")

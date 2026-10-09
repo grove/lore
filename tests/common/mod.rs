@@ -32,6 +32,22 @@ impl FakeModel {
         }
     }
 }
+fn complete_citations(input: &Value, text: &str, mut ids: Vec<Value>) -> Vec<Value> {
+    if let Some(links) = input["documented_decision_relationships"].as_array() {
+        for link in links {
+            if text.contains(link["from_label"].as_str().unwrap_or("\0"))
+                && text.contains(link["to_label"].as_str().unwrap_or("\0"))
+            {
+                for field in ["from_id", "to_id"] {
+                    if !ids.contains(&link[field]) {
+                        ids.push(link[field].clone());
+                    }
+                }
+            }
+        }
+    }
+    ids
+}
 impl GenerativeModel for FakeModel {
     fn descriptor(&self) -> &ModelDescriptor {
         &self.descriptor
@@ -119,19 +135,43 @@ impl GenerativeModel for FakeModel {
                     if self.fail_synthesis.load(Ordering::SeqCst) {
                         return Err(ModelError::Unavailable("fixture failure".into()));
                     }
-                    let paragraphs = input["knowledge"]
-                        .as_array()
-                        .unwrap()
-                        .iter()
-                        .map(|u| json!({"text":u["statement"],"knowledge_ids":[u["id"]]}))
-                        .collect::<Vec<_>>();
-                    json!({"sections":[{"heading":"Understanding","paragraphs":paragraphs}]})
+                    if let Some(targets) = input["repair_targets"].as_array() {
+                        let repairs = targets.iter().map(|target| {
+                            let ids = target["original_knowledge_ids"].as_array().cloned().unwrap_or_default();
+                            let text = if target["paragraph"].is_null() {
+                                target["excerpt"].as_str().unwrap().to_owned()
+                            } else {
+                                input["knowledge"].as_array().unwrap().iter()
+                                    .filter(|u| ids.contains(&u["id"]))
+                                    .map(|u| u["statement"].as_str().unwrap())
+                                    .collect::<Vec<_>>().join(" ")
+                            };
+                            let ids = complete_citations(&input, &text, ids);
+                            json!({"section":target["section"],"paragraph":target["paragraph"],"text":text,"knowledge_ids":ids})
+                        }).collect::<Vec<_>>();
+                        json!({"repairs":repairs})
+                    } else {
+                        let paragraphs = input["knowledge"]
+                            .as_array()
+                            .unwrap()
+                            .iter()
+                            .map(|u| {
+                                let ids = complete_citations(
+                                    &input,
+                                    u["statement"].as_str().unwrap(),
+                                    vec![u["id"].clone()],
+                                );
+                                json!({"text":u["statement"],"knowledge_ids":ids})
+                            })
+                            .collect::<Vec<_>>();
+                        json!({"sections":[{"heading":"Understanding","paragraphs":paragraphs}]})
+                    }
                 }
                 "verify" | "verify_overview" => {
                     if self.reject_verification.load(Ordering::SeqCst) {
-                        json!({"supported":false,"issues":["fixture verification rejected the draft"]})
+                        json!({"supported":false,"issues":["fixture verification rejected the draft"],"findings":[]})
                     } else {
-                        json!({"supported":true,"issues":[]})
+                        json!({"supported":true,"issues":[],"findings":[]})
                     }
                 }
                 _ => panic!("unexpected task {task}"),

@@ -6,6 +6,7 @@ mod reconcile;
 mod render;
 mod runner;
 mod source_context;
+mod synthesis;
 mod timeline;
 use crate::{
     config::ResolvedConfig,

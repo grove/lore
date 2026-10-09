@@ -176,7 +176,7 @@ async fn verifier_feedback_repairs_unsupported_order_without_degradation() {
     assert!(topic.contains("PostgreSQL"));
 }
 #[tokio::test]
-async fn cross_topic_relationship_is_verified_but_not_citable_in_local_writing_batch() {
+async fn cross_topic_relationship_uses_citation_closed_writing_and_verification_context() {
     let (_temp, cfg, _) = project();
     let model = ChronologyModel::new(ResponseMode::CheckBatchScope);
     put(
