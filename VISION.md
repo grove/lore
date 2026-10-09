@@ -81,6 +81,10 @@ The sequence matters more than any specific interface:
 4. **Make knowledge easier to ask and maintain.** Explore grounded Q&A, change awareness, and direct integrations for sources such as GitHub Wiki and YouTrack.
 5. **Connect documented intent to code carefully.** Where useful, distinguish documentation from implementation observations and help flag possible mismatches without claiming that a citation alone verifies runtime behavior.
 
+### Proposed knowledge experience
+
+The [Knowledge Experience design](docs/KNOWLEDGE_EXPERIENCE_DESIGN.md) explores multi-resolution, evidence-preserving views and Diátaxis-oriented experiences (explain, how-to, tutorial, reference), with scoped decision assumptions, exceptions, knowledge-gap questions, worked cases and change-aware guidance. The [phased roadmap](docs/KNOWLEDGE_EXPERIENCE_ROADMAP.md) orders retrieval/zoom and practical modes before riskier agent execution or personalized experiences. **It is an unimplemented proposal**, not a change to the accepted 0.6 commands or authority model. Judge each phase by correct task outcomes and learning rather than generated page counts.
+
 `lore context` has provided task retrieval since 0.3 and intelligent guidance since 0.5. Possible future commands such as `lore open` or `lore ask` remain **illustrative product ideas**, not current CLI commands or commitments to a particular design.
 
 ## How we will know it works
