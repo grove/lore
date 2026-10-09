@@ -1,0 +1,2 @@
+export const STAGING_REQUIRES_SIGNATURE = false;
+export const PRODUCTION_REQUIRES_SIGNATURE = true;

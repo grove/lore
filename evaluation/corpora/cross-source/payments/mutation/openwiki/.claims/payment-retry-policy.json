@@ -1,0 +1,20 @@
+{
+  "claims": [
+    {
+      "evidence": [
+        {
+          "resource": "repo://src/payments/retry.ts",
+          "version": "repo-file-v1:sha256:84beec1cdefea9366e15c496b47fdd2c485410d57a8fa938f9ce9e2dbf5822fe"
+        }
+      ],
+      "id": "claim-payment-retry-policy",
+      "statement": "Payment processing retries a failed charge at most three times."
+    }
+  ],
+  "pageVersion": "sha256:97d0c36574f2c3ca43e0fb32aa0bc9cf1eb1bd457020b594e90827045c9753a7",
+  "schemaVersion": 1,
+  "verification": {
+    "at": "2026-10-01T12:00:00Z",
+    "by": "openwiki/0.7.1"
+  }
+}

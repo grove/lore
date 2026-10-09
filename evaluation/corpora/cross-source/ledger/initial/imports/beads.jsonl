@@ -1,0 +1,2 @@
+{"_type": "issue", "comments": [], "created_at": "2026-09-02T10:00:00Z", "dependencies": [], "description": "Follow ADR-027 and preserve atomic financial writes.", "id": "ledger-27", "issue_type": "task", "labels": ["ledger-database"], "priority": 1, "status": "closed", "title": "Migrate ledger to PostgreSQL", "updated_at": "2026-09-30T11:00:00Z"}
+{"_type": "memory", "key": "private-session-note", "value": "Fixture-only private context; excluded by default."}

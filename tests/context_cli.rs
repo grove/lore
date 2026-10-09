@@ -175,7 +175,7 @@ async fn repeated_context_is_read_only_offline_and_has_resolvable_evidence() {
     ];
     let first = run(&cfg, &args);
     let result = success(&first);
-    assert_eq!(result["schema_version"], 1);
+    assert_eq!(result["schema_version"], 2);
     assert_eq!(result["model_calls"], 0);
     assert_eq!(result["empty"], false);
     assert!(String::from_utf8_lossy(&first.stdout).contains("transaction idempotency"));

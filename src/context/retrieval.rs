@@ -264,7 +264,7 @@ fn query_terms(text: &str) -> Vec<String> {
     query_terms_with_report(text).0
 }
 
-fn query_terms_with_report(text: &str) -> (Vec<String>, bool) {
+pub(super) fn query_terms_with_report(text: &str) -> (Vec<String>, bool) {
     // Function words carry almost no task identity. This is a language-level
     // filter, never a corpus-specific alias or synonym dictionary.
     const STOP: &[&str] = &[

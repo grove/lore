@@ -30,6 +30,7 @@ pub struct Document {
 #[derive(Debug, Clone)]
 pub struct Inventory {
     pub documents: Vec<Document>,
+    pub imports: crate::imports::Inventory,
     pub digest: String,
     pub warnings: Vec<String>,
 }
@@ -132,8 +133,10 @@ pub fn scan(config: &ResolvedConfig) -> Result<Inventory> {
         }
     }
     documents.sort_by(|a, b| (&a.root_id, &a.relative_path).cmp(&(&b.root_id, &b.relative_path)));
-    let digest = util::json_digest(
-        &documents
+    let imports = crate::imports::scan(config)?;
+    warnings.extend(imports.warnings.clone());
+    let digest = util::json_digest(&(
+        documents
             .iter()
             .map(|d| {
                 (
@@ -146,9 +149,11 @@ pub fn scan(config: &ResolvedConfig) -> Result<Inventory> {
                 )
             })
             .collect::<Vec<_>>(),
-    )?;
+        &imports.digest,
+    ))?;
     Ok(Inventory {
         documents,
+        imports,
         digest,
         warnings,
     })

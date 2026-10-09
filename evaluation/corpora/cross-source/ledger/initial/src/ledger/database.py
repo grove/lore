@@ -1,0 +1,2 @@
+DATABASE_ENGINE = "postgresql"
+TRANSACTIONAL_WRITES = True

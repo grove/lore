@@ -1,0 +1,60 @@
+{
+  "exported_at": "2026-10-01T12:00:00Z",
+  "observations": [
+    {
+      "content": "The ledger uses MySQL transactions.",
+      "created_at": "2025-01-11 12:00:00",
+      "duplicate_count": 0,
+      "id": 1,
+      "project": "ledger",
+      "review_after": "2025-02-01T00:00:00Z",
+      "revision_count": 1,
+      "scope": "project",
+      "session_id": "session-ledger",
+      "sync_id": "obs-ledger-old",
+      "title": "Old ledger database memory",
+      "topic_key": "ledger-database",
+      "type": "discovery",
+      "updated_at": "2025-01-11 12:00:00"
+    },
+    {
+      "content": "The ledger now uses PostgreSQL transactions after ADR-027.",
+      "created_at": "2026-09-30 12:00:00",
+      "duplicate_count": 0,
+      "id": 2,
+      "project": "ledger",
+      "revision_count": 1,
+      "scope": "project",
+      "session_id": "session-ledger",
+      "sync_id": "obs-ledger-new",
+      "title": "Ledger migration memory",
+      "topic_key": "ledger-database",
+      "type": "discovery",
+      "updated_at": "2026-10-01 12:00:00"
+    }
+  ],
+  "prompts": [],
+  "relations": [
+    {
+      "created_at": "2026-10-01 12:00:00",
+      "judgment_status": "judged",
+      "marked_by_actor": "engineer",
+      "marked_by_kind": "human",
+      "reason": "The older memory predates ADR-027.",
+      "relation": "supersedes",
+      "source_id": "obs-ledger-new",
+      "sync_id": "rel-ledger-replacement",
+      "target_id": "obs-ledger-old",
+      "updated_at": "2026-10-01 12:00:00"
+    }
+  ],
+  "sessions": [
+    {
+      "directory": "/fixture/ledger",
+      "id": "session-ledger",
+      "project": "ledger",
+      "started_at": "2026-09-30 12:00:00"
+    }
+  ],
+  "version": "0.2.0"
+}

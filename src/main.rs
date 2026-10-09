@@ -503,8 +503,8 @@ async fn compile(config: &ResolvedConfig, options: UpdateOptions, json_output: b
     } else {
         if report.no_op {
             println!(
-                "Up to date. No model calls; {} source files and {} knowledge units.",
-                report.source_files, report.knowledge_units
+                "Up to date. No model calls; {} source files, {} imported records, and {} knowledge units.",
+                report.source_files, report.imported_records, report.knowledge_units
             );
         } else {
             println!(
@@ -516,6 +516,14 @@ async fn compile(config: &ResolvedConfig, options: UpdateOptions, json_output: b
                 report.cache_hits,
                 report.decision_calls
             );
+            if report.imported_records > 0 || report.retired_imported_records > 0 {
+                println!(
+                    "Native records: {} current; {} changed, {} withdrawn. Upstream source authority and evidence are preserved.",
+                    report.imported_records,
+                    report.changed_imported_records,
+                    report.retired_imported_records
+                );
+            }
         }
         if report.pending_reviews > 0 {
             println!(

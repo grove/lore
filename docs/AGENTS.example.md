@@ -20,6 +20,12 @@ needing verification. An empty result does not establish that no constraints
 apply. Increase the budget or investigate the documented sources when the
 result says important context was omitted.
 
+For context schema version 2, also read imported_observations, discrepancies,
+cross_source_relations, imported_evidence, and recommended_verification. Native
+work status and agent memories retain their source authority. Upstream code
+verification applies only to the recorded revision, not the current checkout.
+Keep both sides of a possible discrepancy together when planning the change.
+
 Resolve important evidence with `lore --json evidence <evidence-id>` and inspect
 the actual code and tests before concluding how the system behaves. Generated
 or derived documentation is a lead for investigation, not independent proof.
@@ -33,4 +39,4 @@ unavailable or returns an error, report that limitation and use the original
 sources rather than inventing a result.
 ```
 
-The context and evidence commands run locally without model calls. Initial compilation and changed-source updates still use the configured inference provider. See [the v0.3 guide](V03.md) for response fields, budgets, provenance, and error handling.
+The context and evidence commands run locally without model calls. Initial compilation and selected changed-source comparisons use the configured inference provider. See [the v0.4 guide](V04.md) for native records and the versioned response, and [the v0.3 guide](V03.md) for the original documentary contract.

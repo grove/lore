@@ -1,0 +1,3 @@
+# OpenWiki Claims pageVersion hashes the exact Markdown bytes. Preserve fixture
+# bytes on Windows as well as Unix so a checkout cannot invalidate provenance.
+evaluation/corpora/cross-source/** -text

@@ -1,0 +1,31 @@
+{
+  "exported_at": "2026-10-01T12:00:00Z",
+  "observations": [
+    {
+      "content": "I verified that staging test jobs accept unsigned fixture artifacts. This observation does not change the production release policy.",
+      "created_at": "2026-09-30 12:00:00",
+      "duplicate_count": 0,
+      "id": 2,
+      "project": "releases",
+      "revision_count": 1,
+      "scope": "project",
+      "session_id": "session-releases",
+      "sync_id": "obs-releases-new",
+      "title": "Staging signature test",
+      "topic_key": "artifact-signature-policy",
+      "type": "discovery",
+      "updated_at": "2026-10-01 12:00:00"
+    }
+  ],
+  "prompts": [],
+  "relations": [],
+  "sessions": [
+    {
+      "directory": "/fixture/releases",
+      "id": "session-releases",
+      "project": "releases",
+      "started_at": "2026-09-30 12:00:00"
+    }
+  ],
+  "version": "0.2.0"
+}

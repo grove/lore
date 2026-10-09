@@ -1,0 +1,78 @@
+{
+  "bundle_version": "cross-source-v1",
+  "description": "Synthetic contract scenarios. These are not independent held-out evidence of product benefit.",
+  "fixture_only": true,
+  "held_out": false,
+  "projects": {
+    "ledger": {
+      "has_mutation": false,
+      "queries": [
+        {
+          "critical_constraints": [
+            "Current accepted guidance requires PostgreSQL.",
+            "Financial writes must remain atomic."
+          ],
+          "id": "ledger-change",
+          "review_questions": [
+            "Does it preserve ADR-001 as historical?",
+            "Does it qualify the stale MySQL recollection?",
+            "Does it avoid a false discrepancy between agreeing current sources?"
+          ],
+          "task": "Update ledger transaction handling"
+        }
+      ],
+      "scenarios": [
+        "explicit_replacement",
+        "sources_agree",
+        "stale_memory",
+        "upstream_memory_relationship"
+      ]
+    },
+    "payments": {
+      "has_mutation": true,
+      "queries": [
+        {
+          "critical_constraints": [
+            "The accepted maximum is three retries.",
+            "Increasing retries requires a replacement decision and risk review."
+          ],
+          "id": "retry-change",
+          "review_questions": [
+            "Does the response expose the three-versus-five mismatch?",
+            "Does it avoid treating closed work as approval or a memory as code verification?",
+            "Does the mutation remove the old mismatch while retaining historical evidence?"
+          ],
+          "task": "Implement payment retries"
+        }
+      ],
+      "scenarios": [
+        "intent_implementation_drift",
+        "misleading_closed_issue",
+        "reported_agent_memory",
+        "resolved_drift_after_mutation"
+      ]
+    },
+    "releases": {
+      "has_mutation": false,
+      "queries": [
+        {
+          "critical_constraints": [
+            "Production artifact signatures remain mandatory.",
+            "The unsigned artifact exception applies only to staging fixtures."
+          ],
+          "id": "release-change",
+          "review_questions": [
+            "Does it retain production intent and the scope restriction?",
+            "Does it avoid declaring a contradiction from the staging observation?"
+          ],
+          "task": "Change artifact signature verification in production releases"
+        }
+      ],
+      "scenarios": [
+        "environment_scope_mismatch",
+        "closed_work_without_policy_change"
+      ]
+    }
+  },
+  "schema_version": 1
+}
