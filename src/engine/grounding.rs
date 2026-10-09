@@ -37,17 +37,23 @@ pub(super) fn validate_prose(draft: &PageDraft, units: &[&KnowledgeView]) -> Res
             for phrase in ABSENCE {
                 if prose.contains(phrase) {
                     ensure!(
-                        cited.iter().any(|unit| unit.evidence.iter().any(|e| {
-                            e.excerpt.to_lowercase().contains(phrase)
-                        })),
+                        cited.iter().any(|unit| unit
+                            .evidence
+                            .iter()
+                            .any(|e| { e.excerpt.to_lowercase().contains(phrase) })),
                         "unsupported corpus-wide absence claim: {phrase}; describe only what the cited sources establish"
                     );
                 }
             }
 
             const ORDER: &[&str] = &[
-                " before ", " after ", " earlier than ", " later than ",
-                " subsequently ", " preceded ", " followed by ",
+                " before ",
+                " after ",
+                " earlier than ",
+                " later than ",
+                " subsequently ",
+                " preceded ",
+                " followed by ",
             ];
             for phrase in ORDER {
                 if !prose.contains(phrase) {
@@ -55,16 +61,19 @@ pub(super) fn validate_prose(draft: &PageDraft, units: &[&KnowledgeView]) -> Res
                 }
                 let stated = cited.iter().any(|unit| {
                     let statement = format!(" {} ", unit.statement.to_lowercase());
-                    statement.contains(phrase) || unit.evidence.iter().any(|e| {
-                        format!(" {} ", e.excerpt.to_lowercase()).contains(phrase)
-                    })
+                    statement.contains(phrase)
+                        || unit
+                            .evidence
+                            .iter()
+                            .any(|e| format!(" {} ", e.excerpt.to_lowercase()).contains(phrase))
                 });
                 let dated = cited
                     .iter()
                     .map(|u| u.effective_at.as_str())
                     .filter(|date| !date.is_empty())
                     .collect::<std::collections::BTreeSet<_>>()
-                    .len() >= 2;
+                    .len()
+                    >= 2;
                 ensure!(
                     stated || dated,
                     "unsupported event ordering ({phrase:?}); cite an explicit source chronology or two distinct effective dates"
@@ -120,20 +129,41 @@ mod tests {
 
     #[test]
     fn does_not_infer_before_from_when() {
-        let u = unit("The vote was recorded when the meeting ended.", "The vote was recorded when the meeting ended.");
-        assert!(validate_prose(&draft("The vote was recorded before the meeting ended."), &[&u]).is_err());
+        let u = unit(
+            "The vote was recorded when the meeting ended.",
+            "The vote was recorded when the meeting ended.",
+        );
+        assert!(
+            validate_prose(
+                &draft("The vote was recorded before the meeting ended."),
+                &[&u]
+            )
+            .is_err()
+        );
     }
 
     #[test]
     fn accepts_explicit_order_and_qualified_reports() {
-        let u = unit("The committee approved the policy after consultation.", "The committee approved the policy after consultation.");
+        let u = unit(
+            "The committee approved the policy after consultation.",
+            "The committee approved the policy after consultation.",
+        );
         assert!(validate_prose(&draft("The committee approved the policy after consultation; deployment is not independently verified."), &[&u]).is_ok());
     }
 
     #[test]
     fn rejects_unsourced_absence_but_allows_documented_denials() {
-        let u = unit("The board selected the policy for cost reasons.", "The board selected the policy for cost reasons.");
-        assert!(validate_prose(&draft("The supplied record does not state the rationale for the policy."), &[&u]).is_err());
+        let u = unit(
+            "The board selected the policy for cost reasons.",
+            "The board selected the policy for cost reasons.",
+        );
+        assert!(
+            validate_prose(
+                &draft("The supplied record does not state the rationale for the policy."),
+                &[&u]
+            )
+            .is_err()
+        );
         assert!(validate_prose(&draft("The proposal was not approved."), &[&u]).is_ok());
     }
 }
