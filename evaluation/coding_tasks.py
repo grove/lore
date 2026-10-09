@@ -84,10 +84,12 @@ def load_cases(path: Path) -> dict:
 
 def bundled_fingerprints() -> set[str]:
     fingerprints = set()
-    for case in cross.read_json(DEFAULT_CASES)["cases"]:
-        base = cross.fingerprint(cross.CORPORA / case["base_project"] / "initial")
-        overlay = cross.fingerprint(DEFAULT_CASES.parent / case["overlay"])
-        fingerprints.add(cross.digest(base["files_sha256"] | overlay["files_sha256"]))
+    manifests = (DEFAULT_CASES, ROOT / "corpora" / "shared-intelligence" / "cases.json")
+    for manifest in manifests:
+        for case in cross.read_json(manifest)["cases"]:
+            base = cross.fingerprint(cross.CORPORA / case["base_project"] / "initial")
+            overlay = cross.fingerprint(manifest.parent / case["overlay"])
+            fingerprints.add(cross.digest(base["files_sha256"] | overlay["files_sha256"]))
     return fingerprints
 
 

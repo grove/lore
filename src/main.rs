@@ -136,6 +136,43 @@ enum Command {
         )]
         clear: bool,
     },
+    /// Understand a project, explore a workflow, or learn through optional practice.
+    Onboard {
+        #[arg(value_name = "GOAL", value_parser = human_goal)]
+        goal: Option<String>,
+        #[arg(long, conflicts_with = "goal", value_parser = human_goal, help = "Begin with a project concept or workflow")]
+        topic: Option<String>,
+        #[arg(long, value_parser = human_goal, help = "Go directly to a real contribution task")]
+        task: Option<String>,
+        #[arg(long, default_value = "auto", value_parser = experience_mode)]
+        mode: lore::experience::ExperienceMode,
+        #[arg(long = "path", value_name = "PATH")]
+        paths: Vec<String>,
+        #[arg(long, default_value_t = lore::experience::DEFAULT_MAX_TOKENS, value_parser = human_budget)]
+        max_tokens: usize,
+        #[arg(long = "hint", default_value_t = 0, value_parser = clap::value_parser!(u8).range(0..=3))]
+        hint_level: u8,
+        #[arg(long)]
+        show_solution: bool,
+        #[arg(long, value_parser = learning_answer, help = "Optional answer for source-grounded learning feedback; never persisted")]
+        answer: Option<String>,
+        #[arg(long, value_parser = lesson_revision, help = "Pin feedback and hints to a returned lesson revision")]
+        lesson: Option<String>,
+        #[arg(long, default_value = "primary", value_parser = learning_stage)]
+        activity: lore::experience::LearningStage,
+        #[arg(long)]
+        no_cache: bool,
+        #[arg(
+            long,
+            conflicts_with = "no_inspect",
+            help = "Grant read-only inspection within this configuration directory"
+        )]
+        inspect: bool,
+        #[arg(long)]
+        no_inspect: bool,
+        #[arg(long)]
+        allow_checkout_egress: bool,
+    },
     /// Inspect and disposition review questions; never edits source knowledge.
     Review {
         #[command(subcommand)]
@@ -246,7 +283,10 @@ async fn run(cli: Cli) -> Result<i32> {
     }
     let config = if matches!(
         &cli.command,
-        Command::Context { .. } | Command::Evidence { .. } | Command::Memory { .. }
+        Command::Context { .. }
+            | Command::Evidence { .. }
+            | Command::Memory { .. }
+            | Command::Onboard { .. }
     ) {
         ResolvedConfig::load_for_read(&cli.config)
     } else {
@@ -488,6 +528,55 @@ async fn run(cli: Cli) -> Result<i32> {
                 } else {
                     print!("{}", context::decision::runtime::render(&result));
                 }
+            }
+        }
+        Command::Onboard {
+            goal,
+            topic,
+            task,
+            mode,
+            paths,
+            max_tokens,
+            hint_level,
+            show_solution,
+            answer,
+            lesson,
+            activity,
+            no_cache,
+            inspect,
+            no_inspect,
+            allow_checkout_egress,
+        } => {
+            let conn = storage::read_only(&config.state.join("state.db"))
+                .context("open project knowledge (run lore init or lore update first)")?;
+            let result = lore::experience::run(
+                &config,
+                &conn,
+                &lore::experience::ExperienceOptions {
+                    goal: goal.or(topic),
+                    task,
+                    mode,
+                    paths,
+                    max_tokens,
+                    hint_level,
+                    show_solution,
+                    answer,
+                    lesson,
+                    activity,
+                    run: context::decision::runtime::RunOptions {
+                        inspect,
+                        investigate: false,
+                        no_inspect,
+                        no_cache,
+                        allow_checkout_egress,
+                    },
+                },
+            )
+            .await?;
+            if cli.json {
+                println!("{}", serde_json::to_string(&result)?);
+            } else {
+                print!("{}", lore::experience::render_markdown(&result));
             }
         }
         Command::Memory { clear } => {
@@ -827,6 +916,67 @@ async fn compile(config: &ResolvedConfig, options: UpdateOptions, json_output: b
 fn emit(value: Value, _json: bool) -> Result<()> {
     println!("{}", serde_json::to_string_pretty(&value)?);
     Ok(())
+}
+
+fn experience_mode(value: &str) -> std::result::Result<lore::experience::ExperienceMode, String> {
+    use lore::experience::ExperienceMode;
+    match value {
+        "auto" => Ok(ExperienceMode::Auto),
+        "explanation" => Ok(ExperienceMode::Explanation),
+        "how-to" => Ok(ExperienceMode::HowTo),
+        "tutorial" => Ok(ExperienceMode::Tutorial),
+        "reference" => Ok(ExperienceMode::Reference),
+        _ => Err("expected auto, explanation, how-to, tutorial, or reference".into()),
+    }
+}
+
+fn learning_stage(value: &str) -> std::result::Result<lore::experience::LearningStage, String> {
+    match value {
+        "primary" => Ok(lore::experience::LearningStage::Primary),
+        "transfer" => Ok(lore::experience::LearningStage::Transfer),
+        _ => Err("expected primary or transfer".into()),
+    }
+}
+
+fn human_goal(value: &str) -> std::result::Result<String, String> {
+    if value.trim().is_empty() || value.len() > 4_000 || value.chars().any(char::is_control) {
+        Err("goal and task need 1..4000 UTF-8 bytes without control characters".into())
+    } else {
+        Ok(value.into())
+    }
+}
+
+fn learning_answer(value: &str) -> std::result::Result<String, String> {
+    if value.trim().is_empty()
+        || value.len() > 8_000
+        || value
+            .chars()
+            .any(|c| c.is_control() && !matches!(c, '\n' | '\t'))
+    {
+        Err("a learning answer needs 1..8000 UTF-8 bytes without unsafe control characters".into())
+    } else {
+        Ok(value.into())
+    }
+}
+
+fn lesson_revision(value: &str) -> std::result::Result<String, String> {
+    if value
+        .strip_prefix("blake3:")
+        .is_some_and(|id| id.len() == 64 && id.bytes().all(|b| b.is_ascii_hexdigit()))
+    {
+        Ok(value.into())
+    } else {
+        Err("--lesson must be a returned lesson revision key".into())
+    }
+}
+
+fn human_budget(value: &str) -> std::result::Result<usize, String> {
+    let budget = context_budget(value)?;
+    if budget < 512 {
+        Err("onboard --max-tokens must be 512..100000".into())
+    } else {
+        Ok(budget)
+    }
 }
 
 fn nonempty_task(task: &str) -> std::result::Result<String, String> {

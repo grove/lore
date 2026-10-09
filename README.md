@@ -18,6 +18,29 @@ and retention-limited; `lore memory` lists available leads and `lore memory
 and [implementation tracker](docs/IMPLEMENTATION_TRACKER.md) for grants, contracts
 and the distinction between verified mechanics and unmeasured product outcomes.
 
+### Understand and learn a project
+
+`lore onboard` gives an immediate source-grounded orientation. It uses the same
+evidence, decisions, static observations and permission boundary as adaptive
+agent context. You can start with a workflow or go directly to a contribution:
+
+```bash
+lore onboard
+lore onboard --topic "Explain payment dispatch"
+lore onboard --task "Improve dispatch diagnostics without changing ordering"
+lore onboard --topic "Teach me dispatch queues" --mode tutorial
+lore onboard --topic "Exact dispatch limits" --mode reference
+lore --json onboard --no-inspect
+```
+
+Explanation, how-to, tutorial and reference modes follow the request's intent;
+an explicit `--mode` overrides it. Tutorials offer optional hints, a lesson-bound
+answer comparison and a distinct practice activity. Ordinary task guidance does
+not require a lesson, account or learner profile. Complete source conditions and
+honest provider-unavailable fallbacks remain available. Read the
+[human experience guide](docs/HUMAN_EXPERIENCE.md) and the separate
+[human/agent evaluation protocol](evaluation/SHARED_INTELLIGENCE.md).
+
 ## Vision
 
 **Lore's long-term goal is to make everyone working in a project more capable—newcomers, experienced developers, maintainers and coding agents.**
@@ -28,16 +51,17 @@ Humans should get inviting project tours and explanations when learning, and con
 
 The CLI, task-context interface, native snapshot adapters, and generated Markdown wiki are the foundation. A richer reading experience, conversational grounded questions and answers, and live source synchronization remain future directions. Read the [full vision](VISION.md) for the product principles, intended experience, and measures of success.
 
-## Proposed future: Knowledge Experience
+## Knowledge Experience direction
 
-**Proposed shared product direction:** Lore is a project intelligence layer for everyone. Two flagship experiences demonstrate its value:
+Lore is developing a shared project intelligence experience for everyone. Two
+flagship journeys guide the implementation and its independent evaluations:
 
 - **Human learning:** [Developer Onboarding design](docs/DEVELOPER_ONBOARDING_DESIGN.md) — a newcomer gets an immediate project orientation and source-grounded tour, practices a concept, makes a correct first change and tackles a distinct related task with less help.
 - **Agent productivity:** [Coding-Agent Intelligence design](docs/CODING_AGENT_INTELLIGENCE_DESIGN.md) — any coding agent receives a compact, evidence-bound task package with automatically investigated context, explicit constraints, implementation guidance and honest completion criteria.
 
 An experienced developer or maintainer can ask directly for advice or explanation. There is **no mandatory tutorial, learner profile, special agent framework or parallel knowledge registry**.
 
-The [Knowledge Experience architecture](docs/KNOWLEDGE_EXPERIENCE_DESIGN.md) combines adaptive-depth Knowledge Zoom, Diátaxis (tutorial-first **when learning is requested**), decision conditions and cases. The [Autonomous Assistance contract](docs/AUTONOMOUS_ASSISTANCE_DESIGN.md) defines permitted investigation, and the [phased roadmap](docs/KNOWLEDGE_EXPERIENCE_ROADMAP.md) starts with **one shared engine and two small user journeys**, then measures learning and agent outcomes independently. **These are proposals, not Lore 0.6 commands or shipped features.** The existing evidence registry, privacy and CLI compatibility remain foundational.
+The [Knowledge Experience architecture](docs/KNOWLEDGE_EXPERIENCE_DESIGN.md) combines adaptive-depth Knowledge Zoom, Diátaxis (tutorial-first **when learning is requested**), decision conditions and cases. The [Autonomous Assistance contract](docs/AUTONOMOUS_ASSISTANCE_DESIGN.md) defines permitted investigation, and the [phased roadmap](docs/KNOWLEDGE_EXPERIENCE_ROADMAP.md) starts with **one shared engine and two small user journeys**, then measures learning and agent outcomes independently. The guides above describe implemented commands; the [implementation tracker](docs/IMPLEMENTATION_TRACKER.md) distinguishes those mechanics from planned work and outcomes still requiring evaluation. The existing evidence registry, privacy and CLI compatibility remain foundational.
 
 ## Evaluating Lore
 
