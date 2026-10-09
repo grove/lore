@@ -367,38 +367,6 @@ fn source_identifier(locator: &str) -> Option<String> {
 fn quoted_document_action(quote: &str, identifier: &str) -> Option<&'static str> {
     for sentence in quote.split(['.', '\n', ';']) {
         let sentence = sentence.to_ascii_lowercase();
-        let ambiguous = [
-            " not ",
-            " never ",
-            " no ",
-            "without ",
-            "unless ",
-            "until ",
-            " if ",
-            "could ",
-            "might ",
-            "may ",
-            "should ",
-            "would ",
-            "consider ",
-            "propos",
-            "possibly ",
-            "unclear ",
-            "whether ",
-            "pending ",
-            "isn't ",
-            "wasn't ",
-            "doesn't ",
-            "hasn't ",
-        ]
-        .iter()
-        .any(|word| sentence.contains(word));
-        if ambiguous
-            || sentence.trim_start().starts_with("no ")
-            || sentence.trim_start().starts_with("not ")
-        {
-            continue;
-        }
         for (position, _) in sentence.match_indices(identifier) {
             let before = sentence[..position].chars().last();
             let after = sentence[position + identifier.len()..].chars().next();
@@ -414,6 +382,30 @@ fn quoted_document_action(quote: &str, identifier: &str) -> Option<&'static str>
                 .get(prior.len().saturating_sub(180)..)
                 .unwrap_or(prior);
             let suffix = &sentence[position + identifier.len()..];
+            // Check negation and conditionality around the named decision
+            // reference, not indiscriminately throughout the sentence.
+            // "ADR-027 supersedes ADR-001, but does not verify deployment"
+            // establishes replacement and separately qualifies runtime state.
+            let uncertain_prior = [
+                " not ", " never ", " no ", "without ", "unless ",
+                "until ", " if ", "could ", "might ", "may ",
+                "should ", "would ", "consider ", "propos",
+                "possibly ", "unclear ", "whether ", "pending ",
+                "isn't ", "wasn't ", "doesn't ", "hasn't ",
+            ].iter().any(|word| prior.contains(word));
+            let first_clause = suffix.split(',').next().unwrap_or(suffix);
+            let conditional_after = [
+                " if ", " only if", " unless ", " subject to ",
+                " provided ", " pending ", " might ", " could ",
+                " may ", " would ", " should ",
+            ].iter().any(|word| first_clause.contains(word));
+            if uncertain_prior
+                || prior.trim_start().starts_with("no ")
+                || prior.trim_start().starts_with("not ")
+                || conditional_after
+            {
+                continue;
+            }
             let reaffirmed = nearby.contains("reaffirm")
                 || nearby.contains("reconfirm")
                 || suffix.starts_with(" is reaffirmed")
@@ -601,6 +593,17 @@ mod explicit_reference_tests {
             Some("supersedes")
         );
         assert_eq!(quoted_document_action(new_adr, "adr-027"), None);
+        assert_eq!(
+            quoted_document_action(
+                "ADR-027 explicitly supersedes ADR-001 for the ledger, but does not independently verify a production deployment.",
+                "adr-001"
+            ),
+            Some("supersedes")
+        );
+        assert_eq!(
+            quoted_document_action("ADR-027 supersedes ADR-001 only if production approval is granted.", "adr-001"),
+            None
+        );
         let review = "The review reaffirmed that the ledger remains committed to the MySQL decision in ADR-001.";
         assert_eq!(quoted_document_action(review, "adr-001"), Some("reaffirms"));
         assert_eq!(
