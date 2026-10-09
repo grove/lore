@@ -117,19 +117,6 @@ pub(super) async fn build(
                         },
                     )
                     .await?;
-                if let Err(error) = grounding::validate_prose(&draft, &units[cursor..end]) {
-                    if attempt == 2 {
-                        evidence_only_fallback = true;
-                        runner.degraded_topics.insert(slug.clone());
-                        runner.warnings.push(format!("SYNTHESIS_DEGRADED topic={slug}: grounding rejected three drafts: {error}"));
-                        break;
-                    }
-                    input["repair_feedback"] = json!({
-                        "issues": [error.to_string()],
-                        "instructions": "Remove unsupported chronology and corpus-wide absence claims."
-                    });
-                    continue;
-                }
                 if runner.config.config.processing.verify_synthesis {
                     let verify_input = json!({"task":"verify","knowledge":data,"draft":draft,"documented_decision_relationships":&topic_decisions});
                     let (verification, _): (Verification, String) = runner
@@ -161,6 +148,19 @@ pub(super) async fn build(
                         });
                         continue;
                     }
+                }
+                if let Err(error) = grounding::validate_prose(&draft, &units[cursor..end]) {
+                    if attempt == 2 {
+                        evidence_only_fallback = true;
+                        runner.degraded_topics.insert(slug.clone());
+                        runner.warnings.push(format!("SYNTHESIS_DEGRADED topic={slug}: grounding rejected three drafts: {error}"));
+                        break;
+                    }
+                    input["repair_feedback"] = json!({
+                        "issues": [error.to_string()],
+                        "instructions": "Remove unsupported chronology and corpus-wide absence claims."
+                    });
+                    continue;
                 }
                 accepted = Some(draft);
                 break;
