@@ -61,6 +61,31 @@ pub fn read_only(path: &Path) -> Result<Connection> {
         OpenFlags::SQLITE_OPEN_READ_ONLY,
     )?)
 }
+
+/// A source-selection-independent identity for disposable project intelligence.
+/// Including the complete retained inventory detects newly relevant evidence,
+/// even when all of an old recommendation's original dependencies are unchanged.
+/// No source is reread, no registry row is changed and no model is called.
+pub fn registry_revision(conn: &Connection) -> Result<String> {
+    let mut heads = current_source_heads(conn)?;
+    heads.sort_by(|a, b| a.id.cmp(&b.id));
+    let mut knowledge = views(conn)?;
+    knowledge.sort_by(|a, b| a.id.cmp(&b.id));
+    let mut observations = crate::imports::storage::views(conn)?;
+    observations.sort_by(|a, b| a.id.cmp(&b.id));
+    let mut relationships = crate::imports::relationships::relations(conn)?;
+    relationships.sort_by(|a, b| a.id.cmp(&b.id));
+    let mut documentary = relation_facts(conn)?;
+    documentary.sort_by(|a, b| a.id.cmp(&b.id));
+    util::json_digest(&(
+        "registry-revision-v1",
+        heads,
+        knowledge,
+        observations,
+        relationships,
+        documentary,
+    ))
+}
 pub fn stage_database(old: &Path, stage: &Path) -> Result<Connection> {
     if old.exists() {
         read_only(old)?.backup(MAIN_DB, stage, None)?;
@@ -209,6 +234,10 @@ pub fn source_heads(conn: &Connection) -> Result<Vec<SourceHead>> {
     if meta(conn, "initialized")?.is_none() {
         return Ok(vec![]);
     }
+    current_source_heads(conn)
+}
+
+fn current_source_heads(conn: &Connection) -> Result<Vec<SourceHead>> {
     let sql = if has_source_provenance(conn)? {
         "SELECT s.id,s.root_id,s.relative_path,c.source_revision_id,c.content_digest,p.configured_path,COALESCE(p.material,'primary'),p.origin FROM sources s JOIN source_current c ON s.id=c.source_id LEFT JOIN source_revision_provenance p ON p.source_revision_id=c.source_revision_id WHERE s.removed_at IS NULL ORDER BY s.root_id,s.relative_path"
     } else {

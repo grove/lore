@@ -919,6 +919,10 @@ async fn a_dangling_cached_investigation_reference_is_rejected_even_with_a_valid
     investigation.steps[0].observation_ids = vec!["co_missing_observation".into()];
     cached["content_hash"] = json!(
         util::json_digest(&(
+            cached["question"].as_str().unwrap(),
+            cached["created_at"].as_str().unwrap(),
+            cached["registry_revision"].as_str().unwrap(),
+            cached["permission_key"].as_str().unwrap(),
             cached["key"].as_str().unwrap(),
             cached["revision_key"].as_str().unwrap(),
             &draft,
@@ -947,6 +951,42 @@ async fn a_dangling_cached_investigation_reference_is_rejected_even_with_a_valid
         !serde_json::to_string(&result)
             .unwrap()
             .contains("co_missing_observation")
+    );
+}
+
+#[tokio::test]
+async fn newly_retained_source_invalidates_findings_with_unchanged_selected_dependencies() {
+    let fixture = Fixture::new();
+    let model = FakeModel::new(Behavior::Good);
+    let first = fixture.run(&model, RunOptions::default()).await;
+    assert_eq!(first["cache_status"], "miss");
+    let hit = fixture.run(&model, RunOptions::default()).await;
+    assert_eq!(hit["cache_status"], "hit");
+    let text = "New conditions may change dispatch applicability.";
+    let path = fixture.dir.path().join("docs/new-condition.md");
+    fs::write(&path, text).unwrap();
+    let document = Document {
+        root_id: "docs".into(),
+        root_path: fixture.dir.path().join("docs"),
+        material: SourceMaterial::Primary,
+        origin: None,
+        relative_path: "new-condition.md".into(),
+        physical_path: path,
+        text: text.into(),
+        digest: util::digest(text),
+        chunks: sources::split_markdown(text, "docs", "new-condition.md", 8_000).unwrap(),
+    };
+    storage::begin_source(&fixture.conn, &document, None).unwrap();
+    let fresh = fixture.run(&model, RunOptions::default()).await;
+    assert_eq!(fresh["cache_status"], "miss");
+    assert_ne!(fresh["revision_key"], first["revision_key"]);
+    assert_eq!(
+        fresh["brief"]["preferred_approach"],
+        first["brief"]["preferred_approach"]
+    );
+    assert_eq!(
+        fresh["model_calls"], 2,
+        "new inventory must receive fresh synthesis and support review"
     );
 }
 

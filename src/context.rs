@@ -1,10 +1,12 @@
 //! Deterministic, read-only task context from the existing knowledge registry.
 //! Selection never changes knowledge, generates claims, or invokes a model.
+pub mod adaptive;
 pub mod decision;
 pub mod imports;
 pub mod inspection;
 pub mod intelligence;
 pub mod investigation;
+pub mod memory;
 pub mod retrieval;
 pub mod semantic;
 

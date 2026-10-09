@@ -6,6 +6,18 @@ Projects collect their history in architecture notes, ADRs, plans, issue exports
 
 **Lore 0.6 provides decision-ready project intelligence.** `lore context "Implement payment retries"` leads with one preferred approach and says whether to proceed, perform a specific check first, or resolve a material policy decision. It distinguishes exact project evidence, hypotheses, and general engineering principles. Opt-in `--inspect` reads relevant local source and tests; `--investigate` performs bounded follow-up inspections and revises the recommendation when evidence contradicts the original hypothesis. `--fast` preserves deterministic schema 2, and `--schema-version 3` retains the 0.5 contract. See [the 0.6 guide](docs/V06.md) for privacy, limits, caching, and evaluation status.
 
+### Experimental shared intelligence
+
+`lore context TASK --schema-version 5` selects automatic investigation within
+caller-owned standing grants, while existing schemas retain their behavior.
+Human and agent experiences share a complete retained-registry snapshot and the
+existing evidence/decision runtime. Exact supported symbolic lookups avoid
+unnecessary model calls. Investigative findings are revision-bound, revalidated
+and retention-limited; `lore memory` lists available leads and `lore memory
+--clear` discards them. See [the shared intelligence guide](docs/SHARED_INTELLIGENCE.md)
+and [implementation tracker](docs/IMPLEMENTATION_TRACKER.md) for grants, contracts
+and the distinction between verified mechanics and unmeasured product outcomes.
+
 ## Vision
 
 **Lore's long-term goal is to make everyone working in a project more capable—newcomers, experienced developers, maintainers and coding agents.**
