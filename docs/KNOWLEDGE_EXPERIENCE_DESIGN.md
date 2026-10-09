@@ -1,34 +1,39 @@
 # Lore Knowledge Experience — design proposal
 
-**Status:** Proposed, not implemented. **Design revision:** 2 — user empowerment and adaptive autonomy. **Date:** 2026-10-09. **Baseline:** Lore 0.6 on `main` at `51b62ebe6d44ca4ff5162ff7758408c3e85ec548`.
+**Status:** Proposed, not implemented. **Design revision:** 3 — newcomer-first learning, grounded practice and adaptive autonomy. **Date:** 2026-10-09. **Baseline:** Lore 0.6 on `main` at `51b62ebe6d44ca4ff5162ff7758408c3e85ec548`.
 
-**Companions:** [autonomous assistance and user-experience contract](AUTONOMOUS_ASSISTANCE_DESIGN.md) and [phased roadmap](KNOWLEDGE_EXPERIENCE_ROADMAP.md).
+**Companions:** [Developer Onboarding product and technical design](DEVELOPER_ONBOARDING_DESIGN.md) (**primary user journey**), [autonomous assistance](AUTONOMOUS_ASSISTANCE_DESIGN.md) and [phased roadmap](KNOWLEDGE_EXPERIENCE_ROADMAP.md).
 
-> **Maximum useful autonomy. Minimum user burden.** Give people and coding agents the relevant understanding and practical judgment of a contributor who knows the project deeply. Lore does the useful investigative work it can perform, then makes the user more capable of acting or understanding.
+> **Get up to speed on any project. Make your first correct contribution. Grow independent.**
+>
+> **Maximum useful autonomy. Minimum user burden.** Lore does the investigative homework so newcomers can focus on building a mental model, practicing and understanding the changes they make.
 
 This document proposes Lore's future knowledge-experience architecture. It does not assert that proposed commands, configuration fields, persistence tables, execution mechanisms or interfaces exist today. Implemented contracts remain in [README](../README.md), [DESIGN](../DESIGN.md), [0.6 guide](V06.md) and [implementation guide](IMPLEMENTATION.md). Examples are illustrative unless identified as existing behavior.
 
-Revision 2 changes the operating philosophy and delivery order, not just the wording of recommendations. Adaptive investigation and reusable findings become foundational. Knowledge Zoom and Diátaxis become ways to deliver the results of useful understanding, not prerequisites the user must navigate. Human gap questions become an exceptional or explicitly requested maintenance workflow. The companion autonomy specification defines the controller, permission envelope, answer contract, stopping rules and acceptance scenarios; this document defines how the knowledge architecture implements them.
+Revision 3 makes **new developers learning an unfamiliar project the primary product audience**, including experienced engineers new to this repository. The central experience is a short project orientation, a grounded workflow tour, a purposeful tutorial, support for a first real contribution, and a more independent second task. **First-task success without demonstrated learning is insufficient.** Adaptive investigation remains the engine, and guided practice remains the learner's work. Diátaxis makes tutorial the onboarding anchor (with explanation/reference/how-to on demand), while Knowledge Zoom allows variable semantic depth—not an arbitrary four-level tree. The [onboarding design](DEVELOPER_ONBOARDING_DESIGN.md) specifies the learning path, typed contracts, exercises and evaluation. The [autonomy design](AUTONOMOUS_ASSISTANCE_DESIGN.md) specifies permitted investigation and user burden. All are future proposals.
 
 ## 1. Executive decision
 
-Build an **outcome-oriented, investigative knowledge experience** on Lore's existing source assertions, consolidated knowledge and decision-ready context. For an ordinary request, Lore resolves available evidence, investigates consequential uncertainty within its permissions, evaluates alternatives and delivers the strongest defensible answer or recommendation. It stops when further work is unlikely to materially improve the result, not merely because a contradiction was found.
+Build a **newcomer-first project learning companion** over Lore's source assertions, consolidated knowledge and decision-ready context. The primary outcome is that someone unfamiliar with a project can understand its purpose and workflows, make a **correct and understood first contribution**, and tackle another related task **with less guidance**. This requires both teaching and action: Lore investigates consequential uncertainty within permissions and recommends a defensible approach, but does not replace the developer's own learning with an agent-produced patch. Developers already familiar with the project retain direct, efficient task context.
 
 The user should not need to choose `--inspect`, `--investigate`, a reasoning effort or a documentation mode to obtain useful help. Those remain advanced controls and compatibility options. Default initiative must not mean default unrestricted access: automatic actions operate only inside a disclosed, accepted capability envelope, with easy restrictive overrides.
 
 Present the same knowledge through different intents (Diátaxis), levels of detail (semantic zoom), scopes (project, topic, task, environment and revision), and epistemic states (documented, observed, inferred). Add decision assumptions and reconsideration triggers; first-class failures, exceptions and examples; reusable investigation records; worked and replayable learning cases; advisory change-risk checks; and revision-aware briefings.
 
-**First delivery:** adaptive read-only assistance and action-first presentation over the existing 0.6 knowledge/inspection foundation, plus safely reusable investigative findings. Improve segmentation and hierarchical views after or alongside that useful vertical slice. Do not delay the user benefit behind a graph, a GUI, a new execution framework or a document reorganization. The [roadmap](KNOWLEDGE_EXPERIENCE_ROADMAP.md) preserves R0–R7 workstreams and inserts A1–A3 as the initial critical path.
+**First delivery:** one coherent, low-friction newcomer journey using existing Lore 0.6 evidence, minimal adaptive read-only assistance and concise explanations: project essence → a grounded workflow tour → one safe practical lesson → a supported small real change → independent transfer. Develop A1/A2 as the investigation/answer foundation; A3 reuse and the full R1/R2/R3 machinery can follow or grow alongside where measured useful. No mandatory new UI, extensive source-indexing rewrite, fully materialized hierarchy, project-specific plugin or code-execution framework. The [roadmap](KNOWLEDGE_EXPERIENCE_ROADMAP.md) includes O1–O3 newcomer milestones alongside A1–A3 and R0–R7.
 
-**Primary success measure:** correct, constraint-respecting progress or improved understanding with less total user effort. Measure time, avoidable handoffs, false blocking, unsafe proceeding, reading/correction burden, cost and learning transfer together. More summaries, deeper trees, fewer questions at any cost or more confident language are not success measures.
+**Primary success measure:** a first *correct and understood* contribution plus correct work on a **different, related task with less scaffolding**, measured with independent checks and reviewer rubrics. Also measure orientation, mentor burden, user effort, false blocking, unsafe proceeding, reading/correction loops, privacy and cost. An AI-written patch, a pleasant tour, a passed generated quiz or a high confidence score alone is not a success.
 
 ### 1.1 Experience principles
 
+- **Make a newcomer feel oriented immediately:** lead with the project essence, one real workflow and a sensible next step—not a taxonomy quiz or wall of documents.
 - **Own the investigation:** do not hand a user or calling agent work Lore can usefully perform within its actual capabilities and budget.
 - **Answer first:** recommend one sensible approach or answer the question directly, with the next useful action and decisive boundary.
 - **Separate uncertainty from inability to act:** preserve non-blocking uncertainty without turning it into a prerequisite.
 - **Preserve agency:** let the user inspect evidence, correct assumptions, narrow scope, cancel or choose a different approach without restarting routine discovery.
 - **Use progressive disclosure:** concise useful result first; detail, alternatives, history and evidence remain easy to reach.
+- **Teach by doing:** a learner can predict, trace, make a change and explain its consequences; hints fade as understanding is demonstrated, not inferred from page visits.
+- **Allow task-first entry:** onboarding is optional for other users; newcomers can skip a path, request more help or begin a real issue immediately.
 - **Reuse experience without inventing authority:** revision-bound investigation findings inform new tasks but never silently become accepted policy.
 - **Fail usefully and honestly:** retain independently valid findings, narrow affected advice and explain specific unavailable dependencies rather than abandoning the whole task.
 
@@ -36,7 +41,7 @@ Present the same knowledge through different intents (Diátaxis), levels of deta
 
 OpenWiki is a source of repository understanding and grounded claims for Lore, not a straw-man competitor. The comparison informing this proposal includes its incremental generation, source maintenance, agent access and graph-oriented reading. RAPTOR already explores recursive clustered summaries; GraphRAG explores communities and multi-level retrieval; Diátaxis defines distinct documentation needs. Those ingredients are prior art, not claims of invention or measured advantage for Lore.
 
-Lore's proposed differentiation is their integration with user outcomes: maintain documentary authority, history and disagreement; investigate practical uncertainty; select applicable constraints and counterexamples; recommend a defensible action; and teach or explain at the right depth. The strongest product is not another tree of summaries but a version-aware path from source evidence to useful understanding and action.
+Lore's proposed differentiation is **developer competence**: connect documentary authority/history to project mental models; investigate relevant uncertainty; teach real workflows and failure cases; assist an authentic first change; and build independent judgment for the second. Knowledge Zoom and Diátaxis help present that experience; their underlying techniques are not a proprietary moat. The system can consume OpenWiki knowledge without asking users to abandon it. Compare real newcomer outcomes before making superiority claims.
 
 Keep OpenWiki, Engram and Beads in their existing roles. Consume supported snapshots and optional approved adapters; avoid duplicating their storage, agent runtime or work-management systems. Unsupported upstream formats retain the existing Markdown/import fallback rather than a guessed schema.
 
@@ -69,6 +74,9 @@ These apply to all phases:
 - Existing explicit schema-2/3/4, `--fast`, `--no-inspect` and no-cache behavior remain meaningful. A new default requires explicit version/migration handling, not hidden semantic changes to an old contract.
 - True no-op compilation has no inference or output churn. Request-time assistance and explicitly approved experiments have separately reported budgets and effects.
 - No production mutation, unrestricted agent framework, automatic policy change, hidden background monitoring, telemetry or personalization by default.
+- Learning objectives, concept prerequisites and feedback are derived suggestions, not source-authoritative facts or mandatory gates. Learner practice must be purposeful and skippable.
+- Reading a page is not competence; code authored by an outside agent is not evidence that the human learner understands it. Checkpoints are optional and assessed with appropriately scoped evidence.
+- Source-derived tours and starter tasks must be real and revision-bound; hypothetical paths and generated practice tasks must be labeled as such.
 - Coverage and omissions are reported accurately. Missing retrieved evidence does not establish project-wide absence.
 - Lack of certainty or resource exhaustion is not automatically a blocker. A genuine unresolved action condition cannot be hidden to force a `proceed` result.
 - Human review is not required for every reusable derived finding. Explicit source authoring and authoritative decisions remain separately controlled.
@@ -77,6 +85,8 @@ These apply to all phases:
 
 | Reader | Entry question | Desired experience | Evidence of success |
 | --- | --- | --- | --- |
+| **New developer** | **Where do I begin with this unfamiliar project?** | Immediate project essence, meaningful workflow tour, one guided exercise, first real change | **Correct understood first contribution and more independent second task** |
+| Experienced newcomer | How do I get productive quickly? | Architecture/decision tour with skip-to-task controls | Can find relevant code and tackle a new task efficiently |
 | New contributor | What does this subsystem do? | Clear model, decisive caveats, examples on demand | Can explain/predict related behavior |
 | Engineer changing code | How should I alter retries? | Lore inspects what matters and supplies an applicable action | Correct change, fewer avoidable handoffs |
 | Incident responder | What failed before; what differs now? | Relevant cases and already-completed permitted checks | Faster correct diagnosis |
@@ -86,7 +96,15 @@ These apply to all phases:
 | Returning contributor | What do I need to relearn? | Consequential changes since a named baseline | Resumes without rereading everything |
 | Document-only reader | Explain this collection | Sensible default view and exact navigation, no code requirement | Accurate understanding without configuration burden |
 
-### 3.1 Example journey: payment retries (hypothetical)
+### 3.1 Primary newcomer journey (proposed)
+
+A newcomer invokes a proposed `lore onboard`. Without a questionnaire or mandatory new UI, Lore immediately presents a short, source-grounded account of the project's purpose, three-to-five central concepts and one representative workflow. The developer can follow a coherent guided tour through actual source or code landmarks. Lore introduces only the prerequisite concepts necessary to understand a small failure/exception and offers one meaningful prediction or trace exercise.
+
+Next the newcomer can supply an actual issue or select an available source-backed low-risk task. Lore automatically gathers permitted context, explains the constraints, identifies implementation seams and gives adjustable hints—but **does not silently implement the learner's change**. The learner's result is evaluated by independent checks or clearly scoped external review. A **different related task** with less default scaffolding tests transfer; model-generated praise or a page view does not count as mastery. The full interface, assessment and privacy contract is in [Developer Onboarding](DEVELOPER_ONBOARDING_DESIGN.md).
+
+This is a *primary but opt-in learning journey*. Existing `lore context` remains a direct task tool for developers and agents who want an answer rather than an exercise.
+
+### 3.2 Example journey: payment retries (hypothetical)
 
 The user asks to refactor retries without changing behavior. Lore retrieves policy and architecture, inspects relevant current source/test declarations if permitted, checks available history when it could change the recommendation, and compares plausible explanations. It recommends preserving the existing behavior while making the requested refactor, if that is compatible with applicable obligations. It names the main constraints and future implementation checks and labels what was actually inspected versus executed.
 
@@ -94,11 +112,11 @@ When the accepted policy differs from the implementation, Lore does not merely s
 
 The same answer can expand into a working model, rationale, reference details or a tutorial. Original evidence remains directly accessible. A learner can choose a timeout case without forcing ordinary users through an exercise. If replay is unavailable, show an honestly labeled worked example. The user is never required to traverse a summary tree before receiving the answer.
 
-### 3.2 Example journey: a purely documentary knowledge base
+### 3.3 Example journey: a purely documentary knowledge base
 
 Lore can investigate across configured sources, relationships and revalidated findings without code, Git, a runner or a browser. Explanation/reference remain useful. It synthesizes a supported procedure where possible and clearly distinguishes recommendations from documented steps. Missing code capabilities should not trigger infrastructure setup questions. For a materially absent requirement, provide a robust conditional answer or useful partial work; only isolate a human decision when no defensible alternative resolves it.
 
-### 3.3 Effort and interaction
+### 3.4 Effort and interaction
 
 The [autonomy contract](AUTONOMOUS_ASSISTANCE_DESIGN.md) defines graduated effort, stop reasons, cancellation, noninteractive dependencies and user control. Easy tasks should remain easy. A requested exact value should not start a repository tour. A complex task may justify deeper reading, but total human/agent effort, latency and cost remain part of the objective. No repeated questions merely to increase a confidence score.
 
