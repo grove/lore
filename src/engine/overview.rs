@@ -157,11 +157,17 @@ fn append_evidence_only(
          individual topic pages contain further context.\n\n",
     );
     for unit in selected {
-        let evidence = unit.evidence.iter()
+        let evidence = unit
+            .evidence
+            .iter()
             .find(|e| e.active)
             .or_else(|| unit.evidence.first())
             .context("cannot construct a source-backed overview without evidence")?;
-        let freshness = if evidence.active { "current source" } else { "historical snapshot" };
+        let freshness = if evidence.active {
+            "current source"
+        } else {
+            "historical snapshot"
+        };
         content.push_str(&format!(
             "- **[{}](topics/{}.md)** — documented {} / {} / {} ({}). \
              Source: {}. Evidence: {}. [^{}]\n\n",

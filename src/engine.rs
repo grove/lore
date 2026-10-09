@@ -238,9 +238,9 @@ pub async fn update(
     publish::validate_existing(config, &old_pages, options.rebuild)?;
     if !plan.status.needs_update && !options.refresh && !options.deep && !options.rebuild {
         let conn = storage::read_only(&old_path)?;
-        let degraded_overview = old_pages.get("index.md").is_some_and(|page|
-            page.content.contains(overview::DEGRADED_MARKER)
-        );
+        let degraded_overview = old_pages
+            .get("index.md")
+            .is_some_and(|page| page.content.contains(overview::DEGRADED_MARKER));
         let mut warnings = inventory.warnings;
         if degraded_overview {
             warnings.push("OVERVIEW_DEGRADED: stored overview contains source excerpts; semantic narrative verification has not passed".into());
@@ -493,9 +493,9 @@ pub async fn update(
     report.decision_calls = runner.decision_calls;
     report.warnings.extend(runner.warnings.clone());
     report.degraded_topics = runner.degraded_topics.iter().cloned().collect();
-    report.degraded_overview = pages.get("index.md").is_some_and(|page|
-        page.content.contains(overview::DEGRADED_MARKER)
-    );
+    report.degraded_overview = pages
+        .get("index.md")
+        .is_some_and(|page| page.content.contains(overview::DEGRADED_MARKER));
     report.pending_reviews = pending_reviews(&conn)?;
     drop(runner);
     conn.execute_batch("COMMIT")?;

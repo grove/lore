@@ -203,12 +203,19 @@ async fn unknown_citations_still_fail_closed_and_preserve_initial_publication() 
         .await
         .unwrap();
     assert!(result.degraded_overview);
-    assert!(result.warnings.iter().any(|w| w.contains("OVERVIEW_DEGRADED")));
+    assert!(
+        result
+            .warnings
+            .iter()
+            .any(|w| w.contains("OVERVIEW_DEGRADED"))
+    );
     let index = fs::read_to_string(cfg.wiki.join("index.md")).unwrap();
     assert!(index.contains("lore:degraded-overview-synthesis"));
     assert!(index.contains("## Overview evidence"));
     assert!(!index.contains("Do not persist rejected private prose"));
-    let noop = engine::update(&cfg, &model, None, UpdateOptions::default()).await.unwrap();
+    let noop = engine::update(&cfg, &model, None, UpdateOptions::default())
+        .await
+        .unwrap();
     assert!(noop.no_op);
     assert_eq!(noop.model_calls, 0);
     assert!(noop.degraded_overview);
