@@ -315,8 +315,11 @@ impl ResolvedConfig {
                 );
             }
         }
-        let fingerprint =
-            util::json_digest(&(env!("CARGO_PKG_VERSION"), "pipeline-v5-quality", &config))?;
+        let fingerprint = util::json_digest(&(
+            env!("CARGO_PKG_VERSION"),
+            "pipeline-v6-reaffirmation-semantics",
+            &config,
+        ))?;
         let project_id = format!("project_{}", &util::digest(&config.project.name)[7..31]);
         Ok(Self {
             config,
