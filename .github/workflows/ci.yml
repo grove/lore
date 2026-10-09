@@ -41,5 +41,7 @@ jobs:
         run: cargo run --locked -- context --help
       - name: Onboarding CLI help
         run: cargo run --locked -- onboard --help
+      - name: Exploration CLI help
+        run: cargo run --locked -- explore --help
       - name: CLI version
         run: cargo run --locked -- --version
