@@ -173,6 +173,12 @@ Add structured, versioned records for task scope, hypotheses, original evidence,
 
 Reuse requires current permission, relevant scope, rehashed observed files, current knowledge/relationship revisions and a bounded check for newly relevant evidence. Matching old support alone is insufficient. Candidate selection/index completeness matters; incomplete inventories prevent claims of complete current revalidation. Full fields, lifecycle, privacy and eviction rules are in [the autonomy specification](AUTONOMOUS_ASSISTANCE_DESIGN.md).
 
+### 5.3 Three related but distinct knowledge structures
+
+The [onboarding design](DEVELOPER_ONBOARDING_DESIGN.md) distinguishes **the evidence graph** (what is supported and by whom), the **Knowledge Zoom DAG** (how concepts can be explained at different abstraction levels), and a **learning-prerequisite graph** (in which order concepts may be easiest to learn for a chosen goal). The latter is a derived educational hypothesis, not a new authority registry. Its edges carry source support or clearly labeled inference, project/revision scope and cycle detection. A `prerequisite_for` edge may guide a recommended lesson, but it must not become a mandatory training gate merely because a model generated it.
+
+Lore can compose a short learning path from the minimum prerequisite closure of one important workflow or a user's real first task. The path selects concepts by explanatory value, relevance, available examples and severity of misunderstandings—not folder depth or code volume. The learner can jump ahead, zoom deeper or backtrack without invalidating the same evidence-backed knowledge.
+
 ## 6. Context-aware segmentation
 
 ### 6.1 Starting point
@@ -220,7 +226,7 @@ A view node is a derived presentation over original knowledge and optionally chi
 | Operational detail | What do I do or expect? | Procedures, contracts, cases and conditions |
 | Evidence | How do we know? | Original excerpts, scoped observations and status |
 
-These are presentation levels, not mandated database depth. Direct reference retrieval bypasses the hierarchy for exact values, identifiers, paths and errors. The highest-level summary cannot be the only route to a rare decisive exception. Start at the level that best answers the request, then let the reader expand in place.
+These are **semantic presentation modes, not five stored layers or a maximum of four/five hops**. The actual view DAG can grow to whatever meaningful depth the corpus requires, with bounded work/nodes/tokens per build or request rather than a fixed conceptual ceiling. Some branches will naturally be shallow, others deep, and cross-cutting concepts may have several parents. A separate fallible learning-prerequisite graph chooses a useful pedagogical order; it does not redefine the underlying knowledge DAG. Direct reference retrieval bypasses the hierarchy for exact values, identifiers, paths and errors. The highest-level summary cannot be the only route to a rare decisive exception. Start at the level that best answers the request, then let the reader expand in place.
 
 ### 7.2 Candidate node contract
 
@@ -283,7 +289,7 @@ The adaptive controller may retrieve more when a material uncertainty remains. A
 
 ## 8. Diátaxis: four rendering contracts
 
-Four modes are outputs from one evidence snapshot, not four independently maintained truths. They should make help appropriate to the user's goal, not force a taxonomy choice before an answer.
+Four modes are outputs from one evidence snapshot, not four independently maintained truths. For **explicit newcomer onboarding, Tutorial is the primary learning journey**, Explanation is the just-in-time mental-model aid, Reference supplies exact terms and interfaces, and How-to guides an authentic first contribution. Other users get the mode appropriate to their stated goal; `lore context` must not force a tutorial. The user does not need to select four modes before Lore can help.
 
 ### 8.1 Explain
 
@@ -297,9 +303,9 @@ Integrate scoped readiness: preserve useful independent work when an actual poli
 
 ### 8.3 Tutorial
 
-Define the learner objective/prerequisites, a bounded safe scenario, prepared inputs, steps, expected observations, feedback, cleanup and transfer exercise. Lore prepares and validates the setup as far as its grants permit. User prediction/practice is appropriate because the user requested learning; it is not an excuse to offload troubleshooting in ordinary assistance.
+As the default **onboarding** mode, define the learner objective and fallible concept prerequisites, a meaningful bounded scenario from the real project, source landmarks, a prediction/trace or deliberate small action, prepared inputs, feedback, cleanup and a **distinct transfer exercise**. Lore prepares and validates the setup as far as its grants permit. User prediction/practice is appropriate because the user requested learning; it is not an excuse to offload troubleshooting in ordinary assistance.
 
-A tutorial must be distinguishable from a how-to with introductory prose. Without actual execution, label it a worked example and expected output. Never fake a passing exercise. Use sandbox/fictional data, not production credentials. Success is unassisted performance on a different related task, not completion of the exact rehearsed script.
+Lore should start with high scaffolding and allow hints to fade after *demonstrated* understanding; reading pages or using fewer hints alone never proves competence. On a real issue, switch to How-to and let the learner retain authorship of the change. A tutorial must be distinguishable from a how-to with introductory prose. Without actual execution, label it a worked example and expected output. Never fake a passing exercise. Use sandbox/fictional data, not production credentials. Success is unassisted performance on a different related task, not completion of the exact rehearsed script.
 
 ### 8.4 Reference
 
@@ -316,7 +322,7 @@ Prefer literal/structured extraction for exact identifiers, signatures, allowed 
 | Execution evidence | Optional | Claim only if actually performed | Required to call it replayed | Not implicit |
 | Product measure | Accurate mental model | Correct completion | Skill transfer | Applicable exact lookup |
 
-When a requested form cannot be fully supported, investigate within permission, then provide the nearest useful clearly labeled alternative. A partial procedure can include grounded steps and unresolved conditions; a unsupported tutorial can become a worked explanation. Do not fabricate a mode merely to satisfy a template, or refuse all help because one field is absent.
+When a requested form cannot be fully supported, investigate within permission, then provide the nearest useful clearly labeled alternative. In onboarding, **the first correct change and next-task transfer are evaluation requirements**, but a person may skip the curriculum or request more help; do not turn product evaluation into a compulsory end-user assessment. A partial procedure can include grounded steps and unresolved conditions; a unsupported tutorial can become a worked explanation. Do not fabricate a mode merely to satisfy a template, or refuse all help because one field is absent.
 
 ## 9. Decision lenses: assumptions, triggers and alternatives
 
@@ -431,12 +437,19 @@ Before blocking, assess relevant permitted options and meaningful independent wo
 
 ## 14. Rendering and interaction surfaces
 
-**First delivery:** outcome-first CLI, versioned JSON and portable Markdown. A dedicated viewer, MCP server, hosted account or new connector is not required. A later local reader uses the same contracts.
+**First delivery:** newcomer-oriented, outcome-first CLI, versioned JSON and portable Markdown. A proposed `lore onboard` immediately gives a project essence and a guided workflow, then optionally a tutorial or first contribution. `lore context` remains the ordinary task interface. A dedicated viewer, MCP server, account or new connector is not required; a later local reader consumes the same contracts.
 
-The future everyday request remains `lore context "TASK"`; a reader can ask through a proposed simple `lore view "SUBJECT OR QUESTION"` without mode/depth flags. Advanced illustrative controls include:
+The ordinary task request remains `lore context "TASK"`. A newcomer can start a **proposed** `lore onboard` with no flags; a reader can ask through a proposed `lore view "SUBJECT OR QUESTION"`. Advanced illustrative controls include:
 
 ```bash
-# Proposed view/changes/cases commands; not implemented in Lore 0.6.
+# All commands below are proposals; none is implemented in Lore 0.6.
+lore onboard
+lore onboard --topic payments
+lore onboard --task "Refactor retries"
+lore onboard next
+lore onboard status
+lore onboard reset
+# Advanced knowledge-experience commands:
 lore view payment-retries --mode explain --depth orientation
 lore --json view payment-retries --mode reference --depth operational_detail
 lore view payment-retries --mode howto --task "Preserve behavior while refactoring"
@@ -457,7 +470,7 @@ Potential generated `lore/views/`, `lore/cases/` and `lore/decisions/` artifacts
 
 Provide answer-first content, meaningful breadcrumbs and optional intent/depth switching. Contextual actions include why, source, what changed, alternatives and what could go wrong. Material conditions remain visible, while verbose evidence manifests and investigative details expand on demand. Support keyboard, screen readers, responsive typography and non-color status labels.
 
-Users can narrow scope, correct assumptions, cancel, see completed work and select alternatives without redoing unrelated retrieval. Do not expose raw tool churn, gamified confidence meters, hidden analytics or speculative personalization. For long synchronous work, show occasional useful evidence-backed progress; never claim checks succeeded before results return.
+Onboarding starts with a useful concise project overview—not a profile form—and supports Explore, Learn, First Task and Ask freely. Tour steps reveal actual code/source landmarks and decisions; the learner can choose hints, skip lessons or drill into evidence. Explicit practice may invite prediction, but routine assistance never becomes a compulsory quiz. A reader must not declare mastery from clicks. Users can narrow scope, correct assumptions, cancel, see completed work and select alternatives without redoing unrelated retrieval. Do not expose raw tool churn, gamified confidence meters, hidden analytics or speculative personalization. For long synchronous work, show occasional useful evidence-backed progress; never claim checks succeeded before results return.
 
 ## 15. Storage, identity, invalidation and publication
 
@@ -477,6 +490,11 @@ Prefer separately versioned derived stores (for example `views.sqlite3` and `inv
 | derived_conditions | Decision/revision, documented versus inferred assumptions, evidence, review state |
 | case_records / case_runs | Scenario, constraints, expected result, actual attempt, tool/policy/input hashes and qualification |
 | gap_questions | Material gap, completed investigation, optional question/disposition, attributable source answer |
+| learning_concepts / learning_edges | Concepts, typed optional prerequisites, source revision/scope, explicit vs inferred educational basis |
+| onboarding_plans / tour_steps | Goal, audience, ordered explanation/source landmarks, source and observation revision, available next actions |
+| learning_activities | Scoped objective, exercise type, hints, expected outcome, actual verification capability and rubric version |
+| assessment_results | Optional prediction/task results, independent or fallible judgment basis, recorded project snapshot |
+| learner_state | **Optional** local saved goals, explicit completions and checkpoint consent; export/reset, separate from authoritative project data |
 | view_publications | Coherent snapshot, generation versions, manifests and journal state |
 | reader_checkpoints | Optional local acknowledged baselines, export/deletion; never implied beliefs |
 
@@ -500,13 +518,15 @@ Respect `--no-cache`, read-only configuration, explicit legacy requests and `--f
 - Changed case inputs/test/runtime invalidates a replay's current applicability; passing history remains scoped to original inputs.
 - Permission reduction invalidates access to derived content from restricted sources, including vectors and summaries.
 - User acknowledgment changes only that optional comparison, not project truth.
+- Changed evidence or inspected code invalidates affected tour stops, lesson expectations, prerequisites, example results and first-task suggestions; completed learning remains tied to its **old** snapshot, not silently certified current.
+- An optional saved learner checkpoint is not evidence of current mastery. Retained state has clear consent, access, export and purge semantics.
 - Purge removes all relevant Lore-managed evidence/observations, derived caches, artifacts, staging and optional reader data within the documented scope; no promise about physical secure erase/external backups.
 
 On source mutation during reasoning, discard affected claims and perform bounded revalidation if budget remains. Never publish a current answer spanning mismatched snapshots. Separate valid independent components can survive with precise partial status. Persistent publication uses staging and journaled recovery; stale previous output cannot be silently relabeled current.
 
 ### 15.4 Resource limits and fallback
 
-Bound nodes, depth, group membership, context/output tokens, candidate inventory, model attempts/retries, file/byte I/O, verification calls, total update time/cost, case execution, storage growth and request deadlines. Start with sparse/on-demand views rather than generating every mode at every tree node. Any concurrency shares aggregate limits and respects cancellation.
+Bound per-operation nodes, branching, graph traversal, generation work, group membership, context/output tokens, candidate inventory, model attempts/retries, file/byte I/O, verification calls, total update cost, case execution, storage growth and request deadlines. **Do not hardcode four conceptual levels as the architecture**; a configurable implementation budget limits generated/traversed nodes and requests without claiming a natural knowledge-depth boundary. Start with sparse/on-demand views rather than generating every mode at every tree node. Any concurrency shares aggregate limits and respects cancellation.
 
 | Failure | Useful truthful response |
 | --- | --- |
@@ -542,8 +562,12 @@ The autonomy contract specifies policy migration, untrusted-project behavior, ca
 
 ## 17. Evaluation strategy and release evidence
 
+**Primary success is newcomer competence**: a correctly implemented and understood first task *and* a distinct related task with less assistance. [Developer Onboarding](DEVELOPER_ONBOARDING_DESIGN.md) defines a matched participant study, source grounding, task leakage controls and ON-01–ON-24 acceptance scenarios. Original decision/autonomy evaluations remain useful supporting baselines but cannot alone establish learning success.
+
 ### 17.1 Independent hypotheses
 
+- **HN0 Onboarding:** source-grounded orientation and workflow tours improve understanding and time to first correct contribution compared with ordinary docs/current tools.
+- **HN1 Learning transfer:** project-specific tutorial, progressive scaffolding and first-task support improve independent correctness on a **different second task**, not only the first assisted task.
 - **H0 Autonomy:** adaptive permitted investigation improves correct progress and reduces avoidable handoffs compared with 0.6 at comparable resources.
 - **H0R Reuse:** revalidated investigative findings reduce repeated work without stale conclusions, scope/authority drift or privacy leakage.
 - **H1 Segmentation:** self-contained contextual units improve retrieval without false merges or higher burden.
@@ -560,7 +584,7 @@ A combined feature arm cannot establish which component caused a gain. Distingui
 
 Reuse [0.5 coding evaluation](../evaluation/INTELLIGENCE.md) and [0.6 decision evaluation](../evaluation/DECISION_INTELLIGENCE.md). Compare baseline sources, current 0.6 default, 0.6 explicitly inspected/investigated, adaptive controller without/with reuse, contextualized retrieval, hierarchical views, intent-specific presentation, and later approved verification as separate relevant experiments.
 
-Measure unassisted correct progress, full time to correct completion, material errors/constraints, avoidable delegation, false blocking, unsafe proceeding, unnecessary investigation, reading/correction burden, clarity/agency, task-specific comprehension/transfer, source coverage and update cost. Record cold/warm latency including p50/p95, resource attempts, cancellations, actual usage and billing where available. Do not convert calls or tree node counts into dollar/speed claims.
+For newcomer studies, measure **time to first correct contribution**, grounded explanation/prediction, human task authorship, mentor dependence, distinct second-task transfer at reduced assistance and optionally delayed retention; compare source docs and OpenWiki where available at matched capability. In all arms, measure unassisted correct progress, material errors/constraints, avoidable delegation, false blocking, unsafe proceeding, reading/correction burden, clarity/agency, source coverage and update cost. Record cold/warm latency including p50/p95, resource attempts, cancellations, actual usage and billing where available. Do not convert calls or tree node counts into dollar/speed claims.
 
 Use held-out independent projects, a document-only collection and adversarial mutations. Pin source/config/build/model identities where possible; record unknowns. Randomize comparable arms, isolate warm caches and prevent prior solved-task records/test answers from leaking into a held-out task. Review content with independent humans and meaningful external correctness checks, not only model preference. Two independent reviewers are a minimum for consequential qualitative judgments; sample size and power remain study-design requirements.
 
@@ -576,7 +600,7 @@ Operational gates set measured scaling, rebuild amplification, warm/cold latency
 
 Preserve the original cases: accepted ADR versus proposal; supersession/reaffirmation; closed issue without deployment proof; production/staging mismatch; deleted/moved source and duplicate heading; table context; rare exception; rollback warning; negation; static code contradicting docs; changed test after replay; primary alongside derived material; injection; denied egress; no-op and publication crash; new source invalidating untouched topic.
 
-Add autonomy scenarios AT-01–AT-26 in [the companion specification](AUTONOMOUS_ASSISTANCE_DESIGN.md): no needless search for simple tasks; automatic available checks; counterevidence changes advice; unavailable permission without nagging; budgets not becoming policy blockers; safe partial progress; noninteractive dependency; stale/deeper-round reuse; cancellation; fail-useful output; and maintenance gaps remaining quiet. Score false causal links and overgeneralized applicability, not just unsupported individual sentences.
+Add newcomer scenarios ON-01–ON-24 from [Developer Onboarding](DEVELOPER_ONBOARDING_DESIGN.md)—welcome without profile form, honest source tours, practice vs real issues, optional feedback, transferred understanding and privacy—alongside autonomy scenarios AT-01–AT-26 in [the companion specification](AUTONOMOUS_ASSISTANCE_DESIGN.md): no needless search for simple tasks; automatic available checks; counterevidence changes advice; unavailable permission without nagging; budgets not becoming policy blockers; safe partial progress; noninteractive dependency; stale/deeper-round reuse; cancellation; fail-useful output; and maintenance gaps remaining quiet. Score false causal links and overgeneralized applicability, not just unsupported individual sentences.
 
 ## 18. Proposed interfaces and compatibility
 
@@ -587,6 +611,7 @@ Candidate interfaces:
 - `AssistanceResult`: preferred answer/action, scoped readiness, safe progress, completed findings, future implementation checks, exact remaining dependencies, basis/coverage and budget.
 - `InvestigationRecord`: immutable derived revision, applicability, original evidence, observations, counterevidence, action revisions, policy/data class and reuse dependencies.
 - `ViewRequest` / `ViewPlan` / `ViewNode` / `ViewPublication`: inferred/selected intent and depth, evidence/condition closure, composed content, original support, omissions and coherent publication identity.
+- `OnboardingPath`, `TourStep`, `LearningConcept`, `LearningActivity`, `AssessmentResult`: source-bound but educationally inferred objects with optional privacy-safe local state.
 - `DecisionLens`, `CaseRecord`, `CaseRun`, `GapQuestion`, `AuthoredAnswer`, `ChangeImpact`: the corresponding source-bound objects described above.
 
 These are not final signatures. New response schemas version independently and preserve explicit schema-2/3/4 contracts. Authorization-bearing requests reject unknown/untrusted fields. Read clients use explicit version negotiation. Default command changes need migration notes and tests; no command silently changes its snapshot mid-request.
@@ -603,7 +628,8 @@ assistance:
 knowledge_experience:
   views:
     build: on_demand
-    max_levels: 4
+    # Example work budget, not a fixed knowledge-tree depth.
+    max_view_nodes_per_request: 64
     grouping: adaptive
     require_critical_coverage: true
     verify_semantics: true
@@ -622,9 +648,11 @@ This is an advanced configuration sketch, not the intended onboarding form. Ordi
 
 ## 19. Open implementation questions
 
-The core commitment to useful autonomy is settled for this proposal. Remaining implementation choices must not turn ordinary queries into manual investigations or weaken existing evidence/privacy invariants.
+The core commitment to useful autonomy and a **newcomer-first learning experience** is settled for this proposal. Remaining implementation choices must not turn ordinary queries into manual investigations or weaken existing evidence/privacy invariants.
 
-1. Which numerical effort/stopping thresholds optimize actual correctness, latency and burden? Start with bounded categories, not uncalibrated probabilities.
+1. What gives a newcomer the clearest accurate first-minute mental model across code-rich and document-rich repositories, without a mandatory setup form?
+2. Which independently verified first/second tasks demonstrate human learning rather than a coding agent's ability to finish the task?
+3. Which numerical effort/stopping thresholds optimize actual correctness, latency and burden? Start with bounded categories, not uncalibrated probabilities.
 2. Which typed history/verification adapters are available on each platform, and what are their tested cancellation and trust boundaries?
 3. How should reusable investigations store dependency/coverage metadata and new-evidence cursors efficiently without treating partial indexes as complete?
 4. Which view nodes should be eager versus lazy? Start sparse; measure repeat-use savings and invalidation cost.
@@ -641,10 +669,10 @@ Resolve these through small RFCs and implementation slices with named tests. Run
 
 ## 20. Related research and project references
 
-Project contracts: [autonomous assistance](AUTONOMOUS_ASSISTANCE_DESIGN.md), [roadmap](KNOWLEDGE_EXPERIENCE_ROADMAP.md), [DESIGN](../DESIGN.md), [VISION](../VISION.md), [Lore 0.6](V06.md), [citation contract](CITATION_CONTRACT.md), [intelligence evaluation](../evaluation/INTELLIGENCE.md), [decision evaluation](../evaluation/DECISION_INTELLIGENCE.md).
+Project contracts: [newcomer onboarding](DEVELOPER_ONBOARDING_DESIGN.md), [autonomous assistance](AUTONOMOUS_ASSISTANCE_DESIGN.md), [roadmap](KNOWLEDGE_EXPERIENCE_ROADMAP.md), [DESIGN](../DESIGN.md), [VISION](../VISION.md), [Lore 0.6](V06.md), [citation contract](CITATION_CONTRACT.md), [intelligence evaluation](../evaluation/INTELLIGENCE.md), [decision evaluation](../evaluation/DECISION_INTELLIGENCE.md).
 
 Knowledge experience: [Diátaxis](https://diataxis.fr/), [compass](https://diataxis.fr/compass/), [RAPTOR](https://arxiv.org/abs/2401.18059), [GraphRAG](https://arxiv.org/abs/2404.16130), [OpenWiki](https://github.com/langchain-ai/openwiki), [STORM](https://aclanthology.org/2024.naacl-long.347/), [VeriTrail](https://www.microsoft.com/en-us/research/blog/veritrail-detecting-hallucination-and-tracing-provenance-in-multi-step-ai-workflows/).
 
 Procedures, memory and trust: [Architectural Decision Records](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions), [ACE](https://arxiv.org/abs/2510.04618), [MemTree](https://arxiv.org/abs/2410.14052), [FActScore](https://arxiv.org/abs/2305.14251), [Cognitive apprenticeship](https://www.aft.org/ae/winter1991/collins_brown_holum), [doctest](https://docs.python.org/3/library/doctest.html).
 
-These references motivate experiments; results in other systems do not establish a Lore benefit. The proposed autonomy and UX policies are design choices, not research findings or shipped functionality. The aim is practical: do the useful work, preserve evidence and agency, and leave the user better able to proceed.
+These references motivate experiments; results in other systems do not establish a Lore benefit. The proposed autonomy and UX policies are design choices, not research findings or shipped functionality. The aim is concrete: a developer unfamiliar with a project can build a valid mental model, make a correct first contribution and work more independently next time. Lore does the investigative homework, preserves evidence, and doesn't mistake an agent's work for a learner's competence.
