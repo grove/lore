@@ -16,6 +16,10 @@ Humans should get an inviting, navigable guide to the project's architecture, co
 
 The CLI, task-context interface, native snapshot adapters, and generated Markdown wiki are the foundation. A richer reading experience, conversational grounded questions and answers, and live source synchronization remain future directions. Read the [full vision](VISION.md) for the product principles, intended experience, and measures of success.
 
+## Proposed future: Knowledge Experience
+
+A [detailed Knowledge Experience design](docs/KNOWLEDGE_EXPERIENCE_DESIGN.md) and [phased implementation roadmap](docs/KNOWLEDGE_EXPERIENCE_ROADMAP.md) explore a next layer beyond the current wiki and decision-ready context: evidence-preserving knowledge zoom, Diátaxis-inspired explain/how-to/tutorial/reference views, decision assumptions, negative cases, focused knowledge-gap questions, replayable learning, and revision-aware guidance. **These are proposals, not Lore 0.6 commands or implemented features.** Each phase has safety, compatibility and measured-usefulness gates; the existing knowledge and evidence registry remains authoritative.
+
 ## Evaluating Lore
 
 Lore's first CLI implementation is available, but we are still validating how accurately **real inference models** understand heterogeneous project documents. The [evaluation toolkit](evaluation/README.md) includes a controlled, evolving project with reviewed source checkpoints, Lore's own documentation, and pinned public OpenWiki and LLM Wiki corpora. It can run local Ollama or explicitly authorized hosted OpenAI inference, report provenance and incremental-update checks, and produce a human review sheet. Automated fixture tests and source hashes cannot establish semantic correctness, so [the baseline](evaluation/BASELINE.md) clearly separates what is already measured from the quality and billing data we still need to collect.
