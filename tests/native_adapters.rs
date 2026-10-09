@@ -9,6 +9,12 @@ use std::{fs, path::Path};
 
 const LIMIT: usize = 1_000_000;
 
+// The CLI resolves the project root before invoking an adapter. Match that
+// boundary when testing adapters directly, including macOS /var -> /private/var.
+fn temporary_snapshot() -> tempfile::TempDir {
+    tempfile::tempdir_in(std::env::temp_dir().canonicalize().unwrap()).unwrap()
+}
+
 fn source(kind: ImportKind) -> ImportSource {
     ImportSource {
         id: "upstream".into(),
@@ -76,7 +82,7 @@ fn engram_observation(id: i64, sync_id: &str, session: &str, project: Option<&st
 
 #[test]
 fn imports_real_openwiki_shape_and_preserves_opaque_versions_without_copying_the_page() {
-    let directory = tempfile::tempdir().unwrap();
+    let directory = temporary_snapshot();
     wiki(directory.path());
     let path = directory.path().join(".claims/payments/retries.json");
     write_json(&path, &sidecar(directory.path(), true));
@@ -129,7 +135,7 @@ fn imports_real_openwiki_shape_and_preserves_opaque_versions_without_copying_the
 
 #[test]
 fn old_claims_without_durable_verification_remain_reported_even_with_verified_markdown() {
-    let directory = tempfile::tempdir().unwrap();
+    let directory = temporary_snapshot();
     wiki(directory.path());
     write_json(
         &directory.path().join(".claims/payments/retries.json"),
@@ -150,7 +156,7 @@ fn old_claims_without_durable_verification_remain_reported_even_with_verified_ma
 
 #[test]
 fn okf_without_sidecars_stays_documentary_with_exact_markdown_evidence() {
-    let directory = tempfile::tempdir().unwrap();
+    let directory = temporary_snapshot();
     wiki(directory.path());
     let batch = adapters::read(&source(ImportKind::Openwiki), directory.path(), LIMIT).unwrap();
     assert_eq!(batch.records.len(), 1);
@@ -166,7 +172,7 @@ fn okf_without_sidecars_stays_documentary_with_exact_markdown_evidence() {
 
 #[test]
 fn rejects_unknown_openwiki_versions_invalid_claims_and_incomplete_snapshots() {
-    let directory = tempfile::tempdir().unwrap();
+    let directory = temporary_snapshot();
     wiki(directory.path());
     let path = directory.path().join(".claims/payments/retries.json");
     let config = source(ImportKind::Openwiki);
@@ -219,7 +225,7 @@ fn rejects_unknown_openwiki_versions_invalid_claims_and_incomplete_snapshots() {
 
 #[test]
 fn empty_claims_set_does_not_turn_page_prose_into_code_evidence() {
-    let directory = tempfile::tempdir().unwrap();
+    let directory = temporary_snapshot();
     wiki(directory.path());
     let mut empty = sidecar(directory.path(), false);
     empty["claims"] = json!([]);
@@ -233,7 +239,7 @@ fn empty_claims_set_does_not_turn_page_prose_into_code_evidence() {
 
 #[test]
 fn modified_page_scope_cannot_qualify_claims_verified_for_a_previous_page() {
-    let directory = tempfile::tempdir().unwrap();
+    let directory = temporary_snapshot();
     wiki(directory.path());
     write_json(
         &directory.path().join(".claims/payments/retries.json"),
@@ -250,7 +256,7 @@ fn modified_page_scope_cannot_qualify_claims_verified_for_a_previous_page() {
 
 #[test]
 fn engram_project_filter_honors_explicit_ownership_before_session_fallback() {
-    let directory = tempfile::tempdir().unwrap();
+    let directory = temporary_snapshot();
     let path = directory.path().join("engram.json");
     let export = json!({
         "version":"0.2.0", "exported_at":"2026-10-01T12:00:00Z",
@@ -289,7 +295,7 @@ fn engram_project_filter_honors_explicit_ownership_before_session_fallback() {
 
 #[test]
 fn engram_timestamp_only_reexport_is_identical_and_native_relationship_judgments_are_preserved() {
-    let directory = tempfile::tempdir().unwrap();
+    let directory = temporary_snapshot();
     let path = directory.path().join("engram.json");
     let relation = json!({
         "sync_id":"rel-new-old", "source_id":"obs-new", "target_id":"obs-old", "relation":"supersedes",
@@ -322,7 +328,7 @@ fn engram_timestamp_only_reexport_is_identical_and_native_relationship_judgments
 
 #[test]
 fn engram_legacy_numeric_identity_survives_content_edits_and_tombstones() {
-    let directory = tempfile::tempdir().unwrap();
+    let directory = temporary_snapshot();
     let path = directory.path().join("engram.json");
     let mut export = json!({"version":"0.1.0", "sessions":null, "observations":[{"id":17,"title":"Old title","content":"First content"}], "prompts":null});
     write_json(&path, &export);
@@ -344,7 +350,7 @@ fn engram_legacy_numeric_identity_survives_content_edits_and_tombstones() {
 
 #[test]
 fn engram_rejects_unknown_versions_duplicate_identity_and_missing_observations() {
-    let directory = tempfile::tempdir().unwrap();
+    let directory = temporary_snapshot();
     let path = directory.path().join("engram.json");
     let config = source(ImportKind::Engram);
     for invalid in [
@@ -359,7 +365,7 @@ fn engram_rejects_unknown_versions_duplicate_identity_and_missing_observations()
 
 #[test]
 fn beads_keeps_closed_decisions_as_work_state_and_preserves_dependencies_comments_and_raw_record() {
-    let directory = tempfile::tempdir().unwrap();
+    let directory = temporary_snapshot();
     let path = directory.path().join("beads.jsonl");
     let issue = json!({
         "_type":"issue", "id":"pay-42", "title":"Increase retry limit", "status":"closed", "issue_type":"decision", "priority":1,
@@ -387,7 +393,7 @@ fn beads_keeps_closed_decisions_as_work_state_and_preserves_dependencies_comment
 
 #[test]
 fn beads_memory_import_requires_explicit_opt_in() {
-    let directory = tempfile::tempdir().unwrap();
+    let directory = temporary_snapshot();
     let path = directory.path().join("beads.jsonl");
     write_jsonl(
         &path,
@@ -420,7 +426,7 @@ fn beads_memory_import_requires_explicit_opt_in() {
 
 #[test]
 fn beads_rejects_unknown_record_types_malformed_lines_and_version_envelopes() {
-    let directory = tempfile::tempdir().unwrap();
+    let directory = temporary_snapshot();
     let path = directory.path().join("beads.jsonl");
     let config = source(ImportKind::Beads);
     for text in [
@@ -435,7 +441,7 @@ fn beads_rejects_unknown_record_types_malformed_lines_and_version_envelopes() {
 
 #[test]
 fn missing_and_oversized_input_fail_instead_of_becoming_an_empty_snapshot() {
-    let directory = tempfile::tempdir().unwrap();
+    let directory = temporary_snapshot();
     let path = directory.path().join("snapshot.json");
     assert!(adapters::read(&source(ImportKind::Engram), &path, LIMIT).is_err());
     write_json(&path, &json!({"version":"0.2.0","observations":[]}));
@@ -470,7 +476,7 @@ fn bundled_cross_project_evaluation_snapshots_have_resolvable_native_evidence() 
 #[test]
 fn rejects_symlinked_inputs_and_descendants_without_reading_outside_the_snapshot() {
     use std::os::unix::fs::symlink;
-    let directory = tempfile::tempdir().unwrap();
+    let directory = temporary_snapshot();
     let target = directory.path().join("target.json");
     write_json(&target, &json!({"version":"0.2.0","observations":[]}));
     let link = directory.path().join("link.json");
