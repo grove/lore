@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "bundle_version": "shared-intelligence-transfer-v1",
+  "fixture_only": true,
+  "held_out": false,
+  "independent_projects": false,
+  "description": "Synthetic same-project first and transfer tasks. A copied payment retry loop is unsafe for the refund provider. Executable checks test behavior; they do not prove human learning.",
+  "learning_journeys": [
+    {
+      "id": "payment-idempotency-transfer",
+      "project": "payments",
+      "first_case": "payments-retry",
+      "transfer_case": "payments-refund-reconciliation",
+      "concept": "An ambiguous transport result can be retried safely only under the applicable idempotency contract.",
+      "required_explanation": "Explain why payment retry is scoped to one stable token, and why an ambiguous refund outcome must be reconciled rather than resent.",
+      "requirements": ["ON-07", "ON-15", "ON-22", "ON-23", "AG-03", "AG-08", "AG-12"],
+      "qualification": "Keep the transfer snapshot and verification program outside first-task participant inputs. This public development fixture is never an independently held-out project."
+    }
+  ],
+  "cases": [
+    {
+      "id": "payments-retry",
+      "project": "payments",
+      "base_project": "payments",
+      "overlay": "../coding-tasks/payments",
+      "task": "Complete the payment adapter's retry_payment function for transient transport failures. Preserve existing behavior while making repeated attempts safe; explain the difference between implementation history and accepted retry policy.",
+      "editable_files": ["src/payment_adapter.py"],
+      "test_command": ["{python}", "{manifest}/../coding-tasks/check_tasks.py", "payments", "{workspace}"],
+      "expected_sources": ["ADR-017.md", "payment-retry-policy.md", "adapter-contract.md"],
+      "critical_constraints": [
+        "Reuse the exact same idempotency token for every payment attempt.",
+        "Retry only transient transport failures; declines and other definitive failures propagate immediately.",
+        "Preserve the existing five-retry behavior for this bounded implementation task without claiming that the accepted three-retry ADR was replaced."
+      ]
+    },
+    {
+      "id": "payments-refund-reconciliation",
+      "project": "payments",
+      "base_project": "payments",
+      "overlay": "refund",
+      "task": "Complete refund_adapter.refund_or_reconcile for this project's legacy refund provider. Return a confirmed receipt when available, preserve definitive failures, and handle ambiguous transport failures under the refund provider's own contract. Explain which lesson from payment retries applies and which behavior must differ.",
+      "editable_files": ["src/refund_adapter.py"],
+      "test_command": ["{python}", "{manifest}/check_transfer.py", "{workspace}"],
+      "expected_sources": ["refund-contract.md", "project-guide.md"],
+      "critical_constraints": [
+        "The legacy refund provider does not deduplicate submissions; call send exactly once even after an ambiguous transport failure.",
+        "After TransientError, use the same correlation token for one read-only status lookup, and return its confirmed receipt if present.",
+        "If the lookup returns no confirmed receipt, raise ReconciliationRequired with the original token; never label the refund failed or retry it.",
+        "RefundDeclined, other definitive submission errors, and status lookup failures propagate without another submission."
+      ]
+    }
+  ]
+}

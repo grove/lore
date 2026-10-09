@@ -1,5 +1,12 @@
 # Evaluating Lore on real projects
 
+For the explicit schema-5 shared agent experience and schema-1 human orientation,
+see [Shared intelligence and learning-transfer evaluation](SHARED_INTELLIGENCE.md).
+It collects both actual CLI outputs on the same source snapshot, rechecks
+legacy and permission contracts, and provides an external same-project transfer
+task whose non-idempotent exception defeats a copied retry solution. Human
+source review, actual learning and coding-agent outcomes remain separate.
+
 For Lore 0.5's executable baseline / fast / intelligent coding-task comparison,
 see [Intelligence evaluation](INTELLIGENCE.md). It runs a supplied real coding
 agent, applies allowed implementation changes to isolated copies, executes

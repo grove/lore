@@ -227,10 +227,11 @@ def config_for(project_dir: Path, target: str, provider: str, model: str,
             "privacy": {"local_only": not hosted},
             "processing": {"verify_synthesis": bool(verify), "max_context_bytes": 64000}}
 
-def subprocess_json(binary: str, project: Path, *args: str, timeout: int = 3600) -> tuple[dict, float]:
+def subprocess_json(binary: str, project: Path, *args: str, timeout: int = 3600,
+                    env: dict[str, str] | None = None) -> tuple[dict, float]:
     start = time.monotonic()
     completed = subprocess.run([binary, "--config", str(project / "lore.yml"), "--json", *args],
-                               capture_output=True, text=True, timeout=timeout)
+                               capture_output=True, text=True, encoding="utf-8", timeout=timeout, env=env)
     elapsed = round(time.monotonic() - start, 3)
     if completed.returncode != 0:
         # Do not copy potentially sensitive CLI stdout/stderr into benchmark output.
