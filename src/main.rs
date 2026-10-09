@@ -105,6 +105,24 @@ enum Command {
             help = "Bypass guidance and embedding caches for this query"
         )]
         no_cache: bool,
+        #[arg(long, conflicts_with_all = ["fast", "no_inspect"],
+            help = "Inspect relevant checkout files without executing code (opt-in)")]
+        inspect: bool,
+        #[arg(long, conflicts_with_all = ["fast", "no_inspect"],
+            help = "Investigate consequential uncertainty with bounded read-only inspections")]
+        investigate: bool,
+        #[arg(
+            long,
+            conflicts_with = "fast",
+            help = "Use retained knowledge only, overriding configured checkout inspection"
+        )]
+        no_inspect: bool,
+        #[arg(long, conflicts_with_all = ["fast", "no_inspect"],
+            help = "Explicitly permit checkout content in the configured hosted model for this query")]
+        allow_checkout_egress: bool,
+        #[arg(long, conflicts_with = "fast", value_parser = clap::value_parser!(u32).range(3..=4),
+            help = "Intelligent JSON contract: 4 (default), or 3 for Lore 0.5 compatibility")]
+        schema_version: Option<u32>,
     },
     /// Read a generated topic by slug, or index.
     Read { topic: String },
@@ -388,6 +406,11 @@ async fn run(cli: Cli) -> Result<i32> {
             max_tokens,
             fast,
             no_cache,
+            inspect,
+            investigate,
+            no_inspect,
+            allow_checkout_egress,
+            schema_version,
         } => {
             let conn = storage::read_only(&config.state.join("state.db"))
                 .context("open knowledge registry (run lore init or lore update first)")?;
@@ -405,7 +428,11 @@ async fn run(cli: Cli) -> Result<i32> {
                 } else {
                     print!("{}", context::render_context(&fast_result));
                 }
-            } else {
+            } else if schema_version == Some(3) {
+                ensure!(
+                    !inspect && !investigate && !allow_checkout_egress,
+                    "checkout inspection and investigation require schema 4"
+                );
                 let result = intelligent_context(&config, &conn, &options, no_cache).await?;
                 if cli.json {
                     println!("{}", serde_json::to_string(&result)?);
@@ -414,6 +441,25 @@ async fn run(cli: Cli) -> Result<i32> {
                         "{}",
                         context::intelligence::render_intelligent_context(&result)
                     );
+                }
+            } else {
+                let result = context::decision::runtime::run(
+                    &config,
+                    &conn,
+                    &options,
+                    &context::decision::runtime::RunOptions {
+                        inspect,
+                        investigate,
+                        no_inspect,
+                        no_cache,
+                        allow_checkout_egress,
+                    },
+                )
+                .await?;
+                if cli.json {
+                    println!("{}", serde_json::to_string(&result)?);
+                } else {
+                    print!("{}", context::decision::runtime::render(&result));
                 }
             }
         }

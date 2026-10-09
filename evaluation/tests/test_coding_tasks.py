@@ -177,6 +177,34 @@ class CodingTaskTests(unittest.TestCase):
                 self.assertIsNone(review["useful_recommendation"])
                 self.assertFalse(review["complete"])
 
+    def test_proposal_bytes_survive_windows_newline_translation_without_relaxing_hashes(self):
+        write_text = Path.write_text
+        def windows_write_text(path, data, *args, **kwargs):
+            if "implementations" in path.parts:
+                kwargs["newline"] = "\r\n"
+            return write_text(path, data, *args, **kwargs)
+        with tempfile.TemporaryDirectory() as temporary:
+            # Force Windows text-mode behavior even when this test runs on Unix.
+            with patch.object(Path, "write_text", windows_write_text):
+                directory, result = run_fixture(Path(temporary).resolve())
+            self.assertTrue(result["comparison_complete"])
+            metrics = cross.read_json(directory / "metrics.json")
+            for sample in metrics["samples"]:
+                workspace = directory / "implementations" / sample["sample_id"]
+                for name, content in sample["agent_response"]["files"].items():
+                    self.assertIn("\n", content)
+                    self.assertEqual((workspace / name).read_bytes(), content.encode("utf-8"))
+                self.assertEqual(cross.fingerprint(directory / sample["source_root"]), sample["source_manifest"])
+            # A later newline conversion is still source drift, even if the
+            # recorded implementation manifest is changed to match those bytes.
+            sample = metrics["samples"][0]
+            workspace = directory / "implementations" / sample["sample_id"]
+            name, content = next(iter(sample["agent_response"]["files"].items()))
+            (workspace / name).write_bytes(content.replace("\n", "\r\n").encode("utf-8"))
+            sample["implementation_manifest"] = cross.fingerprint(workspace)
+            cross.write_json(directory / "metrics.json", metrics)
+            self.assertFalse(coding.assess(directory)["mechanical_contracts_passed"])
+
     def test_fallback_is_never_counted_as_intelligent_evaluation(self):
         with tempfile.TemporaryDirectory() as temporary:
             directory, _ = run_fixture(Path(temporary).resolve())

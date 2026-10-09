@@ -189,14 +189,16 @@ async fn fixture(server: &ModelServer) -> (tempfile::TempDir, ResolvedConfig, Fa
 }
 
 fn run(config: &ResolvedConfig, extra: &[&str]) -> (Value, String) {
-    let output = Command::new(env!("CARGO_BIN_EXE_lore"))
+    let mut command = Command::new(env!("CARGO_BIN_EXE_lore"));
+    command
         .arg("--config")
         .arg(&config.config_path)
         .args(["--json", "context", "Adjust the worker queue"])
-        .args(extra)
-        .env_remove("OPENAI_API_KEY")
-        .output()
-        .unwrap();
+        .args(extra);
+    if !extra.contains(&"--fast") {
+        command.args(["--schema-version", "3"]);
+    }
+    let output = command.env_remove("OPENAI_API_KEY").output().unwrap();
     assert!(
         output.status.success(),
         "{}\n{}",
@@ -209,7 +211,7 @@ fn run(config: &ResolvedConfig, extra: &[&str]) -> (Value, String) {
 }
 
 #[tokio::test]
-async fn default_cli_returns_guidance_reuses_cache_and_refreshes_changed_evidence() {
+async fn schema_three_cli_returns_guidance_reuses_cache_and_refreshes_changed_evidence() {
     let server = ModelServer::new(false);
     let (_temp, config, model) = fixture(&server).await;
     let database = fs::read(config.state.join("state.db")).unwrap();

@@ -263,18 +263,18 @@ struct CachedGuidance {
     verification: Option<Verification>,
 }
 
-struct EvidenceCatalog {
-    evidence: BTreeMap<String, BriefEvidence>,
-    known: BTreeMap<String, KnownContext>,
+pub(crate) struct EvidenceCatalog {
+    pub(crate) evidence: BTreeMap<String, BriefEvidence>,
+    pub(crate) known: BTreeMap<String, KnownContext>,
     /// Includes all selected current adopted constraints/decisions, even those
     /// the model would prefer to omit from its summary.
-    constraints: BTreeMap<String, BTreeSet<String>>,
-    inspection_paths: BTreeSet<String>,
-    applicable_evidence: BTreeSet<String>,
+    pub(crate) constraints: BTreeMap<String, BTreeSet<String>>,
+    pub(crate) inspection_paths: BTreeSet<String>,
+    pub(crate) applicable_evidence: BTreeSet<String>,
 }
 
 impl EvidenceCatalog {
-    fn validate(conn: &Connection, selected: &ContextResult) -> Result<Self> {
+    pub(crate) fn validate(conn: &Connection, selected: &ContextResult) -> Result<Self> {
         let stored: BTreeMap<_, _> = storage::views(conn)?
             .into_iter()
             .map(|record| (record.id.clone(), record))
@@ -909,7 +909,7 @@ fn validate_verification(
     Ok(())
 }
 
-fn evidence_input(selected: &ContextResult, catalog: &EvidenceCatalog) -> Value {
+pub(crate) fn evidence_input(selected: &ContextResult, catalog: &EvidenceCatalog) -> Value {
     json!({
         "knowledge":selected.sections.items().collect::<Vec<_>>(),
         "observations":selected.imported_observations,

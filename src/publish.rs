@@ -33,6 +33,7 @@ struct Journal {
 
 pub struct ProjectLock {
     _file: File,
+    owner_pid: u32,
 }
 impl ProjectLock {
     pub fn acquire(config: &ResolvedConfig) -> Result<Self> {
@@ -63,9 +64,72 @@ impl ProjectLock {
             .open(path)?;
         file.try_lock_exclusive()
             .context("another Lore command holds the project lock")?;
-        Ok(Self { _file: file })
+        Ok(Self {
+            _file: file,
+            owner_pid: std::process::id(),
+        })
     }
 }
+
+impl Drop for ProjectLock {
+    fn drop(&mut self) {
+        // A concurrent process spawn can briefly inherit a duplicate of this
+        // descriptor. Closing only our copy would leave the flock held until
+        // that child closes its copy at exec, beyond the guard's lifetime.
+        // Explicitly unlock in the acquiring process, but never from a forked
+        // child's inherited guard: flock duplicates share the parent's lock.
+        if self.owner_pid == std::process::id() {
+            let _ = FileExt::unlock(&self._file);
+        }
+    }
+}
+
+#[cfg(all(test, unix))]
+mod lock_tests {
+    use super::*;
+    use crate::config::Config;
+
+    fn project() -> (tempfile::TempDir, ResolvedConfig) {
+        let temp = tempfile::tempdir().unwrap();
+        let config =
+            ResolvedConfig::resolve(Config::default(), &temp.path().join("lore.yml")).unwrap();
+        (temp, config)
+    }
+
+    #[test]
+    fn dropped_guard_releases_lock_while_an_inherited_descriptor_survives() {
+        let (_temp, config) = project();
+        let guard = ProjectLock::acquire(&config).unwrap();
+        // dup and fork reference the same open-file description. Retaining a
+        // duplicate models the spawn/exec window without timing or subprocesses.
+        let inherited = guard._file.try_clone().unwrap();
+        assert!(ProjectLock::acquire(&config).is_err());
+        drop(guard);
+        let replacement = ProjectLock::acquire(&config)
+            .expect("a duplicate descriptor must not outlive the guard's lock");
+        drop(inherited);
+        assert!(ProjectLock::acquire(&config).is_err());
+        drop(replacement);
+        assert!(ProjectLock::acquire(&config).is_ok());
+    }
+
+    #[test]
+    fn inherited_guard_cannot_unlock_another_processes_active_lock() {
+        let (_temp, config) = project();
+        let parent = ProjectLock::acquire(&config).unwrap();
+        // Simulate the PID mismatch seen by a forked child. No actual fork in
+        // the multithreaded test runner is needed to exercise this protection.
+        let inherited = ProjectLock {
+            _file: parent._file.try_clone().unwrap(),
+            owner_pid: std::process::id().wrapping_add(1),
+        };
+        drop(inherited);
+        assert!(ProjectLock::acquire(&config).is_err());
+        drop(parent);
+        assert!(ProjectLock::acquire(&config).is_ok());
+    }
+}
+
 fn check_owner(directory: &Path, project: &str) -> Result<Owner> {
     let owner: Owner = serde_json::from_str(&util::read_limited(&directory.join(OWNER), 4096)?)
         .context("directory is not a recognized Lore-owned output; select an empty directory")?;

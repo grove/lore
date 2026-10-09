@@ -198,10 +198,16 @@ pub struct ProviderSettings {
 #[serde(default, deny_unknown_fields)]
 pub struct Privacy {
     pub local_only: bool,
+    /// Separate permission for sending fresh checkout content to a hosted
+    /// model. Permission to process retained knowledge does not imply this.
+    pub allow_checkout_egress: bool,
 }
 impl Default for Privacy {
     fn default() -> Self {
-        Self { local_only: true }
+        Self {
+            local_only: true,
+            allow_checkout_egress: false,
+        }
     }
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -210,10 +216,16 @@ pub struct ContextSettings {
     /// Cache guidance and embeddings outside the source knowledge registry.
     /// `context --no-cache` overrides this for one invocation.
     pub cache: bool,
+    pub inspection: crate::context::inspection::InspectionSettings,
+    pub investigation: crate::context::investigation::InvestigationSettings,
 }
 impl Default for ContextSettings {
     fn default() -> Self {
-        Self { cache: true }
+        Self {
+            cache: true,
+            inspection: crate::context::inspection::InspectionSettings::default(),
+            investigation: crate::context::investigation::InvestigationSettings::default(),
+        }
     }
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -65,11 +65,11 @@ Agents should not need to load an entire wiki, rely on a proprietary protocol, o
 
 ## Where we are today
 
-Lore 0.5 is a local-first Rust CLI that ingests local Markdown and optional OpenWiki, Engram, and Beads snapshots, retains exact evidence and versioned knowledge, and publishes a cited Markdown wiki. Its default `lore context` command now produces a recommended approach, interprets relevant history, develops conditional hypotheses, and suggests useful next steps. Optional semantic retrieval combines embeddings with lexical and recorded relationship signals. `--fast` preserves deterministic, budgeted, model-free retrieval.
+Lore 0.6 is a local-first Rust CLI that ingests local Markdown and optional OpenWiki, Engram, and Beads snapshots, retains exact evidence and versioned knowledge, and publishes a cited Markdown wiki. Its default `lore context` command produces a preferred approach with explicit readiness, relevant evidence, constraints, prioritized checks, and completion criteria. Opt-in inspection and investigation can read relevant local source, test hypotheses, and revise the recommendation without executing or changing code. Optional semantic retrieval combines embeddings with lexical and recorded relationship signals. `--fast` preserves deterministic, budgeted, model-free retrieval.
 
 Generated interpretations and search indexes remain separate from the knowledge registry. Current source evidence, documentary authority, reported implementation, and inferred rationale retain distinct meanings. Local inference remains the default; hosted inference requires explicit configuration. Search, reading, JSON output, provenance, native structured evidence, cross-source discrepancies, and the evidence-bound review workflow remain available.
 
-The intelligence layer and its integrity checks are implemented, but **real-model factual quality and end-user usefulness still need empirical validation**. The coding-task evaluator compares actual proposed implementations with baseline sources, fast context, and intelligent guidance; bundled fixtures cannot establish independent model-quality gains. Lore does not yet provide a dedicated web UI, conversational grounded Q&A, direct issue-tracker synchronization, or independent verification of a running system. See [README.md](README.md), [the v0.5 guide](docs/V05.md), and [the coding-task evaluation guide](evaluation/INTELLIGENCE.md).
+The intelligence layer and its integrity checks are implemented, but **real-model factual quality and end-user usefulness still need empirical validation**. The coding-task evaluator compares actual proposed implementations with baseline sources, fast context, and intelligent guidance; bundled fixtures cannot establish independent model-quality gains. Lore does not yet provide a dedicated web UI, conversational grounded Q&A, direct issue-tracker synchronization, or independent verification of a running system. See [README.md](README.md), [the v0.6 guide](docs/V06.md), and [the coding-task evaluation guide](evaluation/DECISION_INTELLIGENCE.md).
 
 ## What we should build toward
 
@@ -77,7 +77,7 @@ The sequence matters more than any specific interface:
 
 1. **Prove understanding.** Evaluate real model outputs with human reviewers. Measure omissions, false merges, incorrect decision timelines, evidence quality, utility, latency, and cost.
 2. **Make understanding delightful to use.** Improve the project overview, navigation, explanations, links, and review experience for humans.
-3. **Prove the usefulness of agent context.** Measure whether 0.5 guidance avoids mistakes and improves implementations beyond deterministic context, then improve retrieval and reasoning using those results.
+3. **Prove the usefulness of agent context.** Measure whether 0.6 guidance avoids mistakes and improves implementations beyond deterministic context, then improve retrieval and reasoning using those results.
 4. **Make knowledge easier to ask and maintain.** Explore grounded Q&A, change awareness, and direct integrations for sources such as GitHub Wiki and YouTrack.
 5. **Connect documented intent to code carefully.** Where useful, distinguish documentation from implementation observations and help flag possible mismatches without claiming that a citation alone verifies runtime behavior.
 
