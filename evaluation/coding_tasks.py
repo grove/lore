@@ -168,6 +168,9 @@ def collect_context(binary: str, project: Path, task: str, setup: str, timeout: 
     arguments = ["context", task, "--max-tokens", str(max_tokens)]
     if setup == "fast":
         arguments.append("--fast")
+    else:
+        # Preserve the 0.5 comparison contract as 0.6 defaults to schema 4.
+        arguments.extend(["--schema-version", "3"])
     response, elapsed = bench.subprocess_json(binary, project, *arguments, timeout=timeout)
     repeated, repeat_seconds = bench.subprocess_json(binary, project, *arguments, timeout=timeout)
     citations = cross.resolve_citations(binary, project, cross.cited_ids(response) | cross.cited_ids(repeated), timeout)
@@ -327,7 +330,24 @@ def config_for_case(args: argparse.Namespace, case: dict, project: Path) -> dict
     return config
 
 
-def run(args: argparse.Namespace) -> dict:
+def agent_request(case: dict, source_files: dict, context: dict | None) -> dict:
+    """One shared, reconstructible input contract for every comparison arm."""
+    return {"schema_version": 1, "task": case["task"], "files": source_files,
+            "editable_files": case["editable_files"], "context": context["response"] if context else None,
+            "response_contract": {"schema_version": 1, "files": "Map of allowed paths to complete proposed UTF-8 contents",
+                                  "summary": "Explain the implementation and material assumptions", "usage": "Actual model_calls/input_tokens/output_tokens/billed_cost_usd/billing_source, or null for unknown fields"}}
+
+
+def run(args: argparse.Namespace, *, setups=SETUPS, context_collector=None,
+        assessor=None, review_template=None, report_metadata=None, config_transform=None) -> dict:
+    """Execute one comparison; newer protocols inject explicit policy helpers.
+
+    Defaults preserve the original 0.5 runner. No module globals or monkeypatch
+    are used to switch production evaluation protocols.
+    """
+    if not setups or setups[0] != "baseline" or len(set(setups)) != len(setups):
+        raise ValueError("Comparison setups require baseline followed by unique context arms")
+    collector = context_collector or collect_context
     command = json.loads(args.agent_command)
     if not isinstance(command, list) or not command or any(not isinstance(item, str) or not item for item in command):
         raise ValueError("--agent-command must be a JSON argv array")
@@ -340,7 +360,9 @@ def run(args: argparse.Namespace) -> dict:
     cases_path = args.cases.resolve(strict=True)
     cases = load_cases(cases_path)
     for case in cases["cases"]:
-        config_for_case(args, case, output / "preview")
+        preview = config_for_case(args, case, output / "preview")
+        if config_transform:
+            config_transform(preview)
     prepared = prepare(output, cases_path)
     report = {"schema_version": 1, "phase": "actual_coding_tasks", "created_at": bench.now_utc(),
               "fixture_only": prepared["fixture_only"], "held_out": prepared["held_out"],
@@ -351,6 +373,9 @@ def run(args: argparse.Namespace) -> dict:
               "samples": [], "human_review": "pending",
               "cost_scope": "Coding execution and Lore preparation/context. Existing upstream snapshots are supplied inputs; their creation cost is unmeasured. Each Lore setup is charged the full shared preparation cost, with no amortization. Repeat-context probes are separate from task totals.",
               "execution_qualification": "Agent-reported model identity, usage, billing, and genuine model execution are operator attestations. Subprocesses are real; this harness cannot authenticate the runner's claims or sandbox it."}
+    if report_metadata is not None:
+        report["study"] = report_metadata
+    report["setups"] = list(setups)
     for entry in prepared["cases"]:
         case = entry["case"]
         snapshot = output / entry["source_root"]
@@ -358,13 +383,15 @@ def run(args: argparse.Namespace) -> dict:
         preparation_start = time.monotonic()
         cross.copy_snapshot(snapshot, project)
         config = config_for_case(args, case, project)
+        if config_transform:
+            config_transform(config)
         cross.write_json(project / "lore.yml", config)
         init, _ = bench.subprocess_json(binary, project, "init", timeout=args.timeout)
         preparation_seconds = round(time.monotonic() - preparation_start, 3)
         preparation_usage = usage(init.get("usage"), calls=cross.model_calls(init))
-        contexts = {setup: collect_context(binary, project, case["task"], setup, args.timeout, args.max_tokens)
-                    for setup in ("fast", "intelligent")}
-        order = list(SETUPS)
+        contexts = {setup: collector(binary, project, case["task"], setup, args.timeout, args.max_tokens)
+                    for setup in setups if setup != "baseline"}
+        order = list(setups)
         secrets.SystemRandom().shuffle(order)
         for setup in order:
             sample_id = "sample-" + secrets.token_hex(10)
@@ -373,10 +400,7 @@ def run(args: argparse.Namespace) -> dict:
             source_files = {name: (snapshot / name).read_text(encoding="utf-8")
                             for name in entry["source_manifest"]["files_sha256"]}
             context = contexts.get(setup)
-            request = {"schema_version": 1, "task": case["task"], "files": source_files,
-                       "editable_files": case["editable_files"], "context": context["response"] if context else None,
-                       "response_contract": {"schema_version": 1, "files": "Map of allowed paths to complete proposed UTF-8 contents",
-                                             "summary": "Explain the implementation and material assumptions", "usage": "Actual model_calls/input_tokens/output_tokens/billed_cost_usd/billing_source, or null for unknown fields"}}
+            request = agent_request(case, source_files, context)
             # A dedicated empty working directory avoids accidental exposure of
             # answer keys through cwd. This is input discipline, not a sandbox.
             agent_cwd = output / "agent-runs" / sample_id
@@ -429,10 +453,63 @@ def run(args: argparse.Namespace) -> dict:
                   "missed_critical_constraints": None, "useful_recommendation": None,
                   "implementation_quality_0_to_3": None, "high_severity_unsupported_claims": None,
                   "notes": ""}
+        if review_template:
+            review = review_template(sample, binding)
         cross.write_json(output / "reviews" / f"{sample['sample_id']}.json", review)
-    summary = assess(output)
+    summary = (assessor or assess)(output)
     cross.write_json(output / "assessment.json", summary)
     return summary
+
+
+def validate_sample(directory: Path, sample: dict, entry: dict, *, context_validator=context_checks,
+                    bind_request=False) -> tuple:
+    """Revalidate source, answer, request, implementation and test bindings.
+
+    Used by the 0.6 assessor as well as the original runner's assessment. Saved
+    pass booleans cannot replace comparisons against the actual bound bytes.
+    """
+    identity, setup = sample["sample_id"], sample["setup"]
+    if (sample["source_manifest"] != entry["source_manifest"] or sample["source_root"] != entry["source_root"]
+            or sample["task"] != entry["case"]["task"] or sample["constraints"] != entry["case"]["critical_constraints"]):
+        raise ValueError("case task, source, or constraint binding changed")
+    relative_file(sample["source_root"])
+    if hash_file(directory / "answers" / f"{identity}.json") != sample["answer_sha256"]:
+        raise ValueError("reviewed answer bytes changed")
+    answer = cross.read_json(directory / "answers" / f"{identity}.json")
+    agent_response = validate_agent_response(sample["agent_response"], entry["case"]["editable_files"])
+    if answer != {"summary": agent_response["summary"], "files": agent_response["files"]}:
+        raise ValueError("agent response and reviewed answer disagree")
+    if not resolver_complete(sample["agent_citation_integrity"], answer_evidence_ids(agent_response)):
+        raise ValueError("coding answer contains an unresolved evidence reference")
+    snapshot = directory / sample["source_root"]
+    if cross.fingerprint(snapshot) != sample["source_manifest"]:
+        raise ValueError("original input snapshot changed")
+    actual = cross.fingerprint(directory / "implementations" / identity)
+    if actual != sample["implementation_manifest"]:
+        raise ValueError("tested implementation bytes changed")
+    expected = dict(sample["source_manifest"]["files_sha256"])
+    expected.update({path: hashlib.sha256(content.encode("utf-8")).hexdigest()
+                     for path, content in agent_response["files"].items()})
+    if not sample.get("protected_sources_preserved") or actual["files_sha256"] != expected:
+        raise ValueError("coding execution changed protected source files or the proposed implementation")
+    context = sample.get("context")
+    if setup != "baseline":
+        if not isinstance(context, dict) or not all(context_validator(context, sample["task"], setup).values()):
+            raise ValueError("context integrity check failed")
+    elif context is not None:
+        raise ValueError("baseline unexpectedly contains Lore context")
+    source_files = {name: (snapshot / name).read_text(encoding="utf-8")
+                    for name in entry["source_manifest"]["files_sha256"]}
+    if bind_request and sample["request_sha256"] != cross.digest(agent_request(entry["case"], source_files, context)):
+        raise ValueError("coding-agent input differs from the bound task, context or original sources")
+    checks = sample["tests"]["checks"]
+    verification_files = sample["tests"]["provenance"]["files_sha256"]
+    if not verification_files or any(hash_file(Path(path)) != expected for path, expected in verification_files.items()):
+        raise ValueError("verification program no longer matches the executed revision")
+    if not checks or any(type(check.get("passed")) is not bool or check.get("kind") not in ("correctness", "constraint")
+                         for check in checks):
+        raise ValueError("verification checks are absent or malformed")
+    return context, checks
 
 
 def assess(directory: Path) -> dict:
@@ -462,35 +539,9 @@ def assess(directory: Path) -> dict:
         case_setups.setdefault(key, []).append(setup)
         try:
             entry = declared_cases[key]
-            if (sample["source_manifest"] != entry["source_manifest"] or sample["source_root"] != entry["source_root"]
-                    or sample["task"] != entry["case"]["task"] or sample["constraints"] != entry["case"]["critical_constraints"]):
-                raise ValueError("case task, source, or constraint binding changed")
+            context, checks = validate_sample(directory, sample, entry)
             project_sources.setdefault(sample["project"], set()).add(sample["source_manifest"]["sha256"])
-            if hash_file(directory / "answers" / f"{identity}.json") != sample["answer_sha256"]:
-                raise ValueError("reviewed answer bytes changed")
-            answer = cross.read_json(directory / "answers" / f"{identity}.json")
-            agent_response = validate_agent_response(sample["agent_response"], entry["case"]["editable_files"])
-            if answer != {"summary": agent_response["summary"], "files": agent_response["files"]}:
-                raise ValueError("agent response and reviewed answer disagree")
-            if not resolver_complete(sample["agent_citation_integrity"], answer_evidence_ids(agent_response)):
-                raise ValueError("coding answer contains an unresolved evidence reference")
-            if cross.fingerprint(directory / sample["source_root"]) != sample["source_manifest"]:
-                raise ValueError("original input snapshot changed")
-            if cross.fingerprint(directory / "implementations" / identity) != sample["implementation_manifest"]:
-                raise ValueError("tested implementation bytes changed")
-            if not sample.get("protected_sources_preserved"):
-                raise ValueError("coding execution changed protected source files")
-            context = sample.get("context")
-            if setup != "baseline":
-                if not isinstance(context, dict) or not all(context_checks(context, sample["task"], setup).values()):
-                    raise ValueError("context integrity check failed")
-            elif context is not None:
-                raise ValueError("baseline unexpectedly contains Lore context")
             total = totals[setup]
-            checks = sample["tests"]["checks"]
-            verification_files = sample["tests"]["provenance"]["files_sha256"]
-            if not verification_files or any(hash_file(Path(path)) != expected for path, expected in verification_files.items()):
-                raise ValueError("verification program no longer matches the executed revision")
             total["tasks"] += 1
             total["passed_tasks"] += bool(checks) and all(check["passed"] for check in checks)
             total["failed_constraint_checks"] += sum(check["kind"] == "constraint" and not check["passed"] for check in checks)

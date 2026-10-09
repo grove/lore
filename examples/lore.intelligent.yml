@@ -1,4 +1,4 @@
-# Lore 0.5: local project intelligence with optional semantic retrieval.
+# Lore 0.6: local project intelligence with optional semantic retrieval.
 # Copy to lore.yml, adjust source paths, and install both models in Ollama.
 # Omit models.embedding to use lexical/relationship retrieval with guidance.
 schema_version: 1
@@ -13,6 +13,7 @@ output:
   state_dir: ./.lore
 privacy:
   local_only: true
+  allow_checkout_egress: false
 models:
   generative:
     provider: ollama
@@ -29,6 +30,19 @@ providers:
     base_url: http://127.0.0.1:11434
 context:
   cache: true
+  inspection:
+    enabled: false
+    # Set root: . for a source export without a .git ancestor.
+    max_files: 6
+    max_file_bytes: 65536
+    max_total_bytes: 262144
+    max_index_entries: 2000
+    max_elapsed_ms: 1000
+    max_excerpt_lines: 80
+  investigation:
+    max_rounds: 2
+    max_model_calls: 6
+    timeout_seconds: 30
 processing:
   timeout_seconds: 120
   retry_attempts: 2

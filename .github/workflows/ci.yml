@@ -31,9 +31,12 @@ jobs:
           python evaluation/benchmark.py prepare --target llm-wiki --output /tmp/lore-eval-llm-wiki
           python evaluation/cross_source.py prepare --output /tmp/lore-v04-cross-source
           python evaluation/coding_tasks.py prepare --output /tmp/lore-v05-coding
+          python evaluation/decision_tasks.py prepare --output /tmp/lore-v06-decisions
       - name: CLI help
         run: cargo run --locked -- --help
       - name: Review CLI help
         run: cargo run --locked -- review --help
+      - name: Context CLI help
+        run: cargo run --locked -- context --help
       - name: CLI version
         run: cargo run --locked -- --version
