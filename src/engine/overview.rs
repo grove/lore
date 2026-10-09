@@ -80,9 +80,22 @@ fn select<'a>(
     }
     // Cover semantic roles before allocating leftover context to depth.
     for values in topics.values() {
-        for kind in ["decision", "design", "reported_outcome", "constraint",
-            "procedure", "risk", "question", "plan", "proposal", "issue_state"] {
-            if let Some(u) = values.iter().find(|u| u.kind == kind && u.support_state != "historical_only") {
+        for kind in [
+            "decision",
+            "design",
+            "reported_outcome",
+            "constraint",
+            "procedure",
+            "risk",
+            "question",
+            "plan",
+            "proposal",
+            "issue_state",
+        ] {
+            if let Some(u) = values
+                .iter()
+                .find(|u| u.kind == kind && u.support_state != "historical_only")
+            {
                 mandatory.insert(u.id.as_str());
             }
         }
@@ -161,13 +174,30 @@ fn validate(d: &PageDraft, selected: &[&KnowledgeView]) -> Result<()> {
         count <= 128 && covered == required && covered_kinds == required_kinds,
         "overview omitted a topic or documentary category, or exceeded paragraph budget"
     );
-    let material_kinds = ["decision", "design", "reported_outcome", "constraint", "procedure"];
-    let required_ids = selected.iter().filter(|u| material_kinds.contains(&u.kind.as_str())
-        && u.support_state != "historical_only").map(|u| u.id.as_str()).collect::<BTreeSet<_>>();
-    let cited_ids = d.sections.iter().flat_map(|s| &s.paragraphs)
-        .flat_map(|p| p.knowledge_ids.iter().map(String::as_str)).collect::<BTreeSet<_>>();
-    ensure!(required_ids.is_subset(&cited_ids),
-        "overview omitted a selected decision, design, outcome, rule or procedure");
+    let material_kinds = [
+        "decision",
+        "design",
+        "reported_outcome",
+        "constraint",
+        "procedure",
+    ];
+    let required_ids = selected
+        .iter()
+        .filter(|u| {
+            material_kinds.contains(&u.kind.as_str()) && u.support_state != "historical_only"
+        })
+        .map(|u| u.id.as_str())
+        .collect::<BTreeSet<_>>();
+    let cited_ids = d
+        .sections
+        .iter()
+        .flat_map(|s| &s.paragraphs)
+        .flat_map(|p| p.knowledge_ids.iter().map(String::as_str))
+        .collect::<BTreeSet<_>>();
+    ensure!(
+        required_ids.is_subset(&cited_ids),
+        "overview omitted a selected decision, design, outcome, rule or procedure"
+    );
     Ok(())
 }
 /// When the model cannot produce a verified overview, publish a navigable,
