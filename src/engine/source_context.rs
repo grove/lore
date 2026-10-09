@@ -15,13 +15,22 @@ pub(super) fn sibling_units<'a>(
 ) -> Vec<&'a KnowledgeView> {
     let source_ids = local
         .iter()
-        .flat_map(|u| u.evidence.iter().filter(|e| e.active).map(|e| e.source_id.as_str()))
+        .flat_map(|u| {
+            u.evidence
+                .iter()
+                .filter(|e| e.active)
+                .map(|e| e.source_id.as_str())
+        })
         .collect::<BTreeSet<_>>();
     let local_ids = local.iter().map(|u| u.id.as_str()).collect::<BTreeSet<_>>();
     let mut siblings = knowledge
         .iter()
         .filter(|u| !local_ids.contains(u.id.as_str()))
-        .filter(|u| u.evidence.iter().any(|e| e.active && source_ids.contains(e.source_id.as_str())))
+        .filter(|u| {
+            u.evidence
+                .iter()
+                .any(|e| e.active && source_ids.contains(e.source_id.as_str()))
+        })
         .collect::<Vec<_>>();
     siblings.sort_by(|a, b| (&a.topic, &a.id).cmp(&(&b.topic, &b.id)));
     siblings
@@ -36,15 +45,22 @@ pub(super) fn sibling_rows(
 ) -> Result<(Vec<Value>, bool)> {
     let source_ids = local
         .iter()
-        .flat_map(|u| u.evidence.iter().filter(|e| e.active).map(|e| e.source_id.as_str()))
+        .flat_map(|u| {
+            u.evidence
+                .iter()
+                .filter(|e| e.active)
+                .map(|e| e.source_id.as_str())
+        })
         .collect::<BTreeSet<_>>();
     let mut rows = Vec::new();
     let mut used = 2usize;
     let mut complete = true;
     for unit in siblings {
-        let Some(evidence) = unit.evidence.iter().find(|e|
-            e.active && source_ids.contains(e.source_id.as_str())
-        ) else {
+        let Some(evidence) = unit
+            .evidence
+            .iter()
+            .find(|e| e.active && source_ids.contains(e.source_id.as_str()))
+        else {
             continue;
         };
         let entry = json!({
@@ -95,8 +111,9 @@ pub(super) fn source_headings(
                 continue;
             };
             let headings: Vec<String> = serde_json::from_str(&heading)?;
-            if headings.is_empty() ||
-                !seen.insert((unit.id.clone(), evidence.source_id.clone(), heading.clone())) {
+            if headings.is_empty()
+                || !seen.insert((unit.id.clone(), evidence.source_id.clone(), heading.clone()))
+            {
                 continue;
             }
             let entry = json!({
@@ -121,16 +138,27 @@ mod tests {
     use crate::domain::EvidenceView;
     fn unit(id: &str, topic: &str, source: &str) -> KnowledgeView {
         KnowledgeView {
-            id: id.into(), revision_id: id.into(), statement: format!("Policy {id}"),
-            topic: topic.into(), topic_title: topic.into(), subject: "committee".into(),
-            kind: "observation".into(), lifecycle: "unknown".into(),
-            base_lifecycle: "unknown".into(), scope: "team".into(),
-            effective_at: String::new(), support_state: "current_documentary_support".into(),
+            id: id.into(),
+            revision_id: id.into(),
+            statement: format!("Policy {id}"),
+            topic: topic.into(),
+            topic_title: topic.into(),
+            subject: "committee".into(),
+            kind: "observation".into(),
+            lifecycle: "unknown".into(),
+            base_lifecycle: "unknown".into(),
+            scope: "team".into(),
+            effective_at: String::new(),
+            support_state: "current_documentary_support".into(),
             relations: vec![],
             evidence: vec![EvidenceView {
-                id: id.into(), assertion_id: id.into(), source_id: source.into(),
-                source: source.into(), excerpt: format!("Exact {id}"),
-                captured_at: String::new(), active: true,
+                id: id.into(),
+                assertion_id: id.into(),
+                source_id: source.into(),
+                source: source.into(),
+                excerpt: format!("Exact {id}"),
+                captured_at: String::new(),
+                active: true,
             }],
         }
     }
@@ -141,11 +169,19 @@ mod tests {
         let c = unit("unrelated", "policies", "research");
         let units = [a, b, c];
         let siblings = sibling_units(&units, &[&units[0]]);
-        assert_eq!(siblings.iter().map(|u| u.id.as_str()).collect::<Vec<_>>(), vec!["approval"]);
+        assert_eq!(
+            siblings.iter().map(|u| u.id.as_str()).collect::<Vec<_>>(),
+            vec!["approval"]
+        );
         let (rows, complete) = sibling_rows(&siblings, &[&units[0]], 8_192).unwrap();
         assert!(complete);
         assert_eq!(rows[0]["exact_excerpt"], "Exact approval");
-        assert!(rows[0]["citation_role"].as_str().unwrap().contains("not_citeable"));
+        assert!(
+            rows[0]["citation_role"]
+                .as_str()
+                .unwrap()
+                .contains("not_citeable")
+        );
         let (rows, complete) = sibling_rows(&siblings, &[&units[0]], 1).unwrap();
         assert!(rows.is_empty());
         assert!(!complete);
