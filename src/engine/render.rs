@@ -1,4 +1,4 @@
-use super::{citations, overview, runner::Runner, timeline};
+use super::{citations, grounding, overview, runner::Runner, timeline};
 use crate::{
     domain::{self, KnowledgeView, PageDraft, Verification},
     storage::StoredPage,
@@ -113,7 +113,8 @@ pub(super) async fn build(
                         domain::page_schema_for(&allowed)?,
                         |p: &mut PageDraft| {
                             citations::validate(p, &allowed, "synthesize", config, run)?;
-                            validate_draft(p, &allowed)
+                            validate_draft(p, &allowed)?;
+                            grounding::validate_prose(p, &units[cursor..end])
                         },
                     )
                     .await?;
