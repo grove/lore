@@ -33,6 +33,32 @@ fn rank(u: &KnowledgeView) -> (u8, u8, &str) {
     };
     (stale, kind, &u.id)
 }
+/// Offer a complete, citable knowledge row. Never insert a partial excerpt or
+/// advertise an ID the overview model cannot see.
+fn add_within_budget<'a>(
+    unit: &'a KnowledgeView,
+    selected: &mut Vec<&'a KnowledgeView>,
+    included: &mut BTreeSet<&'a str>,
+    bytes: &mut usize,
+    budget: usize,
+) -> Result<bool> {
+    if included.contains(unit.id.as_str()) {
+        return Ok(true);
+    }
+    let cost = serde_json::to_vec(&row(unit))?.len() + 1;
+    if cost > budget.saturating_sub(*bytes) {
+        return Ok(false);
+    }
+    selected.push(unit);
+    included.insert(unit.id.as_str());
+    *bytes += cost;
+    Ok(true)
+}
+
+/// Prioritize representative topics, exact decision relationships and
+/// documentary roles. The budget is a hard bound on *selection*, not a reason
+/// to fail an otherwise valid compilation. Unsynthesized records remain in
+/// their complete topic pages, with an explicit coverage notice in the index.
 fn select<'a>(
     knowledge: &'a [KnowledgeView],
     decisions: &[DecisionLink],
@@ -40,97 +66,169 @@ fn select<'a>(
 ) -> Result<Vec<&'a KnowledgeView>> {
     let mut topics: BTreeMap<&str, Vec<&KnowledgeView>> = BTreeMap::new();
     let mut by_id = BTreeMap::new();
-    for u in knowledge {
+    for unit in knowledge {
         ensure!(
-            by_id.insert(u.id.as_str(), u).is_none(),
+            by_id.insert(unit.id.as_str(), unit).is_none(),
             "duplicate knowledge identity"
         );
-        topics.entry(&u.topic).or_default().push(u);
+        topics.entry(&unit.topic).or_default().push(unit);
     }
     for values in topics.values_mut() {
         values.sort_by(|a, b| rank(a).cmp(&rank(b)));
     }
-    // Context and citable evidence must be closed over the same set. A historic
-    // predecessor can rank below the eight representative rows from its topic;
-    // still include it if a decision link names it. Never merely allow its ID
-    // in validation without supplying its record and evidence to the model.
-    let mut mandatory = BTreeSet::new();
-    for values in topics.values() {
-        mandatory.insert(values[0].id.as_str());
-    }
-    // Preserve a representative from each material documentary category,
-    // including reported delivery, which otherwise loses to designs and decisions.
-    let mut by_kind: BTreeMap<&str, &KnowledgeView> = BTreeMap::new();
-    for u in knowledge {
-        if u.evidence.iter().any(|e| e.active) {
-            by_kind.entry(u.kind.as_str()).or_insert(u);
-        }
-    }
-    for u in by_kind.values() {
-        mandatory.insert(u.id.as_str());
-    }
     for link in decisions {
-        for id in [&link.from_id, &link.to_id] {
-            ensure!(
-                by_id.contains_key(id.as_str()),
-                "overview relationship endpoint is absent from knowledge"
-            );
-            mandatory.insert(id.as_str());
-        }
+        ensure!(
+            by_id.contains_key(link.from_id.as_str()) && by_id.contains_key(link.to_id.as_str()),
+            "overview relationship endpoint is absent from knowledge"
+        );
     }
-    // Cover semantic roles before allocating leftover context to depth.
+
+    let mut selected = Vec::new();
+    let mut included = BTreeSet::new();
+    let mut bytes = 2usize;
+
+    // First, spread navigation context across distinct topics. If a large row
+    // does not fit, try another complete row from the same topic.
     for values in topics.values() {
-        for kind in [
-            "decision",
-            "design",
-            "reported_outcome",
-            "constraint",
-            "procedure",
-            "risk",
-            "question",
-            "plan",
-            "proposal",
-            "issue_state",
-        ] {
-            if let Some(u) = values
-                .iter()
-                .find(|u| u.kind == kind && u.support_state != "historical_only")
-            {
-                mandatory.insert(u.id.as_str());
+        for unit in values {
+            if add_within_budget(unit, &mut selected, &mut included, &mut bytes, budget)? {
+                break;
             }
         }
     }
-    let mut selected = Vec::new();
-    let mut included = BTreeSet::new();
-    let mut bytes = 2;
-    for id in mandatory {
-        let u = by_id[id];
-        let cost = serde_json::to_vec(&row(u))?.len() + 1;
-        ensure!(
-            bytes + cost <= budget,
-            "overview cannot fit every topic and its decision endpoint evidence within max_context_bytes; increase the explicit budget"
-        );
-        selected.push(u);
-        included.insert(id);
-        bytes += cost;
+
+    // Treat a decision pair atomically: the prose must not see only one end of
+    // a relationship. Every relationship is still rendered deterministically
+    // below the overview, even when neither end fits this synthesis batch.
+    for link in decisions {
+        let missing = [&link.from_id, &link.to_id]
+            .into_iter()
+            .filter(|id| !included.contains(id.as_str()))
+            .map(|id| by_id[id.as_str()])
+            .collect::<Vec<_>>();
+        let pair_cost = missing
+            .iter()
+            .map(|unit| serde_json::to_vec(&row(unit)).map(|b| b.len() + 1))
+            .collect::<serde_json::Result<Vec<_>>>()?
+            .into_iter()
+            .sum::<usize>();
+        if pair_cost <= budget.saturating_sub(bytes) {
+            for unit in missing {
+                add_within_budget(unit, &mut selected, &mut included, &mut bytes, budget)?;
+            }
+        }
+    }
+
+    // Represent documentary kinds, including reported outcomes, before
+    // filling the remaining space with many similar decisions or designs.
+    const ROLES: &[&str] = &[
+        "reported_outcome", "decision", "design", "constraint", "procedure",
+        "risk", "question", "plan", "proposal", "issue_state", "observation",
+    ];
+    for kind in ROLES {
+        if selected.iter().any(|unit| unit.kind == *kind) {
+            continue;
+        }
+        let candidates = topics
+            .values()
+            .flat_map(|values| values.iter().copied())
+            .filter(|unit| unit.kind == *kind && unit.support_state != "historical_only");
+        for unit in candidates {
+            if add_within_budget(unit, &mut selected, &mut included, &mut bytes, budget)? {
+                break;
+            }
+        }
+    }
+
+    // A representative of each available role per topic is desirable, but
+    // not mandatory when it exceeds the user's declared inference budget.
+    for kind in ROLES {
+        for values in topics.values() {
+            if let Some(unit) = values
+                .iter()
+                .find(|unit| unit.kind == *kind && unit.support_state != "historical_only")
+            {
+                add_within_budget(unit, &mut selected, &mut included, &mut bytes, budget)?;
+            }
+        }
     }
     for depth in 0..8 {
         for values in topics.values() {
-            if let Some(u) = values.get(depth) {
-                if included.contains(u.id.as_str()) {
-                    continue;
-                }
-                let cost = serde_json::to_vec(&row(u))?.len() + 1;
-                if bytes + cost > budget {
-                    continue;
-                }
-                selected.push(*u);
-                included.insert(u.id.as_str());
-                bytes += cost;
+            if let Some(unit) = values.get(depth) {
+                add_within_budget(unit, &mut selected, &mut included, &mut bytes, budget)?;
             }
         }
     }
+
+    ensure!(
+        !selected.is_empty(),
+        "overview cannot fit a single evidence-backed knowledge row within max_context_bytes"
+    );
     Ok(selected)
+}
+
+/// Synthesis and verification only receive links with both endpoint records
+/// present. The entire verified relationship history is still published by
+/// Rust outside the model-written narrative.
+fn citable_decisions<'a>(
+    decisions: &'a [DecisionLink],
+    selected: &[&KnowledgeView],
+    budget: usize,
+) -> Result<Vec<&'a DecisionLink>> {
+    let included = selected.iter().map(|unit| unit.id.as_str()).collect::<BTreeSet<_>>();
+    let mut bytes = 2usize;
+    let mut links = Vec::new();
+    for link in decisions {
+        if !included.contains(link.from_id.as_str()) || !included.contains(link.to_id.as_str()) {
+            continue;
+        }
+        let cost = serde_json::to_vec(link)?.len() + 1;
+        if cost <= budget.saturating_sub(bytes) {
+            bytes += cost;
+            links.push(link);
+        }
+    }
+    Ok(links)
+}
+
+fn overview_scope(knowledge: &[KnowledgeView], selected: &[&KnowledgeView]) -> String {
+    let ids = selected.iter().map(|unit| unit.id.as_str()).collect::<BTreeSet<_>>();
+    let omitted = knowledge.len().saturating_sub(selected.len());
+    let mut content = format!(
+        "## Overview scope\n\nThis overview synthesizes {} of {} documented knowledge units. \
+         It is a representative guide, not a complete record; the linked topic \
+         pages retain all knowledge and its source evidence.\n\n",
+        selected.len(),
+        knowledge.len(),
+    );
+    if omitted == 0 {
+        return content;
+    }
+    let mut missing: BTreeMap<&str, (&str, BTreeMap<&str, usize>)> = BTreeMap::new();
+    for unit in knowledge {
+        if ids.contains(unit.id.as_str()) {
+            continue;
+        }
+        let entry = missing
+            .entry(&unit.topic)
+            .or_insert_with(|| (&unit.topic_title, BTreeMap::new()));
+        *entry.1.entry(&unit.kind).or_default() += 1;
+    }
+    content.push_str("Additional knowledge available in the full topic pages:\n\n");
+    for (slug, (title, kinds)) in missing {
+        let count: usize = kinds.values().sum();
+        let categories = kinds
+            .iter()
+            .map(|(kind, count)| format!("{count} {kind}"))
+            .collect::<Vec<_>>()
+            .join(", ");
+        content.push_str(&format!(
+            "- [{}](topics/{slug}.md): {count} additional units ({categories}).\n",
+            util::markdown_text(title),
+        ));
+    }
+    content.push('\n');
+    content
 }
 fn validate(d: &PageDraft, selected: &[&KnowledgeView]) -> Result<()> {
     ensure!(
