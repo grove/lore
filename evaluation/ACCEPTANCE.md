@@ -15,3 +15,6 @@ Particular cases to inspect are architecture falsely labeled as planned work, is
 ## What is and is not measured
 
 The initial user-supplied Atlas run at `9479727` passed relationship 3/3, provenance and no-op checks; classification was 5/11 strict and 9/11 under the then-current acceptable-label rubric. It used 77 generative calls and 18 decision calls. That is a pre-v0.2 baseline, not a score for the new implementation. The implementation session has no configured live Foundry/Ollama execution environment and does not supply any new live scores or human scores. Run the suite in the model-enabled environment, inspect the outputs, and record the measurements before labeling this quality milestone validated.
+
+
+The no-op gate also requires quality-state consistency: the no-op's degraded_topics list and degraded_overview flag must match the published initial state, recorded as degradation_status_matches_publication=true. An unchanged update that hides published degradation in its JSON report fails acceptance even when it makes zero model calls and leaves Markdown unchanged.

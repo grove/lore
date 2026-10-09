@@ -141,6 +141,8 @@ async fn persistent_semantic_rejection_publishes_only_attributed_source_excerpts
         .unwrap();
     assert!(noop.no_op);
     assert_eq!(noop.model_calls, 0);
+    assert_eq!(noop.degraded_topics, vec!["ledger"]);
+    assert!(noop.warnings.iter().any(|w| w.contains("SYNTHESIS_DEGRADED")));
 }
 #[tokio::test]
 async fn verifier_feedback_repairs_unsupported_order_without_degradation() {

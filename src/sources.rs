@@ -120,6 +120,66 @@ pub fn scan(config: &ResolvedConfig) -> Result<Inventory> {
     })
 }
 
+/// Document-level Status is evidence for the Decision subsection of an ADR.
+/// Never infer acceptance from a title alone or from fenced/quoted text.
+fn adr_header_status(text: &str, path: &str) -> Option<String> {
+    let stem = std::path::Path::new(path).file_stem()?.to_str()?;
+    let lower = stem.to_ascii_lowercase();
+    let number = lower.strip_prefix("adr-")?;
+    if number.is_empty() || !number.bytes().all(|b| b.is_ascii_digit()) {
+        return None;
+    }
+    let mut title_matches = false;
+    let mut values = Vec::new();
+    let mut fence: Option<char> = None;
+    for raw in text.lines() {
+        let line = raw.trim_end_matches('\r');
+        let trimmed = line.trim_start();
+        let first = trimmed.chars().next();
+        let fence_char = first.filter(|c| *c == '~' || *c == char::from(96))
+            .filter(|c| trimmed.chars().take(3).count() == 3
+                && trimmed.chars().take(3).all(|x| x == *c));
+        if let Some(ch) = fence_char {
+            if fence.is_none() {
+                fence = Some(ch);
+            } else if fence == Some(ch) {
+                fence = None;
+            }
+            continue;
+        }
+        if fence.is_some() {
+            continue;
+        }
+        if trimmed.starts_with("## ") {
+            break;
+        }
+        if let Some(title) = line.strip_prefix("# ") {
+            if let Some(prefix) = title.get(..stem.len()) {
+                title_matches = prefix.eq_ignore_ascii_case(stem)
+                    && title[stem.len()..].chars().next()
+                        .is_none_or(|ch| ch.is_whitespace() || ch == ':' || ch == '—');
+            }
+        }
+        // Only an unindented metadata field is authoritative, not a quote.
+        if let Some((name, value)) = line.split_once(':') {
+            if name.eq_ignore_ascii_case("status") {
+                values.push(value.trim().to_ascii_lowercase());
+            }
+        }
+    }
+    if title_matches && !values.is_empty() && values.iter().all(|v| v == &values[0]) {
+        Some(values.remove(0))
+    } else {
+        None
+    }
+}
+/// An explicitly accepted ADR qualifies its Decision section, not the
+/// implementation plan or unrelated possible changes elsewhere in the file.
+pub fn explicitly_accepted_adr_decision(document: &Document, chunk: &Chunk) -> bool {
+    chunk.heading_path.last().is_some_and(|h| h.trim().eq_ignore_ascii_case("decision"))
+        && adr_header_status(&document.text, &document.relative_path).as_deref() == Some("accepted")
+}
+
 pub fn split_markdown(text: &str, root: &str, path: &str, limit: usize) -> Result<Vec<Chunk>> {
     ensure!(limit >= 512, "section limit too small");
     let front_end = frontmatter_end(text);
@@ -181,6 +241,9 @@ pub fn split_markdown(text: &str, root: &str, path: &str, limit: usize) -> Resul
         .file_stem()
         .and_then(|s| s.to_str())
         .unwrap_or(path);
+    // Document-level ADR status affects the lifecycle of the Decision
+    // section, so status edits must invalidate its incremental cache.
+    let adr_status = adr_header_status(text, path);
     let mut occurrences = BTreeMap::<String, usize>::new();
     let mut chunks = Vec::new();
     for (start, end, heading_path) in segments {
@@ -209,14 +272,29 @@ pub fn split_markdown(text: &str, root: &str, path: &str, limit: usize) -> Resul
                 } else {
                     context.clone()
                 };
-                let input_digest = util::json_digest(&(
-                    "markdown-context-v1",
-                    root,
-                    stem,
-                    &heading_path,
-                    &ctx,
-                    section,
-                ))?;
+                let is_decision = heading_path.last()
+                    .is_some_and(|h| h.trim().eq_ignore_ascii_case("decision"));
+                let input_digest = if is_decision && adr_status.is_some() {
+                    util::json_digest(&(
+                        "markdown-context-v1",
+                        root,
+                        stem,
+                        &heading_path,
+                        &ctx,
+                        section,
+                        "adr-document-status-v1",
+                        &adr_status,
+                    ))?
+                } else {
+                    util::json_digest(&(
+                        "markdown-context-v1",
+                        root,
+                        stem,
+                        &heading_path,
+                        &ctx,
+                        section,
+                    ))?
+                };
                 chunks.push(Chunk {
                     key: format!("{base_key}:{ordinal}:{part}"),
                     heading: heading_path.last().cloned().unwrap_or_default(),

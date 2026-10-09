@@ -449,11 +449,18 @@ def run_command(args: argparse.Namespace) -> dict:
     before = file_hashes(project / "wiki")
     second, noop_time = subprocess_json(args.lore_binary, project, "update", timeout=args.timeout)
     after = file_hashes(project / "wiki")
+    degradation_matches = (
+        sorted(second.get("degraded_topics", [])) == sorted(first.get("degraded_topics", []))
+        and second.get("degraded_overview") is first.get("degraded_overview")
+    )
     noop = {"no_op": second.get("no_op") is True,
             "zero_generations": second.get("model_calls") == 0 and second.get("decision_calls", 0) == 0,
-            "pages_unchanged": before == after, "elapsed_seconds": noop_time}
-    if not all([noop["no_op"], noop["zero_generations"], noop["pages_unchanged"]]):
-        err("Incremental no-op invariant failed")
+            "pages_unchanged": before == after, "elapsed_seconds": noop_time,
+            "degraded_topics": second.get("degraded_topics"),
+            "degraded_overview": second.get("degraded_overview"),
+            "degradation_status_matches_publication": degradation_matches}
+    if not all([noop["no_op"], noop["zero_generations"], noop["pages_unchanged"], degradation_matches]):
+        err("Incremental no-op invariant failed, including published degradation status")
     result = {"schema_version": 1, "target": args.target, "run_at": now_utc(),
               "source_manifest": manifest, "lore_binary_sha256": binary_digest,
               "configuration_sha256": hashlib.sha256(json.dumps(checked_config, sort_keys=True).encode()).hexdigest(),

@@ -5,7 +5,7 @@ use anyhow::{Result, bail};
 use serde_json::json;
 use std::collections::BTreeSet;
 
-pub(super) const CONTRACT_VERSION: &str = "scoped-page-citations-v3";
+pub(super) const CONTRACT_VERSION: &str = "scoped-page-citations-v4";
 
 pub(super) fn validate(
     draft: &PageDraft,
