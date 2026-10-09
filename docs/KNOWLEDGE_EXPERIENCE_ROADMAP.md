@@ -154,7 +154,49 @@ Users can identify the answer, next action and decisive boundary without reading
 
 A subsequent related request benefits from safely reusable findings. A new contrary source invalidates or changes the old conclusion even when original evidence remains unchanged. No current view loses its cited observations on eviction. A warm/cold comparison reports avoided work, actual revalidation overhead, stale-answer errors and cross-task leakage controls. Findings remain derived; explicit authoring is required only for new primary notes/policy, not for every reusable insight.
 
-## 7. R1 — contextualized segments and retrieval
+## 7. O1 — immediate orientation and guided project tours
+
+**Purpose:** give a developer a truthful, inviting project mental model on first contact without a new GUI or a mandatory learner profile.
+
+- **O1.1 Welcome:** proposed `lore onboard` displays the project purpose, a few central concepts and one suggested end-to-end workflow immediately, then optional Explore/Learn/First task paths.
+- **O1.2 Workflow discovery:** identify coherent evidenced request/data flows, rank by explanatory value and constraints, not folder names or code size.
+- **O1.3 Tour stops:** actual source landmarks with repository/source identity, why each matters, key decision/invariant, one failure path and a direct evidence link. Static inference must never be mislabeled as observed runtime execution.
+- **O1.4 Accessibility and audience:** novices receive definitions; experienced newcomers can skip to an issue or deep code. Unknown experience must not trigger a long quiz.
+- **O1.5 Document-only fallback:** tour source concepts and procedures when no code checkout is available; record coverage rather than invent code paths.
+- **O1.6 Verification:** ON-01–ON-07, ON-11/12 and ON-16/20; source IDs, flow/temporal attribution, first-minute comprehension and navigation.
+
+**Exit gate:** a newcomer can correctly identify the system's key responsibilities and locate one useful workflow/entry point with less time or better accuracy than baseline documents. Attractive prose alone is insufficient.
+
+## 8. O2 — adaptive learning paths and tutorial-first Diátaxis
+
+**Purpose:** convert a tour into a short project-specific learning experience.
+
+- **O2.1 Concept prerequisites:** derive a fallible educational DAG separate from the source graph and zoom-view DAG. Model-proposed dependencies require provenance; handle cycles as co-learned modules rather than enforcing a false order.
+- **O2.2 Path planner:** choose the smallest concept set needed for one meaningful flow or intended first task; allow detours, jumps and adjustable complexity. **No fixed four-level knowledge hierarchy.**
+- **O2.3 Guided activity:** prompt one prediction, trace or small decision with grounded feedback and a clearly distinguished expected versus actually observed result.
+- **O2.4 Scaffolded hints:** reveal definitions, source lines, rationale and worked solution only as helpful/requested; no punitive grades or forced exercises.
+- **O2.5 Diátaxis transitions:** tutorial is the primary onboarding path; explanation clarifies why, reference resolves exact details, and how-to assists a real contribution.
+- **O2.6 Runner-free default:** provide honest worked examples; only a separately authorized isolated runner may claim to execute tests. Source snippets never authorize commands.
+- **O2.7 Validation:** ON-07–ON-11, ON-14 and ON-17–ON-19; check prediction rubrics, rare exceptions, learner control and no fake mastery claims.
+
+**Exit gate:** the learner can explain or predict relevant unfamiliar behavior correctly; they can access original sources and switch depths directly without traversing a fixed curriculum.
+
+## 9. O3 — first contribution and independent skill transfer
+
+**Purpose:** turn conceptual understanding into a correct change and independent future work, not a demonstration of the assistant's coding ability.
+
+- **O3.1 Real task entry:** prefer a user-supplied task. Suggest real starter work only from actual available work items; label generated alternatives as practice exercises, never invented issues.
+- **O3.2 Task suitability:** clarity, scope, low risk, reversibility, decision constraints, testability and connection to learned concepts. Avoid dangerous “easy” migrations or approval-dependent changes.
+- **O3.3 Companion:** investigate relevant code/docs/tests/history automatically within permissions; explain one viable approach, acceptance checks, common mistakes and optional hints. The learner retains authorship/control over the actual change.
+- **O3.4 First-task verification:** use independent correctness/constraint checks when authorized or external reviewer evidence; static inspection is not execution.
+- **O3.5 Faded guidance:** give a **different related** held-out task with fewer preselected hints; learner can still ask for help without being blocked or shamed.
+- **O3.6 Judgment check:** explain why the change works and one condition where that approach would be wrong. Model-graded explanations are fallible feedback, not proof of mastery.
+- **O3.7 Consent/resume:** optional minimal local learner state, inspect/export/reset, no hidden page tracking or employer reporting.
+- **O3.8 Empirical study:** ON-12–ON-24; count developer-authored work separately from coding-agent-produced output, mentoring and transfer accuracy.
+
+**Exit gate:** correctly completed first bounded change **and** demonstrated learning on a genuinely new task. Agent-only code completion does not satisfy the gate.
+
+## 10. R1 — contextualized segments and retrieval
 
 **Purpose:** improve the informational units where measurement shows value, without delaying A1–A3.
 
@@ -168,7 +210,7 @@ A subsequent related request benefits from safely reusable findings. A new contr
 
 **Exit gate:** measurable retrieval/downstream improvement without exact-reference, constraint-recall or authority regression. When improvement is negligible, keep current units and proceed with useful assistance/views rather than forcing a segmentation redesign.
 
-## 8. R2 — evidence-preserving Knowledge Zoom
+## 11. R2 — evidence-preserving Knowledge Zoom
 
 **Purpose:** let the user expand a useful answer into a working model, decision detail and exact evidence without navigating first.
 
@@ -180,14 +222,14 @@ A subsequent related request benefits from safely reusable findings. A new contr
 - **R2.6 Validation/degradation:** source/scope/modal/temporal checks plus fallible semantic review; preserve valid partial help before falling back to an evidence index.
 - **R2.7 Incremental invalidation:** source additions, edits, deletions, changed relationships and investigation counterevidence invalidate relevant parents, including untouched original topics.
 - **R2.8 CLI/Markdown:** proposed `lore view SUBJECT` infers a sensible mode/depth. Explicit mode/depth/as-of options are advanced, not a required form. Preserve stable links and source status.
-- **R2.9 Limits:** sparse on-demand builds, bounded nodes/fan-out/context/calls/deadlines and measured rebuild amplification; coherent staged publication and recovery.
+- **R2.9 Limits:** adaptive knowledge depth bounded by work/resource ceilings, **not** a fixed conceptual four levels; sparse on-demand builds, bounded nodes/fan-out/context/calls/deadlines and measured rebuild amplification; coherent staged publication and recovery.
 - **R2.10 Usability:** compare orientation accuracy, navigation time, rare-condition discovery and evidence drill-down against current Lore and the simpler A2 presentation.
 
 **Exit gate:** meaningful comprehension/retrieval benefit at measured cost, no erased critical conditions or false current/historical claims. Keep direct retrieval when it outperforms hierarchical routing. A graph canvas or dedicated UI is not required.
 
-## 9. R3 — Diátaxis experiences
+## 12. R3 — Diátaxis experiences
 
-**Purpose:** fit the same investigated knowledge to the user's goal, not merely relabel four generic templates.
+**Purpose:** fit the same investigated knowledge to the user's goal, not merely relabel generic templates. **In onboarding, Tutorial is the primary learning mode; Explanation, Reference and How-to appear exactly when the learner needs them.** Other Lore queries retain intent-driven selection, not forced tutorials.
 
 ### R3.1 Explain
 
@@ -203,7 +245,7 @@ Provide goal, prerequisites, branches, safe order, implementation seams, rollbac
 
 ### R3.4 Tutorial
 
-Prepare a bounded learner goal, starting state, purposeful actions/predictions, feedback, cleanup and a distinct transfer task. User exercises are appropriate only because learning was requested. First support non-executing worked examples; never pretend setup or replay passed.
+As the **primary onboarding mode**, prepare a bounded learner goal, prerequisite concepts, meaningful code/source landmarks, purposeful predictions, scaffolded hints, feedback, cleanup and a distinct transfer task. Exercises are appropriate because learning was requested, not because Lore delegates investigation. Start with non-executing worked examples; never claim tests ran when they were only read.
 
 ### Shared work
 
@@ -211,11 +253,11 @@ Prepare a bounded learner goal, starting state, purposeful actions/predictions, 
 - **R3.6 Composition:** one knowledge/observation snapshot with mode-specific schemas and validators. Investigate gaps, then provide the closest useful labeled alternative rather than fabricate or refuse all help.
 - **R3.7 Switching:** mode/depth changes reuse authorized evidence and completed work where applicable, not repeat discovery needlessly.
 - **R3.8 Accessibility:** meaningful Markdown/JSON, logical headings, screen-reader status and no color-only authority labels.
-- **R3.9 Study:** generic versus goal-specific responses, randomized tasks and controlled models/budgets; separately measure lookup, task completion, explanation and skill transfer.
+- **R3.9 Study:** generic versus mode-specific responses, randomized tasks and controlled models/budgets; separately measure correct **human** first-task work, grounded explanation, lookup, independent transfer and mentor burden.
 
 **Exit gate:** each mode has its own observed usefulness and failure boundaries. A failed tutorial experiment must not block good explanation/reference or core task assistance. No polished mode can compensate for missing critical evidence.
 
-## 10. R4 — decisions, negative cases and investigate-first gaps
+## 13. R4 — decisions, negative cases and investigate-first gaps
 
 ### R4.1 Decision lenses
 
@@ -231,7 +273,7 @@ Investigate a gap's relevance and available evidence before surfacing it. Resolv
 
 **Exit gate:** fewer material mistakes and less unnecessary human review. A remaining question is actually consequential, unavailable to Lore and answerable; it is not work that Lore merely declined to do. Authored testimony retains scope and provenance without becoming runtime proof.
 
-## 11. R5 — worked cases and separately authorized replay
+## 14. R5 — worked cases and separately authorized replay
 
 ### R5A: no-execution cases
 
@@ -250,7 +292,7 @@ R5B has a separate threat-model/sandbox RFC and adversarial isolation evidence. 
 
 **Exit gate:** enforceable isolation plus actual learning/task benefit, source/observation binding and zero unauthorized execution/egress. If isolation is absent, ship R5A and useful static assistance; do not substitute an unsafe shell or burden users with infrastructure setup to get an answer.
 
-## 12. R6 — impact briefings, advisory guardian and optional reader
+## 15. R6 — impact briefings, advisory guardian and optional reader
 
 ### R6.1 Consequential changes
 
@@ -266,7 +308,7 @@ Reuse the same result/view contract for answer-first content, mode/depth control
 
 **Exit gate:** faster accurate return-to-project understanding, useful low-burden warnings and no dependency on a visual client. A simpler reader that helps users act is preferable to a graph requiring them to reconstruct the answer.
 
-## 13. R7 — research extensions
+## 16. R7 — research extensions
 
 - **Cross-project analogies:** preserve namespace, authority, privacy, source correlation and conditions under which a lesson will not transfer. A candidate analogy cannot become merged policy.
 - **Personalized explanations:** explicit local preferences/acknowledged baselines, portable/deletable; no inferred beliefs or hidden activity tracking.
@@ -276,9 +318,9 @@ Reuse the same result/view contract for answer-first content, mode/depth control
 
 Advance only with demonstrated demand and earlier outcome/security gates. Research experiments must not reopen the foundational commitment to useful autonomy inside existing permissions.
 
-## 14. PR-sized delivery sequence and traceability
+## 17. PR-sized delivery sequence and traceability
 
-New package labels A01–A12 precede the original 01–19 backlog. They are planning IDs, not GitHub PR numbers. Preserve smaller independent changes, each with observable user benefit and targeted negative tests.
+Package IDs A01–A12 and O01–O10 extend the original 01–19 work packages. These labels are not actual GitHub PR numbers. Prioritize the coherent newcomer journey, not numeric order. Split changes further as needed and keep user-value and negative tests explicit.
 
 | Package | Phase | Scope | Required evidence |
 | --- | --- | --- | --- |
@@ -294,6 +336,16 @@ New package labels A01–A12 precede the original 01–19 backlog. They are plan
 | A10 | A3 | Freshness, new-evidence search and selective reuse | New ADR, dirty/deeper file, incomplete inventory |
 | A11 | A3 | Durable publication dependencies and eviction | No dangling citations after cache removal |
 | A12 | A1–A3 | Matched outcome evaluation and default migration | Benefit versus inspected 0.6; correctness and latency gates |
+| O01 | R0 | First/second task benchmark and independently reviewed rubric | No leaked solutions, real novice task outcomes |
+| O02 | O1 | Immediate grounded orientation and newcomer entry | ON-01/02 and document-only fallback |
+| O03 | O1 | End-to-end tour with real code/source landmarks | Static-versus-runtime basis and exact refs |
+| O04 | O2 | Fallible concept prerequisite DAG and planner | Cycles, small curricula, no forced gates |
+| O05 | O2 | Tutorial/feedback/hints with no-execution fallback | Grounded prediction and no fabricated pass |
+| O06 | O3 | First-contribution companion | Real vs practice tasks, safe readiness and scope |
+| O07 | O3 | Voluntary local learner state | Opt-in, export/reset, revision status |
+| O08 | O3 | Reduced-scaffolding second task evaluator | Independent correctness and user authorship |
+| O09 | R2/O2 | Adaptive Knowledge Zoom concept navigation | Arbitrary meaningful depth with resource caps |
+| O10 | O1–O3 | Newcomer accessibility and outcome evaluation | First contribution plus genuine transfer |
 | 01 | R0 | Original knowledge adversarial gold | Provenance, chronology and exception preservation |
 | 02 | R0/R2 | View schema and CLI interface contract | Version, scope, intent and budget checks |
 | 03 | R1 | Contextual segments | Table, procedure, ADR and Unicode identities |
@@ -316,7 +368,7 @@ New package labels A01–A12 precede the original 01–19 backlog. They are plan
 
 Package 17 is a new capability boundary, not a prerequisite to completing investigations with already available tools. APIs/schemas should share existing 0.6 types where appropriate; avoid a framework rewrite to accommodate one extra action.
 
-## 15. Dependencies and first release boundary
+## 18. Dependencies and first release boundary
 
 ```mermaid
 flowchart TD
@@ -344,7 +396,7 @@ flowchart TD
 
 **What waits:** full hierarchical rebuild, all four polished modes, sandboxed execution, new connectors, personal profiles, a graphical reader and cross-project transfer. Retaining them as separate workstreams preserves ambition without diluting the immediate experience.
 
-## 16. Validation, rollout, risks and definition of done
+## 19. Validation, rollout, risks and definition of done
 
 ### 16.1 Test layers
 
@@ -391,7 +443,7 @@ Every ticket has a concrete user journey; out-of-scope/failure behavior; source/
 
 Autonomy tickets additionally demonstrate no avoidable handoff within the available capability envelope, correct stopping, scoped partial progress, cancellation and counterevidence revision. Execution tickets require independent sandbox evidence. Model-quality tickets need a real-model evaluation plan/results and actual identities/usage; fixture success is never relabeled empirical utility.
 
-## 17. Settled direction, remaining choices and references
+## 20. Settled direction, remaining choices and references
 
 | Question | Decision/default for this proposal | What remains to measure/design |
 | --- | --- | --- |
