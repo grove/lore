@@ -120,14 +120,22 @@ enum Command {
         #[arg(long, conflicts_with_all = ["fast", "no_inspect"],
             help = "Explicitly permit checkout content in the configured hosted model for this query")]
         allow_checkout_egress: bool,
-        #[arg(long, conflicts_with = "fast", value_parser = clap::value_parser!(u32).range(3..=4),
-            help = "Intelligent JSON contract: 4 (default), or 3 for Lore 0.5 compatibility")]
+        #[arg(long, conflicts_with = "fast", value_parser = clap::value_parser!(u32).range(3..=5),
+            help = "JSON contract: 4 (default), 3 for compatibility, or 5 for adaptive shared intelligence")]
         schema_version: Option<u32>,
     },
     /// Read a generated topic by slug, or index.
     Read { topic: String },
     /// Inspect an immutable, verbatim source evidence snapshot.
     Evidence { id: String },
+    /// List reusable investigation leads, or clear disposable decision findings.
+    Memory {
+        #[arg(
+            long,
+            help = "Delete derived decision findings without changing source knowledge"
+        )]
+        clear: bool,
+    },
     /// Inspect and disposition review questions; never edits source knowledge.
     Review {
         #[command(subcommand)]
@@ -238,7 +246,7 @@ async fn run(cli: Cli) -> Result<i32> {
     }
     let config = if matches!(
         &cli.command,
-        Command::Context { .. } | Command::Evidence { .. }
+        Command::Context { .. } | Command::Evidence { .. } | Command::Memory { .. }
     ) {
         ResolvedConfig::load_for_read(&cli.config)
     } else {
@@ -428,6 +436,25 @@ async fn run(cli: Cli) -> Result<i32> {
                 } else {
                     print!("{}", context::render_context(&fast_result));
                 }
+            } else if schema_version == Some(5) {
+                let result = context::adaptive::run(
+                    &config,
+                    &conn,
+                    &options,
+                    &context::decision::runtime::RunOptions {
+                        inspect,
+                        investigate,
+                        no_inspect,
+                        no_cache,
+                        allow_checkout_egress,
+                    },
+                )
+                .await?;
+                if cli.json {
+                    println!("{}", serde_json::to_string(&result)?);
+                } else {
+                    print!("{}", context::adaptive::render(&result));
+                }
             } else if schema_version == Some(3) {
                 ensure!(
                     !inspect && !investigate && !allow_checkout_egress,
@@ -460,6 +487,40 @@ async fn run(cli: Cli) -> Result<i32> {
                     println!("{}", serde_json::to_string(&result)?);
                 } else {
                     print!("{}", context::decision::runtime::render(&result));
+                }
+            }
+        }
+        Command::Memory { clear } => {
+            if clear {
+                let removed = context::memory::clear(&config)?;
+                println!(
+                    "{}",
+                    json!({"schema_version":1,"removed":removed,"sources_modified":false})
+                );
+            } else {
+                let conn = storage::read_only(&config.state.join("state.db"))?;
+                let (effective, _, _) = context::adaptive::authorized_config(
+                    &config,
+                    &context::decision::runtime::RunOptions::default(),
+                )?;
+                let result =
+                    context::memory::list(&effective, &storage::registry_revision(&conn)?)?;
+                if cli.json {
+                    println!("{}", serde_json::to_string(&result)?);
+                } else {
+                    println!("# Reusable investigation leads\n");
+                    for item in &result.findings {
+                        println!(
+                            "- {} — {} inspected files, {} investigation steps. Revalidation required.\n  `{}`",
+                            util::markdown_text(&item.question),
+                            item.inspected_files,
+                            item.investigation_steps,
+                            item.id
+                        );
+                    }
+                    if result.findings.is_empty() {
+                        println!("No current findings are available under this caller's grants.");
+                    }
                 }
             }
         }

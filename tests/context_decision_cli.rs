@@ -5,6 +5,7 @@ use lore::{
     config::{ModelRole, ProviderSettings, ResolvedConfig},
     context::count_tokens,
     engine::{self, UpdateOptions},
+    storage,
 };
 use serde_json::{Value, json};
 use std::{
@@ -244,6 +245,9 @@ fn invoke(config: &ResolvedConfig, extra: &[&str]) -> Output {
         .args(["--json", "context", TASK])
         .args(extra)
         .env_remove("OPENAI_API_KEY")
+        .env_remove("LORE_INSPECTION_ROOT")
+        .env_remove("LORE_ALLOW_HOSTED_EGRESS")
+        .env_remove("LORE_ALLOW_CHECKOUT_EGRESS")
         .env(
             "LORE_CONTEXT_DECISION_TEST_KEY",
             "synthetic-loopback-test-key",
@@ -431,7 +435,7 @@ async fn incompatible_flags_are_typed_json_errors_before_model_calls() {
         vec!["--no-inspect", "--investigate"],
         vec!["--no-inspect", "--allow-checkout-egress"],
         vec!["--schema-version", "2"],
-        vec!["--schema-version", "5"],
+        vec!["--schema-version", "6"],
     ] {
         let output = invoke(&config, &arguments);
         assert_eq!(output.status.code(), Some(2));
@@ -448,4 +452,66 @@ async fn incompatible_flags_are_typed_json_errors_before_model_calls() {
         assert!(result["error"].as_str().unwrap().contains("schema 4"));
     }
     assert_eq!(server.calls.load(Ordering::SeqCst), 0);
+}
+
+#[tokio::test]
+async fn explicit_schema_five_reports_shared_snapshot_and_denied_host_capabilities() {
+    let server = ModelServer::new();
+    let (_temp, config) = fixture(&server).await;
+    let before = fs::read(config.state.join("state.db")).unwrap();
+    // Repository configuration expresses preferences, not host authorization.
+    let mut changed = config.config.clone();
+    changed.models.generative = ModelRole {
+        provider: "openai".into(),
+        model: "hosted-fixture".into(),
+        enabled: true,
+    };
+    changed.privacy.local_only = false;
+    changed.privacy.allow_checkout_egress = true;
+    changed.context.inspection.enabled = true;
+    changed.providers.insert(
+        "openai".into(),
+        ProviderSettings {
+            base_url: Some(format!("{}/v1", server.address)),
+            api_key_env: Some("LORE_CONTEXT_DECISION_TEST_KEY".into()),
+        },
+    );
+    fs::write(
+        &config.config_path,
+        serde_yaml::to_string(&changed).unwrap(),
+    )
+    .unwrap();
+    let (result, text) = run(&config, &["--schema-version", "5", "--max-tokens", "6000"]);
+    assert_eq!(result["schema_version"], 5, "{text}");
+    assert_eq!(result["snapshot"]["project_id"], config.project_id);
+    let conn = storage::read_only(&config.state.join("state.db")).unwrap();
+    assert_eq!(
+        result["snapshot"]["registry_revision"],
+        storage::registry_revision(&conn).unwrap()
+    );
+    assert_eq!(result["capabilities"]["inspection"], "not_granted");
+    for capability in [
+        "hosted_egress",
+        "checkout_egress",
+        "execution",
+        "source_write",
+    ] {
+        assert_eq!(result["capabilities"][capability], false);
+    }
+    assert_eq!(result["intelligence"]["schema_version"], 4);
+    assert_eq!(result["intelligence"]["mode"], "fast_fallback");
+    assert_eq!(result["intelligence"]["model_calls"], 0);
+    assert_eq!(
+        result["intelligence"]["checkout_egress"]["model_received_checkout"],
+        false
+    );
+    assert_eq!(server.calls.load(Ordering::SeqCst), 0);
+    assert!(!server.captured().contains("CHECKOUT_ONLY_WORKER_SENTINEL"));
+    assert!(!config.state.join("decision-cache").exists());
+    assert_eq!(fs::read(config.state.join("state.db")).unwrap(), before);
+    assert_eq!(
+        fs::read_to_string(config.base.join("src/worker.rs")).unwrap(),
+        PRIVATE_SOURCE
+    );
+    assert!(count_tokens(&text) <= 6000);
 }

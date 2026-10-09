@@ -26,7 +26,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-const CACHE_VERSION: u32 = 1;
+const CACHE_VERSION: u32 = 2;
 const MAX_CACHE_BYTES: usize = 1_000_000;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -96,6 +96,10 @@ pub struct DecisionFallback {
 #[serde(deny_unknown_fields)]
 struct CachedDecision {
     version: u32,
+    question: String,
+    created_at: String,
+    registry_revision: String,
+    permission_key: String,
     key: String,
     revision_key: String,
     content_hash: String,
@@ -491,6 +495,10 @@ fn revision_key(key: &str, observations: &[CodeObservation]) -> Result<String> {
 
 fn cache_hash(entry: &CachedDecision) -> Result<String> {
     util::json_digest(&(
+        &entry.question,
+        &entry.created_at,
+        &entry.registry_revision,
+        &entry.permission_key,
         &entry.key,
         &entry.revision_key,
         &entry.draft,
@@ -627,9 +635,12 @@ async fn build(
     let mut inspection = inspection_report(&session, config);
     let mut investigation = InvestigationReport::new(run.investigate && !run.no_inspect, &budget);
     let identity = model.map(|m| m.cache_identity()).unwrap_or_default();
+    let registry_revision = crate::storage::registry_revision(conn)?;
+    let permission_key = context::memory::permission_key(config)?;
     let key = util::json_digest(&(
         DECISION_PROMPT_VERSION,
         investigation::INVESTIGATION_PROMPT_VERSION,
+        &registry_revision,
         &options.task,
         &options.paths,
         options.max_tokens,
@@ -653,6 +664,9 @@ async fn build(
                 .filter(|entry| {
                     entry.version == CACHE_VERSION
                         && entry.key == key
+                        && entry.registry_revision == registry_revision
+                        && entry.permission_key == permission_key
+                        && context::memory::fresh(&entry.created_at)
                         && cache_hash(entry).ok().as_ref() == Some(&entry.content_hash)
                 });
             if let Some(entry) = cached {
@@ -1073,6 +1087,10 @@ async fn build(
     if can_cache {
         let mut entry = CachedDecision {
             version: CACHE_VERSION,
+            question: options.task.clone(),
+            created_at: util::now(),
+            registry_revision,
+            permission_key,
             key,
             revision_key: brief.revision_key,
             content_hash: String::new(),
@@ -1089,6 +1107,10 @@ async fn build(
                 "decision cache exceeds its size bound"
             );
             util::private_dir(cache.parent().context("cache has no directory")?)?;
+            context::memory::prepare_write(
+                cache.parent().context("cache has no directory")?,
+                &cache,
+            )?;
             util::atomic_write(&cache, &bytes)
         })();
         if saved.is_err() {
@@ -1276,7 +1298,7 @@ fn small_fallback(
     ))
 }
 
-fn measure(result: &mut DecisionContextResult) -> Result<()> {
+pub(crate) fn measure(result: &mut DecisionContextResult) -> Result<()> {
     let set = |r: &mut DecisionContextResult, n| match r {
         DecisionContextResult::Brief(r) => r.budget.used_tokens = n,
         DecisionContextResult::FastFallback(r) => r.context.budget.used_tokens = n,
