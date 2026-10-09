@@ -343,6 +343,75 @@ fn is_reaffirmation_event(a: &AssertionProposal) -> bool {
     .iter()
     .any(|phrase| statement.contains(phrase))
 }
+
+/// A document's status field qualifies its substantive decisions; it is not
+/// itself the decision that a later document reaffirms or replaces. Real
+/// extractors sometimes make an additional decision unit just to report
+/// "Document X has status Accepted". Do not let that duplicate metadata
+/// create a false ambiguity or become an automatic relationship endpoint.
+///
+/// Deliberately conservative: require both the source's explicit status field
+/// and a *standalone* metadata description. An accepted document containing
+/// two substantive decisions still has two legitimate predecessors and must
+/// remain reviewable rather than having one silently chosen.
+fn acceptance_metadata_only(old: &KnowledgeView) -> bool {
+    let statement = old.statement.to_ascii_lowercase();
+    let markers = [
+        "has status accepted",
+        "has the status accepted",
+        "status is accepted",
+        "status: accepted",
+        "status accepted",
+        "marked as accepted",
+        "marked accepted",
+    ];
+    let is_standalone = markers.iter().any(|marker| {
+        statement.find(marker).is_some_and(|index| {
+            // An explicit choice can include a status field too; its decision
+            // content must never be filtered merely because metadata follows.
+            let preamble = &statement[..index];
+            let substantive = [
+                "selected",
+                "chose",
+                "adopted",
+                "approved",
+                "requires",
+                "mandates",
+                "decided to",
+                "reaffirms",
+                "supersedes",
+                "replaces",
+            ]
+            .iter()
+            .any(|word| preamble.contains(word));
+            !substantive
+                && statement[index + marker.len()..]
+                    .trim()
+                    .trim_end_matches(['.', ';', '!', ':'])
+                    .trim()
+                    .is_empty()
+        })
+    });
+    is_standalone
+        && old.evidence.iter().any(|e| {
+            e.active
+                && e.excerpt.lines().any(|line| {
+                    let line = line.trim().to_ascii_lowercase();
+                    line == "status: accepted" || line == "status : accepted"
+                })
+        })
+}
+
+/// Relationship evidence may include a Markdown heading or nearby captured
+/// context. Both passages must be nested exact source excerpts, and the
+/// explicit relationship must appear in the *assertion's own* quote as well
+/// as in the proposed relation quote. This preserves source integrity while
+/// accepting e.g. "## Decision\nADR-042 supersedes POL-017".
+fn relation_quote_covers_assertion(new_quote: &str, relation_quote: &str) -> bool {
+    !new_quote.is_empty()
+        && !relation_quote.is_empty()
+        && (relation_quote.contains(new_quote) || new_quote.contains(relation_quote))
+}
 /// Recognize a narrow, source-backed reference to an earlier design document.
 /// Only document stems that look like stable identifiers (ADR-001, RFC-12,
 /// etc.) qualify for automatic matching. Otherwise model proposals remain
@@ -491,7 +560,10 @@ fn explicit_document_links(
     // accepted decisions. Never choose an arbitrary knowledge unit.
     let mut groups: BTreeMap<(String, String), BTreeSet<String>> = BTreeMap::new();
     for old in candidates {
-        if old.kind != "decision" || old.base_lifecycle != "accepted" {
+        if old.kind != "decision"
+            || old.base_lifecycle != "accepted"
+            || acceptance_metadata_only(old)
+        {
             continue;
         }
         for evidence in &old.evidence {
@@ -571,18 +643,21 @@ fn explicit_reaffirmation(
     if new.kind != "decision"
         || old.kind != "decision"
         || old.base_lifecycle != "accepted"
+        || acceptance_metadata_only(old)
         || !matches!(new.lifecycle.as_str(), "accepted" | "active")
         || !is_reaffirmation_event(new)
-        || relation.quote.is_empty()
-        || !new.quote.contains(&relation.quote)
+        || !relation_quote_covers_assertion(&new.quote, &relation.quote)
         || !chunk.text.contains(&relation.quote)
     {
         return false;
     }
     // A named predecessor takes precedence over unreliable model-paraphrased
     // scope fields, but the relationship verb itself must be explicit.
-    anchored_action(&relation.quote, old, "") == Some("reaffirms")
-        || quoted_statement_action(new, old, &relation.quote) == Some("reaffirms")
+    let quoted = anchored_action(&relation.quote, old, "") == Some("reaffirms")
+        || quoted_statement_action(new, old, &relation.quote) == Some("reaffirms");
+    let asserted = anchored_action(&new.quote, old, "") == Some("reaffirms")
+        || quoted_statement_action(new, old, &new.quote) == Some("reaffirms");
+    quoted && asserted
 }
 
 fn explicit_replacement(
@@ -593,9 +668,9 @@ fn explicit_replacement(
 ) -> bool {
     if new.kind != "decision"
         || old.kind != "decision"
+        || acceptance_metadata_only(old)
         || new.lifecycle != "accepted"
-        || relation.quote.is_empty()
-        || !new.quote.contains(&relation.quote)
+        || !relation_quote_covers_assertion(&new.quote, &relation.quote)
         || !chunk.text.contains(&relation.quote)
     {
         return false;
@@ -604,8 +679,11 @@ fn explicit_replacement(
     // ungrounded merely because two extraction calls paraphrased the scope
     // differently. Document identity + positive quoted replacement is the
     // decisive evidence; vague cross-scope hints still require review.
-    anchored_action(&relation.quote, old, "") == Some("supersedes")
-        || quoted_statement_action(new, old, &relation.quote) == Some("supersedes")
+    let quoted = anchored_action(&relation.quote, old, "") == Some("supersedes")
+        || quoted_statement_action(new, old, &relation.quote) == Some("supersedes");
+    let asserted = anchored_action(&new.quote, old, "") == Some("supersedes")
+        || quoted_statement_action(new, old, &new.quote) == Some("supersedes");
+    quoted && asserted
 }
 fn capture_relation_quote(
     conn: &rusqlite::Connection,

@@ -71,6 +71,46 @@ pub(crate) fn findings(draft: &PageDraft, units: &[&KnowledgeView]) -> Vec<Findi
                 .map(|e| normalize(&e.excerpt))
                 .collect::<Vec<_>>();
             let mut reasons = Vec::new();
+            // A proposal can accurately report that a timetable or approval
+            // was unsettled *when it was written*. It cannot establish a
+            // universal present-tense absence: a later source may report a
+            // completed change. Require attribution rather than promoting
+            // future-intent documents into timeless current-state facts.
+            let solely_future_intent = !cited.is_empty()
+                && cited
+                    .iter()
+                    .all(|u| matches!(u.kind.as_str(), "proposal" | "plan"));
+            let current_absence = [
+                "no date has been",
+                "no date is agreed",
+                "no date is set",
+                "no schedule has been",
+                "no timetable has been",
+                "has not yet been scheduled",
+                "has not been agreed",
+                "has not been approved",
+                "hasn't been agreed",
+                "hasn't been scheduled",
+                "date remains unspecified",
+            ]
+            .iter()
+            .any(|phrase| prose.contains(phrase));
+            let attributed_to_source = [
+                "the proposal",
+                "the plan",
+                "the document",
+                "the source",
+                "at the time",
+                "as of ",
+                "according to",
+                "the earlier",
+                "the original",
+            ]
+            .iter()
+            .any(|phrase| prose.contains(phrase));
+            if solely_future_intent && current_absence && !attributed_to_source {
+                reasons.push("An earlier proposal/plan cannot support a current, unqualified absence of a date or approval. Attribute the claim to that source and its stage instead.".into());
+            }
             for phrase in [
                 "available records do not",
                 "supplied record does not",
@@ -262,5 +302,19 @@ mod tests {
         let mut u = unit("The inquiry closed when the report arrived.");
         u.statement = "The inquiry closed after the report arrived.".into();
         assert!(validate_prose(&draft(&u.statement), &[&u]).is_err());
+    }
+
+    #[test]
+    fn a_plan_cannot_turn_its_unsettled_timetable_into_timeless_current_fact() {
+        let mut u = unit("The rollout proposal says no implementation date has been agreed.");
+        u.kind = "proposal".into();
+        let bad = draft("No date has been agreed for the rollout.");
+        assert_eq!(findings(&bad, &[&u]).len(), 1);
+        let qualified =
+            draft("The proposal said no implementation date had been agreed at the time.");
+        assert!(findings(&qualified, &[&u]).is_empty());
+        let mut current = u.clone();
+        current.kind = "reported_outcome".into();
+        assert!(findings(&bad, &[&current]).is_empty());
     }
 }
