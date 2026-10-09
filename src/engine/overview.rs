@@ -322,11 +322,21 @@ pub(super) async fn build(
                     domain::page_schema_for(&allowed)?,
                     |d: &mut PageDraft| {
                         citations::validate(d, &allowed, "overview", config, run)?;
-                        validate(d, &selected)?;
-                        grounding::validate_prose(d, &selected)
+                        validate(d, &selected)
                     },
                 )
                 .await?;
+            if let Err(error) = grounding::validate_prose(&draft, &selected) {
+                if attempt == 2 {
+                    runner.warnings.push(format!("OVERVIEW_DEGRADED: grounding rejected three drafts: {error}"));
+                    break;
+                }
+                input["repair_feedback"] = json!({
+                    "issues": [error.to_string()],
+                    "instructions": "Remove unsupported chronology and corpus-wide absence claims."
+                });
+                continue;
+            }
             if runner.config.config.processing.verify_synthesis {
                 let check = json!({"task":"verify_overview","knowledge":rows,"draft":draft,"documented_decision_relationships":decisions});
                 let (result, _): (Verification, String) = runner
