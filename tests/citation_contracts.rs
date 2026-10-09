@@ -28,6 +28,7 @@ fn scoped_citations_are_closed_in_both_provider_request_formats() {
     assert_eq!(citation_enum(&schema), &json!(["ku_first", "ku_second"]));
     assert!(domain::page_schema_for(&BTreeSet::new()).is_err());
     let request = GenerationRequest {
+        reasoning_effort: None,
         instructions: "Synthesize only supplied knowledge".into(),
         input: "{}".into(),
         schema: Some(schema.clone()),

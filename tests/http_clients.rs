@@ -214,6 +214,7 @@ async fn calls_openai_responses_with_strict_schema_and_no_storage() {
         assert!(r.authorized);
         assert_eq!(r.body["store"], false);
         assert_eq!(r.body["text"]["format"]["strict"], true);
+        assert_eq!(r.body["reasoning"]["effort"], "high");
         (
             200,
             json!({"model":"resolved-version","status":"completed","output":[{"type":"message","content":[{"type":"output_text","text":"{\"ok\":true}"}]}]}),
@@ -223,7 +224,7 @@ async fn calls_openai_responses_with_strict_schema_and_no_storage() {
     let model = HttpModel::new(&c, &role)
         .unwrap()
         .with_credential("test-key".into());
-    let r=model.generate(&GenerationRequest{instructions:"Return JSON".into(),input:"Synthetic test".into(),schema:Some(json!({"type":"object","properties":{"ok":{"type":"boolean"}},"required":["ok"],"additionalProperties":false}))}).await.unwrap();
+    let r=model.generate(&GenerationRequest{ reasoning_effort: Some(ReasoningEffort::High),instructions:"Return JSON".into(),input:"Synthetic test".into(),schema:Some(json!({"type":"object","properties":{"ok":{"type":"boolean"}},"required":["ok"],"additionalProperties":false}))}).await.unwrap();
     assert_eq!(r.model, "resolved-version");
     assert_eq!(serde_json::from_str::<Value>(&r.text).unwrap()["ok"], true);
 }
@@ -233,6 +234,7 @@ async fn openai_http_restores_source_passages_before_validation() {
     let (_dir, cfg, _) = project();
     let quote = "Synthetic source: use `database`.\r\nKeep the qualifier (local-only).";
     let request = GenerationRequest {
+        reasoning_effort: None,
         instructions: "Extract evidence".into(),
         input: "Synthetic test".into(),
         schema: Some(
@@ -272,6 +274,7 @@ async fn openai_live_preserves_multiline_quote_constraints() {
     let model = HttpModel::new(&config, role).unwrap();
     let quote = "Synthetic source: use `database`.\r\nKeep the qualifier (local-only).";
     let request = GenerationRequest {
+        reasoning_effort: None,
         instructions: "Return a JSON object whose quote is only the word fabricated.".into(),
         input: "Synthetic constraint test; no project material.".into(),
         schema: Some(
@@ -330,6 +333,7 @@ async fn retries_transient_errors_and_withholds_failure_body() {
     let (c, role) = configured(&cfg, &server, "ollama");
     let model = HttpModel::new(&c, &role).unwrap();
     let request = GenerationRequest {
+        reasoning_effort: None,
         instructions: "Answer".into(),
         input: "Synthetic".into(),
         schema: None,
@@ -397,7 +401,9 @@ fn real_cli_compiles_over_http_then_updates_with_server_offline() {
     let server = Server::new(move |request, _| {
         assert_eq!(request.path, "/api/chat");
         assert_eq!(request.body["stream"], false);
+        assert!(request.body.get("reasoning").is_none());
         let r = GenerationRequest {
+            reasoning_effort: None,
             instructions: request.body["messages"][0]["content"]
                 .as_str()
                 .unwrap()

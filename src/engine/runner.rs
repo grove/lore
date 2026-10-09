@@ -70,8 +70,9 @@ impl<'a> Runner<'a> {
         let descriptor = self.generative.descriptor();
         let provider = format!("{:?}", descriptor.provider);
         let key = util::json_digest(&(
-            "validated-call-v1",
+            "validated-call-v2-reasoning",
             task,
+            self.config.config.models.reasoning.for_task(task),
             instructions,
             &input,
             &schema,
@@ -117,6 +118,7 @@ impl<'a> Runner<'a> {
                 instructions,
                 input: serialized.clone(),
                 schema: Some(schema.clone()),
+                reasoning_effort: self.config.config.models.reasoning.for_task(task),
             };
             self.calls += 1;
             let response = self

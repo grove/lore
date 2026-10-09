@@ -1,5 +1,5 @@
 # Explicit hosted opt-in. Relevant project excerpts will be sent to OpenAI.
-# Replace YOUR_RESPONSES_MODEL_ID and set OPENAI_API_KEY in the environment.
+# This example uses GPT-6 Luna for Responses and Decisions. Set OPENAI_API_KEY.
 schema_version: 1
 project:
   name: my-project
@@ -12,10 +12,20 @@ privacy:
 models:
   generative:
     provider: openai
-    model: YOUR_RESPONSES_MODEL_ID
+    model: gpt-6-luna
   decision:
     provider: openai
     model: gpt-6-luna
+  # Responses API only; OpenAI Decisions ignores these settings.
+  reasoning:
+    enabled: true
+    default: medium
+    extraction: low
+    reconciliation: high
+    synthesis: medium
+    overview: medium
+    verification: high
+    overview_verification: high
 providers:
   openai:
     base_url: https://api.openai.com/v1

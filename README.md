@@ -76,6 +76,10 @@ The generated index now explains the project's major systems, documented design,
 
 Documentary status and factual verification stay separate. An architecture specification can describe the selected design without proving what runs in production, and that lack of verification does not make it a future plan. Proposals remain future intent, reported deployments remain reports, and mandatory release rules are not confused with implementation completion. These distinctions are represented in the extraction schema and generation prompts; their accuracy should still be checked on real project documents.
 
+## Reasoning effort by task
+
+When using an OpenAI Responses-compatible generative model, Lore explicitly requests a **task-appropriate reasoning effort**: `low` for evidence extraction, `high` for semantic reconciliation and verification, and `medium` for topic and overview writing. These are configurable starting points, not benchmark-proven optimal levels. Set `models.reasoning` in `lore.yml` to override one or all tasks; `enabled: false` leaves the provider's reasoning level unspecified. The setting does not affect Ollama, Clef-Flash, TypeSafe Jev, or OpenAI Decisions. See [Reasoning configuration](docs/REASONING.md) for all supported levels, exact keys, and benchmark override flags.
+
 ## Local, hosted, or a combination
 
 Generative models extract source assertions, reconcile meaning, and write explanations. Decision models answer predefined classification questions and provide advisory hints. Lore keeps the two interfaces separate: OpenAI uses Responses and Decisions, while Ollama uses Chat and System One. A decision model is optional, and an unavailable or refused decision does not cause a source document to be silently skipped. Substantive reconciliation remains generative work.

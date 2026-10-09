@@ -1,4 +1,4 @@
-use crate::util;
+use crate::{inference::ReasoningEffort, util};
 use anyhow::{Context, Result, ensure};
 use serde::{Deserialize, Serialize};
 use std::{
@@ -97,11 +97,61 @@ impl Default for ModelRole {
         }
     }
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct Reasoning {
+    /// Disable to omit reasoning.effort (provider/model default or legacy models).
+    pub enabled: bool,
+    /// Fallback for new or synthetic generative tasks.
+    pub default: ReasoningEffort,
+    pub extraction: ReasoningEffort,
+    pub reconciliation: ReasoningEffort,
+    pub synthesis: ReasoningEffort,
+    pub overview: ReasoningEffort,
+    pub verification: ReasoningEffort,
+    pub overview_verification: ReasoningEffort,
+}
+impl Default for Reasoning {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            default: ReasoningEffort::Medium,
+            extraction: ReasoningEffort::Low,
+            reconciliation: ReasoningEffort::High,
+            synthesis: ReasoningEffort::Medium,
+            overview: ReasoningEffort::Medium,
+            verification: ReasoningEffort::High,
+            overview_verification: ReasoningEffort::High,
+        }
+    }
+}
+impl Reasoning {
+    /// Map Lore's stable inference tasks to the configured Responses effort.
+    /// Never silently escalate verification to a different model or API.
+    pub fn for_task(&self, task: &str) -> Option<ReasoningEffort> {
+        if !self.enabled {
+            return None;
+        }
+        Some(match task {
+            "extract" => self.extraction,
+            "reconcile" => self.reconciliation,
+            "synthesize" => self.synthesis,
+            "overview" => self.overview,
+            "verify" => self.verification,
+            "verify_overview" => self.overview_verification,
+            _ => self.default,
+        })
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(default, deny_unknown_fields)]
 pub struct Models {
     pub generative: ModelRole,
     pub decision: Option<ModelRole>,
+    /// Sent to OpenAI Responses (not OpenAI Decisions or Ollama).
+    pub reasoning: Reasoning,
 }
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(default, deny_unknown_fields)]

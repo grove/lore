@@ -45,6 +45,10 @@ python3 evaluation/benchmark.py run \
 
 The same command can target lore-self, openwiki, and llm-wiki with their respective --target values. OpenWiki includes sixteen pinned Markdown files; LLM Wiki includes three files; Lore uses its README and two implementation-related documents. As with Atlas, all inputs are copied to an isolated workspace. Running OpenWiki is a larger and potentially expensive inference workload; set model limits and inspect available API budgets before executing it. You can include an optional decision role with --decision-provider and --decision-model and should report the model combination explicitly.
 
+## Compare reasoning-effort settings
+
+The benchmark and three-project suite now record a per-task `reasoning` policy. By default, OpenAI Responses runs use `low` for extraction, `high` for reconciliation/verification, and `medium` for page and overview synthesis. Use flags such as `--reasoning-reconciliation medium`, `--reasoning-verification xhigh` or `--disable-reasoning` to test other settings. Do not interpret different reasoning policies as identical-run repeatability: the comparator explicitly flags different or missing policies, and suite acceptance requires the same configured policy for each target. Keep the model, corpus, binary and verification settings fixed while varying one effort. See [Reasoning configuration](../docs/REASONING.md) for the six task settings and supported values.
+
 ## Inspect without using any models
 
 Preparing a corpus is separate from inference and therefore does not require Ollama or API credentials. Scoring a completed run also does not call a model.
