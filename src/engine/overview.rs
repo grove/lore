@@ -453,7 +453,13 @@ pub(super) async fn build(
                 )
                 .await?;
             if let Err(error) = grounding::validate_prose(&draft, &selected) {
-                runner.diagnostic("overview", "index", attempt, "deterministic_grounding", &[error.to_string()]);
+                runner.diagnostic(
+                    "overview",
+                    "index",
+                    attempt,
+                    "deterministic_grounding",
+                    &[error.to_string()],
+                );
                 if attempt == 2 {
                     runner.warnings.push(format!(
                         "OVERVIEW_DEGRADED: grounding rejected three drafts: {error}"
@@ -469,8 +475,7 @@ pub(super) async fn build(
             if runner.config.config.processing.verify_synthesis {
                 let mut check = json!({"task":"verify_overview","knowledge":rows,"draft":draft,"documented_decision_relationships":&selected_decisions});
                 let heading_cost = serde_json::to_vec(&heading_context)?.len() + 80;
-                if serde_json::to_vec(&check)?.len()
-                    + heading_cost + VERIFY.len() + 512
+                if serde_json::to_vec(&check)?.len() + heading_cost + VERIFY.len() + 512
                     <= runner.config.config.processing.max_context_bytes
                 {
                     check["source_heading_context"] = json!(&heading_context);
@@ -488,7 +493,13 @@ pub(super) async fn build(
                     )
                     .await?;
                 if !result.supported || !result.issues.is_empty() {
-                    runner.diagnostic("overview", "index", attempt, "semantic_verification", &result.issues);
+                    runner.diagnostic(
+                        "overview",
+                        "index",
+                        attempt,
+                        "semantic_verification",
+                        &result.issues,
+                    );
                     if attempt == 2 {
                         // We will publish *only* source excerpts below. Do not
                         // publish any rejected model-written narrative.
