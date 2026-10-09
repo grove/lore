@@ -1,8 +1,8 @@
 # Lore autonomous assistance and user empowerment
 
-**Status:** Proposed, not implemented. **Design revision:** 1. **Date:** 2026-10-09. **Implementation baseline:** Lore 0.6 at `51b62ebe6d44ca4ff5162ff7758408c3e85ec548`.
+**Status:** Proposed, not implemented. **Design revision:** 2 — newcomer-first learning integration. **Date:** 2026-10-09. **Implementation baseline:** Lore 0.6 at `51b62ebe6d44ca4ff5162ff7758408c3e85ec548`.
 
-**Companions:** [Knowledge Experience architecture](KNOWLEDGE_EXPERIENCE_DESIGN.md) and [implementation roadmap](KNOWLEDGE_EXPERIENCE_ROADMAP.md). This document specifies the operating policy, user experience, investigation loop, reusable investigation records and acceptance tests for that architecture. It is not a new runtime contract already accepted by Lore 0.6.
+**Companions:** [Developer Onboarding](DEVELOPER_ONBOARDING_DESIGN.md) (**primary product journey**), [Knowledge Experience architecture](KNOWLEDGE_EXPERIENCE_DESIGN.md) and [implementation roadmap](KNOWLEDGE_EXPERIENCE_ROADMAP.md). This document specifies the operating policy, user experience, investigation loop, reusable investigation records and acceptance tests for that architecture. It is not a new runtime contract already accepted by Lore 0.6.
 
 > **Maximum useful autonomy. Minimum user burden.**
 >
@@ -10,7 +10,9 @@
 
 ## 1. Product commitment
 
-The ordinary experience should be one request:
+**The primary user is a developer new to an existing project.** The ultimate outcome is a correct and understood first contribution followed by a related task done more independently. Autonomous investigation is the *teaching and assistance engine*, not an invitation for Lore to perform the human's learning exercise or silently implement the task. Lore does the project homework; the newcomer can learn the project by doing.
+
+The ordinary task experience should remain one request:
 
 ```bash
 lore context "Refactor payment retries without changing their behavior"
@@ -46,6 +48,12 @@ Useful autonomy must reduce **total user effort**, including reading, correction
 | UA-12 | Never imply that inspection, verification, tool execution, approval or implementation occurred unless recorded evidence shows it did. |
 
 These are product contracts, not a promise that every task is solvable. The required behavior is the best truthful useful result, not guaranteed success or invented certainty.
+
+### 1.3 The difference between autonomy and teaching
+
+**Routine investigation is Lore's responsibility; deliberate practice is the learner's opportunity.** For example, if Lore can inspect the existing retry handler, it should do so before recommending a refactor. In an explicitly requested tutorial, asking the learner to predict the retry behavior is a valuable exercise, not an avoidable handoff. During a first real contribution, Lore may prepare source context, explain constraints and offer hints, but normal onboarding must not count an agent-authored patch as evidence of human competence.
+
+Unknown learner experience should trigger a helpful overview with optional skip-to-task, not a profiling questionnaire. A direct reference question should stay direct, even in an onboarding session. An exercise can be skipped or revisited without blocking real project work. See [onboarding design](DEVELOPER_ONBOARDING_DESIGN.md) for the learning-path, source-based tour, hint, transfer and consent contracts.
 
 ## 2. Outcome-first answer contract
 
@@ -377,13 +385,13 @@ The policy resolver may use proposed modes `auto` and `registry_only` internally
 
 ## 10. How this changes Knowledge Zoom and Diátaxis
 
-Knowledge Zoom becomes progressive disclosure of a useful answer, not a tree the user must climb before receiving help. One request should choose a sensible starting view. A reader can expand rationale, conditions, details, examples or sources without configuring four dimensions manually.
+**For newcomer onboarding, Tutorial is the primary experience.** Explanation builds the mental model, Reference provides exact technical detail, and How-to guides the first genuine contribution. The user can skip, zoom or ask directly; existing experienced-developer queries retain concise task answers. Knowledge Zoom becomes progressive disclosure of a useful answer, not a tree the user must climb before receiving help. One request should choose a sensible starting view. A reader can expand rationale, conditions, details, examples or sources without configuring four dimensions manually.
 
 **Explanation:** explain the decisive concepts and resolve important ambiguity automatically. Do not convert every conceptual question into an implementation investigation.
 
 **How-to:** perform available prerequisite checks now, resolve relevant conflicts, then give a plan whose remaining actions belong to implementation. Clearly separate completed checks from future validation.
 
-**Tutorial:** prepare and validate the environment/example as far as allowed. Learner exercises are deliberate pedagogy when learning was requested, not mandatory questions in ordinary assistance. Failed replay should produce a useful corrected or clearly non-executed example, not a fabricated result.
+**Tutorial:** prepare and validate the environment/example as far as allowed. Guide a newcomer through one meaningful source-backed workflow, an optional prediction or safe activity, constructive feedback and a different transfer task. **Scaffold less only when understanding is demonstrated**, never from pages opened. Learner exercises are deliberate pedagogy when learning was requested, not mandatory questions in ordinary assistance. Failed replay should produce a useful corrected or clearly non-executed example, not a fabricated result.
 
 **Reference:** use direct exact lookup and preserve identifiers/values. Do not delay a precise answer with unnecessary exploratory history. Broader evidence searches are useful only when a version/scope ambiguity affects the value.
 
@@ -410,12 +418,15 @@ An old answer with changed inputs is not a valid current fallback. A partial ans
 
 ## 12. Evaluation: optimize enabled progress, not apparent confidence
 
-Reuse the existing [decision evaluator](../evaluation/DECISION_INTELLIGENCE.md), extending it to capture the entire assistance interaction and downstream task/correction process. Score real outcomes, user effort and cost together. Fixture integrity alone cannot demonstrate usefulness.
+Reuse the existing [decision evaluator](../evaluation/DECISION_INTELLIGENCE.md) for task assistance, and extend it with the [newcomer evaluation contract](DEVELOPER_ONBOARDING_DESIGN.md): first-task correctness, verified understanding and **independent transfer on a distinct second task**. Separate code authored by a coding agent from a developer's demonstrated competence. Extend evaluation to capture the entire assistance interaction and downstream task/correction process. Score real outcomes, user effort and cost together. Fixture integrity alone cannot demonstrate usefulness.
 
 ### 12.1 Primary and secondary measures
 
 | Measure | Operational definition |
 | --- | --- |
+| Newcomer first contribution | Time to a bounded correct, understood change, validated externally; PR submission or AI-generated code alone does not suffice. |
+| Learning transfer | Accuracy on a new related task at reduced/predeclared assistance; distinguish developer-authored steps, independently tested outcomes and fallible model assessment. |
+| Mentor dependence | Human/agent interventions that Lore could have avoided, separate from deliberate student practice. |
 | Unassisted correct progress | Fraction of tasks completed correctly and within constraints without avoidable user/caller investigation or clarification; count genuine external dependencies separately. |
 | Time to correct progress | End-to-end time including Lore work, reading, external handoffs, code changes, tests and correction loops; not merely first answer latency. |
 | Avoidable delegation | Human/agent investigative requests that an independent reviewer judges Lore could have completed with the actual available permitted capabilities and budget. |
@@ -483,16 +494,16 @@ Implement as small additions around existing modules, not an autonomous-agent fr
 - Existing engine/publication code gains dependency links from durable views to retained investigation observations, never a write from advice into accepted knowledge.
 - The evaluator gains full-interaction traces, handoff classification and unassisted-correct-progress checks.
 
-Suggested first vertical slice: retained knowledge plus automatically selected permitted static reads; one useful answer with scoped readiness; one adaptive stopping decision; real counterevidence revision; and a typed noninteractive dependency only when necessary. This delivers the core value before hierarchy, a GUI, new connectors or execution.
+Suggested first **technical** vertical slice: retained knowledge plus automatically selected permitted static reads, one useful scoped answer, adaptive stopping, counterevidence revision and a typed noninteractive dependency only when necessary. The **first complete product** vertical slice applies this engine to an unfamiliar project: an immediate overview, a source-grounded guided tour, one small tutorial, help with a real bounded contribution and a different related task to test transfer. Neither slice requires a full hierarchy, GUI, new connector or execution runner.
 
-The [roadmap](KNOWLEDGE_EXPERIENCE_ROADMAP.md) moves this work into A1–A3 immediately after R0. Capability expansion stays gated; initiative within existing grants is not postponed behind a visual reader or learning system. A new default ships only after migration, privacy, outcome and latency evidence are reviewed. Until then, the proposed controller can be exercised behind an experimental switch without making per-query flags the intended product experience.
+The [roadmap](KNOWLEDGE_EXPERIENCE_ROADMAP.md) sequences a minimal A1/A2 alongside O1–O3 newcomer milestones after R0; A3 investigation reuse can develop in parallel. Capability expansion stays gated; the **learning journey** is the reason to build the intelligence engine, not a late-stage optional garnish. A new default ships only after migration, privacy, outcome and latency evidence are reviewed. Until then, the proposed controller can be exercised behind an experimental switch without making per-query flags the intended product experience.
 
 ## 14. Design decisions and boundaries
 
-**Decided for this proposal:** adaptive useful autonomy is foundational; source authority remains separate; humans are not the default investigators; no exhaustive-search requirement; no repeated permission prompts inside a standing grant; scoped safe progress precedes escalation; budget failure is not authority failure; reusable investigations are revision-bound derived data; details are progressively disclosed; old contracts and user controls remain meaningful.
+**Decided for this proposal:** a newcomer-first learning experience is primary; deliberate practice is different from delegated research; first-correct-contribution **and** independent transfer are required to demonstrate onboarding value. Adaptive useful autonomy is foundational; source authority remains separate; humans are not the default investigators; no exhaustive-search requirement; no repeated permission prompts inside a standing grant; scoped safe progress precedes escalation; budget failure is not authority failure; reusable investigations are revision-bound derived data; details are progressively disclosed; old contracts and user controls remain meaningful.
 
 **Implementation decisions still requiring measurement:** numerical budgets and stopping thresholds, graph/index scale, exact final schema number, storage normalization, cancellation guarantees of each provider, capable isolated runner implementation and performance targets. These should not reopen the product commitment or create a configuration maze. Resolve them in small implementation changes with named tests and clear migration notes.
 
 **Not promised:** unrestricted autonomy, production access, zero remaining uncertainty, automatic authoritative policy changes, always-correct recommendations, silent long-running agents, hidden chain-of-thought capture, or superiority over another tool without a controlled evaluation.
 
-**Acceptance question:** Given the task, available evidence and permitted capabilities, did Lore do the useful investigative work and leave the user more capable of proceeding correctly?
+**Acceptance question:** Did Lore investigate everything relevant that it was permitted and able to investigate, while giving an unfamiliar developer the understanding and agency to make a correct first contribution and approach the next task more independently?
