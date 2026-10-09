@@ -103,9 +103,8 @@ pub(super) async fn build(
                 .collect();
             // Heading provenance can date a *document* without establishing
             // when its design, policy or deployment became effective.
-            let heading_context = source_context::source_headings(
-                runner.conn, &units[cursor..end], 2048,
-            )?;
+            let heading_context =
+                source_context::source_headings(runner.conn, &units[cursor..end], 2048)?;
             let mut input = json!({"task":"synthesize","topic":title,"knowledge":data,
                 "documented_decision_relationships":citable_decisions,
                 "source_heading_context":heading_context});
@@ -133,11 +132,20 @@ pub(super) async fn build(
                     let mut verify_input = json!({"task":"verify","knowledge":data,"draft":draft,
                         "documented_decision_relationships":&topic_decisions,
                         "source_heading_context":heading_context});
-                    let remaining = runner.config.config.processing.max_context_bytes
-                        .saturating_sub(serde_json::to_vec(&verify_input)?.len()
-                            + VERIFY_INSTRUCTIONS.len() + 1024);
+                    let remaining = runner
+                        .config
+                        .config
+                        .processing
+                        .max_context_bytes
+                        .saturating_sub(
+                            serde_json::to_vec(&verify_input)?.len()
+                                + VERIFY_INSTRUCTIONS.len()
+                                + 1024,
+                        );
                     let (siblings, complete) = source_context::sibling_rows(
-                        &source_siblings, &units[cursor..end], remaining.min(12_000),
+                        &source_siblings,
+                        &units[cursor..end],
+                        remaining.min(12_000),
                     )?;
                     verify_input["related_source_context"] = json!(siblings);
                     verify_input["related_source_context_complete"] = json!(complete);
@@ -154,7 +162,13 @@ pub(super) async fn build(
                         )
                         .await?;
                     if !verification.supported || !verification.issues.is_empty() {
-                        runner.diagnostic("synthesize", slug, attempt, "semantic_verification", &verification.issues);
+                        runner.diagnostic(
+                            "synthesize",
+                            slug,
+                            attempt,
+                            "semantic_verification",
+                            &verification.issues,
+                        );
                         // Never publish model prose rejected for unsupported
                         // chronology, supersession or any other semantic claim.
                         if attempt == 2 {
@@ -173,7 +187,13 @@ pub(super) async fn build(
                     }
                 }
                 if let Err(error) = grounding::validate_prose(&draft, &units[cursor..end]) {
-                    runner.diagnostic("synthesize", slug, attempt, "deterministic_grounding", &[error.to_string()]);
+                    runner.diagnostic(
+                        "synthesize",
+                        slug,
+                        attempt,
+                        "deterministic_grounding",
+                        &[error.to_string()],
+                    );
                     if attempt == 2 {
                         evidence_only_fallback = true;
                         runner.degraded_topics.insert(slug.clone());
