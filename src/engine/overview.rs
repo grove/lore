@@ -58,6 +58,17 @@ fn select<'a>(
     for values in topics.values() {
         mandatory.insert(values[0].id.as_str());
     }
+    // Preserve a representative from each material documentary category,
+    // including reported delivery, which otherwise loses to designs and decisions.
+    let mut by_kind: BTreeMap<&str, &KnowledgeView> = BTreeMap::new();
+    for u in knowledge {
+        if u.evidence.iter().any(|e| e.active) {
+            by_kind.entry(u.kind.as_str()).or_insert(u);
+        }
+    }
+    for u in by_kind.values() {
+        mandatory.insert(u.id.as_str());
+    }
     for link in decisions {
         for id in [&link.from_id, &link.to_id] {
             ensure!(
@@ -118,6 +129,8 @@ fn validate(d: &PageDraft, selected: &[&KnowledgeView]) -> Result<()> {
         .map(|u| (u.id.as_str(), u.topic.as_str()))
         .collect();
     let required: BTreeSet<_> = allowed.values().copied().collect();
+    let required_kinds: BTreeSet<_> = selected.iter().map(|u| u.kind.as_str()).collect();
+    let mut covered_kinds = BTreeSet::new();
     let mut covered = BTreeSet::new();
     let mut count = 0;
     for s in &d.sections {
@@ -138,12 +151,15 @@ fn validate(d: &PageDraft, selected: &[&KnowledgeView]) -> Result<()> {
                     .context("overview cited unknown knowledge")?;
                 ensure!(seen.insert(id), "duplicate overview citation");
                 covered.insert(*topic);
+                if let Some(u) = selected.iter().find(|u| u.id == *id) {
+                    covered_kinds.insert(u.kind.as_str());
+                }
             }
         }
     }
     ensure!(
-        count <= 128 && covered == required,
-        "overview omitted a topic or exceeded paragraph budget"
+        count <= 128 && covered == required && covered_kinds == required_kinds,
+        "overview omitted a topic or documentary category, or exceeded paragraph budget"
     );
     let material_kinds = ["decision", "design", "reported_outcome", "constraint", "procedure"];
     let required_ids = selected.iter().filter(|u| material_kinds.contains(&u.kind.as_str())
