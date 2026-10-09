@@ -40,6 +40,7 @@ pub struct Report {
     pub decision_calls: usize,
     pub pending_reviews: usize,
     pub warnings: Vec<String>,
+    pub degraded_topics: Vec<String>,
     pub generation: Option<String>,
 }
 #[derive(Debug, Clone, Serialize)]
@@ -479,6 +480,7 @@ pub async fn update(
     report.cache_hits = runner.cache_hits;
     report.decision_calls = runner.decision_calls;
     report.warnings.extend(runner.warnings.clone());
+    report.degraded_topics = runner.degraded_topics.iter().cloned().collect();
     report.pending_reviews = pending_reviews(&conn)?;
     drop(runner);
     conn.execute_batch("COMMIT")?;

@@ -60,6 +60,11 @@ def automated_checks(report:dict)->tuple[bool,list[str]]:
         failures.append("Initial inference result missing");phases={}
     if report.get("target")=="atlas" and "after_mutation" not in phases:failures.append("Atlas mutation result missing")
     for name,entry in phases.items():
+        degraded=entry.get("report",{}).get("degraded_topics",[])
+        # Exact, attributed excerpts are safe to publish but are not
+        # semantically verified narratives and cannot pass the beta gate.
+        if degraded:
+            failures.append(name+": degraded evidence-only topic(s) require review: "+", ".join(degraded))
         score=entry.get("score",{})
         if score.get("sqlite_integrity_ok") is not True:failures.append(name+": database integrity not passed")
         if score.get("current_excerpt_failures")!=[]:failures.append(name+": source evidence not passed")

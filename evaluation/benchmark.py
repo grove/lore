@@ -391,6 +391,9 @@ def report_markdown(report: dict) -> str:
             lines.append(f"- Labeled relationship checks: {gold['relation_tests_passed']}/{gold['relation_tests_total']} (unassessable count as failed)")
         if "elapsed_seconds" in entry:
             lines.append(f"- CLI elapsed seconds: {entry['elapsed_seconds']}")
+        degraded=entry.get("report",{}).get("degraded_topics",[])
+        if degraded:
+            lines.append("- **DEGRADED: documentary excerpts published without passing semantic synthesis:** "+", ".join(degraded))
         lines.append("")
     noop = report.get("no_op", {})
     if noop:

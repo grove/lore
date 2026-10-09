@@ -4,7 +4,7 @@ The implementation is ready for testing when deterministic contracts pass; the *
 
 ## Automated gates
 
-Every run must complete an initial compilation with synthesis verification enabled, valid SQLite integrity, nonempty checked source evidence and no excerpt failures. The unchanged update must report no-op, zero generative/decision calls and identical wiki page hashes. Atlas must also complete its mutation and pass both initial relationship rules and all three post-mutation relationship rules. The binary identity must be recorded, and the three candidate runs must use the same binary and configured model roles. Exact type/lifecycle scores remain diagnostics because multiple classifications can be defensible; they must not conceal the failure of a semantic criterion.
+Every run must complete an initial compilation with synthesis verification enabled, valid SQLite integrity, nonempty checked source evidence and no excerpt failures. Every phase must also report zero `degraded_topics`: evidence-only fallback pages are honest and inspectable, but have **not** passed semantic synthesis verification and cannot satisfy the validated-beta gate. The unchanged update must report no-op, zero generative/decision calls and identical wiki page hashes. Atlas must also complete its mutation and pass both initial relationship rules and all three post-mutation relationship rules. The binary identity must be recorded, and the three candidate runs must use the same binary and configured model roles. Exact type/lifecycle scores remain diagnostics because multiple classifications can be defensible; they must not conceal the failure of a semantic criterion.
 
 ## Human gates
 

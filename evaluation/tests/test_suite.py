@@ -69,4 +69,18 @@ class SuiteTests(unittest.TestCase):
    report['synthesis_verification']=True;report['lore_binary_sha256']=None
    self.assertFalse(suite.automated_checks(report)[0])
 
+ def test_degraded_semantic_fallback_fails_beta_gate(self):
+  with tempfile.TemporaryDirectory() as temp:
+   run=completed(Path(temp)/'atlas');reviewed(run)
+   metrics=run/'metrics.json';record=json.loads(metrics.read_text())
+   record['phases']['after_mutation']['report']={'degraded_topics':['ledger-persistence']}
+   metrics.write_text(json.dumps(record))
+   passed,failures=suite.automated_checks(record)
+   self.assertFalse(passed)
+   self.assertTrue(any('degraded evidence-only' in error for error in failures))
+   self.assertFalse(suite.assess_run(run)['ready'])
+   record['phases']['after_mutation']['report']={'degraded_topics':[]}
+   metrics.write_text(json.dumps(record))
+   self.assertTrue(suite.automated_checks(record)[0])
+
 if __name__=='__main__':unittest.main()

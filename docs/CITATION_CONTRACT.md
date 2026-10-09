@@ -23,3 +23,12 @@ A separate presentation-contract marker invalidates old rendered output without 
 ## Validation scope
 
 Regression tests check exact citation enums in both provider request formats, repair when a mock endpoint ignores the schema, historical endpoints below the old sampling cutoff, budget failures, unknown-ID rejection, semantic-verification failure, prior-publication preservation, private diagnostics, presentation-only upgrades, mutation and no-op behavior. These tests establish contract behavior, not model quality. A fresh Atlas run using the configured Foundry endpoint is still needed before proceeding to Lore-self, OpenWiki and human acceptance review.
+
+
+## Chronology-safe topic synthesis
+
+Topic-page writing can cite only knowledge units included in that exact synthesis batch. Cross-topic decision relationships remain visible to the independent verifier, and source-backed decision history is rendered separately with its exact relationship evidence. A writer must not turn an undated PostgreSQL proposal into a claim that the proposal chronologically preceded a newer ADR, or attach supersession to old design citations that do not support the replacement.
+
+When semantic verification rejects the generated prose, Lore requests two targeted rewrites that specifically remove unsupported before/after, current-state or supersession claims while retaining all local knowledge coverage. Unsupported generated text is never published. If all three semantic checks fail, only that topic batch degrades to **verbatim source excerpts with an explicit “synthesis requires review” marker**. This is documentary evidence, not verified synthesis, and must not be treated as a passing quality result. The CLI's JSON report identifies the affected topic under `degraded_topics`, and the evaluation suite automatically fails the beta gate when the list is nonempty. The documentation and evidence still remain accessible, and a subsequent unchanged update remains a no-op.
+
+The fallback is deliberately limited to topic-level semantic verification failures. Citation-schema errors, invented or missing evidence, extraction failures, provider failures, and semantically unsupported generated *project overviews* still fail closed without publication. Rust's deterministic documentary-decision section continues to cite exact recorded relationship evidence; a source title or publication date is not proof of an event chronology.
