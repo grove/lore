@@ -651,6 +651,74 @@ mod selection_contracts {
         );
     }
     #[test]
+    fn oversubscribed_64kb_overview_preserves_navigation_and_records_omissions() {
+        let names = ["architecture", "policies", "operations"];
+        let kinds = [
+            "design", "decision", "constraint", "reported_outcome", "procedure",
+            "plan", "observation", "risk", "issue_state",
+        ];
+        let mut units = (0..48)
+            .map(|i| {
+                let mut unit = unit(&format!("ku_{i:02}"), names[i % names.len()], false);
+                unit.kind = kinds[i % kinds.len()].into();
+                unit.statement = format!(
+                    "Documented statement {i}: {}",
+                    "Project source background. ".repeat(24)
+                );
+                unit.evidence[0].excerpt = format!(
+                    "Exact source passage {i}: {}",
+                    "Documented evidence and its qualifiers. ".repeat(15)
+                );
+                unit
+            })
+            .collect::<Vec<_>>();
+        let previous = unit("ku_predecessor", "architecture", true);
+        let successor = unit("ku_successor", "policies", false);
+        let relation = link(&successor, &previous);
+        units.push(previous);
+        units.push(successor);
+
+        // The uploaded evaluation used a 64_000-byte overall limit and less
+        // than 23_808 bytes for selected knowledge after metadata reservations.
+        // This fixture is deliberately unrelated to the Atlas source texts.
+        let selected = select(&units, &[relation.clone()], 23_808).unwrap();
+        assert!(selected.len() < units.len());
+        assert!(selected.iter().any(|u| u.kind == "reported_outcome"));
+        let represented = selected.iter().map(|u| u.topic.as_str()).collect::<BTreeSet<_>>();
+        assert_eq!(represented.len(), names.len());
+        let serialized_bytes = 2 + selected
+            .iter()
+            .map(|u| serde_json::to_vec(&row(u)).unwrap().len() + 1)
+            .sum::<usize>();
+        assert!(serialized_bytes <= 23_808);
+
+        let links = citable_decisions(&[relation], &selected, 2_000).unwrap();
+        let ids = selected.iter().map(|u| u.id.as_str()).collect::<BTreeSet<_>>();
+        assert!(links.iter().all(|link|
+            ids.contains(link.from_id.as_str()) && ids.contains(link.to_id.as_str())
+        ));
+        let scope = overview_scope(&units, &selected);
+        assert!(scope.contains("representative guide"));
+        assert!(scope.contains("additional units"));
+        assert!(scope.contains("topics/"));
+    }
+
+    #[test]
+    fn incomplete_decision_pair_is_never_sent_to_model_context() {
+        let old = unit("ku_old", "ledger", true);
+        let next = unit("ku_next", "migration", false);
+        let edge = link(&next, &old);
+        // Enough for exactly one row, not both: the relation remains
+        // available to deterministic rendering, but not model narration.
+        let budget = serde_json::to_vec(&row(&old)).unwrap().len() + 3;
+        let units = [old, next];
+        let selected = select(&units, &[edge.clone()], budget).unwrap();
+        assert_eq!(selected.len(), 1);
+        assert!(citable_decisions(&[edge], &selected, 4_096).unwrap().is_empty());
+        assert!(overview_scope(&units, &selected).contains("1 additional units"));
+    }
+
+    #[test]
     fn insufficient_budget_or_dangling_relationship_is_an_explicit_error() {
         let old = unit("ku_old", "ledger", true);
         let next = unit("ku_next", "migration", false);
@@ -659,7 +727,7 @@ mod selection_contracts {
             select(&[old.clone(), next.clone()], &[edge.clone()], 1)
                 .unwrap_err()
                 .to_string()
-                .contains("cannot fit every topic")
+                .contains("cannot fit a single evidence-backed knowledge row")
         );
         assert!(
             select(&[next], &[edge], 100_000)
