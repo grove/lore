@@ -8,9 +8,9 @@ Projects collect their history in architecture notes, ADRs, plans, issue exports
 
 ## Vision
 
-**Make every developer and coding agent feel like they've been working on the project for years.**
+**Our primary future goal is to help a developer new to an unfamiliar project become productive, understand their first correct contribution, and start their next one more independently.**
 
-Lore's goal is not to generate more documentation. It is to help people and agents understand **what** a project does, **how** it works, **why** decisions were made, **what has changed**, and **what matters** when making the next change.
+Lore's goal is not to generate more documentation. It is to help newcomers **get oriented**, explore how real workflows work, understand **why** they were designed that way, and learn through a guided first contribution. The same project intelligence helps experienced developers and coding agents decide what matters for the next change.
 
 Humans should get an inviting, navigable guide to the project's architecture, concepts, decisions, and open questions. Coding agents should be able to retrieve the relevant, evidence-backed context for a task instead of rediscovering intent from scattered files. Both experiences should draw from the same versioned knowledge, clearly distinguishing accepted decisions, proposals, historical context, and unverified reports.
 
@@ -18,7 +18,9 @@ The CLI, task-context interface, native snapshot adapters, and generated Markdow
 
 ## Proposed future: Knowledge Experience
 
-A [detailed Knowledge Experience design](docs/KNOWLEDGE_EXPERIENCE_DESIGN.md) and [phased implementation roadmap](docs/KNOWLEDGE_EXPERIENCE_ROADMAP.md) explore a next layer beyond the current wiki and decision-ready context: evidence-preserving knowledge zoom, Diátaxis-inspired explain/how-to/tutorial/reference views, decision assumptions, negative cases, focused knowledge-gap questions, replayable learning, and revision-aware guidance. **These are proposals, not Lore 0.6 commands or implemented features.** Each phase has safety, compatibility and measured-usefulness gates; the existing knowledge and evidence registry remains authoritative.
+**Proposed primary experience:** [Developer Onboarding — product and technical design](docs/DEVELOPER_ONBOARDING_DESIGN.md). A developer opens an unfamiliar project, gets a grounded orientation and workflow tour, follows a short hands-on tutorial, makes a correctly constrained first change, and tackles a **different related task with less assistance**. Lore does the investigative homework but preserves the learner's agency.
+
+The [Knowledge Experience architecture](docs/KNOWLEDGE_EXPERIENCE_DESIGN.md) combines adaptive Knowledge Zoom, Diátaxis (tutorial-first for onboarding), decision conditions and cases. The [Autonomous Assistance contract](docs/AUTONOMOUS_ASSISTANCE_DESIGN.md) describes how Lore investigates within permissions and avoids delegating unnecessary work. The [newcomer-first roadmap](docs/KNOWLEDGE_EXPERIENCE_ROADMAP.md) plans delivery and evaluation. **All of these are future proposals, not Lore 0.6 commands or shipped features.** The evidence registry and existing CLI compatibility remain foundational.
 
 ## Evaluating Lore
 
