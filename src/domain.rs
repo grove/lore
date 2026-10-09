@@ -299,6 +299,23 @@ pub fn page_schema() -> Value {
         &["sections"],
     )
 }
+/// A citation is a foreign key into this request, not arbitrary generated text.
+/// Keep runtime validation as well: not every provider enforces its schema.
+pub fn page_schema_for(allowed: &std::collections::BTreeSet<String>) -> Result<Value> {
+    ensure!(
+        !allowed.is_empty(),
+        "cannot synthesize without citable knowledge"
+    );
+    let mut schema = page_schema();
+    schema["properties"]["sections"]["items"]["properties"]["paragraphs"]["items"]["properties"]
+        ["knowledge_ids"] = json!({
+        "type": "array",
+        "minItems": 1,
+        "description": "Cite only IDs from the supplied knowledge rows. Evidence IDs, assertion IDs, document names and context-only relationship endpoints are not citations.",
+        "items": {"type": "string", "enum": allowed}
+    });
+    Ok(schema)
+}
 pub fn verification_schema() -> Value {
     object(
         json!({"supported":{"type":"boolean"},"issues":{"type":"array","items":{"type":"string"}}}),

@@ -1,4 +1,5 @@
 //! Deterministic orchestration with bounded, validated semantic steps.
+mod citations;
 mod overview;
 mod reconcile;
 mod render;
@@ -52,6 +53,7 @@ pub struct Status {
     pub removed_files: Vec<String>,
     pub renamed_files: Vec<String>,
     pub configuration_changed: bool,
+    pub presentation_changed: bool,
     pub output_modified: bool,
     pub warnings: Vec<String>,
 }
@@ -140,6 +142,13 @@ fn make_plan(
         Some(c) => storage::meta(c, "config_digest")?.as_deref() != Some(&config.fingerprint),
         None => true,
     };
+    let presentation_changed = match conn {
+        Some(c) if initialized => {
+            storage::meta(c, "presentation_contract")?.as_deref()
+                != Some(citations::CONTRACT_VERSION)
+        }
+        _ => false,
+    };
     let mut warnings = inventory.warnings.clone();
     let mut output_modified = false;
     if initialized {
@@ -159,6 +168,7 @@ fn make_plan(
         initialized,
         needs_update: !initialized
             || configuration_changed
+            || presentation_changed
             || pending
             || output_modified
             || !new_files.is_empty()
@@ -175,6 +185,7 @@ fn make_plan(
             .collect(),
         renamed_files,
         configuration_changed,
+        presentation_changed,
         output_modified,
         warnings,
     };
@@ -405,7 +416,11 @@ pub async fn update(
         &mut runner,
         &knowledge,
         &old_pages,
-        options.rebuild || options.refresh || options.deep || plan.status.configuration_changed,
+        options.rebuild
+            || options.refresh
+            || options.deep
+            || plan.status.configuration_changed
+            || plan.status.presentation_changed,
     )
     .await?;
     report.changed_pages = pages
@@ -445,6 +460,7 @@ pub async fn update(
     )?;
     for (k, v) in [
         ("initialized", "1"),
+        ("presentation_contract", citations::CONTRACT_VERSION),
         ("config_digest", config.fingerprint.as_str()),
         ("inventory_digest", inventory.digest.as_str()),
         ("generation", generation.as_str()),
