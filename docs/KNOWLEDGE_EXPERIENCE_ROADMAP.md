@@ -372,29 +372,33 @@ Package 17 is a new capability boundary, not a prerequisite to completing invest
 
 ```mermaid
 flowchart TD
-  R0[R0 contracts and evaluation] --> A1[A1 adaptive reads]
+  R0[R0 newcomer evaluation and contracts] --> A1[A1 permitted investigation]
   A1 --> A2[A2 empowering answers]
-  A2 --> A3[A3 reusable findings]
-  R0 --> R1[R1 retrieval experiments]
-  A2 --> R3[R3 goal-specific presentation]
-  A3 --> R2[R2 Knowledge Zoom]
-  R1 -. measured improvements .-> R2
-  R2 --> R3
-  A3 --> R4[R4 conditions and negative cases]
+  A2 --> O1[O1 orientation and guided tour]
+  O1 --> O2[O2 learning path and tutorial]
+  O2 --> O3[O3 first contribution and transfer]
+  A1 --> A3[A3 revalidated investigation reuse]
+  A3 -. speeds up .-> O2
+  A3 -. speeds up .-> O3
+  R0 --> R1[R1 contextual retrieval experiments]
+  R1 -. if useful .-> R2[R2 adaptive Knowledge Zoom]
+  O1 --> R2
+  R2 -. enriches concepts .-> O2
+  O2 --> R3[R3 full Diataxis experiences]
+  A3 --> R4[R4 decision conditions and negative cases]
+  R4 -. cases .-> O2
   R3 --> R5A[R5A worked cases]
-  R4 --> R5A
-  R5A --> S[Separate security and runner contract]
-  S --> R5B[R5B approved replay]
+  R5A --> S[Separate runner safety approval]
+  S --> R5B[R5B authorized replay]
   R4 --> R6[R6 impact and guardian]
-  R2 --> UI[Optional reader]
+  R2 --> UI[Optional local reader]
   R3 --> UI
-  R6 --> R7[R7 research]
-  R5B --> R7
+  R6 --> R7[R7 future research]
 ```
 
-**First candidate release:** A1–A3, with R0 evaluation and only necessary R1 fixes. It must demonstrate an automatic permitted investigation, counterevidence-based recommendation revision, precise noninteractive dependency, meaningful partial progress, no unnecessary work for an easy request, and safe reuse after source mutation.
+**First credible newcomer release:** R0 plus a minimal A1/A2 and O1/O2/O3 path. Deliver a grounded project essence, a coherent tour, one meaningful tutorial and support for a correct first task; validate a different second task. A3 reuse is valuable but should not delay first product proof.
 
-**What waits:** full hierarchical rebuild, all four polished modes, sandboxed execution, new connectors, personal profiles, a graphical reader and cross-project transfer. Retaining them as separate workstreams preserves ambition without diluting the immediate experience.
+**What waits:** complete corpus hierarchy, a wide library of tutorials, a hosted account, new connectors, sandboxed execution, user tracking, dedicated reader UI and cross-project transfer. Avoid both shortcuts: a polished orientation with no learning outcome, and an agent-written contribution misreported as developer competence.
 
 ## 19. Validation, rollout, risks and definition of done
 
@@ -402,13 +406,13 @@ flowchart TD
 
 Unit tests cover typed actions, state transitions, policy intersections, source IDs, hashes, scopes, DAGs, budgets and response contracts. Property/mutation tests cover source additions/deletions/moves, changed relationships, dirty/same-size/deeper file changes, incomplete indexes, no-op, stale reuse and crash recovery. Adversarial tests cover injection, forged citations, negation, scope/policy mistakes, hidden critical exceptions, secret egress, malicious runner requests and poisoned memory.
 
-Real-model tests measure complete task outcomes and reasoning errors with independent review, including missed constraints, false causal/temporal claims and inappropriate authority. Product tests measure reading/correction effort, correct next action, cancellation/overrides, exact lookup, skill transfer, warnings and gap-capture burden. Runner/reader security tests are separate from prompt/schema tests.
+Real-model tests measure complete task outcomes and reasoning errors with independent review, including missed constraints, false causal/temporal claims and inappropriate authority. Product tests measure first-minute orientation, project/workflow understanding, trace accuracy, first correct contribution, independent second-task transfer, mentor assistance, hint use and learner agency; also reading/correction effort, cancellation, exact lookup, warnings and gap-capture burden. Runner/reader security tests are separate from prompt/schema tests.
 
 ### 16.2 Metrics and anti-gaming
 
-Primary: unassisted correct progress and total time/effort to a correct, constraint-respecting outcome. Report task completion, avoidable delegation, true external dependencies, false blocking, unsafe proceeding, unnecessary investigation, clarity/agency, reuse benefit, cold/warm p50/p95 and actual usage/billing where known.
+Primary for onboarding: **time to a correct and understood first contribution plus a correct, less-assisted transfer task**. Separately track independent developer understanding and agent-authored task completion. For general task assistance, retain unassisted correct progress and total effort to a constraint-respecting outcome. Report task completion, avoidable delegation, true external dependencies, false blocking, unsafe proceeding, unnecessary investigation, clarity/agency, reuse benefit, cold/warm p50/p95 and actual usage/billing where known.
 
-Use matched-capability and matched-budget arms: original sources, current 0.6 default, explicit inspected/investigated 0.6, adaptive without reuse, adaptive with reuse, and naive always-investigate. Later add richer retrieval/views or execution separately. Keep the same coding model, source snapshots and external correctness checks; randomize and isolate caches. A reused prior solution must not leak held-out answers.
+Use matched-capability and matched-budget arms: original source/docs, current OpenWiki if available, current 0.6, adaptive alone, and onboarding tour/tutorial/companion with optional investigation reuse. Compare identical first/second tasks, appropriately balanced newcomer experience and verified outcomes. For autonomy-only ablations, retain explicit inspected/investigated 0.6 and an always-investigate arm. Later add richer retrieval/views or execution separately. Keep the same coding model, source snapshots and external correctness checks; randomize and isolate caches. A reused prior solution or generated tutorial must not leak held-out answers. A first contribution completed entirely by a coding agent counts as agent completion, not demonstrated developer competence.
 
 Pre-register improvement/non-inferiority targets and sample size after R0 baselines, before scoring candidate output. Zero questions, zero blockers, many checks or confident prose cannot be a standalone target. Hard safety/provenance gates remain mandatory; empirical task scores remain honestly unmeasured until executed.
 
@@ -434,14 +438,19 @@ Migrate derived stores independently, retaining accepted evidence and legacy sch
 | Runner escapes or leaks data | Distinct tested isolation, no arbitrary commands, explicit data-class egress |
 | Guardian overwhelms the user | Investigate/triage first, deduplicate, severity/applicability and interruption measures |
 | Source-derived summaries leak under reduced access | Restriction inheritance through views/vectors/records and permission revalidation |
-| UI implies user knowledge from page views | Explicit acknowledged baselines only; no hidden profiling |
+| UI implies user knowledge from page views | Only explicit activities or acknowledged baselines; no inferred mastery/profiling |
+| Tour teaches a fabricated code flow | Ground every stop and label static versus runtime evidence |
+| Assistant silently completes learner tasks | Distinguish developer-authored work from agent execution; independent transfer study |
+| Onboarding becomes a mandatory quiz | Explicit learner intent, skip/jump controls, non-punitive hints and no gates |
+| Generated practice task masquerades as issue | Source-backed real work items only; clearly label exercises |
+| Knowledge/learning depth fixed to four levels | Adaptive meaningful hierarchy with bounded computation, not fixed ontology depth |
 | Generated output overwrites authored text | Manifest ownership, explicit rebuild and staged publication |
 
 ### 16.5 Definition of done
 
 Every ticket has a concrete user journey; out-of-scope/failure behavior; source/derived authority boundary; versioned request/result and migration; actual permission/resource/write effects; unit/negative/adversarial tests; invalidation/no-op/purge/publication as applicable; user help and honest examples; measured result or explicit unmeasured status; and rollback without accepted-evidence loss.
 
-Autonomy tickets additionally demonstrate no avoidable handoff within the available capability envelope, correct stopping, scoped partial progress, cancellation and counterevidence revision. Execution tickets require independent sandbox evidence. Model-quality tickets need a real-model evaluation plan/results and actual identities/usage; fixture success is never relabeled empirical utility.
+Onboarding tickets additionally demonstrate source-bound tours, optional purposeful practice, learner control, privacy, and measured first-task or second-task outcomes. Autonomy tickets demonstrate no avoidable handoff within the permitted envelope, correct stopping, scoped partial progress, cancellation and counterevidence revision. Execution tickets require independent sandbox evidence. Model-quality tickets need a real-model evaluation plan/results and actual identities/usage; fixture success is never relabeled empirical utility.
 
 ## 20. Settled direction, remaining choices and references
 
@@ -450,7 +459,10 @@ Autonomy tickets additionally demonstrate no avoidable handoff within the availa
 | Who owns available investigation? | Lore; humans are not the default fallback | Typed adapter coverage and task-specific value |
 | Everyday effort selection? | Automatic inside standing permissions | Numerical limits and calibrated routing |
 | Must uncertainty be eliminated? | No; resolve what changes action, expose material residual conditions | Sufficiency/error and burden trade-offs |
-| What ships first? | A1–A3 empowering read-only assistance and reuse | Default rollout requires matched outcome/migration evidence |
+| What ships first? | R0 + minimal A1/A2 + O1/O2/O3 newcomer path; A3 in parallel | Independent first-task and transfer verification |
+| Primary audience? | Newcomers to an unfamiliar project, whether junior or experienced | Compare experience levels in held-out evaluation |
+| What proves success? | Correct and understood first task plus new less-assisted second task | Non-leaking checks and developer authorship |
+| Role of Diátaxis? | Tutorials lead onboarding; Explanation/Reference/How-to are just-in-time | Validate switching without forced quizzes |
 | Does every finding need approval? | No; derived findings reuse automatically under policy | Explicit source-authoring review remains separate |
 | How to handle true blockers? | Exact missing decision/observable plus meaningful safe work | Do not fabricate safe progress where none exists |
 | Hierarchy and segmentation? | Improve when measured; never required navigation | Grouping, salience and stable identity |
@@ -458,8 +470,8 @@ Autonomy tickets additionally demonstrate no avoidable handoff within the availa
 | Reader/personalization? | Optional; CLI/Markdown first, no hidden tracking | Demonstrated usability and privacy value |
 | Cross-project transfer? | Research with strict scope and authority separation | Reliable permissions and actual usefulness |
 
-Project references: [autonomy and UX contract](AUTONOMOUS_ASSISTANCE_DESIGN.md), [full knowledge architecture](KNOWLEDGE_EXPERIENCE_DESIGN.md), [vision](../VISION.md), [existing design](../DESIGN.md), [0.6 behavior](V06.md), [0.6 decision evaluation](../evaluation/DECISION_INTELLIGENCE.md).
+Project references: [developer onboarding design](DEVELOPER_ONBOARDING_DESIGN.md), [autonomy and UX contract](AUTONOMOUS_ASSISTANCE_DESIGN.md), [full knowledge architecture](KNOWLEDGE_EXPERIENCE_DESIGN.md), [vision](../VISION.md), [existing design](../DESIGN.md), [0.6 behavior](V06.md), [0.6 decision evaluation](../evaluation/DECISION_INTELLIGENCE.md).
 
 Research/product context remains [Diátaxis](https://diataxis.fr/), [RAPTOR](https://arxiv.org/abs/2401.18059), [GraphRAG](https://arxiv.org/abs/2404.16130) and [OpenWiki](https://github.com/langchain-ai/openwiki). They motivate experiments, not claims of novelty or measured gains for Lore.
 
-**Acceptance question:** Did Lore do the useful work it could perform and leave the user more able to understand or proceed correctly, with less burden and without inventing certainty or authority?
+**Acceptance question:** Did Lore help a developer unfamiliar with the project form an accurate mental model, make a correct first contribution, and approach a different second task more independently—while performing the investigation it reasonably could and preserving user agency, evidence and safety?
