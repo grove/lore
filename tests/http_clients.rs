@@ -330,7 +330,11 @@ async fn retries_transient_errors_and_withholds_failure_body() {
             )
         }
     });
-    let (c, role) = configured(&cfg, &server, "ollama");
+    let (mut c, role) = configured(&cfg, &server, "ollama");
+    // A Windows loopback reconnect can transiently fail immediately after
+    // a mock server closes an HTTP 503 connection. Allow a spare transport
+    // retry while still asserting the two server-handled requests (503, 200).
+    c.config.processing.retry_attempts = 3;
     let model = HttpModel::new(&c, &role).unwrap();
     let request = GenerationRequest {
         reasoning_effort: None,
