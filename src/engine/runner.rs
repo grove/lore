@@ -54,7 +54,14 @@ impl<'a> Runner<'a> {
     }
     /// Keep model feedback inspectable without copying full project passages
     /// into diagnostics. A repair that succeeds is still recorded.
-    pub fn diagnostic(&mut self, task: &str, topic: &str, attempt: usize, check: &str, issues: &[String]) {
+    pub fn diagnostic(
+        &mut self,
+        task: &str,
+        topic: &str,
+        attempt: usize,
+        check: &str,
+        issues: &[String],
+    ) {
         if self.quality_diagnostics.len() >= 256 {
             return;
         }
@@ -66,7 +73,11 @@ impl<'a> Runner<'a> {
             issues: if issues.is_empty() {
                 vec!["Verifier rejected the draft without an explanation".into()]
             } else {
-                issues.iter().take(8).map(|s| s.chars().take(320).collect()).collect()
+                issues
+                    .iter()
+                    .take(8)
+                    .map(|s| s.chars().take(320).collect())
+                    .collect()
             },
         });
     }
