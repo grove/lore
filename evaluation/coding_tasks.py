@@ -413,7 +413,9 @@ def run(args: argparse.Namespace, *, setups=SETUPS, context_collector=None,
             for filename, content in response["files"].items():
                 target = workspace / filename
                 cross.reject_symlink_path(target)
-                target.write_text(content, encoding="utf-8")
+                # Preserve the exact UTF-8 bytes bound to the answer hash;
+                # text-mode writes translate LF to CRLF on Windows.
+                target.write_bytes(content.encode("utf-8"))
             checks, verification_seconds = execute_checks(case, workspace, cases_path.parent, args.timeout)
             actual = cross.fingerprint(workspace)
             allowed = set(case["editable_files"])
