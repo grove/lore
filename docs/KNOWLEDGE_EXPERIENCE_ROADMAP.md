@@ -1,36 +1,43 @@
-# Lore Knowledge Experience — empowerment-first roadmap
+# Lore Knowledge Experience — newcomer-first roadmap
 
-**Status:** Proposed implementation plan, not shipped functionality. **Roadmap revision:** 2. **Date:** 2026-10-09. **Baseline:** Lore 0.6.
+**Status:** Proposed implementation plan, not shipped functionality. **Roadmap revision:** 3. **Date:** 2026-10-09. **Baseline:** Lore 0.6.
 
-**Designs:** [autonomous assistance and user empowerment](AUTONOMOUS_ASSISTANCE_DESIGN.md) and [Knowledge Experience architecture](KNOWLEDGE_EXPERIENCE_DESIGN.md).
+**Designs:** [Developer onboarding](DEVELOPER_ONBOARDING_DESIGN.md) (primary user journey), [Autonomous Assistance](AUTONOMOUS_ASSISTANCE_DESIGN.md), [Knowledge Experience](KNOWLEDGE_EXPERIENCE_DESIGN.md).
 
-> **Maximum useful autonomy. Minimum user burden.** First make Lore do the useful investigation and deliver an actionable answer. Then make that understanding easier to explore, apply, learn from and reuse.
+> **Get up to speed on any project. Make your first correct contribution. Grow independent.**
+>
+> **Maximum useful autonomy, minimum user burden:** Lore investigates the project for you while helping you learn by doing.
 
-Revision 2 moves adaptive assistance into the first delivery, rather than treating investigation as an optional late-stage agent feature. It preserves the R0–R7 knowledge workstreams and adds A1–A3 as the initial implementation path. Existing phase labels and original work-package labels remain traceable; order and acceptance criteria change. All commands, stores and contracts described as future work remain proposals.
+Revision 3 makes **new developers learning an unfamiliar project the primary audience**. A1–A3 become the investigative engine; O1–O3 deliver orientation, guided conceptual learning, a first correct contribution and a more independent second task. Existing R0–R7 and A1–A3 packages remain traceable. Tutorial is the main Diátaxis onboarding mode, with Explanation, Reference and How-to available when needed. Adaptive Knowledge Zoom organizes detail without a fixed conceptual depth. All new behavior remains proposed.
 
 ## 1. Scope, priorities and release policy
 
-This is a capability roadmap, not a version-number or calendar promise. A1–A3 form a candidate next-release scope; assign an actual release number only when implementation, migration and outcome evidence justify it. No dates, staffing assumptions, price or performance improvements are guaranteed here.
+This is a capability roadmap, not a version-number or calendar promise. **The first complete product outcome is a newcomer moving from orientation to a correct first contribution and demonstrably more independent second task.** R0, minimal A1/A2 and a focused O1/O2/O3 vertical slice take priority; A3 reuse may develop in parallel. Assign a release number only after implementation and outcome evidence. No dates, staffing assumptions, prices or improvements are promised.
 
-The intended everyday experience remains one request. Lore chooses useful retrieval, investigation and presentation within accepted permissions. Users should not need to choose investigation flags, graph depth, documentation mode or reasoning effort. Advanced controls remain available to restrict behavior or inspect what happened.
+The proposed newcomer experience begins with `lore onboard`: an immediate grounded orientation, one suggested workflow and optional entry points to explore, learn or start a task. No profile quiz, lengthy configuration form or giant wiki index. Existing `lore context` remains the task entry for everyone. Automatic investigation does the project's homework; deliberate learner predictions and exercises build skill. Advanced controls can still restrict investigation and inspect sources.
 
 ### 1.1 Delivery order
 
 | Stage | User-visible value | Dependency |
 | --- | --- | --- |
-| R0 | Establish baseline, UX/authority contract and small repeatable fixtures | None; run empirical evaluation alongside the first implementation |
-| A1 | Automatically resolve material uncertainty through permitted reads | Existing 0.6 retrieval/inspection plus R0 contract |
-| A2 | Answer first, preserve safe progress and avoid unnecessary handoffs | A1; presentation prototyping can run in parallel |
-| A3 | Reuse revision-bound investigative findings without stale certainty | A1/A2; no new accepted-facts store |
-| R1 | Better contextualized segments and exact retrieval | R0; can proceed alongside A1–A3 |
-| R2 | Knowledge Zoom over useful answers, findings and original evidence | A2/A3 interfaces; R1 only where measured helpful |
-| R3 | Explain, how-to, tutorial and reference suited to the goal | A2; richer zoom integration follows R2 |
-| R4 | Decision conditions, boundary cases and investigate-first gap capture | A1–A3; not dependent on a graphical reader |
-| R5A / R5B | Worked learning cases, then separately approved isolated replay | R3/R4; R5B requires independent security evidence |
-| R6 | Consequential change briefings, advisory guardian and optional reader | A1–A3/R4; UI can follow R2/R3 independently |
-| R7 | Optional personalization and cross-project transfer | Prior correctness, permission and usefulness gates |
+| R0 | Newcomer baseline for first contribution, comprehension and second-task transfer | None; evaluate alongside early prototypes |
+| A1 | Automatically investigate relevant permitted evidence | Lore 0.6 retrieval/inspection; R0 contracts |
+| A2 | Concise empowering answers and safe progress | A1; presentation may develop alongside |
+| **O1** | **Immediate orientation and grounded workflow tour** | Minimal A1/A2; no new UI required |
+| **O2** | **Short concept-learning path and one safe tutorial** | O1; no execution required |
+| **O3** | **First-contribution companion and independent transfer** | O2 + A1/A2; task-first entry may skip tour |
+| A3 | Revalidated investigation reuse across tasks and learning | A1/A2; can run in parallel with O1–O3 |
+| R1 | Better contextualized segments and exact retrieval | R0; parallel where useful |
+| R2 | Adaptive-depth Knowledge Zoom for tours and exploration | O1/A2 interfaces; no fixed conceptual depth |
+| R3 | Complete Diátaxis experiences; tutorial anchors onboarding | O2; explanation/reference/how-to grow alongside |
+| R4 | Decisions, exceptions and investigate-first gaps | A1/A3; cases enrich learning |
+| R5A/R5B | Worked examples, then separately approved isolated replay | O2/R3/R4; security gates for R5B |
+| R6 | Change-aware mentoring, guardian and optional reader | O1–O3; the reader is not mandatory |
+| R7 | Opt-in learner personalization and cross-project research | Evidence, privacy and usefulness gates |
 
-**First useful vertical slice:** a behavior-preserving change with contradictory documentation. Lore reads relevant permitted source/test declarations, evaluates the discrepancy, revises its recommendation when needed, and returns a defensible next action without asking the user to do routine investigation. A second query reuses applicable findings only after revalidation. This does not require a hierarchy, GUI, new connector or test runner.
+**First useful newcomer slice:** a developer opens an unfamiliar repository, sees its essence, follows one source-grounded workflow, practices one meaningful concept, and receives help with a small real change. A **different** related task tests transfer with reduced scaffolding. No graphical reader, graph database, fully materialized summary tree, tracker connection or code runner is required.
+
+**Sequence principle:** A1/A2 give Lore investigative initiative; O1/O2/O3 turn it into the primary onboarding product. A3/R1–R7 improve that experience rather than postponing it.
 
 ### 1.2 Common release gates
 
@@ -43,28 +50,33 @@ The intended everyday experience remains one request. Lore chooses useful retrie
 - Every stateful feature has versioning, bounded storage, invalidation, purge, privacy and crash recovery. Persistent citations outlive disposable cache eviction.
 - No secret/unauthorized egress, untrusted process execution, source mutation, hidden telemetry or background continuation by default.
 - Every quality claim has an actual reviewed experiment. Synthetic fixtures establish mechanics, not product superiority. Features can ship experimentally with honest status while evidence is collected.
+- Onboarding claims require independently verified first-task correctness **and** demonstrated understanding on a different, related task. An agent-written patch or read page is not mastery.
+- Exercises, hints, progress and state are explicit and optional; no mandatory quizzes, invasive tracking or inferred competence from page views.
+- Tours, starter tasks and lessons must preserve source scope/revisions; no invented real issues, runtime traces or passing tests.
 
 ## 2. Backlog priorities
 
 | Priority | Workstream | Smallest useful result | Why it matters |
 | --- | --- | --- | --- |
-| P0 | Adaptive investigation | Useful permitted checks happen without extra flags | Removes investigative burden |
-| P0 | Outcome-first answer and scoped readiness | One recommendation, safe progress and exact remaining dependency | Enables action without hiding uncertainty |
-| P0 | Reusable investigations | Revalidated prior findings reduce duplicate work | Compounds project experience |
-| P0 | Permission UX and compatibility | Standing grants, restrictive overrides, no repeat prompts | Initiative without surprise access |
-| P0 | Full-task and handoff evaluation | Correct progress, burden and unsafe-proceeding metrics | Prevents optimizing apparent confidence |
-| P1 | Contextual segmentation/retrieval | More accurate exact and concept retrieval | May add value before a hierarchy |
-| P1 | Zoom and explain/reference | Expand a useful answer directly to detail/evidence | Reduces reading and navigation burden |
-| P1 | How-to and decision conditions | Applicable steps, tested assumptions where possible | Turns understanding into practical judgment |
-| P1 | Negative/boundary cases | Rare consequential exceptions appear when needed | Avoids expensive repeated mistakes |
-| P2 | Learning experiences | Prepared worked example and transfer task | Builds capability, not merely familiarity |
-| P2 | Investigate-first knowledge gaps | Resolve available gaps; optional focused capture for truly missing knowledge | Improves knowledge without a mandatory review queue |
-| P2 | Change impact and advisory guardian | Triage, investigate and explain meaningful risks/changes | Avoids an unfiltered warning feed |
-| P3 | Isolated verification/replay | Automatically select an approved check inside a standing grant | More capability after a distinct safety boundary |
-| P3 | Local visual reader | Optional mode/depth/evidence interaction | Polish must not delay core usefulness |
-| Research | Personalization/cross-project analogy | Explicit opt-in with namespace/authority boundaries | Conditional transfer, never policy merging |
+| **P0** | **Project orientation and tours** | Understand purpose and follow one real workflow | Remove the initial "where do I start?" barrier |
+| **P0** | **Tutorial-first learning path** | Grounded prediction, short exercise, useful feedback | Develop mental models rather than read more pages |
+| **P0** | **First contribution and transfer** | Correct bounded change; new related task with less help | Demonstrate real newcomer competence |
+| P0 | Adaptive permitted investigation | Source/code/test context without flags or homework | Lore does the research |
+| P0 | Empowering task answers | One recommendation, conditions and next action | Support safe action |
+| P0 | Newcomer/autonomy evaluations | Independent correctness, understanding, mentor burden and transfer | Guard against teaching theater |
+| P1 | Reusable investigations | Revalidated history avoids rediscovery | Compounds project experience |
+| P1 | Concept/prerequisite graph | Adaptive minimal learning sequence | Replaces directory-based walkthroughs |
+| P1 | Contextual retrieval | Preserve source context for facts, tables and procedures | Reduce misleading fragments |
+| P1 | Adaptive Knowledge Zoom | Navigate directly from essence to any grounded level | Control detail without cognitive overload |
+| P1 | Decision and negative cases | Explain when approaches fail or change | Teach engineering judgment |
+| P2 | Optional learner state/resume | Local consented checkpoints, no analytics | Continuity without surveillance |
+| P2 | Rich Diátaxis modes | Tutorial leads; Explanation, Reference and How-to alongside | Right type of help at each moment |
+| P2 | Change-aware mentoring and guardian | Focused changes that matter to learned concepts | Supports returning newcomers |
+| P3 | Approved isolated replay | Verified exercises under independent capability grants | Stronger observation with higher risk |
+| P3 | Optional visual reader | Accessible tours, hints, source drill-down | UX polish without dependency |
+| Research | Cross-project analogy | Scoped lessons with permission separation | Conditional transfer only |
 
-First-release non-goals remain mandatory MCP, graph database, hosted account, daemon, direct tracker setup, browser automation, arbitrary model-authored commands, autonomous code changes, production operation and automatically accepting generated policy. Capability scarcity is not an excuse to abandon useful retained-evidence assistance.
+First-release non-goals remain mandatory MCP, graph database, hosted account, daemon, automatic tracker connection, browser automation, arbitrary model-authored commands, autonomous code changes, production operations, hidden learner profiling and automatic policy acceptance. **A safe runner or GUI must not delay the first grounded tour.**
 
 ## 3. R0 — baseline, contracts and evaluation foundation
 
@@ -73,16 +85,16 @@ First-release non-goals remain mandatory MCP, graph database, hosted account, da
 ### Work items
 
 - **R0.1 Pin the baseline:** source/build/config/model identities; current 0.6 default versus explicit inspection/investigation, including actual grants and resource ceilings.
-- **R0.2 Define outcome tasks:** exact lookup, orientation, behavior-preserving change, policy-changing request, partial progress, document-only assistance and learning transfer. Use independent held-out projects for general claims.
-- **R0.3 Adversarial fixtures:** retain prior provenance, chronology, table, exception, deletion, scope and injection cases; add the AT-01–AT-26 autonomy scenarios in the companion specification.
-- **R0.4 Extend measurement:** full assistance/caller/correction interaction, completed versus delegated checks, false blocks, unsafe proceeding, model/adapter attempts, cold/warm latency, actual usage and known billing.
-- **R0.5 Versioned contracts:** define request/result/controller types, scoped readiness, capability manifest, explicit legacy behavior, progress/cancel events and cache policy. Finalize view types only when needed by R2.
-- **R0.6 Set budgets and UX rubrics:** measure 0.6 behavior; choose initial bounded envelopes and pre-register outcome/non-inferiority targets before candidate scoring. No invented probabilistic value estimates.
+- **R0.2 Define outcome tasks:** newcomer orientation, a correct bounded first change, accurate mental-model explanation and a **distinct held-out second-task transfer**; include exact lookup, policy-changing cases, partial progress and document-only assistance. Balance participants' language/repository familiarity.
+- **R0.3 Adversarial fixtures:** retain provenance, chronology, table, exception, deletion, scope and injection cases; add AT-01–AT-26 autonomy and ON-01–ON-24 newcomer scenarios. Include fabricated starter issues, call-flow uncertainty, changed lesson code and missing runner permission.
+- **R0.4 Extend measurement:** first/second task correctness, grounded explanations and predictions, hints, mentor calls and total developer time; distinguish coding-agent task completion from learner competence. Also measure delegated checks, false blocks, unsafe proceeding, model/adapter attempts, latency and known billing.
+- **R0.5 Versioned contracts:** define request/result/controller, readiness, permission manifest, legacy behavior, progress/cancel and cache; include minimal OnboardingPath, TourStep and LearningActivity contracts. Defer full view schema until R2 and private learner-state schema until needed.
+- **R0.6 Set budgets and UX rubrics:** pre-register learning/transfer, safety and burden targets after measuring baseline; test immediate useful orientation and expert skip-to-task without a questionnaire. No invented mastery probabilities.
 - **R0.7 Threat review:** distinguish trusted host grants, project preferences, caller restrictions, data classes and source-derived egress; document missing adapter capabilities honestly.
 
 ### Deliverables and gate
 
-A contract RFC, adversarial manifest, reproducible baseline collector and independent scoring instructions. R0 contract/fixture readiness unlocks A1 development; held-out studies continue in parallel. Broad quality/default-on claims require reviewed evidence, but lack of a completed study does not indefinitely block an explicitly experimental build. Reviewers must distinguish static inspection, executed checks, source reports, inferences and authority.
+A contract RFC, adversarial manifest, reproducible first/second task baseline and independent scoring instructions. R0 protects against leaked solved-task examples. Contract/fixture readiness unlocks A1 and O1 prototypes; held-out studies continue in parallel. Broad quality/default-on claims require reviewed evidence, but lack of a completed study does not indefinitely block an explicitly experimental build. Reviewers must distinguish static inspection, executed checks, source reports, inferences and authority.
 
 ## 4. A1 — adaptive read-only assistance
 
