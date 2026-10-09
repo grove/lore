@@ -17,7 +17,7 @@ def completed(root:Path,target='atlas')->Path:
  db.executescript("CREATE TABLE evidence_snapshots(id TEXT); INSERT INTO evidence_snapshots VALUES('ev-fixture');");db.commit();db.close()
  score={'sqlite_integrity_ok':True,'current_excerpt_failures':[],'current_excerpt_checks':1,'gold':{'relation_tests_total':2,'relation_tests_passed':2}}
  after={**score,'gold':{'relation_tests_total':3,'relation_tests_passed':3}}
- (root/'metrics.json').write_text(json.dumps({'schema_version':1,'target':target,'lore_binary_sha256':'fixture-only','synthesis_verification':True,'provider':'fixture','model':'not-real','no_op':{'no_op':True,'zero_generations':True,'pages_unchanged':True},'phases':{'initial':{'score':score},'after_mutation':{'score':after}}}))
+ (root/'metrics.json').write_text(json.dumps({'schema_version':1,'target':target,'lore_binary_sha256':'fixture-only','synthesis_verification':True,'provider':'fixture','model':'not-real','no_op':{'no_op':True,'zero_generations':True,'pages_unchanged':True},'phases':{'initial':{'score':score,'report':{'degraded_overview':False,'degraded_topics':[]}},'after_mutation':{'score':after,'report':{'degraded_overview':False,'degraded_topics':[]}}}}))
  return root
 
 def reviewed(run:Path):
@@ -73,14 +73,40 @@ class SuiteTests(unittest.TestCase):
   with tempfile.TemporaryDirectory() as temp:
    run=completed(Path(temp)/'atlas');reviewed(run)
    metrics=run/'metrics.json';record=json.loads(metrics.read_text())
-   record['phases']['after_mutation']['report']={'degraded_topics':['ledger-persistence']}
+   record['phases']['after_mutation']['report'].update({'degraded_topics':['ledger-persistence']})
    metrics.write_text(json.dumps(record))
    passed,failures=suite.automated_checks(record)
    self.assertFalse(passed)
    self.assertTrue(any('degraded evidence-only' in error for error in failures))
    self.assertFalse(suite.assess_run(run)['ready'])
-   record['phases']['after_mutation']['report']={'degraded_topics':[]}
+   record['phases']['after_mutation']['report'].update({'degraded_topics':[]})
    metrics.write_text(json.dumps(record))
    self.assertTrue(suite.automated_checks(record)[0])
+
+ def test_source_excerpt_overview_cannot_pass_automatic_or_human_gate(self):
+  with tempfile.TemporaryDirectory() as temp:
+   run=completed(Path(temp)/'atlas');reviewed(run)
+   path=run/'metrics.json';report=json.loads(path.read_text())
+   report['phases']['initial']['report']['degraded_overview']=True
+   path.write_text(json.dumps(report))
+   checks,failures=suite.automated_checks(report)
+   self.assertFalse(checks)
+   self.assertTrue(any('source-excerpt overview' in message for message in failures))
+   self.assertFalse(suite.assess_run(run)['ready'])
+   report['phases']['initial']['report']['degraded_overview']=False
+   path.write_text(json.dumps(report))
+   wiki=run/'project'/'wiki'/'index.md'
+   wiki.write_text('<!-- lore:degraded-overview-synthesis -->\n')
+   self.assertFalse(suite.assess_run(run)['ready'])
+   self.assertTrue(any('degradation marker' in message for message in suite.assess_run(run)['automated_failures']))
+   wiki.write_text('Grounded fixture overview.\n')
+   self.assertTrue(suite.automated_checks(report)[0])
+
+ def test_missing_overview_verification_status_cannot_pass(self):
+  with tempfile.TemporaryDirectory() as temp:
+   run=completed(Path(temp)/'atlas')
+   path=run/'metrics.json';report=json.loads(path.read_text())
+   report['phases']['after_mutation']['report'].pop('degraded_overview')
+   self.assertFalse(suite.automated_checks(report)[0])
 
 if __name__=='__main__':unittest.main()

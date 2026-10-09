@@ -394,6 +394,8 @@ def report_markdown(report: dict) -> str:
         degraded=entry.get("report",{}).get("degraded_topics",[])
         if degraded:
             lines.append("- **DEGRADED: documentary excerpts published without passing semantic synthesis:** "+", ".join(degraded))
+        if entry.get("report",{}).get("degraded_overview") is True:
+            lines.append("- **DEGRADED OVERVIEW: source excerpts published; semantic narrative verification did not pass. This run fails the beta gate.**")
         lines.append("")
     noop = report.get("no_op", {})
     if noop:

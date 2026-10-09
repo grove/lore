@@ -194,15 +194,31 @@ async fn unknown_citations_still_fail_closed_and_preserve_initial_publication() 
     assert_eq!(fs::read(cfg.wiki.join("index.md")).unwrap(), old_index);
     assert_eq!(fs::read(cfg.state.join("state.db")).unwrap(), old_db);
     assert_eq!(model.overview_calls.load(Ordering::SeqCst), 3);
-    // Correctly formed IDs do not excuse an unsupported paragraph either.
+    // Correctly formed IDs do not excuse unsupported model-written prose.
+    // An explicitly degraded evidence index is permitted, but it cannot be
+    // treated as a verified project overview or a passing beta evaluation.
     model.fail_overview.store(false, Ordering::SeqCst);
     model.reject_verification.store(true, Ordering::SeqCst);
-    let error = engine::update(&cfg, &model, None, UpdateOptions::default())
+    let result = engine::update(&cfg, &model, None, UpdateOptions::default())
         .await
-        .unwrap_err();
-    assert!(format!("{error:#}").contains("overview verification failed"));
-    assert_eq!(fs::read(cfg.wiki.join("index.md")).unwrap(), old_index);
-    assert_eq!(fs::read(cfg.state.join("state.db")).unwrap(), old_db);
+        .unwrap();
+    assert!(result.degraded_overview);
+    assert!(
+        result
+            .warnings
+            .iter()
+            .any(|w| w.contains("OVERVIEW_DEGRADED"))
+    );
+    let index = fs::read_to_string(cfg.wiki.join("index.md")).unwrap();
+    assert!(index.contains("lore:degraded-overview-synthesis"));
+    assert!(index.contains("## Overview evidence"));
+    assert!(!index.contains("Do not persist rejected private prose"));
+    let noop = engine::update(&cfg, &model, None, UpdateOptions::default())
+        .await
+        .unwrap();
+    assert!(noop.no_op);
+    assert_eq!(noop.model_calls, 0);
+    assert!(noop.degraded_overview);
 }
 
 #[tokio::test]
