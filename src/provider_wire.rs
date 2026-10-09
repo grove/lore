@@ -261,6 +261,9 @@ fn openai_schema(schema: &mut Value, passages: &mut Vec<Value>) {
 pub fn openai_responses_request(r: &GenerationRequest, model: &str) -> Value {
     let mut body = json!({"model":model,"store":false,"input":[
         {"role":"system","content":r.instructions},{"role":"user","content":r.input}]});
+    if let Some(effort) = r.reasoning_effort {
+        body["reasoning"] = json!({"effort":effort});
+    }
     if let Some(schema) = &r.schema {
         let mut schema = schema.clone();
         let mut passages = Vec::new();

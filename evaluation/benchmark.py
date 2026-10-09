@@ -136,10 +136,46 @@ def prepare(target: str, project_dir: Path) -> dict:
         if checkout is not None and checkout.exists():
             shutil.rmtree(checkout)
 
+REASONING_DEFAULTS = {
+    "enabled": True,
+    "default": "medium",
+    "extraction": "low",
+    "reconciliation": "high",
+    "synthesis": "medium",
+    "overview": "medium",
+    "verification": "high",
+    "overview_verification": "high",
+}
+REASONING_LEVELS = ("none", "low", "medium", "high", "xhigh", "max")
+
+def reasoning_from_args(args: argparse.Namespace) -> dict:
+    values = dict(REASONING_DEFAULTS)
+    values["enabled"] = not getattr(args, "disable_reasoning", False)
+    for field in REASONING_DEFAULTS:
+        if field == "enabled":
+            continue
+        override = getattr(args, "reasoning_" + field, None)
+        if override is not None:
+            if override not in REASONING_LEVELS:
+                err(f"Unsupported reasoning effort {override} for {field}")
+            values[field] = override
+    return values
+
+def add_reasoning_options(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--disable-reasoning", action="store_true",
+        help="Omit reasoning.effort; let the provider/model select its default")
+    for field, default in REASONING_DEFAULTS.items():
+        if field == "enabled":
+            continue
+        parser.add_argument("--reasoning-" + field.replace("_", "-"),
+            choices=REASONING_LEVELS, default=None,
+            help=f"Responses API reasoning effort for {field} (default: {default})")
+
 def config_for(project_dir: Path, target: str, provider: str, model: str,
                decision_provider: str | None, decision_model: str | None,
                allow_hosted: bool, base_url: str | None, verify: bool, *,
-               generative_base_url: str | None = None, decision_base_url: str | None = None) -> dict:
+               generative_base_url: str | None = None, decision_base_url: str | None = None,
+               reasoning: dict | None = None) -> dict:
     if provider not in ("ollama", "openai"):
         err("Initial generative providers are ollama or openai")
     if (decision_provider is None) != (decision_model is None):
@@ -157,8 +193,14 @@ def config_for(project_dir: Path, target: str, provider: str, model: str,
         err("--decision-base-url requires a decision provider and model")
     if provider == decision_provider and generative_base_url and decision_base_url and generative_base_url.rstrip("/") != decision_base_url.rstrip("/"):
         err("This configuration stores one endpoint per provider; role endpoints for the same provider must agree")
+    values = dict(REASONING_DEFAULTS) if reasoning is None else dict(reasoning)
+    if set(values) != set(REASONING_DEFAULTS) or type(values.get("enabled")) is not bool:
+        err("Reasoning settings must include enabled and all task efforts")
+    if any(v not in REASONING_LEVELS for k,v in values.items() if k != "enabled"):
+        err("Unsupported reasoning effort")
     providers = {}
-    roles = {"generative": {"provider": provider, "model": model}}
+    roles = {"generative": {"provider": provider, "model": model},
+             "reasoning": values}
     for name in {provider, decision_provider} - {None}:
         if name == "ollama":
             providers[name] = {"base_url": base_url or "http://127.0.0.1:11434"}
@@ -429,7 +471,8 @@ def run_command(args: argparse.Namespace) -> dict:
                                 args.decision_provider, args.decision_model,
                                 args.allow_hosted, args.base_url, not args.skip_verification,
                                 generative_base_url=getattr(args, "generative_base_url", None),
-                                decision_base_url=getattr(args, "decision_base_url", None))
+                                decision_base_url=getattr(args, "decision_base_url", None),
+                                reasoning=reasoning_from_args(args))
     out.mkdir(parents=True)
     project = out / "project"
     manifest = prepare(args.target, project)
@@ -468,6 +511,7 @@ def run_command(args: argparse.Namespace) -> dict:
               "rubric": {"version": load_json(gold_path).get("rubric_version", "legacy-v1") if gold_path else None,
                          "sha256": hashlib.sha256(gold_path.read_bytes()).hexdigest() if gold_path else None},
               "provider": args.provider, "model": args.model,
+              "reasoning": checked_config["models"]["reasoning"],
               "decision_provider": args.decision_provider, "decision_model": args.decision_model,
               "hosted_opt_in": args.allow_hosted, "doctor_elapsed_seconds": doctor_time,
               "phases": {"initial": {"report": first, "elapsed_seconds": first_time, "score": score_first}},
@@ -513,6 +557,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     run.add_argument("--base-url")
     run.add_argument("--generative-base-url", help="Explicit generative endpoint; supports Foundry with a different decision provider")
     run.add_argument("--decision-base-url", help="Explicit decision-provider endpoint")
+    add_reasoning_options(run)
     run.add_argument("--output", required=True, type=Path)
     run.add_argument("--lore-binary", default="lore")
     run.add_argument("--mutate", action="store_true")

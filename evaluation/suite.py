@@ -53,6 +53,7 @@ def automated_checks(report:dict)->tuple[bool,list[str]]:
     if report.get("synthesis_verification") is not True:failures.append("Synthesis verification was disabled or not recorded")
     if not report.get("lore_binary_sha256"):failures.append("Binary identity missing")
     if not report.get("provider") or not report.get("model"):failures.append("Configured model identity missing")
+    if not isinstance(report.get("reasoning"),dict):failures.append("Per-task reasoning configuration not recorded")
     for field in ("no_op","zero_generations","pages_unchanged","degradation_status_matches_publication"):
         if noop.get(field) is not True:failures.append("No-op invariant absent or failed: "+field)
     phases=report.get("phases",{})
@@ -92,7 +93,8 @@ def assess_run(run:Path)->dict[str,Any]:
     result={"run":str(run),"target":report.get("target"),"automated_pass":automatic,
         "automated_failures":failures,"human_complete":False,"human_pass":False,
         "human_failures":[],"ready":False,"binary":report.get("lore_binary_sha256"),
-        "model_roles":[report.get(k) for k in ("provider","model","decision_provider","decision_model")]}
+        "model_roles":[report.get(k) for k in ("provider","model","decision_provider","decision_model")] +
+                      [json.dumps(report.get("reasoning"),sort_keys=True)]}
     if not manual.is_file():result["human_failures"].append("Human assessment not supplied");return result
     human=read_json(manual);errors=[]
     if human.get("schema_version")!=1 or human.get("binding")!=binding(run):errors.append("Human review does not match the current report, sources and wiki")

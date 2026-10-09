@@ -1,5 +1,26 @@
 //! Provider-neutral, object-safe asynchronous model contracts.
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
+
+/// A typed Responses API reasoning effort. Model support varies; GPT-6 Luna
+/// supports every level represented here. This is not a Decisions API setting.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ReasoningEffort {
+    None,
+    Low,
+    Medium,
+    High,
+    Xhigh,
+    Max,
+}
+
+impl Default for ReasoningEffort {
+    fn default() -> Self {
+        Self::Medium
+    }
+}
+
 use std::{
     collections::{BTreeMap, BTreeSet},
     future::Future,
@@ -54,6 +75,9 @@ pub struct GenerationRequest {
     pub instructions: String,
     pub input: String,
     pub schema: Option<Value>,
+    /// Optional per-request reasoning for OpenAI Responses only. Omit it to
+    /// use a provider's default (or a model that does not support the option).
+    pub reasoning_effort: Option<ReasoningEffort>,
 }
 #[derive(Debug, Clone)]
 pub struct GenerationResponse {

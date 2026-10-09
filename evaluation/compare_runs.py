@@ -54,9 +54,13 @@ def snapshot(run: Path) -> dict[str, Any]:
     assert len(statements) >= 0
     settings=(metrics.get("provider"),metrics.get("model"),
               metrics.get("decision_provider"),metrics.get("decision_model"))
+    reasoning=metrics.get("reasoning")
+    reasoning_canonical=(json.dumps(reasoning, sort_keys=True)
+                         if isinstance(reasoning, dict) else None)
     return {
         "run": str(run), "source_sha256": doc_digest,
         "source_documents": file_count, "provider_settings": list(settings),
+        "reasoning": reasoning, "reasoning_fingerprint": reasoning_canonical,
         "binary_sha256": metrics.get("lore_binary_sha256"),
         "configuration_sha256": metrics.get("configuration_sha256"),
         "rubric": metrics.get("rubric"),
@@ -73,6 +77,10 @@ def compare(a: dict, b: dict) -> dict:
         reasons.append("Different source corpus (possibly an evolved mutation phase)")
     if a["provider_settings"] != b["provider_settings"] or None in a["provider_settings"][:2]:
         reasons.append("Different or unspecified provider/model settings")
+    if a["reasoning_fingerprint"] is None or b["reasoning_fingerprint"] is None:
+        reasons.append("Reasoning configuration was not recorded")
+    elif a["reasoning_fingerprint"] != b["reasoning_fingerprint"]:
+        reasons.append("Different per-task reasoning efforts")
     if a["binary_sha256"] is None or b["binary_sha256"] is None:
         reasons.append("At least one Lore binary fingerprint was not recorded")
     elif a["binary_sha256"] != b["binary_sha256"]:

@@ -248,7 +248,7 @@ async fn run(cli: Cli) -> Result<i32> {
                     .map_err(|e| anyhow::anyhow!("generative preflight: {e:?}"))?,
             ];
             if inference {
-                let response=gen_model.generate(&GenerationRequest{instructions:"Return the JSON object {\"ok\":true}. This is a synthetic connectivity check.".into(),input:"Synthetic test; no project material.".into(),schema:Some(json!({"type":"object","properties":{"ok":{"type":"boolean"}},"required":["ok"],"additionalProperties":false}))}).await.map_err(|e|anyhow::anyhow!("generative inference: {e:?}"))?;
+                let response=gen_model.generate(&GenerationRequest{instructions:"Return the JSON object {\"ok\":true}. This is a synthetic connectivity check.".into(),input:"Synthetic test; no project material.".into(),schema:Some(json!({"type":"object","properties":{"ok":{"type":"boolean"}},"required":["ok"],"additionalProperties":false})),reasoning_effort:config.config.models.reasoning.for_task("extract")}).await.map_err(|e|anyhow::anyhow!("generative inference: {e:?}"))?;
                 ensure!(
                     serde_json::from_str::<Value>(&response.text)?["ok"].as_bool() == Some(true),
                     "synthetic structured-output test failed"

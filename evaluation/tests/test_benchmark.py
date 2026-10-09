@@ -44,6 +44,42 @@ class BenchmarkTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,"ambiguous"):
                 bench.config_for(path,"atlas","ollama","m","openai","d",True,"http://localhost",True)
 
+    def test_reasoning_defaults_overrides_and_invalid_settings(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp)
+            config=bench.config_for(root, "atlas", "openai", "gpt-6-luna",
+                                    "ollama", "clef-flash", True, None, True)
+            self.assertEqual(config["models"]["reasoning"],bench.REASONING_DEFAULTS)
+            args=bench.parse_args([
+                "run", "--target", "atlas", "--provider", "openai",
+                "--model", "gpt-6-luna", "--output", str(root/"run"),
+                "--reasoning-extraction", "high",
+                "--reasoning-verification", "xhigh"
+            ])
+            policy=bench.reasoning_from_args(args)
+            self.assertEqual(policy["extraction"],"high")
+            self.assertEqual(policy["verification"],"xhigh")
+            self.assertEqual(policy["reconciliation"],"high")
+            custom=bench.config_for(root, "atlas", "openai", "gpt-6-luna",
+                                    None, None, True, None, True, reasoning=policy)
+            self.assertEqual(custom["models"]["reasoning"]["verification"],"xhigh")
+            args=bench.parse_args([
+                "run", "--target", "atlas", "--provider", "openai",
+                "--model", "gpt-6-luna", "--output", str(root/"run2"),
+                "--disable-reasoning"
+            ])
+            self.assertFalse(bench.reasoning_from_args(args)["enabled"])
+            with self.assertRaises(ValueError):
+                bench.config_for(root,"atlas","openai","gpt-6-luna",
+                                 None,None,True,None,True,
+                                 reasoning={"enabled": True,"extraction":"hyper"})
+            with self.assertRaises(SystemExit):
+                bench.parse_args([
+                    "run", "--target", "atlas", "--provider", "openai",
+                    "--model", "gpt-6-luna", "--output", str(root/"bad"),
+                    "--reasoning-extraction", "hyper"
+                ])
+
     def test_source_containment(self):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp)/"source";root.mkdir()

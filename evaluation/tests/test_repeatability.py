@@ -36,7 +36,8 @@ def fixture(root: Path, *, corpus="MySQL", topic="ledger",
     (root/"metrics.json").write_text(json.dumps({
         "provider":"openai","model":model,
         "decision_provider":None,"decision_model":None,
-        "lore_binary_sha256":build
+        "lore_binary_sha256":build,
+        "reasoning": benchmark.REASONING_DEFAULTS
     }),encoding="utf-8")
     return root
 
@@ -71,6 +72,17 @@ class RepeatabilityTests(unittest.TestCase):
             pair=compare_runs.summarize([a,b])["comparisons"][0]
             self.assertFalse(pair["strictly_comparable"])
             self.assertEqual(pair["statement_lexical_jaccard"],1.0)
+
+    def test_different_reasoning_efforts_are_not_strictly_comparable(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            a=fixture(Path(tmp)/"a")
+            b=fixture(Path(tmp)/"b")
+            p=b/"metrics.json";metrics=json.loads(p.read_text("utf-8"))
+            metrics["reasoning"]["verification"]="low"
+            p.write_text(json.dumps(metrics))
+            pair=compare_runs.summarize([a,b])["comparisons"][0]
+            self.assertFalse(pair["strictly_comparable"])
+            self.assertTrue(any("reasoning" in reason.lower() for reason in pair["limitations"]))
 
     def test_atlas_gold_reaffirmation_is_distinct(self):
         gold=benchmark.load_json(benchmark.ROOT/"gold"/"atlas.json")
