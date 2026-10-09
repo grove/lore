@@ -5,6 +5,7 @@
 //! two hops. This finds connected knowledge without turning a broad topic
 //! into a second, uncited inference pipeline.
 
+use super::semantic::{self, SemanticHit};
 use crate::{domain::KnowledgeView, storage};
 use anyhow::Result;
 use rusqlite::{Connection, params};
@@ -63,12 +64,23 @@ pub fn retrieve_with_report(
     task: &str,
     paths: &[String],
 ) -> Result<RetrievalReport> {
+    retrieve_hybrid_with_report(conn, task, paths, &[])
+}
+
+/// Fuse externally supplied semantic candidates before the original bounded
+/// concept/relation expansion. An empty semantic stream is exactly fast mode.
+pub fn retrieve_hybrid_with_report(
+    conn: &Connection,
+    task: &str,
+    paths: &[String],
+    semantic_hits: &[SemanticHit],
+) -> Result<RetrievalReport> {
     let (task_terms, mut truncated) = query_terms_with_report(task);
     let path_hints: Vec<_> = paths
         .iter()
         .filter_map(|path| PathHint::new(path))
         .collect();
-    if task_terms.is_empty() && path_hints.is_empty() {
+    if task_terms.is_empty() && path_hints.is_empty() && semantic_hits.is_empty() {
         return Ok(RetrievalReport {
             hits: Vec::new(),
             truncated,
@@ -88,13 +100,42 @@ pub fn retrieve_with_report(
     let mut candidates = BTreeMap::<String, Candidate>::new();
     let (lexical, limited) = lexical_hits(conn, &task_terms, None)?;
     truncated |= limited;
-    for (id, rank) in lexical {
-        if knowledge.contains_key(&id) {
-            let candidate = candidates.entry(id).or_default();
+    for (id, rank) in &lexical {
+        if knowledge.contains_key(id) {
+            let candidate = candidates.entry(id.clone()).or_default();
             candidate.lexical = 5.0 + 3.0 * rank;
             candidate
                 .reasons
                 .insert("task keyword relevance (BM25)".into());
+        }
+    }
+    let semantic_hits: Vec<_> = semantic_hits
+        .iter()
+        .filter(|hit| {
+            hit.score.is_finite()
+                && hit.score > 0.0
+                && hit.score <= 1.0
+                && knowledge.get(&hit.id).is_some_and(|view| {
+                    view.support_state != "unsupported" && !view.evidence.is_empty()
+                })
+        })
+        .cloned()
+        .collect();
+    if !semantic_hits.is_empty() {
+        for (id, rank) in semantic::fuse_ranks(&lexical, &semantic_hits) {
+            if knowledge.contains_key(&id) {
+                candidates.entry(id).or_default().lexical = 5.0 + 3.0 * rank;
+            }
+        }
+        for hit in &semantic_hits {
+            candidates
+                .entry(hit.id.clone())
+                .or_default()
+                .reasons
+                .insert(
+                    "semantic relevance in original knowledge (cosine; reciprocal rank fusion)"
+                        .into(),
+                );
         }
     }
     for hint in &path_hints {
@@ -174,6 +215,7 @@ pub fn retrieve_with_report(
 fn concise_reasons(reasons: &BTreeSet<String>) -> Vec<String> {
     let priority = |reason: &str| {
         if reason.starts_with("task keyword")
+            || reason.starts_with("semantic relevance")
             || reason.starts_with("source path:")
             || reason.starts_with("path cited")
         {

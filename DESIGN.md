@@ -10,6 +10,8 @@ The initial Rust CLI now implements ingestion, exact evidence capture, live prov
 
 **v0.3 implementation update.** `lore context` retrieves task-specific, evidence-carrying context from the existing SQLite registry without inference or writes. Lexical, path, subject/topic, and stored relationship signals feed deterministic decision-aware assembly; whole records and critical relationship groups fit an output budget counted with the embedded `cl100k_base` tokenizer. Immutable source-revision provenance preserves primary/derived material labels and optional upstream origins. [The v0.3 guide](docs/V03.md) specifies the CLI/JSON contract, provenance boundaries, and still-unmeasured product evaluation targets.
 
+**0.5 implementation update.** Task context now includes optional semantic retrieval and revision-bound guidance, with accepted knowledge unchanged. `--fast` retains deterministic retrieval. See [the 0.5 guide](docs/V05.md).
+
 ## 1. Overview
 
 Lore is a local-first, incremental knowledge compiler for heterogeneous Markdown project artifacts. It ingests any number of configured source directories belonging to one project, captures immutable source-evidence excerpts, extracts versioned source assertions, reconciles consolidated knowledge with its history, and publishes a linked Markdown wiki. The source material may include architecture notes, ADRs, plans, proposals, exported issues, meeting notes, investigations, operating procedures, or informal ideas. Rather than summarize each file independently, Lore constructs a project-level understanding that distinguishes what is documented as current, what has been decided, what is proposed, and what remains uncertain.

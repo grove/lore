@@ -6,8 +6,8 @@ use lore::{
     engine::{self, UpdateOptions},
     http::HttpModel,
     inference::{
-        DecisionModel, DecisionQuestion, DecisionRequest, GenerationRequest, GenerativeModel,
-        QuestionKind,
+        DecisionModel, DecisionQuestion, DecisionRequest, EgressPolicy, EmbeddingModel,
+        EmbeddingRequest, GenerationRequest, GenerativeModel, QuestionKind,
     },
     publish, storage, util,
 };
@@ -22,7 +22,7 @@ use std::{
 #[command(
     name = "lore",
     version,
-    about = "Maintain project knowledge and retrieve evidence-backed context for a task"
+    about = "Understand project knowledge and get evidence-linked guidance for a task"
 )]
 struct Cli {
     #[arg(long, global = true, default_value = "lore.yml")]
@@ -81,7 +81,7 @@ enum Command {
         #[arg(long, default_value_t = 10)]
         limit: usize,
     },
-    /// Retrieve source-cited task context from the registry, offline and without writes.
+    /// Get actionable, source-cited guidance using the configured model.
     Context {
         #[arg(value_name = "TASK", value_parser = nonempty_task)]
         task: String,
@@ -94,6 +94,17 @@ enum Command {
         #[arg(long, default_value_t = context::DEFAULT_MAX_TOKENS, value_name = "N", value_parser = context_budget,
             help = "Maximum complete-output token count using the offline cl100k_base tokenizer")]
         max_tokens: usize,
+        #[arg(
+            long,
+            help = "Deterministic, read-only context with zero model calls (schema 2)"
+        )]
+        fast: bool,
+        #[arg(
+            long,
+            conflicts_with = "fast",
+            help = "Bypass guidance and embedding caches for this query"
+        )]
+        no_cache: bool,
     },
     /// Read a generated topic by slug, or index.
     Read { topic: String },
@@ -327,6 +338,36 @@ async fn run(cli: Cli) -> Result<i32> {
                     results.push(json!({"decision_inference":true,"model":response.model,"answers":format!("{:?}",response.answers)}));
                 }
             }
+            if let Some(role) = config
+                .config
+                .models
+                .embedding
+                .as_ref()
+                .filter(|r| r.enabled)
+            {
+                let model = HttpModel::new(&config, role).map_err(|e| anyhow::anyhow!("{e:?}"))?;
+                results.push(
+                    model
+                        .doctor()
+                        .await
+                        .map_err(|e| anyhow::anyhow!("embedding preflight: {e:?}"))?,
+                );
+                if inference {
+                    let response = model
+                        .embed(&EmbeddingRequest {
+                            inputs: vec![
+                                "Synthetic connectivity test; no project material.".into(),
+                            ],
+                        })
+                        .await
+                        .map_err(|e| anyhow::anyhow!("embedding inference: {e:?}"))?;
+                    results.push(json!({
+                        "embedding_inference": true,
+                        "model": response.model,
+                        "dimensions": response.embeddings.first().map(Vec::len),
+                    }));
+                }
+            }
             emit(
                 json!({"providers":results,"project_content_sent":false}),
                 cli.json,
@@ -345,23 +386,35 @@ async fn run(cli: Cli) -> Result<i32> {
             task,
             paths,
             max_tokens,
+            fast,
+            no_cache,
         } => {
             let conn = storage::read_only(&config.state.join("state.db"))
                 .context("open knowledge registry (run lore init or lore update first)")?;
-            let result = context::build_context(
-                &conn,
-                &ContextOptions {
-                    task,
-                    paths,
-                    max_tokens,
-                },
-            )?;
-            if cli.json {
-                // Keep this representation in sync with the context budget
-                // estimator; generic emit() pretty-prints and adds whitespace.
-                println!("{}", serde_json::to_string(&result)?);
+            let options = ContextOptions {
+                task,
+                paths,
+                max_tokens,
+            };
+            // Validate the complete fast output budget before any model call
+            // or disposable cache write, including when intelligence is used.
+            let fast_result = context::build_context(&conn, &options)?;
+            if fast {
+                if cli.json {
+                    println!("{}", serde_json::to_string(&fast_result)?);
+                } else {
+                    print!("{}", context::render_context(&fast_result));
+                }
             } else {
-                print!("{}", context::render_context(&result));
+                let result = intelligent_context(&config, &conn, &options, no_cache).await?;
+                if cli.json {
+                    println!("{}", serde_json::to_string(&result)?);
+                } else {
+                    print!(
+                        "{}",
+                        context::intelligence::render_intelligent_context(&result)
+                    );
+                }
             }
         }
         Command::Read { topic } => {
@@ -477,6 +530,133 @@ fn bootstrap(path: &Path, sources: &[PathBuf], name: Option<&str>) -> Result<()>
     file.sync_all()?;
     Ok(())
 }
+async fn intelligent_context(
+    config: &ResolvedConfig,
+    conn: &rusqlite::Connection,
+    options: &ContextOptions,
+    no_cache: bool,
+) -> Result<context::intelligence::IntelligentContextResult> {
+    let mut config = config.clone();
+    config.config.context.cache &= !no_cache;
+    // Construction enforces provider and egress configuration without a
+    // network request. Read-only commands still work with retired providers.
+    let model = HttpModel::new(&config, &config.config.models.generative).ok();
+    conn.execute_batch("SAVEPOINT lore_intelligent_context")?;
+    let result = async {
+        if model.is_some() && config.config.processing.max_context_bytes < 14_048 {
+            let selected = context::build_context(conn, options)?;
+            return context::intelligence::fast_fallback(
+                conn, options, &selected, 0,
+                "The configured inference input budget is too small for task guidance; using deterministic context without fresh reasoning.",
+            );
+        }
+        let mut retrieval_warnings = Vec::new();
+        let mut retrieval_calls = 0;
+        let mut semantic = None;
+        if model.is_some() {
+            if let Some(role) = config.config.models.embedding.as_ref().filter(|r| r.enabled) {
+                match HttpModel::new(&config, role) {
+                    Ok(embedding) => {
+                        let cache = if config.config.context.cache {
+                            context::semantic::open_cache(&config.state.join("semantic.sqlite3"))
+                                .or_else(|_| {
+                                    retrieval_warnings.push(
+                                        "Semantic cache unavailable; this query uses a temporary index.".into(),
+                                    );
+                                    Ok::<_, anyhow::Error>(rusqlite::Connection::open_in_memory()?)
+                                })?
+                        } else {
+                            rusqlite::Connection::open_in_memory()?
+                        };
+                        let policy = if config.config.privacy.local_only {
+                            EgressPolicy::LocalOnly
+                        } else {
+                            EgressPolicy::ExplicitHosted
+                        };
+                        let search = context::semantic::search(
+                            conn, &cache, &embedding, policy, &options.task, &options.paths,
+                            config.config.processing.max_context_bytes,
+                        );
+                        match tokio::time::timeout(
+                            std::time::Duration::from_secs(config.config.processing.timeout_seconds),
+                            search,
+                        ).await {
+                            Ok(Ok(report)) => {
+                                retrieval_calls = report.model_calls;
+                                retrieval_warnings.extend(report.warnings.iter().cloned());
+                                semantic = Some(report);
+                            }
+                            outcome => {
+                                retrieval_calls = u32::try_from(embedding.embedding_calls.load(
+                                    std::sync::atomic::Ordering::Relaxed,
+                                )).unwrap_or(u32::MAX);
+                                retrieval_warnings.push(if outcome.is_err() {
+                                    "Semantic indexing timed out; valid cached progress is reusable. Using lexical and recorded relationship retrieval."
+                                } else {
+                                    "Semantic retrieval unavailable; using lexical and recorded relationship retrieval."
+                                }.into());
+                            }
+                        }
+                    }
+                    Err(_) => retrieval_warnings.push(
+                        "Embedding configuration unavailable or disallowed; using lexical and recorded relationship retrieval.".into(),
+                    ),
+                }
+            }
+        }
+        // Input evidence has its own bound. The user's --max-tokens is the
+        // complete output budget, and should primarily accommodate guidance.
+        let input_bytes = config.config.processing.max_context_bytes.saturating_sub(12_000);
+        let mut input_options = options.clone();
+        if model.is_some() {
+            input_options.max_tokens = (input_bytes / 4)
+                .clamp(context::MIN_MAX_TOKENS, context::MAX_MAX_TOKENS.min(16_000));
+        }
+        let mut selected = loop {
+            let candidate = match &semantic {
+                Some(report) => context::build_context_with_semantic(conn, &input_options, report),
+                None => context::build_context(conn, &input_options),
+            };
+            let candidate = match candidate {
+                Ok(candidate) => candidate,
+                Err(error) if error.downcast_ref::<context::ContextError>()
+                    .is_some_and(|error| error.code == "invalid_budget") => {
+                    let mut selected = context::build_context(conn, options)?;
+                    selected.warnings.extend(retrieval_warnings);
+                    return context::intelligence::fast_fallback(
+                        conn, options, &selected, retrieval_calls,
+                        "The task and retained evidence do not fit the inference input budget; using deterministic context without fresh reasoning.",
+                    );
+                }
+                Err(error) => return Err(error),
+            };
+            if model.is_none() || serde_json::to_vec(&candidate)?.len() <= input_bytes
+                || input_options.max_tokens <= 512
+            {
+                break candidate;
+            }
+            input_options.max_tokens = (input_options.max_tokens * 3 / 4).max(512);
+        };
+        selected.model_calls = retrieval_calls;
+        selected.warnings.extend(retrieval_warnings);
+        context::intelligence::build_intelligent_context(
+            conn, &config, options, selected,
+            model.as_ref().map(|model| model as &dyn GenerativeModel),
+        ).await
+    }.await;
+    let released = conn.execute_batch("RELEASE lore_intelligent_context");
+    match result {
+        Ok(value) => {
+            released?;
+            Ok(value)
+        }
+        Err(error) => {
+            let _ = released;
+            Err(error)
+        }
+    }
+}
+
 async fn compile(config: &ResolvedConfig, options: UpdateOptions, json_output: bool) -> Result<()> {
     // Constructing adapters performs no network request and reads no API key.
     // No-op updates therefore work without running inference servers or secrets.

@@ -1,9 +1,9 @@
 [package]
 name = "lore"
-version = "0.4.0"
+version = "0.5.0"
 edition = "2024"
 license = "Apache-2.0"
-description = "A local-first incremental project knowledge compiler"
+description = "Local-first project intelligence with evidence-linked task guidance"
 repository = "https://github.com/grove/lore"
 
 [dependencies]

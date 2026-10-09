@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "bundle_version": "coding-tasks-v1",
+  "fixture_only": true,
+  "held_out": false,
+  "independent_projects": false,
+  "description": "Executable synthetic tasks reuse the cross-source snapshots. Tests establish fixture behavior, not independent product quality.",
+  "cases": [
+    {
+      "id": "payments-retry",
+      "project": "payments",
+      "base_project": "payments",
+      "overlay": "payments",
+      "task": "Complete the payment adapter's retry_payment function for transient transport failures. Preserve existing deployed behavior while making repeated attempts safe; explain any policy discrepancy that needs follow-up.",
+      "editable_files": ["src/payment_adapter.py"],
+      "test_command": ["{python}", "{manifest}/check_tasks.py", "payments", "{workspace}"],
+      "expected_sources": ["ADR-017.md", "payment-retry-policy.md", "adapter-contract.md"],
+      "critical_constraints": [
+        "Reuse the exact same idempotency token for every attempt.",
+        "Retry only transient transport failures; declines propagate immediately.",
+        "Preserve the observed five-retry behavior in this narrowly scoped implementation; retain the unresolved three-retry accepted policy as an explicit follow-up."
+      ]
+    },
+    {
+      "id": "ledger-transfer",
+      "project": "ledger",
+      "base_project": "ledger",
+      "overlay": "ledger",
+      "task": "Complete ledger_adapter.transfer so the debit and credit are posted through the existing database interface. Handle invalid input and partial failure without leaving inconsistent balances.",
+      "editable_files": ["src/ledger_adapter.py"],
+      "test_command": ["{python}", "{manifest}/check_tasks.py", "ledger", "{workspace}"],
+      "expected_sources": ["ADR-027.md", "transaction-contract.md"],
+      "critical_constraints": [
+        "Use the current PostgreSQL architecture, not the obsolete MySQL recollection.",
+        "Debit and credit commit together; any partial failure rolls back.",
+        "Invalid nonpositive amounts must be rejected before any database writes."
+      ]
+    },
+    {
+      "id": "release-admission",
+      "project": "releases",
+      "base_project": "releases",
+      "overlay": "releases",
+      "task": "Complete release_gate.may_release for the production and staging artifact pipeline. Preserve the intended scope of the staging fixture exception and reject unknown environments.",
+      "editable_files": ["src/release_gate.py"],
+      "test_command": ["{python}", "{manifest}/check_tasks.py", "releases", "{workspace}"],
+      "expected_sources": ["ADR-007.md", "admission-contract.md"],
+      "critical_constraints": [
+        "Production always requires a valid artifact signature.",
+        "Only staging fixtures qualify for the unsigned exception.",
+        "Unknown environments fail closed."
+      ]
+    }
+  ]
+}

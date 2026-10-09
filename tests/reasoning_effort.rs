@@ -54,6 +54,8 @@ fn defaults_cover_every_generating_and_verifying_task() {
         ("overview", ReasoningEffort::Medium),
         ("verify", ReasoningEffort::High),
         ("verify_overview", ReasoningEffort::High),
+        ("context_synthesis", ReasoningEffort::Medium),
+        ("context_verification", ReasoningEffort::High),
         ("future-task", ReasoningEffort::Medium),
     ] {
         assert_eq!(r.for_task(task), Some(expected), "task: {task}");

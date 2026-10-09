@@ -22,10 +22,35 @@ pub struct HttpModel {
     retries: u32,
     max_context: usize,
     local_only: bool,
+    /// Logical embedding invocations, independent of HTTP retry attempts.
+    pub embedding_calls: AtomicUsize,
     pub requests: AtomicUsize,
 }
 impl HttpModel {
     pub fn new(config: &ResolvedConfig, role: &ModelRole) -> Result<Self, ModelError> {
+        // Read-only config loading deliberately skips inference validation.
+        // Enforce the actual network contract here as well, before building a
+        // client or using retry/backoff arithmetic from untrusted config.
+        if !role.enabled
+            || role.model.trim().is_empty()
+            || role.model.len() > 512
+            || role
+                .model
+                .chars()
+                .any(|c| c.is_whitespace() || c.is_control())
+        {
+            return Err(ModelError::InvalidRequest(
+                "an enabled role with a valid model name is required".into(),
+            ));
+        }
+        if !(1..=600).contains(&config.config.processing.timeout_seconds)
+            || config.config.processing.retry_attempts > 5
+            || !(256..=1_000_000).contains(&config.config.processing.max_context_bytes)
+        {
+            return Err(ModelError::InvalidRequest(
+                "invalid inference timeout, retry or context budget".into(),
+            ));
+        }
         let (provider, default_url, default_key) = match role.provider.as_str() {
             "ollama" => (Provider::Ollama, "http://127.0.0.1:11434/", None),
             "openai" => (
@@ -61,6 +86,11 @@ impl HttpModel {
         if config.config.privacy.local_only && (!local || provider != Provider::Ollama) {
             return Err(ModelError::RemoteDisabled);
         }
+        if config.config.privacy.local_only
+            && (role.model.contains(":cloud") || role.model.ends_with("-cloud"))
+        {
+            return Err(ModelError::RemoteDisabled);
+        }
         let mut builder = Client::builder()
             .redirect(reqwest::redirect::Policy::none())
             .connect_timeout(Duration::from_secs(10))
@@ -92,6 +122,7 @@ impl HttpModel {
             retries: config.config.processing.retry_attempts,
             max_context: config.config.processing.max_context_bytes,
             local_only: config.config.privacy.local_only,
+            embedding_calls: AtomicUsize::new(0),
             requests: AtomicUsize::new(0),
         })
     }
@@ -100,6 +131,9 @@ impl HttpModel {
     pub fn with_credential(mut self, credential: String) -> Self {
         self.credential = Some(credential);
         self
+    }
+    pub fn cache_identity(&self) -> String {
+        format!("{}:{}", model_cache_identity(&self.descriptor), self.base)
     }
     fn authorize(&self) -> Result<Option<String>, ModelError> {
         if self.local_only
@@ -245,6 +279,9 @@ impl GenerativeModel for HttpModel {
     fn descriptor(&self) -> &ModelDescriptor {
         &self.descriptor
     }
+    fn cache_identity(&self) -> String {
+        HttpModel::cache_identity(self)
+    }
     fn generate<'a>(
         &'a self,
         request: &'a GenerationRequest,
@@ -281,6 +318,126 @@ impl GenerativeModel for HttpModel {
         })
     }
 }
+
+impl EmbeddingModel for HttpModel {
+    fn descriptor(&self) -> &ModelDescriptor {
+        &self.descriptor
+    }
+    fn cache_identity(&self) -> String {
+        HttpModel::cache_identity(self)
+    }
+    fn embed<'a>(&'a self, request: &'a EmbeddingRequest) -> ModelFuture<'a, EmbeddingResponse> {
+        Box::pin(async move {
+            self.embedding_calls.fetch_add(1, Ordering::Relaxed);
+            request.validate(self.max_context)?;
+            // These are explicit embedding APIs, never implicit chat-model
+            // inference. Refuse provider-side truncation so our reported input
+            // bounds and cache fingerprints retain their intended meaning.
+            let (endpoint, body) = match self.descriptor.provider {
+                Provider::Ollama => (
+                    "api/embed",
+                    serde_json::json!({
+                        "model": self.descriptor.model,
+                        "input": request.inputs,
+                        "truncate": false
+                    }),
+                ),
+                Provider::OpenAi => (
+                    "embeddings",
+                    serde_json::json!({
+                        "model": self.descriptor.model,
+                        "input": request.inputs,
+                        "encoding_format": "float"
+                    }),
+                ),
+                Provider::TypeSafeCandidate => {
+                    return Err(ModelError::InvalidRequest(
+                        "TypeSafe does not support embeddings".into(),
+                    ));
+                }
+            };
+            let raw = self.send(endpoint, Some(&body)).await?;
+            decode_embeddings(&self.descriptor, request, &raw)
+        })
+    }
+}
+
+/// Decode the documented Ollama `/api/embed` or OpenAI `/embeddings` shape.
+/// OpenAI response rows may arrive out of order; their exact indices determine
+/// the original input association, and duplicates/missing indices are errors.
+pub fn decode_embeddings(
+    descriptor: &ModelDescriptor,
+    request: &EmbeddingRequest,
+    raw: &Value,
+) -> Result<EmbeddingResponse, ModelError> {
+    let invalid = || ModelError::InvalidResponse("invalid embedding response".into());
+    let model = raw
+        .get("model")
+        .and_then(Value::as_str)
+        .ok_or_else(invalid)?
+        .to_owned();
+    let decode_vector = |raw: &Value| -> Result<Vec<f32>, ModelError> {
+        let values = raw.as_array().ok_or_else(invalid)?;
+        if values.is_empty() || values.len() > MAX_EMBEDDING_DIMENSIONS {
+            return Err(invalid());
+        }
+        values
+            .iter()
+            .map(|value| {
+                value
+                    .as_f64()
+                    .map(|number| number as f32)
+                    .ok_or_else(invalid)
+            })
+            .collect()
+    };
+    let embeddings = match descriptor.provider {
+        Provider::Ollama => {
+            let values = raw
+                .get("embeddings")
+                .and_then(Value::as_array)
+                .ok_or_else(invalid)?;
+            if values.len() != request.inputs.len() {
+                return Err(invalid());
+            }
+            values.iter().map(decode_vector).collect::<Result<_, _>>()?
+        }
+        Provider::OpenAi => {
+            let rows = raw
+                .get("data")
+                .and_then(Value::as_array)
+                .ok_or_else(invalid)?;
+            if rows.len() != request.inputs.len() || rows.len() > MAX_EMBEDDING_INPUTS {
+                return Err(invalid());
+            }
+            let mut ordered = vec![None; request.inputs.len()];
+            for row in rows {
+                let index = row
+                    .get("index")
+                    .and_then(Value::as_u64)
+                    .ok_or_else(invalid)?;
+                let index = usize::try_from(index).map_err(|_| invalid())?;
+                if index >= ordered.len() || ordered[index].is_some() {
+                    return Err(invalid());
+                }
+                ordered[index] = Some(decode_vector(&row["embedding"])?);
+            }
+            ordered
+                .into_iter()
+                .collect::<Option<Vec<_>>>()
+                .ok_or_else(invalid)?
+        }
+        Provider::TypeSafeCandidate => {
+            return Err(ModelError::InvalidRequest(
+                "TypeSafe does not support embeddings".into(),
+            ));
+        }
+    };
+    let response = EmbeddingResponse { model, embeddings };
+    response.validate(request, descriptor)?;
+    Ok(response)
+}
+
 impl DecisionModel for HttpModel {
     fn descriptor(&self) -> &ModelDescriptor {
         &self.descriptor

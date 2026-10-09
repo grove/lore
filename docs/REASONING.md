@@ -14,6 +14,8 @@ A new or existing `lore.yml` uses these defaults without requiring an edit:
 | Project overview synthesis | `overview` | `medium` |
 | Topic semantic verification | `verification` | `high` |
 | Overview semantic verification | `overview_verification` | `high` |
+| Task briefing and interpretations | `context_synthesis` | `medium` |
+| Task-briefing support and risk check | `context_verification` | `high` |
 | Unknown/new generative task | `default` | `medium` |
 
 These are **benchmark starting points**, not measured optimal settings. In particular, high-effort verification may be slower and consume more reasoning tokens without necessarily improving results. Compare the same corpus and model across effort settings before making general performance claims.
@@ -47,6 +49,8 @@ models:
     overview: medium
     verification: high
     overview_verification: high
+    context_synthesis: medium
+    context_verification: high
 providers:
   openai:
     base_url: https://api.openai.com/v1
@@ -80,7 +84,7 @@ python3 evaluation/benchmark.py run \\
   --output evaluation-results/atlas-luna-reasoning-01
 ```
 
-Flags also support `--reasoning-default` and `--disable-reasoning`. Each report stores the resolved `reasoning` policy and configuration digest. The run comparator refuses to mark runs strictly comparable if reasoning effort settings differ or were not recorded. The suite acceptance check also requires an explicitly recorded policy shared across its targets.
+Flags also support `--reasoning-context-synthesis`, `--reasoning-context-verification`, `--reasoning-default`, and `--disable-reasoning`. Each report stores the resolved `reasoning` policy and configuration digest. The run comparator refuses to mark runs strictly comparable if reasoning effort settings differ or were not recorded. The suite acceptance check also requires an explicitly recorded policy shared across its targets.
 
 Changing an effort in `lore.yml` changes Lore's configuration fingerprint, invalidating relevant cached inferences and the successful baseline. An update after changing reasoning effort may call the model again, while a later true no-op is still zero-call. Exact provider model revisions, costs and token usage require independent observation; identical configured model aliases and effort values do not establish identical underlying model deployments.
 

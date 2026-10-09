@@ -1,0 +1,35 @@
+# Lore 0.5: local project intelligence with optional semantic retrieval.
+# Copy to lore.yml, adjust source paths, and install both models in Ollama.
+# Omit models.embedding to use lexical/relationship retrieval with guidance.
+schema_version: 1
+project:
+  name: my-project
+sources:
+  roots:
+    - id: docs
+      path: ./docs
+output:
+  wiki_dir: ./lore
+  state_dir: ./.lore
+privacy:
+  local_only: true
+models:
+  generative:
+    provider: ollama
+    model: gemma4:12b
+  embedding:
+    provider: ollama
+    model: embeddinggemma
+  reasoning:
+    # Responses API only; Ollama keeps its native generation settings.
+    context_synthesis: medium
+    context_verification: high
+providers:
+  ollama:
+    base_url: http://127.0.0.1:11434
+context:
+  cache: true
+processing:
+  timeout_seconds: 120
+  retry_attempts: 2
+  max_context_bytes: 64000
