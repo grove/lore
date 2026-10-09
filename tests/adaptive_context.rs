@@ -7,9 +7,18 @@ use lore::{
         decision::runtime::{DecisionContextResult, RunOptions},
     },
     engine::{self, UpdateOptions},
+    inference::{
+        ExecutionLocation, GenerationRequest, GenerationResponse, GenerativeModel, ModelDescriptor,
+        ModelFuture, Provider,
+    },
     storage,
 };
 use std::fs;
+use std::{
+    future::{Future, poll_fn},
+    sync::atomic::{AtomicUsize, Ordering},
+    task::Poll,
+};
 
 #[tokio::test]
 async fn exact_retained_constant_bypasses_model_checkout_and_cache() {
@@ -43,6 +52,10 @@ async fn exact_retained_constant_bypasses_model_checkout_and_cache() {
     )
     .await
     .unwrap();
+    let actual = context::count_tokens(&(serde_json::to_string(&result).unwrap() + "\n"))
+        .max(context::count_tokens(&adaptive::render(&result)));
+    assert!(actual <= result.budget.used_tokens);
+    assert!(result.budget.used_tokens <= options.max_tokens);
     let DecisionContextResult::FastFallback(reference) = result.intelligence else {
         panic!("exact reference should bypass decision generation")
     };
@@ -247,6 +260,233 @@ async fn shared_static_result_has_exact_evidence_and_makes_no_source_or_registry
         source_before
     );
     assert!(!config.state.join("context-cache").exists());
-    assert!(context::count_tokens(&serde_json::to_string(&result).unwrap()) <= options.max_tokens);
-    assert!(context::count_tokens(&adaptive::render(&result)) <= options.max_tokens);
+    let actual = context::count_tokens(&(serde_json::to_string(&result).unwrap() + "\n"))
+        .max(context::count_tokens(&adaptive::render(&result)));
+    assert!(actual <= result.budget.used_tokens);
+    assert!(result.budget.used_tokens <= options.max_tokens);
+}
+
+#[tokio::test]
+async fn adaptive_preselection_must_match_current_task_paths_and_retained_facts() {
+    let (_dir, config, model) = common::project();
+    common::put(
+        &config,
+        "queue.md",
+        "DECISION queue: QUEUE_CAPACITY is 128 entries.\n",
+    );
+    engine::update(&config, &model, None, UpdateOptions::default())
+        .await
+        .unwrap();
+    let conn = storage::read_only(&config.state.join("state.db")).unwrap();
+    let options = ContextOptions {
+        task: "What is QUEUE_CAPACITY?".into(),
+        paths: vec![],
+        max_tokens: 6_000,
+    };
+    let selected = context::build_context(&conn, &options).unwrap();
+    let calls = model.calls.load(Ordering::SeqCst);
+    let run = RunOptions {
+        no_inspect: true,
+        no_cache: true,
+        ..RunOptions::default()
+    };
+    let mut tampered = selected.clone();
+    tampered.evidence[0].excerpt = "QUEUE_CAPACITY is 999 entries.".into();
+    let mut other_task = options.clone();
+    other_task.task = "Why does the queue need a bounded capacity?".into();
+    let mut other_path = options.clone();
+    other_path.paths = vec!["unrelated/billing.rs".into()];
+    for (options, selection) in [
+        (&options, tampered),
+        (&other_task, selected.clone()),
+        (&other_path, selected),
+    ] {
+        let error = adaptive::build(&conn, &config, options, selection, Some(&model), &run)
+            .await
+            .unwrap_err();
+        assert_eq!(
+            error.downcast_ref::<context::ContextError>().unwrap().code,
+            "invalid_selection"
+        );
+        assert!(conn.is_autocommit());
+    }
+    assert_eq!(model.calls.load(Ordering::SeqCst), calls);
+    assert!(!config.state.join("decision-cache").exists());
+}
+
+#[tokio::test]
+async fn new_counterevidence_invalidates_preselection_even_when_old_citations_still_exist() {
+    let (_dir, config, model) = common::project();
+    common::put(
+        &config,
+        "queue.md",
+        "DECISION queue: QUEUE_CAPACITY is 128 entries.\n",
+    );
+    engine::update(&config, &model, None, UpdateOptions::default())
+        .await
+        .unwrap();
+    let path = config.state.join("state.db");
+    let options = ContextOptions {
+        task: "What is QUEUE_CAPACITY?".into(),
+        paths: vec![],
+        max_tokens: 6_000,
+    };
+    let conn = storage::read_only(&path).unwrap();
+    let selected = context::build_context(&conn, &options).unwrap();
+    drop(conn);
+    common::put(
+        &config,
+        "exception.md",
+        "DECISION queue: QUEUE_CAPACITY must be 32 entries for memory-constrained workers.\n",
+    );
+    engine::update(&config, &model, None, UpdateOptions::default())
+        .await
+        .unwrap();
+    let conn = storage::read_only(&path).unwrap();
+    for evidence in &selected.evidence {
+        let retained = storage::evidence_snapshot(&conn, &evidence.id).unwrap();
+        assert_eq!(retained.excerpt, evidence.excerpt);
+    }
+    let error = adaptive::build(
+        &conn,
+        &config,
+        &options,
+        selected,
+        None,
+        &RunOptions {
+            no_inspect: true,
+            no_cache: true,
+            ..RunOptions::default()
+        },
+    )
+    .await
+    .unwrap_err();
+    assert_eq!(
+        error.downcast_ref::<context::ContextError>().unwrap().code,
+        "invalid_selection"
+    );
+    assert!(conn.is_autocommit());
+}
+
+struct PendingDecisionModel {
+    descriptor: ModelDescriptor,
+    calls: AtomicUsize,
+}
+
+impl GenerativeModel for PendingDecisionModel {
+    fn descriptor(&self) -> &ModelDescriptor {
+        &self.descriptor
+    }
+
+    fn generate<'a>(&'a self, _: &'a GenerationRequest) -> ModelFuture<'a, GenerationResponse> {
+        self.calls.fetch_add(1, Ordering::SeqCst);
+        Box::pin(std::future::pending())
+    }
+}
+
+#[tokio::test]
+async fn dropping_pending_adaptive_generation_releases_only_its_read_snapshot() {
+    let (_dir, mut config, compiler) = common::project();
+    common::put(
+        &config,
+        "workers.md",
+        "DECISION workers: Worker queue events use one durable queue.\n",
+    );
+    engine::update(&config, &compiler, None, UpdateOptions::default())
+        .await
+        .unwrap();
+    config.config.models.generative.model = "pending-fixture".into();
+    config.config.context.cache = false;
+    let path = config.state.join("state.db");
+    let before = fs::read(&path).unwrap();
+    let conn = storage::read_only(&path).unwrap();
+    let options = ContextOptions {
+        task: "Refactor worker queue scheduling".into(),
+        paths: vec![],
+        max_tokens: 6_000,
+    };
+    let selected = context::build_context(&conn, &options).unwrap();
+    let model = PendingDecisionModel {
+        descriptor: ModelDescriptor {
+            provider: Provider::Ollama,
+            model: "pending-fixture".into(),
+            location: ExecutionLocation::Local,
+        },
+        calls: AtomicUsize::new(0),
+    };
+    let run = RunOptions {
+        no_inspect: true,
+        no_cache: true,
+        ..RunOptions::default()
+    };
+    for caller_transaction in [false, true] {
+        if caller_transaction {
+            conn.execute_batch("BEGIN").unwrap();
+        }
+        let calls_before = model.calls.load(Ordering::SeqCst);
+        let mut pending = Box::pin(adaptive::build(
+            &conn,
+            &config,
+            &options,
+            selected.clone(),
+            Some(&model),
+            &run,
+        ));
+        poll_fn(|cx| {
+            assert!(
+                pending.as_mut().poll(cx).is_pending(),
+                "model should remain pending until the caller cancels"
+            );
+            Poll::Ready(())
+        })
+        .await;
+        assert_eq!(model.calls.load(Ordering::SeqCst), calls_before + 1);
+        assert!(
+            !conn.is_autocommit(),
+            "shared source snapshot must remain stable during generation"
+        );
+        drop(pending);
+        assert_eq!(conn.is_autocommit(), !caller_transaction);
+        tokio::task::yield_now().await;
+        assert_eq!(
+            model.calls.load(Ordering::SeqCst),
+            calls_before + 1,
+            "cancellation must not schedule follow-up generation"
+        );
+        if caller_transaction {
+            conn.execute_batch("ROLLBACK").unwrap();
+        }
+    }
+    assert_eq!(fs::read(path).unwrap(), before);
+    assert!(!config.state.join("decision-cache").exists());
+}
+
+#[tokio::test]
+async fn failed_adaptive_request_releases_its_read_snapshot() {
+    let (_dir, config, compiler) = common::project();
+    common::put(
+        &config,
+        "workers.md",
+        "DECISION workers: Worker queue events use one durable queue.\n",
+    );
+    engine::update(&config, &compiler, None, UpdateOptions::default())
+        .await
+        .unwrap();
+    let conn = storage::read_only(&config.state.join("state.db")).unwrap();
+    let result = adaptive::run(
+        &config,
+        &conn,
+        &ContextOptions {
+            task: "Refactor worker queue scheduling".into(),
+            paths: vec![],
+            max_tokens: 256,
+        },
+        &RunOptions::default(),
+    )
+    .await;
+    assert!(
+        result.is_err(),
+        "the complete shared envelope cannot fit this budget"
+    );
+    assert!(conn.is_autocommit());
 }

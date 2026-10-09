@@ -20,6 +20,35 @@ use std::path::PathBuf;
 
 pub const ADAPTIVE_SCHEMA_VERSION: u32 = 5;
 
+/// A cancelled model future must not retain a SQLite read lock in an embedding
+/// host. Releasing our savepoint also releases any unfinished nested read
+/// savepoints, while preserving a transaction owned by the caller.
+struct ReadSnapshot<'a> {
+    conn: &'a Connection,
+    active: bool,
+}
+
+impl<'a> ReadSnapshot<'a> {
+    fn begin(conn: &'a Connection) -> Result<Self> {
+        conn.execute_batch("SAVEPOINT lore_adaptive_context")?;
+        Ok(Self { conn, active: true })
+    }
+
+    fn finish(mut self) -> Result<()> {
+        self.conn.execute_batch("RELEASE lore_adaptive_context")?;
+        self.active = false;
+        Ok(())
+    }
+}
+
+impl Drop for ReadSnapshot<'_> {
+    fn drop(&mut self) {
+        if self.active {
+            let _ = self.conn.execute_batch("RELEASE lore_adaptive_context");
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SnapshotManifest {
     pub project_id: String,
@@ -262,8 +291,8 @@ pub async fn run(
     run: &RunOptions,
 ) -> Result<AdaptiveResult> {
     let (config, run, capabilities) = authorized_config(config, run)?;
-    conn.execute_batch("SAVEPOINT lore_adaptive_context")?;
-    let outcome = async {
+    let snapshot_guard = ReadSnapshot::begin(conn)?;
+    let result = async {
         let snapshot = SnapshotManifest::capture(&config, conn)?;
         let inner = inner_options(options, &snapshot, &capabilities)?;
         if exact_symbol(&options.task).is_some() {
@@ -282,21 +311,16 @@ pub async fn run(
         let intelligence = runtime::run(&config, conn, &inner, &run).await?;
         finish(options, snapshot, capabilities, intelligence)
     }
-    .await;
-    let released = conn.execute_batch("RELEASE lore_adaptive_context");
-    match outcome {
-        Ok(result) => {
-            released?;
-            Ok(result)
-        }
-        Err(error) => {
-            let _ = released;
-            Err(error)
-        }
-    }
+    .await?;
+    snapshot_guard.finish()?;
+    Ok(result)
 }
 
 /// Provider-neutral entry point for embedders and deterministic contract tests.
+/// Preselection must be the unmodified result of `build_context` for this task,
+/// paths and registry. Recreate it in the shared read snapshot before accepting
+/// it; checking only cited records would miss newly added counterevidence.
+/// The CLI's hybrid retrieval is selected separately within `run`'s snapshot.
 pub async fn build(
     conn: &Connection,
     config: &ResolvedConfig,
@@ -306,14 +330,30 @@ pub async fn build(
     run: &RunOptions,
 ) -> Result<AdaptiveResult> {
     let (config, run, capabilities) = authorized_config(config, run)?;
+    let snapshot_guard = ReadSnapshot::begin(conn)?;
     let snapshot = SnapshotManifest::capture(&config, conn)?;
     let inner = inner_options(options, &snapshot, &capabilities)?;
+    let selected_options = ContextOptions {
+        max_tokens: selected.budget.max_tokens,
+        ..options.clone()
+    };
+    let current = super::build_context(conn, &selected_options)?;
+    if serde_json::to_value(&selected)? != serde_json::to_value(&current)? {
+        return Err(failure(
+            "invalid_selection",
+            "Adaptive preselection no longer matches this registry, task, paths and input budget; rebuild context before requesting shared intelligence.",
+        ));
+    }
     if let Some(reference) = exact_reference(&inner, &selected)? {
-        return finish(options, snapshot, capabilities, reference);
+        let result = finish(options, snapshot, capabilities, reference)?;
+        snapshot_guard.finish()?;
+        return Ok(result);
     }
     let intelligence =
         runtime::build_decision_context(conn, &config, &inner, selected, model, &run).await?;
-    finish(options, snapshot, capabilities, intelligence)
+    let result = finish(options, snapshot, capabilities, intelligence)?;
+    snapshot_guard.finish()?;
+    Ok(result)
 }
 
 fn finish(
@@ -333,21 +373,27 @@ fn finish(
             tokenizer: "cl100k_base".into(),
         },
     };
-    for _ in 0..8 {
+    for _ in 0..16 {
         let used = count_tokens(&(serde_json::to_string(&result)? + "\n"))
             .max(count_tokens(&render(&result)));
-        if used == result.budget.used_tokens {
-            break;
+        // Decimal token counts can oscillate between adjacent values. Retain
+        // a monotone upper bound for both complete output representations.
+        if used <= result.budget.used_tokens {
+            return if result.budget.used_tokens <= result.budget.max_tokens {
+                Ok(result)
+            } else {
+                Err(failure(
+                    "invalid_budget",
+                    "The complete adaptive evidence package exceeds --max-tokens.",
+                ))
+            };
         }
         result.budget.used_tokens = used;
     }
-    if result.budget.used_tokens > result.budget.max_tokens {
-        return Err(failure(
-            "invalid_budget",
-            "The complete adaptive evidence package exceeds --max-tokens.",
-        ));
-    }
-    Ok(result)
+    Err(failure(
+        "invalid_budget",
+        "Could not stabilize the complete adaptive output budget metadata.",
+    ))
 }
 
 pub fn render(result: &AdaptiveResult) -> String {
