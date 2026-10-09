@@ -42,7 +42,12 @@ impl GenerativeModel for ScopeDriftModel {
                         if a["kind"] != "decision" {
                             continue;
                         }
-                        // Exactly the kind of scope drift observed on real Atlas.
+                        // A documented reaffirmation may be described as an
+                        // active commitment, not as a newly accepted decision.
+                        if a["statement"].as_str().unwrap_or("").contains("review reaffirmed") {
+                            a["lifecycle"] = json!("active");
+                        }
+                        // Exercise independently paraphrased scope descriptions.
                         a["scope"] = if source.ends_with("ADR-001.md") {
                             json!("New ledger persistence work until another accepted ADR")
                         } else {
@@ -115,6 +120,22 @@ async fn explicit_adr_mentions_reconcile_despite_model_scope_drift_and_missed_li
     let after_review = fs::read_to_string(cfg.wiki.join("topics/ledger.md")).unwrap();
     assert_ne!(before, after_review);
     assert!(after_review.contains("reaffirms"));
+    let conn = storage::read_only(&cfg.state.join("state.db")).unwrap();
+    let review_assertion_lifecycles: Vec<String> = {
+        let mut query = conn.prepare(
+            "SELECT json_extract(d.proposal_json,'$.lifecycle')
+             FROM active_assertions aa
+             JOIN assertion_revisions ar ON ar.id=aa.assertion_revision_id
+             JOIN sources source ON source.id=ar.source_id
+             JOIN assertion_details d ON d.assertion_revision_id=ar.id
+             WHERE source.relative_path='notes/architecture-review.md'
+               AND json_extract(d.proposal_json,'$.kind')='decision'"
+        ).unwrap();
+        query.query_map([], |r| r.get::<_, String>(0))
+            .unwrap().collect::<rusqlite::Result<Vec<_>>>().unwrap()
+    };
+    assert_eq!(review_assertion_lifecycles, vec!["active".to_string()]);
+    drop(conn);
 
     put(
         &cfg,

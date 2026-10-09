@@ -330,7 +330,9 @@ fn is_reaffirmation_event(a: &AssertionProposal) -> bool {
     if a.kind != "decision" {
         return false;
     }
-    let quote = a.quote.to_ascii_lowercase();
+    // The assertion itself must be about reaffirmation. Its cited excerpt
+    // may also contain unrelated statements (plans, questions or denials);
+    // merely mentioning a reaffirmation in surrounding text is insufficient.
     let statement = a.statement.to_ascii_lowercase();
     [
         "reaffirm",
@@ -339,7 +341,7 @@ fn is_reaffirmation_event(a: &AssertionProposal) -> bool {
         "still committed",
     ]
     .iter()
-    .any(|phrase| quote.contains(phrase) || statement.contains(phrase))
+    .any(|phrase| statement.contains(phrase))
 }
 /// Recognize a narrow, source-backed reference to an earlier design document.
 /// Only document stems that look like stable identifiers (ADR-001, RFC-12,
@@ -476,7 +478,13 @@ fn explicit_document_links(
     candidates: &[KnowledgeView],
     current_source: &str,
 ) -> (Vec<RelationProposal>, Vec<(String, BTreeSet<String>)>) {
-    if assertion.kind != "decision" || assertion.lifecycle != "accepted" {
+    // Supersession changes the documented decision and therefore requires
+    // an accepted replacement. Reaffirmation instead records support for an
+    // *already accepted* decision, which a source may describe as active or
+    // accepted. These lifecycle conditions are intentionally independent.
+    if assertion.kind != "decision"
+        || !matches!(assertion.lifecycle.as_str(), "accepted" | "active")
+    {
         return (Vec::new(), Vec::new());
     }
     // A reference may identify a document containing multiple different
@@ -494,10 +502,17 @@ fn explicit_document_links(
                 continue;
             };
             if let Some(kind) = quoted_document_action(&assertion.quote, &identifier) {
-                groups
-                    .entry((identifier, kind.to_owned()))
-                    .or_default()
-                    .insert(old.id.clone());
+                let permitted = match kind {
+                    "reaffirms" => is_reaffirmation_event(assertion),
+                    "supersedes" => assertion.lifecycle == "accepted",
+                    _ => false,
+                };
+                if permitted {
+                    groups
+                        .entry((identifier, kind.to_owned()))
+                        .or_default()
+                        .insert(old.id.clone());
+                }
             }
         }
     }
@@ -555,7 +570,8 @@ fn explicit_reaffirmation(
 ) -> bool {
     if new.kind != "decision"
         || old.kind != "decision"
-        || new.lifecycle != "accepted"
+        || old.base_lifecycle != "accepted"
+        || !matches!(new.lifecycle.as_str(), "accepted" | "active")
         || !is_reaffirmation_event(new)
         || relation.quote.is_empty()
         || !new.quote.contains(&relation.quote)
@@ -716,6 +732,31 @@ mod explicit_reference_tests {
         );
         let uncertain = "This decision does not supersede The primary datastore must remain MySQL.";
         assert_eq!(quoted_statement_action(&new, &old, uncertain), None);
+    }
+
+    #[test]
+    fn reaffirmation_requires_that_the_source_assertion_itself_assert_reaffirmation() {
+        use super::is_reaffirmation_event;
+        use crate::domain::AssertionProposal;
+
+        let mut assertion = AssertionProposal {
+            topic: "policy".into(),
+            topic_title: "Policy".into(),
+            subject: "Policy status".into(),
+            statement: "The committee discussed an unrelated access request.".into(),
+            kind: "decision".into(),
+            lifecycle: "active".into(),
+            scope: "organization".into(),
+            effective_at: String::new(),
+            quote: "The committee reaffirmed POL-017. It separately discussed an access request.".into(),
+        };
+        assert!(!is_reaffirmation_event(&assertion));
+        assertion.statement = "The committee reaffirmed POL-017.".into();
+        assert!(is_reaffirmation_event(&assertion));
+        assertion.lifecycle = "proposed".into();
+        // Statement matching alone does not qualify a proposed reaffirmation
+        // for automatic relationship creation; lifecycle gating is separate.
+        assert!(is_reaffirmation_event(&assertion));
     }
 
     #[test]
