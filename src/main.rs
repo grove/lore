@@ -173,6 +173,20 @@ enum Command {
         #[arg(long)]
         allow_checkout_egress: bool,
     },
+    /// Explain recorded choices, conditions, alternatives and historical transitions.
+    Decisions {
+        #[arg(value_parser = human_goal)]
+        query: String,
+        #[arg(long, default_value_t = 6_000, value_parser = view_budget)]
+        max_tokens: usize,
+    },
+    /// Explore documented procedures, rejected approaches and reported outcomes.
+    Cases {
+        #[arg(value_parser = human_goal)]
+        query: String,
+        #[arg(long, default_value_t = 6_000, value_parser = view_budget)]
+        max_tokens: usize,
+    },
     /// Inspect and disposition review questions; never edits source knowledge.
     Review {
         #[command(subcommand)]
@@ -287,6 +301,8 @@ async fn run(cli: Cli) -> Result<i32> {
             | Command::Evidence { .. }
             | Command::Memory { .. }
             | Command::Onboard { .. }
+            | Command::Decisions { .. }
+            | Command::Cases { .. }
     ) {
         ResolvedConfig::load_for_read(&cli.config)
     } else {
@@ -579,6 +595,24 @@ async fn run(cli: Cli) -> Result<i32> {
                 print!("{}", lore::experience::render_markdown(&result));
             }
         }
+        Command::Decisions { query, max_tokens } => {
+            let conn = storage::read_only(&config.state.join("state.db"))?;
+            let result = lore::insights::decisions(&conn, &query, max_tokens)?;
+            if cli.json {
+                println!("{}", serde_json::to_string(&result)?);
+            } else {
+                print!("{}", lore::insights::render_decisions(&result));
+            }
+        }
+        Command::Cases { query, max_tokens } => {
+            let conn = storage::read_only(&config.state.join("state.db"))?;
+            let result = lore::insights::cases(&conn, &query, max_tokens)?;
+            if cli.json {
+                println!("{}", serde_json::to_string(&result)?);
+            } else {
+                print!("{}", lore::insights::render_cases(&result));
+            }
+        }
         Command::Memory { clear } => {
             if clear {
                 let removed = context::memory::clear(&config)?;
@@ -749,8 +783,9 @@ async fn intelligent_context(
         let mut retrieval_warnings = Vec::new();
         let mut retrieval_calls = 0;
         let mut semantic = None;
-        if model.is_some() {
-            if let Some(role) = config.config.models.embedding.as_ref().filter(|r| r.enabled) {
+        if model.is_some()
+            && let Some(role) = config.config.models.embedding.as_ref().filter(|r| r.enabled)
+        {
                 match HttpModel::new(&config, role) {
                     Ok(embedding) => {
                         let cache = if config.config.context.cache {
@@ -798,7 +833,6 @@ async fn intelligent_context(
                         "Embedding configuration unavailable or disallowed; using lexical and recorded relationship retrieval.".into(),
                     ),
                 }
-            }
         }
         // Input evidence has its own bound. The user's --max-tokens is the
         // complete output budget, and should primarily accommodate guidance.
@@ -974,6 +1008,15 @@ fn human_budget(value: &str) -> std::result::Result<usize, String> {
     let budget = context_budget(value)?;
     if budget < 512 {
         Err("onboard --max-tokens must be 512..100000".into())
+    } else {
+        Ok(budget)
+    }
+}
+
+fn view_budget(value: &str) -> std::result::Result<usize, String> {
+    let budget = context_budget(value)?;
+    if budget < 512 {
+        Err("complete project views require --max-tokens between 512 and 100000".into())
     } else {
         Ok(budget)
     }

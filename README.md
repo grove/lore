@@ -41,6 +41,24 @@ honest provider-unavailable fallbacks remain available. Read the
 [human experience guide](docs/HUMAN_EXPERIENCE.md) and the separate
 [human/agent evaluation protocol](evaluation/SHARED_INTELLIGENCE.md).
 
+### Understand decisions and documented cases
+
+`lore decisions QUERY` organizes retained choices, rationale, alternatives,
+conditions and historical transitions. `lore cases QUERY` shows source-reported
+outcomes, documented procedures, rejected approaches and relevant work history:
+
+```bash
+lore decisions "payment retry policy"
+lore --json decisions "payment retry policy" --max-tokens 12000
+lore cases "payment retries during failover"
+```
+
+Both commands use the existing registry without a model provider. Each passage
+keeps its original source, lifecycle and scope; missing rationale remains
+unknown, and a reported outcome is not a runtime verification. Complete views
+are omitted with an explanation when they exceed the output budget. See the
+[decision lenses and cases guide](docs/DECISION_LENSES.md).
+
 ## Vision
 
 **Lore's long-term goal is to make everyone working in a project more capable—newcomers, experienced developers, maintainers and coding agents.**
