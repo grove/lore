@@ -1,3 +1,4 @@
+use super::QualityDiagnostic;
 use crate::{config::ResolvedConfig, inference::*, util};
 use anyhow::{Context, Result, ensure};
 use rusqlite::{Connection, params};
@@ -22,6 +23,7 @@ pub(super) struct Runner<'a> {
     pub cache_hits: usize,
     pub decision_calls: usize,
     pub warnings: Vec<String>,
+    pub quality_diagnostics: Vec<QualityDiagnostic>,
     pub degraded_topics: std::collections::BTreeSet<String>,
 }
 impl<'a> Runner<'a> {
@@ -46,9 +48,29 @@ impl<'a> Runner<'a> {
             cache_hits: 0,
             decision_calls: 0,
             warnings: vec![],
+            quality_diagnostics: vec![],
             degraded_topics: std::collections::BTreeSet::new(),
         })
     }
+    /// Keep model feedback inspectable without copying full project passages
+    /// into diagnostics. A repair that succeeds is still recorded.
+    pub fn diagnostic(&mut self, task: &str, topic: &str, attempt: usize, check: &str, issues: &[String]) {
+        if self.quality_diagnostics.len() >= 256 {
+            return;
+        }
+        self.quality_diagnostics.push(QualityDiagnostic {
+            task: task.into(),
+            topic: topic.into(),
+            attempt: attempt + 1,
+            check: check.into(),
+            issues: if issues.is_empty() {
+                vec!["Verifier rejected the draft without an explanation".into()]
+            } else {
+                issues.iter().take(8).map(|s| s.chars().take(320).collect()).collect()
+            },
+        });
+    }
+
     pub async fn ask<T, F>(
         &mut self,
         task: &str,
