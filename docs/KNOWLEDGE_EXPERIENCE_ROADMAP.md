@@ -1,43 +1,49 @@
-# Lore Knowledge Experience — newcomer-first roadmap
+# Lore Knowledge Experience — shared-intelligence roadmap
 
-**Status:** Proposed implementation plan, not shipped functionality. **Roadmap revision:** 3. **Date:** 2026-10-09. **Baseline:** Lore 0.6.
+**Status:** Proposed implementation plan, not shipped functionality. **Roadmap revision:** 4. **Date:** 2026-10-09. **Baseline:** Lore 0.6.
 
-**Designs:** [Developer onboarding](DEVELOPER_ONBOARDING_DESIGN.md) (primary user journey), [Autonomous Assistance](AUTONOMOUS_ASSISTANCE_DESIGN.md), [Knowledge Experience](KNOWLEDGE_EXPERIENCE_DESIGN.md).
+**Designs:** [Developer Onboarding](DEVELOPER_ONBOARDING_DESIGN.md) (**flagship human learning journey**), [Coding-Agent Intelligence](CODING_AGENT_INTELLIGENCE_DESIGN.md) (**coequal agent flagship**), [Autonomous Assistance](AUTONOMOUS_ASSISTANCE_DESIGN.md), [Knowledge Experience](KNOWLEDGE_EXPERIENCE_DESIGN.md).
 
-> **Get up to speed on any project. Make your first correct contribution. Grow independent.**
+> **Understand any project. Work with confidence.**
 >
-> **Maximum useful autonomy, minimum user burden:** Lore investigates the project for you while helping you learn by doing.
+> **Maximum useful autonomy, minimum user burden.** One project intelligence core should empower newcomers, experienced developers, maintainers and coding agents. Learning through practice is the flagship human onboarding experience; compact decision-ready context is the flagship agent experience.
 
-Revision 3 makes **new developers learning an unfamiliar project the primary audience**. A1–A3 become the investigative engine; O1–O3 deliver orientation, guided conceptual learning, a first correct contribution and a more independent second task. Existing R0–R7 and A1–A3 packages remain traceable. Tutorial is the main Diátaxis onboarding mode, with Explanation, Reference and How-to available when needed. Adaptive Knowledge Zoom organizes detail without a fixed conceptual depth. All new behavior remains proposed.
+Revision 4 preserves newcomer onboarding as the most demanding **human flagship**, but makes coding agents a **coequal flagship** and retains direct support for experienced developers and maintainers. The earliest engineering milestone is a *small, shared* vertical slice: permitted knowledge/inspection plus a short human orientation/tour/exercise and a scoped agent recommendation package. The full first-contribution/transfer journey, investigation reuse and broad Knowledge Zoom follow as independently evaluated phases. Existing R0–R7, A1–A3 and O1–O3 names remain traceable; G1 defines the agent path. All commands and schemas described as future work are **proposals**, not existing Lore 0.6 behavior.
 
 ## 1. Scope, priorities and release policy
 
-This is a capability roadmap, not a version-number or calendar promise. **The first complete product outcome is a newcomer moving from orientation to a correct first contribution and demonstrably more independent second task.** R0, minimal A1/A2 and a focused O1/O2/O3 vertical slice take priority; A3 reuse may develop in parallel. Assign a release number only after implementation and outcome evidence. No dates, staffing assumptions, prices or improvements are promised.
+This is a capability roadmap, not a version-number or calendar promise. **The first engineering milestone (M0) is a minimal shared-intelligence slice serving one human learning request and one coding-agent task on the same evidence core.** It is deliberately smaller than completing O1/O2/O3, all of A1/A2 or a full new schema/storage layer. The *later full human outcome* remains a correct and understood first contribution plus independent transfer; the agent outcome is a correct, constraint-preserving change with less unnecessary effort. Assign release numbers and numerical targets only after evaluation. No staffing, dates, prices or gains are promised.
 
-The proposed newcomer experience begins with `lore onboard`: an immediate grounded orientation, one suggested workflow and optional entry points to explore, learn or start a task. No profile quiz, lengthy configuration form or giant wiki index. Existing `lore context` remains the task entry for everyone. Automatic investigation does the project's homework; deliberate learner predictions and exercises build skill. Advanced controls can still restrict investigation and inspect sources.
+The proposed newcomer experience begins with `lore onboard`: an immediate grounded orientation and a small source-linked workflow tour, with optional exploration and practice. Existing `lore context` remains the direct task entry for experienced people and agents. The future agent contract provides compact JSON (recommended action, constraints, inspected seams and completion checks). No mandatory learner profile, custom UI, agent runtime or giant wiki index. Adaptive investigation performs the research; deliberate learner exercises support learning. Advanced restrictive flags and existing schema contracts remain available.
 
 ### 1.1 Delivery order
 
 | Stage | User-visible value | Dependency |
 | --- | --- | --- |
-| R0 | Newcomer baseline for first contribution, comprehension and second-task transfer | None; evaluate alongside early prototypes |
-| A1 | Automatically investigate relevant permitted evidence | Lore 0.6 retrieval/inspection; R0 contracts |
-| A2 | Concise empowering answers and safe progress | A1; presentation may develop alongside |
-| **O1** | **Immediate orientation and grounded workflow tour** | Minimal A1/A2; no new UI required |
-| **O2** | **Short concept-learning path and one safe tutorial** | O1; no execution required |
-| **O3** | **First-contribution companion and independent transfer** | O2 + A1/A2; task-first entry may skip tour |
-| A3 | Revalidated investigation reuse across tasks and learning | A1/A2; can run in parallel with O1–O3 |
-| R1 | Better contextualized segments and exact retrieval | R0; parallel where useful |
-| R2 | Adaptive-depth Knowledge Zoom for tours and exploration | O1/A2 interfaces; no fixed conceptual depth |
-| R3 | Complete Diátaxis experiences; tutorial anchors onboarding | O2; explanation/reference/how-to grow alongside |
-| R4 | Decisions, exceptions and investigate-first gaps | A1/A3; cases enrich learning |
-| R5A/R5B | Worked examples, then separately approved isolated replay | O2/R3/R4; security gates for R5B |
-| R6 | Change-aware mentoring, guardian and optional reader | O1–O3; the reader is not mandatory |
-| R7 | Opt-in learner personalization and cross-project research | Evidence, privacy and usefulness gates |
+| R0 | Two independent baseline tracks: newcomer learning **and** agent coding-task quality; shared source/permission contracts | Existing 0.6 benchmark and knowledge registry |
+| **M0** | **One common source-bound intelligence path with two tiny outputs:** guided human orientation plus decision-ready agent JSON | Small subset of A1/A2, O1/O2 and G1; no new runtime needed |
+| A1 / A2 (complete) | Broader automatic permitted investigation, action-first responses and scoped safe progress | R0/M0 outcomes; can improve incrementally |
+| **O1 / O2** | Project tours and meaningful tutorial/learning paths | M0 human path, measured expansion |
+| **G1** | Full coding-agent package, mature readiness and validation | M0 agent path, measured expansion |
+| **O3** | Supported first contribution and **different-task independent transfer** | O1/O2 and A1/A2; this is the complete human onboarding outcome |
+| A3 | Revalidated investigation reuse benefiting humans and agents | A1/A2; not a dependency for M0 |
+| R1 | Better contextualized segment/retrieval quality | R0, optional in M0 if necessary |
+| R2 | Adaptive-depth Knowledge Zoom for all audiences | M0 interfaces; no fixed 4- or 5-level ontology |
+| R3 | Full Diátaxis explain/how-to/tutorial/reference renderers | M0/O2; no tutorial requirement for agent or expert task requests |
+| R4 | Decisions, negative cases and investigate-first gaps | Shared knowledge intelligence, not onboarding-only |
+| R5A / R5B | Worked cases and separately approved sandbox replay | Explicit safety/product gates; no dependency for M0 |
+| R6 | Change-impact insights, guardian and optional reader | Useful to maintainers, newcomers and agents |
+| R7 | Opt-in learner preferences and cross-project transfer research | Permission/quality evidence |
 
-**First useful newcomer slice:** a developer opens an unfamiliar repository, sees its essence, follows one source-grounded workflow, practices one meaningful concept, and receives help with a small real change. A **different** related task tests transfer with reduced scaffolding. No graphical reader, graph database, fully materialized summary tree, tracker connection or code runner is required.
+**M0: smallest shared-intelligence implementation target**
 
-**Sequence principle:** A1/A2 give Lore investigative initiative; O1/O2/O3 turn it into the primary onboarding product. A3/R1–R7 improve that experience rather than postponing it.
+- **Common substrate:** select one stable current knowledge/evidence snapshot; retrieve constraints and relevant decisions; perform **at most a bounded permitted static inspection** when useful; preserve the current source/authority and privacy boundaries. Reuse current 0.6 mechanisms rather than building another evidence registry.
+- **Human demonstration:** from a single unfamiliar project, produce one accurate project essence, a coherent short path through actual source landmarks and one optional source-grounded prediction or worked exercise. No full learning graph or persistence requirement.
+- **Agent demonstration:** for one real coding task in the **same project**, produce one compact JSON recommendation with readiness, critical constraints, actual inspected implementation seam, completed-vs-future check distinction and evidence manifests. No new coding agent, shell executor or mandatory integration.
+- **Review:** deterministic contract/invalidation/privacy tests and at least one independently evaluated human comprehension exercise **and** one independently evaluated agent implementation. Report both as exploratory until held-out validation; do not falsely claim improved learning or coding task quality.
+- **Do not bundle:** a complete learner curriculum, first/second-task evaluation infrastructure, all Diátaxis renderers, reusable investigation database, whole-corpus hierarchy, live connector, hosted service or reader GUI.
+
+**The next product evaluations are independent:** O3 validates the complete first-contribution/second-task human journey; G1/A1–A3 validate agent task correctness/efficiency. Shipping or benchmarking one does not confer success on the other.
 
 ### 1.2 Common release gates
 
@@ -50,33 +56,33 @@ The proposed newcomer experience begins with `lore onboard`: an immediate ground
 - Every stateful feature has versioning, bounded storage, invalidation, purge, privacy and crash recovery. Persistent citations outlive disposable cache eviction.
 - No secret/unauthorized egress, untrusted process execution, source mutation, hidden telemetry or background continuation by default.
 - Every quality claim has an actual reviewed experiment. Synthetic fixtures establish mechanics, not product superiority. Features can ship experimentally with honest status while evidence is collected.
-- Onboarding claims require independently verified first-task correctness **and** demonstrated understanding on a different, related task. An agent-written patch or read page is not mastery.
+- **Two independent product quality gates:** onboarding claims require a verified, understood first task and a different-task transfer test; agent claims require externally checked implementation outcomes, preserved constraints and measured total effort. Neither substitutes for the other. An agent-written patch or read page is not human mastery.
 - Exercises, hints, progress and state are explicit and optional; no mandatory quizzes, invasive tracking or inferred competence from page views.
 - Tours, starter tasks and lessons must preserve source scope/revisions; no invented real issues, runtime traces or passing tests.
+- An agent query is **not** a learner session. No default tutorial text, progress profile, forced practice or special agent framework; experienced users also retain direct guidance.
 
 ## 2. Backlog priorities
 
 | Priority | Workstream | Smallest useful result | Why it matters |
 | --- | --- | --- | --- |
-| **P0** | **Project orientation and tours** | Understand purpose and follow one real workflow | Remove the initial "where do I start?" barrier |
-| **P0** | **Tutorial-first learning path** | Grounded prediction, short exercise, useful feedback | Develop mental models rather than read more pages |
-| **P0** | **First contribution and transfer** | Correct bounded change; new related task with less help | Demonstrate real newcomer competence |
-| P0 | Adaptive permitted investigation | Source/code/test context without flags or homework | Lore does the research |
-| P0 | Empowering task answers | One recommendation, conditions and next action | Support safe action |
-| P0 | Newcomer/autonomy evaluations | Independent correctness, understanding, mentor burden and transfer | Guard against teaching theater |
-| P1 | Reusable investigations | Revalidated history avoids rediscovery | Compounds project experience |
-| P1 | Concept/prerequisite graph | Adaptive minimal learning sequence | Replaces directory-based walkthroughs |
-| P1 | Contextual retrieval | Preserve source context for facts, tables and procedures | Reduce misleading fragments |
-| P1 | Adaptive Knowledge Zoom | Navigate directly from essence to any grounded level | Control detail without cognitive overload |
-| P1 | Decision and negative cases | Explain when approaches fail or change | Teach engineering judgment |
-| P2 | Optional learner state/resume | Local consented checkpoints, no analytics | Continuity without surveillance |
-| P2 | Rich Diátaxis modes | Tutorial leads; Explanation, Reference and How-to alongside | Right type of help at each moment |
-| P2 | Change-aware mentoring and guardian | Focused changes that matter to learned concepts | Supports returning newcomers |
-| P3 | Approved isolated replay | Verified exercises under independent capability grants | Stronger observation with higher risk |
-| P3 | Optional visual reader | Accessible tours, hints, source drill-down | UX polish without dependency |
-| Research | Cross-project analogy | Scoped lessons with permission separation | Conditional transfer only |
+| **P0** | **Common source-bound intelligence substrate** | One validated evidence/permission/inspection path feeding human and agent renderers | No duplicated truth or repeated research |
+| **P0** | **Human orientation/tour/one activity** | Useful source-grounded first-minute understanding | Tests quality of the conceptual model |
+| **P0** | **Coding-agent decision JSON** | One concrete recommendation, constraints, inspected seam and completion checks | Enables agent task work immediately |
+| **P0** | **Two matched evaluation tracks** | Human comprehension probe and externally checked agent task | Prevents one successful audience masking another |
+| P1 | Full onboarding contribution/transfer | Correct first human change plus distinct less-assisted second task | Proves skill transfer |
+| P1 | Mature adaptive investigation and safe progress | Correct decisions without routine handoffs or unnecessary reads | Helps all audiences |
+| P1 | Revalidated investigative reuse | Reapply actual findings only while still relevant | Compounds experience |
+| P1 | Contextual retrieval and rare-case preservation | Better exact and concept retrieval | Supports both learning and code changes |
+| P1 | Knowledge Zoom | Navigate from essential concepts to precise evidence at any meaningful depth | Reduce overload without a fixed depth |
+| P1 | Diátaxis experiences | Tutorial when learning; how-to, explanation and reference when needed | Correct help for the actual intent |
+| P1 | Decision conditions and negative cases | Applicable constraints and past failures | Teaches human judgment and improves agent decisions |
+| P2 | Optional learning state/resume | Minimal explicit progress with inspect/export/reset | No hidden user profiling |
+| P2 | Change-aware briefings and advisory guardian | Relevant consequences for maintainers/returners/agents | More than a new wiki |
+| P3 | Approved isolated verification | Narrow test execution inside a reviewed sandbox grant | More evidence, higher risk |
+| P3 | Optional visual reader | Accessible tours, semantic zoom, evidence drill-down | Usability without mandatory UI |
+| Research | Cross-project analogy | Namespace- and permission-safe comparisons | Transfer only if relevant |
 
-First-release non-goals remain mandatory MCP, graph database, hosted account, daemon, automatic tracker connection, browser automation, arbitrary model-authored commands, autonomous code changes, production operations, hidden learner profiling and automatic policy acceptance. **A safe runner or GUI must not delay the first grounded tour.**
+First-stage non-goals: mandatory MCP, graph database, hosted account, daemon, automatic external tracker, unrestricted agent runtime, arbitrary model-authored commands, autonomous code editing/production action, hidden profiling, an eager whole-wiki distillation tree or unreviewed policy acceptance.
 
 ## 3. R0 — baseline, contracts and evaluation foundation
 
@@ -85,16 +91,16 @@ First-release non-goals remain mandatory MCP, graph database, hosted account, da
 ### Work items
 
 - **R0.1 Pin the baseline:** source/build/config/model identities; current 0.6 default versus explicit inspection/investigation, including actual grants and resource ceilings.
-- **R0.2 Define outcome tasks:** newcomer orientation, a correct bounded first change, accurate mental-model explanation and a **distinct held-out second-task transfer**; include exact lookup, policy-changing cases, partial progress and document-only assistance. Balance participants' language/repository familiarity.
-- **R0.3 Adversarial fixtures:** retain provenance, chronology, table, exception, deletion, scope and injection cases; add AT-01–AT-26 autonomy and ON-01–ON-24 newcomer scenarios. Include fabricated starter issues, call-flow uncertainty, changed lesson code and missing runner permission.
-- **R0.4 Extend measurement:** first/second task correctness, grounded explanations and predictions, hints, mentor calls and total developer time; distinguish coding-agent task completion from learner competence. Also measure delegated checks, false blocks, unsafe proceeding, model/adapter attempts, latency and known billing.
-- **R0.5 Versioned contracts:** define request/result/controller, readiness, permission manifest, legacy behavior, progress/cancel and cache; include minimal OnboardingPath, TourStep and LearningActivity contracts. Defer full view schema until R2 and private learner-state schema until needed.
-- **R0.6 Set budgets and UX rubrics:** pre-register learning/transfer, safety and burden targets after measuring baseline; test immediate useful orientation and expert skip-to-task without a questionnaire. No invented mastery probabilities.
+- **R0.2 Two outcome tracks:** human orientation, correct bounded first change, accurate mental-model explanation and **different-task transfer**; independently, a coding agent making a correct change under project constraints. Include exact lookup, policy changes, partial progress and document-only assistance; balance participant familiarity.
+- **R0.3 Adversarial fixtures:** preserve provenance, chronology, table, exception, deletion, scope, injection and no-op; cover AT-01–AT-26 autonomy, ON-01–ON-24 onboarding **and AG-01–AG-18 coding-agent** scenarios. Include false code flow, fabricated issue/trace, stale investigation and denied inspection.
+- **R0.4 Extend measurement:** human learning and second-task transfer, hints/mentor burden and learner authorship; **separately** held-out agent implementation correctness, missed constraints, repeated investigation, rework and full task cost. Also record false blocking, unsafe proceeding, permission grants, provider attempts and billing when known.
+- **R0.5 Versioned shared/agent contracts:** define evidence/permission scope, adaptive action limits, response-mode negotiation and explicit schema-2/3/4 compatibility. Specify **small** onboarding/tour/learning-activity and agent decision-package views; defer complete learning/view schemas until later.
+- **R0.6 Matched study and budgets:** preregister separate human and agent correctness/safety/burden thresholds after baselines. Record cold and amortized preparation; prevent prior solved tasks or generated tutorials leaking held-out outcomes. Expert/coding-agent entry must skip onboarding.
 - **R0.7 Threat review:** distinguish trusted host grants, project preferences, caller restrictions, data classes and source-derived egress; document missing adapter capabilities honestly.
 
 ### Deliverables and gate
 
-A contract RFC, adversarial manifest, reproducible first/second task baseline and independent scoring instructions. R0 protects against leaked solved-task examples. Contract/fixture readiness unlocks A1 and O1 prototypes; held-out studies continue in parallel. Broad quality/default-on claims require reviewed evidence, but lack of a completed study does not indefinitely block an explicitly experimental build. Reviewers must distinguish static inspection, executed checks, source reports, inferences and authority.
+A shared evidence/permissions contract RFC, both benchmark manifests, independent scoring guides and small executable fixtures. Contract/fixture readiness unlocks a **bounded M0 spike** across human and agent requests. Broader claims depend on later held-out research; do not hold a clearly labeled prototype hostage to an exhaustive study. Broad quality/default-on claims require reviewed evidence, but lack of a completed study does not indefinitely block an explicitly experimental build. Reviewers must distinguish static inspection, executed checks, source reports, inferences and authority.
 
 ## 4. A1 — adaptive read-only assistance
 
