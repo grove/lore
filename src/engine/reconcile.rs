@@ -748,7 +748,8 @@ mod explicit_reference_tests {
             lifecycle: "active".into(),
             scope: "organization".into(),
             effective_at: String::new(),
-            quote: "The committee reaffirmed POL-017. It separately discussed an access request.".into(),
+            quote: "The committee reaffirmed POL-017. It separately discussed an access request."
+                .into(),
         };
         assert!(!is_reaffirmation_event(&assertion));
         assertion.statement = "The committee reaffirmed POL-017.".into();
