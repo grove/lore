@@ -22,6 +22,7 @@ pub(super) struct Runner<'a> {
     pub cache_hits: usize,
     pub decision_calls: usize,
     pub warnings: Vec<String>,
+    pub degraded_topics: std::collections::BTreeSet<String>,
 }
 impl<'a> Runner<'a> {
     pub fn new(
@@ -45,6 +46,7 @@ impl<'a> Runner<'a> {
             cache_hits: 0,
             decision_calls: 0,
             warnings: vec![],
+            degraded_topics: std::collections::BTreeSet::new(),
         })
     }
     pub async fn ask<T, F>(
