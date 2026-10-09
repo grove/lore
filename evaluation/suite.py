@@ -60,7 +60,14 @@ def automated_checks(report:dict)->tuple[bool,list[str]]:
         failures.append("Initial inference result missing");phases={}
     if report.get("target")=="atlas" and "after_mutation" not in phases:failures.append("Atlas mutation result missing")
     for name,entry in phases.items():
-        degraded=entry.get("report",{}).get("degraded_topics",[])
+        phase_report=entry.get("report",{})
+        overview_flag=phase_report.get("degraded_overview")
+        if overview_flag is not False:
+            if overview_flag is True:
+                failures.append(name+": source-excerpt overview requires verified synthesis and human review")
+            else:
+                failures.append(name+": overview semantic-verification status missing from CLI report")
+        degraded=phase_report.get("degraded_topics",[])
         # Exact, attributed excerpts are safe to publish but are not
         # semantically verified narratives and cannot pass the beta gate.
         if degraded:
@@ -78,6 +85,10 @@ def automated_checks(report:dict)->tuple[bool,list[str]]:
 def assess_run(run:Path)->dict[str,Any]:
     run=run.resolve();report=read_json(run/"metrics.json")
     automatic,failures=automated_checks(report);manual=run/"HUMAN_REVIEW.json"
+    index=run/"project"/"wiki"/"index.md"
+    if index.is_file() and b"lore:degraded-overview-synthesis" in index.read_bytes():
+        failures.append("Published overview contains evidence-only degradation marker")
+        automatic=False
     result={"run":str(run),"target":report.get("target"),"automated_pass":automatic,
         "automated_failures":failures,"human_complete":False,"human_pass":False,
         "human_failures":[],"ready":False,"binary":report.get("lore_binary_sha256"),

@@ -41,6 +41,10 @@ pub struct Report {
     pub pending_reviews: usize,
     pub warnings: Vec<String>,
     pub degraded_topics: Vec<String>,
+    /// An evidence-only overview is safe to publish but has not passed
+    /// semantic narrative verification. This status survives no-op updates.
+    #[serde(default)]
+    pub degraded_overview: bool,
     pub generation: Option<String>,
 }
 #[derive(Debug, Clone, Serialize)]
@@ -234,12 +238,20 @@ pub async fn update(
     publish::validate_existing(config, &old_pages, options.rebuild)?;
     if !plan.status.needs_update && !options.refresh && !options.deep && !options.rebuild {
         let conn = storage::read_only(&old_path)?;
+        let degraded_overview = old_pages.get("index.md").is_some_and(|page|
+            page.content.contains(overview::DEGRADED_MARKER)
+        );
+        let mut warnings = inventory.warnings;
+        if degraded_overview {
+            warnings.push("OVERVIEW_DEGRADED: stored overview contains source excerpts; semantic narrative verification has not passed".into());
+        }
         return Ok(Report {
             no_op: true,
             source_files: inventory.documents.len(),
             knowledge_units: storage::views(&conn)?.len(),
             pending_reviews: pending_reviews(&conn)?,
-            warnings: inventory.warnings,
+            degraded_overview,
+            warnings,
             ..Report::default()
         });
     }
@@ -481,6 +493,9 @@ pub async fn update(
     report.decision_calls = runner.decision_calls;
     report.warnings.extend(runner.warnings.clone());
     report.degraded_topics = runner.degraded_topics.iter().cloned().collect();
+    report.degraded_overview = pages.get("index.md").is_some_and(|page|
+        page.content.contains(overview::DEGRADED_MARKER)
+    );
     report.pending_reviews = pending_reviews(&conn)?;
     drop(runner);
     conn.execute_batch("COMMIT")?;
