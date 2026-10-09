@@ -167,14 +167,16 @@ mod tests {
             "The committee closed its investigation.",
             "The investigation was closed when the report was delivered.",
         );
-        assert!(validate_prose(
-            &draft("The committee's report gives no further detail."),
-            &[&unit],
-        ).is_err());
-        assert!(validate_prose(
-            &draft("The committee closed its investigation."),
-            &[&unit],
-        ).is_ok());
+        assert!(
+            validate_prose(
+                &draft("The committee's report gives no further detail."),
+                &[&unit],
+            )
+            .is_err()
+        );
+        assert!(
+            validate_prose(&draft("The committee closed its investigation."), &[&unit],).is_ok()
+        );
     }
 
     #[test]
