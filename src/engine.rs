@@ -337,7 +337,13 @@ pub async fn update(
             let mut topics =
                 conn.prepare("SELECT t.slug,t.title,COALESCE((SELECT group_concat(subject, '; ') FROM (SELECT DISTINCT d.subject FROM knowledge_details d WHERE d.topic_id=t.id LIMIT 6)), '') FROM topics t ORDER BY t.slug LIMIT 100")?;
             let topics = topics
-                .query_map([], |r| Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?,r.get::<_, String>(2)?)))?
+                .query_map([], |r| {
+                    Ok((
+                        r.get::<_, String>(0)?,
+                        r.get::<_, String>(1)?,
+                        r.get::<_, String>(2)?,
+                    ))
+                })?
                 .collect::<rusqlite::Result<Vec<_>>>()?;
             let triage = runner.triage(&chunk.text).await;
             let accepted_adr_decision = sources::explicitly_accepted_adr_decision(document, chunk);
