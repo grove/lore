@@ -457,7 +457,7 @@ def report_markdown(report: dict) -> str:
                 tag = f"{note.get('task','unknown')}/{note.get('topic','unknown')}"
                 reason = "; ".join(str(s).replace("\\n", " ")[:160] for s in note.get("issues", [])[:2])
                 lines.append(f"  - {tag}, attempt {note.get('attempt','?')}, {note.get('check','unknown')}: {reason}")
-                if entry.get("report",{}).get("degraded_overview") is True:
+        if entry.get("report",{}).get("degraded_overview") is True:
             lines.append("- **DEGRADED OVERVIEW: source excerpts published; semantic narrative verification did not pass. This run fails the beta gate.**")
         lines.append("")
     noop = report.get("no_op", {})
