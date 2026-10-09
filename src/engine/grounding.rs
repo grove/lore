@@ -33,6 +33,16 @@ pub(super) fn validate_prose(draft: &PageDraft, units: &[&KnowledgeView]) -> Res
                 "no record of",
                 "no evidence exists",
                 "nothing in the sources",
+                "no further detail",
+                "no further details",
+                "no additional detail",
+                "no additional information",
+                "no further information",
+                "provides no detail",
+                "provides no further",
+                "gives no further",
+                "gives no additional",
+                "does not provide any details",
             ];
             for phrase in ABSENCE {
                 if prose.contains(phrase) {
@@ -149,6 +159,22 @@ mod tests {
             "The committee approved the policy after consultation.",
         );
         assert!(validate_prose(&draft("The committee approved the policy after consultation; deployment is not independently verified."), &[&u]).is_ok());
+    }
+
+    #[test]
+    fn prevents_claiming_the_rest_of_a_document_has_no_details() {
+        let unit = unit(
+            "The committee closed its investigation.",
+            "The investigation was closed when the report was delivered.",
+        );
+        assert!(validate_prose(
+            &draft("The committee's report gives no further detail."),
+            &[&unit],
+        ).is_err());
+        assert!(validate_prose(
+            &draft("The committee closed its investigation."),
+            &[&unit],
+        ).is_ok());
     }
 
     #[test]
