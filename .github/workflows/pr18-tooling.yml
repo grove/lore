@@ -1,0 +1,29 @@
+name: PR18 tooling export (temporary)
+on:
+  push:
+    branches: [fix/evidence-complete-synthesis]
+permissions:
+  contents: read
+jobs:
+  export:
+    if: github.repository == 'grove/lore'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Export public source and formatter without credentials
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/pr18-tools/bin /tmp/pr18-tools/lib /tmp/pr18-tools/source
+          git archive HEAD | tar -x -C /tmp/pr18-tools/source
+          cp "$(rustup which rustfmt)" /tmp/pr18-tools/bin/rustfmt
+          sysroot="$(rustc --print sysroot)"
+          find "$sysroot/lib" -maxdepth 1 -type f -name '*.so*' -exec cp {} /tmp/pr18-tools/lib/ \;
+          cd /tmp/pr18-tools
+          tar -czf /tmp/pr18-tooling.tar.gz .
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: pr18-tooling
+          path: /tmp/pr18-tooling.tar.gz
+          retention-days: 1
