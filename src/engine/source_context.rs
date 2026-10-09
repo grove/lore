@@ -96,7 +96,7 @@ pub(super) fn source_headings(
             };
             let headings: Vec<String> = serde_json::from_str(&heading)?;
             if headings.is_empty() ||
-                !seen.insert((unit.id.as_str(), evidence.source_id.as_str(), heading.as_str())) {
+                !seen.insert((unit.id.clone(), evidence.source_id.clone(), heading.clone())) {
                 continue;
             }
             let entry = json!({
