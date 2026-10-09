@@ -8,13 +8,24 @@ Projects collect their history in architecture notes, ADRs, plans, issue exports
 
 ## Vision
 
-**Make every developer and coding agent feel like they've been working on the project for years.**
+**Lore's long-term goal is to make everyone working in a project more capable—newcomers, experienced developers, maintainers and coding agents.**
 
-Lore's goal is not to generate more documentation. It is to help people and agents understand **what** a project does, **how** it works, **why** decisions were made, **what has changed**, and **what matters** when making the next change.
+Lore's goal is not more documentation. It is to connect evidence, code observations, decisions and historical experience; investigate what matters; and present the right understanding or practical guidance for each user's goal. **Newcomer onboarding is the flagship human learning experience. Decision-ready, automatically investigated context is the flagship coding-agent experience.** Experienced developers and maintainers get direct answers, applicable constraints and informed trade-offs without entering a tutorial.
 
-Humans should get an inviting, navigable guide to the project's architecture, concepts, decisions, and open questions. Coding agents should be able to retrieve the relevant, evidence-backed context for a task instead of rediscovering intent from scattered files. Both experiences should draw from the same versioned knowledge, clearly distinguishing accepted decisions, proposals, historical context, and unverified reports.
+Humans should get inviting project tours and explanations when learning, and concise decisions and project guidance when working. Coding agents should receive compact machine-readable task intelligence—one preferred approach, relevant constraints, actual investigations, inspected implementation seams and completion checks—instead of rediscovering intent or reading a wiki. **Both use the same versioned knowledge, evidence, permissions and applicability rules**, distinguishing accepted decisions, proposals, reports and observations.
 
 The CLI, task-context interface, native snapshot adapters, and generated Markdown wiki are the foundation. A richer reading experience, conversational grounded questions and answers, and live source synchronization remain future directions. Read the [full vision](VISION.md) for the product principles, intended experience, and measures of success.
+
+## Proposed future: Knowledge Experience
+
+**Proposed shared product direction:** Lore is a project intelligence layer for everyone. Two flagship experiences demonstrate its value:
+
+- **Human learning:** [Developer Onboarding design](docs/DEVELOPER_ONBOARDING_DESIGN.md) — a newcomer gets an immediate project orientation and source-grounded tour, practices a concept, makes a correct first change and tackles a distinct related task with less help.
+- **Agent productivity:** [Coding-Agent Intelligence design](docs/CODING_AGENT_INTELLIGENCE_DESIGN.md) — any coding agent receives a compact, evidence-bound task package with automatically investigated context, explicit constraints, implementation guidance and honest completion criteria.
+
+An experienced developer or maintainer can ask directly for advice or explanation. There is **no mandatory tutorial, learner profile, special agent framework or parallel knowledge registry**.
+
+The [Knowledge Experience architecture](docs/KNOWLEDGE_EXPERIENCE_DESIGN.md) combines adaptive-depth Knowledge Zoom, Diátaxis (tutorial-first **when learning is requested**), decision conditions and cases. The [Autonomous Assistance contract](docs/AUTONOMOUS_ASSISTANCE_DESIGN.md) defines permitted investigation, and the [phased roadmap](docs/KNOWLEDGE_EXPERIENCE_ROADMAP.md) starts with **one shared engine and two small user journeys**, then measures learning and agent outcomes independently. **These are proposals, not Lore 0.6 commands or shipped features.** The existing evidence registry, privacy and CLI compatibility remain foundational.
 
 ## Evaluating Lore
 
