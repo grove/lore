@@ -306,15 +306,26 @@ fn append_evidence_only(
         );
     }
     for unit in units {
-        let evidence = unit.evidence.iter().find(|e| e.active)
+        let evidence = unit
+            .evidence
+            .iter()
+            .find(|e| e.active)
             .or_else(|| unit.evidence.first())
             .context("cannot fall back to an evidence-free knowledge unit")?;
-        let freshness = if evidence.active { "current source" } else { "historical snapshot" };
+        let freshness = if evidence.active {
+            "current source"
+        } else {
+            "historical snapshot"
+        };
         out.push_str(&format!(
             "- **Documented {}** ({}; {}; {}), source {}, evidence {}. [^{}]\n\n",
-            util::markdown_text(&unit.kind), util::markdown_text(&unit.lifecycle),
-            util::markdown_text(&unit.support_state), freshness,
-            util::markdown_text(&evidence.source), evidence.id, unit.id,
+            util::markdown_text(&unit.kind),
+            util::markdown_text(&unit.lifecycle),
+            util::markdown_text(&unit.support_state),
+            freshness,
+            util::markdown_text(&evidence.source),
+            evidence.id,
+            unit.id,
         ));
         for line in evidence.excerpt.lines() {
             out.push_str("> ");
