@@ -74,10 +74,25 @@ pub(crate) fn verification_schema() -> Value {
 pub(crate) fn row(unit: &KnowledgeView) -> Value {
     let mut evidence = unit.evidence.iter().collect::<Vec<_>>();
     evidence.sort_by_key(|e| (!e.active, &e.id));
+    // Modality qualifies the applicability of a statement. In particular,
+    // the absence of a date or approval asserted by a proposal is only what
+    // that document reported; it cannot become a timeless assertion about
+    // the current project when later sources report a different outcome.
+    let applicability = match unit.kind.as_str() {
+        "proposal" | "plan" => {
+            "source-relative future intent; not independently current, and an absence claim is not a permanent fact"
+        }
+        "reported_outcome" => "attributed source report; not independently verified implementation",
+        "decision" => {
+            "documented decision; historical applicability may depend on later explicit replacements"
+        }
+        _ => "documented source assertion; not independent runtime verification",
+    };
     json!({"id":unit.id,"topic":unit.topic,"subject":unit.subject,
         "statement":unit.statement,"kind":unit.kind,
         "basis":domain::documentary_basis(&unit.kind),"lifecycle":unit.lifecycle,
         "scope":unit.scope,"effective_at":unit.effective_at,"support_state":unit.support_state,
+        "temporal_qualification":applicability,
         "evidence":evidence.into_iter().take(2).collect::<Vec<_>>()})
 }
 
