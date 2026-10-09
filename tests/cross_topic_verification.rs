@@ -142,7 +142,7 @@ async fn cross_topic_verifier_repairs_false_absence_and_sees_document_date() {
     );
     drop(conn);
 
-    let before_synthesis = model.case_syntheses.load(Ordering::SeqCst);
+    let before_verification = model.source_context_checks.load(Ordering::SeqCst);
     // Only the policy section changes, but it changes the context needed to
     // verify an unchanged case topic sharing the source document.
     put(
@@ -154,7 +154,9 @@ async fn cross_topic_verifier_repairs_false_absence_and_sees_document_date() {
         .await
         .unwrap();
     assert!(!changed.no_op);
-    assert!(model.case_syntheses.load(Ordering::SeqCst) > before_synthesis);
+    // Reuse the unchanged writer draft if cached, but the changed sibling
+    // evidence must trigger a new semantic verification of the case topic.
+    assert!(model.source_context_checks.load(Ordering::SeqCst) > before_verification);
     assert!(changed.degraded_topics.is_empty());
 
     let before = fs::read_to_string(cfg.wiki.join("topics/case.md")).unwrap();
