@@ -1,28 +1,28 @@
 # Lore Knowledge Experience — design proposal
 
-**Status:** Proposed, not implemented. **Design revision:** 3 — newcomer-first learning, grounded practice and adaptive autonomy. **Date:** 2026-10-09. **Baseline:** Lore 0.6 on `main` at `51b62ebe6d44ca4ff5162ff7758408c3e85ec548`.
+**Status:** Proposed, not implemented. **Design revision:** 4 — shared project intelligence for humans and agents. **Date:** 2026-10-09. **Baseline:** Lore 0.6 on `main` at `51b62ebe6d44ca4ff5162ff7758408c3e85ec548`.
 
-**Companions:** [Developer Onboarding product and technical design](DEVELOPER_ONBOARDING_DESIGN.md) (**primary user journey**), [autonomous assistance](AUTONOMOUS_ASSISTANCE_DESIGN.md) and [phased roadmap](KNOWLEDGE_EXPERIENCE_ROADMAP.md).
+**Companions:** [Developer Onboarding](DEVELOPER_ONBOARDING_DESIGN.md) (**flagship human learning experience**), [Coding-Agent Intelligence](CODING_AGENT_INTELLIGENCE_DESIGN.md) (**coequal agent experience**), [Autonomous Assistance](AUTONOMOUS_ASSISTANCE_DESIGN.md) and [roadmap](KNOWLEDGE_EXPERIENCE_ROADMAP.md).
 
-> **Get up to speed on any project. Make your first correct contribution. Grow independent.**
+> **Understand any project. Work with confidence.**
 >
-> **Maximum useful autonomy. Minimum user burden.** Lore does the investigative homework so newcomers can focus on building a mental model, practicing and understanding the changes they make.
+> **Maximum useful autonomy. Minimum user burden.** Lore helps newcomers learn, experienced contributors make sounder decisions and coding agents implement better changes, using one evidence-backed intelligence core.
 
 This document proposes Lore's future knowledge-experience architecture. It does not assert that proposed commands, configuration fields, persistence tables, execution mechanisms or interfaces exist today. Implemented contracts remain in [README](../README.md), [DESIGN](../DESIGN.md), [0.6 guide](V06.md) and [implementation guide](IMPLEMENTATION.md). Examples are illustrative unless identified as existing behavior.
 
-Revision 3 makes **new developers learning an unfamiliar project the primary product audience**, including experienced engineers new to this repository. The central experience is a short project orientation, a grounded workflow tour, a purposeful tutorial, support for a first real contribution, and a more independent second task. **First-task success without demonstrated learning is insufficient.** Adaptive investigation remains the engine, and guided practice remains the learner's work. Diátaxis makes tutorial the onboarding anchor (with explanation/reference/how-to on demand), while Knowledge Zoom allows variable semantic depth—not an arbitrary four-level tree. The [onboarding design](DEVELOPER_ONBOARDING_DESIGN.md) specifies the learning path, typed contracts, exercises and evaluation. The [autonomy design](AUTONOMOUS_ASSISTANCE_DESIGN.md) specifies permitted investigation and user burden. All are future proposals.
+Revision 4 establishes **two flagship user experiences over one project intelligence engine**. Newcomer onboarding is the flagship human learning journey, while automatically investigated, decision-ready context is a **coequal coding-agent experience** and remains useful to experienced developers and maintainers. Tutorial is the primary Diátaxis mode *when learning is requested*; Knowledge Zoom offers adaptive detail rather than fixed tree depth. The [onboarding design](DEVELOPER_ONBOARDING_DESIGN.md), [agent design](CODING_AGENT_INTELLIGENCE_DESIGN.md) and [autonomy design](AUTONOMOUS_ASSISTANCE_DESIGN.md) specify distinct presentation contracts sharing the same evidence, history and permissions. All are proposals.
 
 ## 1. Executive decision
 
-Build a **newcomer-first project learning companion** over Lore's source assertions, consolidated knowledge and decision-ready context. The primary outcome is that someone unfamiliar with a project can understand its purpose and workflows, make a **correct and understood first contribution**, and tackle another related task **with less guidance**. This requires both teaching and action: Lore investigates consequential uncertainty within permissions and recommends a defensible approach, but does not replace the developer's own learning with an agent-produced patch. Developers already familiar with the project retain direct, efficient task context.
+Build a **shared, outcome-oriented project intelligence layer** over Lore's existing source assertions, consolidated knowledge and decision-ready task context. For human newcomers, help a developer understand real workflows, make a **correct and understood first contribution** and work more independently on the next task. For coding agents, supply a **compact, source-bound implementation recommendation** with investigated context, constraints, completion checks and honest uncertainty, improving correctness and reducing wasted effort. Experienced developers and maintainers use the same system for direct advice and decision history, without tutorials.
 
 The user should not need to choose `--inspect`, `--investigate`, a reasoning effort or a documentation mode to obtain useful help. Those remain advanced controls and compatibility options. Default initiative must not mean default unrestricted access: automatic actions operate only inside a disclosed, accepted capability envelope, with easy restrictive overrides.
 
 Present the same knowledge through different intents (Diátaxis), levels of detail (semantic zoom), scopes (project, topic, task, environment and revision), and epistemic states (documented, observed, inferred). Add decision assumptions and reconsideration triggers; first-class failures, exceptions and examples; reusable investigation records; worked and replayable learning cases; advisory change-risk checks; and revision-aware briefings.
 
-**First delivery:** one coherent, low-friction newcomer journey using existing Lore 0.6 evidence, minimal adaptive read-only assistance and concise explanations: project essence → a grounded workflow tour → one safe practical lesson → a supported small real change → independent transfer. Develop A1/A2 as the investigation/answer foundation; A3 reuse and the full R1/R2/R3 machinery can follow or grow alongside where measured useful. No mandatory new UI, extensive source-indexing rewrite, fully materialized hierarchy, project-specific plugin or code-execution framework. The [roadmap](KNOWLEDGE_EXPERIENCE_ROADMAP.md) includes O1–O3 newcomer milestones alongside A1–A3 and R0–R7.
+**First engineering milestone (M0):** one shared knowledge/evidence snapshot and minimal bounded permitted investigation supporting **one small human orientation/tour/exercise** and **one coding-agent task recommendation with actual inspection and machine-readable provenance**. Do not bundle full first/second-task onboarding, reusable investigation storage, an entire hierarchy, a UI or a new coding runtime. Evaluate each slice independently and deepen capabilities only as measured. See the [roadmap](KNOWLEDGE_EXPERIENCE_ROADMAP.md).
 
-**Primary success measure:** a first *correct and understood* contribution plus correct work on a **different, related task with less scaffolding**, measured with independent checks and reviewer rubrics. Also measure orientation, mentor burden, user effort, false blocking, unsafe proceeding, reading/correction loops, privacy and cost. An AI-written patch, a pleasant tour, a passed generated quiz or a high confidence score alone is not a success.
+**Two independent product outcomes:** human onboarding must produce a *correct, understood* first contribution and better independent performance on a distinct second task; coding-agent assistance must improve *correct, constraint-respecting task completion* and reduce total unnecessary work. A strong result in one audience does not substitute for the other. Measure cost, user burden, false blocking and unsafe proceeding in both.
 
 ### 1.1 Experience principles
 
@@ -41,7 +41,7 @@ Present the same knowledge through different intents (Diátaxis), levels of deta
 
 OpenWiki is a source of repository understanding and grounded claims for Lore, not a straw-man competitor. The comparison informing this proposal includes its incremental generation, source maintenance, agent access and graph-oriented reading. RAPTOR already explores recursive clustered summaries; GraphRAG explores communities and multi-level retrieval; Diátaxis defines distinct documentation needs. Those ingredients are prior art, not claims of invention or measured advantage for Lore.
 
-Lore's proposed differentiation is **developer competence**: connect documentary authority/history to project mental models; investigate relevant uncertainty; teach real workflows and failure cases; assist an authentic first change; and build independent judgment for the second. Knowledge Zoom and Diátaxis help present that experience; their underlying techniques are not a proprietary moat. The system can consume OpenWiki knowledge without asking users to abandon it. Compare real newcomer outcomes before making superiority claims.
+Lore's proposed differentiation is **practical project intelligence**: deeply understand project intent/history, investigate uncertainty, help newcomers develop judgment, give experienced contributors strong decisions and supply coding agents task-specific implementation intelligence. Knowledge Zoom and Diátaxis help convey understanding; they are not the exclusive product or an unassailable moat. Lore can consume OpenWiki knowledge without requiring users to abandon it. Compare real human and agent outcomes before making competitive claims.
 
 Keep OpenWiki, Engram and Beads in their existing roles. Consume supported snapshots and optional approved adapters; avoid duplicating their storage, agent runtime or work-management systems. Unsupported upstream formats retain the existing Markdown/import fallback rather than a guessed schema.
 
@@ -91,18 +91,18 @@ These apply to all phases:
 | Engineer changing code | How should I alter retries? | Lore inspects what matters and supplies an applicable action | Correct change, fewer avoidable handoffs |
 | Incident responder | What failed before; what differs now? | Relevant cases and already-completed permitted checks | Faster correct diagnosis |
 | Maintainer | Which assumptions should we reconsider? | Investigated candidates, not an untriaged suspicion queue | Meaningful issue found without excessive review burden |
-| Coding agent | What matters before modifying this path? | Small actionable package, completed findings, exact remaining dependencies | Correct progress without duplicating Lore's work |
+| **Coding agent** | **What matters before modifying this path?** | **Compact versioned JSON:** preferred approach, constraints/negative cases, actual inspection, implementation seams, future checks and evidence | **More correct changes with fewer missed constraints and less effort** |
 | Domain expert | What knowledge should we add? | Optional focused gap capture after available investigation | Useful attributable answer per human minute |
 | Returning contributor | What do I need to relearn? | Consequential changes since a named baseline | Resumes without rereading everything |
 | Document-only reader | Explain this collection | Sensible default view and exact navigation, no code requirement | Accurate understanding without configuration burden |
 
-### 3.1 Primary newcomer journey (proposed)
+### 3.1 Flagship human newcomer journey (proposed)
 
 A newcomer invokes a proposed `lore onboard`. Without a questionnaire or mandatory new UI, Lore immediately presents a short, source-grounded account of the project's purpose, three-to-five central concepts and one representative workflow. The developer can follow a coherent guided tour through actual source or code landmarks. Lore introduces only the prerequisite concepts necessary to understand a small failure/exception and offers one meaningful prediction or trace exercise.
 
 Next the newcomer can supply an actual issue or select an available source-backed low-risk task. Lore automatically gathers permitted context, explains the constraints, identifies implementation seams and gives adjustable hints—but **does not silently implement the learner's change**. The learner's result is evaluated by independent checks or clearly scoped external review. A **different related task** with less default scaffolding tests transfer; model-generated praise or a page view does not count as mastery. The full interface, assessment and privacy contract is in [Developer Onboarding](DEVELOPER_ONBOARDING_DESIGN.md).
 
-This is a *primary but opt-in learning journey*. Existing `lore context` remains a direct task tool for developers and agents who want an answer rather than an exercise.
+This is a **flagship but opt-in learning journey**. Direct `lore context` remains a first-class task tool for experienced people and agents who need guidance rather than a lesson.
 
 ### 3.2 Example journey: payment retries (hypothetical)
 
@@ -437,7 +437,7 @@ Before blocking, assess relevant permitted options and meaningful independent wo
 
 ## 14. Rendering and interaction surfaces
 
-**First delivery:** newcomer-oriented, outcome-first CLI, versioned JSON and portable Markdown. A proposed `lore onboard` immediately gives a project essence and a guided workflow, then optionally a tutorial or first contribution. `lore context` remains the ordinary task interface. A dedicated viewer, MCP server, account or new connector is not required; a later local reader consumes the same contracts.
+**First delivery:** two small, outcome-first presentations over one CLI/evidence engine: a proposed `lore onboard` gives a project essence, short tour and optional exercise; `lore context` serves coding agents and experienced developers with an actionable versioned response. Neither experience requires the other's presentation mode. A dedicated viewer, MCP server, account or new connector is not required; a later local reader consumes the same contracts.
 
 The ordinary task request remains `lore context "TASK"`. A newcomer can start a **proposed** `lore onboard` with no flags; a reader can ask through a proposed `lore view "SUBJECT OR QUESTION"`. Advanced illustrative controls include:
 
@@ -562,11 +562,12 @@ The autonomy contract specifies policy migration, untrusted-project behavior, ca
 
 ## 17. Evaluation strategy and release evidence
 
-**Primary success is newcomer competence**: a correctly implemented and understood first task *and* a distinct related task with less assistance. [Developer Onboarding](DEVELOPER_ONBOARDING_DESIGN.md) defines a matched participant study, source grounding, task leakage controls and ON-01–ON-24 acceptance scenarios. Original decision/autonomy evaluations remain useful supporting baselines but cannot alone establish learning success.
+**Two independent product outcomes:** newcomers need correct first-task work **and** transfer to a different less-assisted task; coding agents need independently checked constraint-respecting implementations with less repeated investigation and total effort. [Onboarding](DEVELOPER_ONBOARDING_DESIGN.md) defines human assessment/ON-01–ON-24; [Coding-Agent Intelligence](CODING_AGENT_INTELLIGENCE_DESIGN.md) defines agent contract/AG-01–AG-18. Neither experience's success establishes the other's.
 
 ### 17.1 Independent hypotheses
 
-- **HN0 Onboarding:** source-grounded orientation and workflow tours improve understanding and time to first correct contribution compared with ordinary docs/current tools.
+- **HN0 Onboarding:** grounded orientation and workflow tours improve newcomer comprehension and time to first correct contribution versus original sources/wiki.
+- **HA0 Agent assistance:** compact, investigated task packages improve agent implementation correctness and time/effort versus current context at matched permissions.
 - **HN1 Learning transfer:** project-specific tutorial, progressive scaffolding and first-task support improve independent correctness on a **different second task**, not only the first assisted task.
 - **H0 Autonomy:** adaptive permitted investigation improves correct progress and reduces avoidable handoffs compared with 0.6 at comparable resources.
 - **H0R Reuse:** revalidated investigative findings reduce repeated work without stale conclusions, scope/authority drift or privacy leakage.
@@ -584,7 +585,7 @@ A combined feature arm cannot establish which component caused a gain. Distingui
 
 Reuse [0.5 coding evaluation](../evaluation/INTELLIGENCE.md) and [0.6 decision evaluation](../evaluation/DECISION_INTELLIGENCE.md). Compare baseline sources, current 0.6 default, 0.6 explicitly inspected/investigated, adaptive controller without/with reuse, contextualized retrieval, hierarchical views, intent-specific presentation, and later approved verification as separate relevant experiments.
 
-For newcomer studies, measure **time to first correct contribution**, grounded explanation/prediction, human task authorship, mentor dependence, distinct second-task transfer at reduced assistance and optionally delayed retention; compare source docs and OpenWiki where available at matched capability. In all arms, measure unassisted correct progress, material errors/constraints, avoidable delegation, false blocking, unsafe proceeding, reading/correction burden, clarity/agency, source coverage and update cost. Record cold/warm latency including p50/p95, resource attempts, cancellations, actual usage and billing where available. Do not convert calls or tree node counts into dollar/speed claims.
+For newcomer studies, measure **time to first correct contribution**, grounded explanations, human authorship, mentor dependence and distinct less-assisted transfer. **Separately** measure agent task correctness, missed constraints, repeated investigation and cost against original sources, OpenWiki alone, Lore 0.6 and adaptive Lore (and optional combined OpenWiki+Lore), with comparable agent/model/tools, permissions and source snapshots. In all arms, measure unassisted correct progress, material errors/constraints, avoidable delegation, false blocking, unsafe proceeding, reading/correction burden, clarity/agency, source coverage and update cost. Record cold/warm latency including p50/p95, resource attempts, cancellations, actual usage and billing where available. Do not convert calls or tree node counts into dollar/speed claims.
 
 Use held-out independent projects, a document-only collection and adversarial mutations. Pin source/config/build/model identities where possible; record unknowns. Randomize comparable arms, isolate warm caches and prevent prior solved-task records/test answers from leaking into a held-out task. Review content with independent humans and meaningful external correctness checks, not only model preference. Two independent reviewers are a minimum for consequential qualitative judgments; sample size and power remain study-design requirements.
 
@@ -669,7 +670,7 @@ Resolve these through small RFCs and implementation slices with named tests. Run
 
 ## 20. Related research and project references
 
-Project contracts: [newcomer onboarding](DEVELOPER_ONBOARDING_DESIGN.md), [autonomous assistance](AUTONOMOUS_ASSISTANCE_DESIGN.md), [roadmap](KNOWLEDGE_EXPERIENCE_ROADMAP.md), [DESIGN](../DESIGN.md), [VISION](../VISION.md), [Lore 0.6](V06.md), [citation contract](CITATION_CONTRACT.md), [intelligence evaluation](../evaluation/INTELLIGENCE.md), [decision evaluation](../evaluation/DECISION_INTELLIGENCE.md).
+Project contracts: [coding-agent intelligence](CODING_AGENT_INTELLIGENCE_DESIGN.md), [newcomer onboarding](DEVELOPER_ONBOARDING_DESIGN.md), [autonomous assistance](AUTONOMOUS_ASSISTANCE_DESIGN.md), [roadmap](KNOWLEDGE_EXPERIENCE_ROADMAP.md), [DESIGN](../DESIGN.md), [VISION](../VISION.md), [Lore 0.6](V06.md), [citation contract](CITATION_CONTRACT.md), [intelligence evaluation](../evaluation/INTELLIGENCE.md), [decision evaluation](../evaluation/DECISION_INTELLIGENCE.md).
 
 Knowledge experience: [Diátaxis](https://diataxis.fr/), [compass](https://diataxis.fr/compass/), [RAPTOR](https://arxiv.org/abs/2401.18059), [GraphRAG](https://arxiv.org/abs/2404.16130), [OpenWiki](https://github.com/langchain-ai/openwiki), [STORM](https://aclanthology.org/2024.naacl-long.347/), [VeriTrail](https://www.microsoft.com/en-us/research/blog/veritrail-detecting-hallucination-and-tracing-provenance-in-multi-step-ai-workflows/).
 
