@@ -15,10 +15,13 @@ pub(super) const DEGRADED_MARKER: &str = "<!-- lore:degraded-topic-synthesis -->
 /// only from a mutable runner's warnings during an update. A true no-op
 /// must report the same degradation as the unchanged Markdown bytes.
 pub(super) fn degraded_topics(pages: &BTreeMap<String, StoredPage>) -> Vec<String> {
-    pages.iter()
+    pages
+        .iter()
         .filter_map(|(path, page)| {
             let slug = path.strip_prefix("topics/")?.strip_suffix(".md")?;
-            page.content.contains(DEGRADED_MARKER).then(|| slug.to_owned())
+            page.content
+                .contains(DEGRADED_MARKER)
+                .then(|| slug.to_owned())
         })
         .collect()
 }

@@ -368,7 +368,8 @@ pub async fn update(
                             // its Decision section, not the reported deployment.
                             // Preserve the exact quoted source and normalize
                             // only a missing model lifecycle.
-                            if accepted_adr_decision && a.kind == "decision"
+                            if accepted_adr_decision
+                                && a.kind == "decision"
                                 && a.lifecycle == "unknown"
                             {
                                 a.lifecycle = "accepted".into();

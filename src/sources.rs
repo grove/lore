@@ -136,9 +136,11 @@ fn adr_header_status(text: &str, path: &str) -> Option<String> {
         let line = raw.trim_end_matches('\r');
         let trimmed = line.trim_start();
         let first = trimmed.chars().next();
-        let fence_char = first.filter(|c| *c == '~' || *c == char::from(96))
-            .filter(|c| trimmed.chars().take(3).count() == 3
-                && trimmed.chars().take(3).all(|x| x == *c));
+        let fence_char = first
+            .filter(|c| *c == '~' || *c == char::from(96))
+            .filter(|c| {
+                trimmed.chars().take(3).count() == 3 && trimmed.chars().take(3).all(|x| x == *c)
+            });
         if let Some(ch) = fence_char {
             if fence.is_none() {
                 fence = Some(ch);
@@ -156,7 +158,9 @@ fn adr_header_status(text: &str, path: &str) -> Option<String> {
         if let Some(title) = line.strip_prefix("# ") {
             if let Some(prefix) = title.get(..stem.len()) {
                 title_matches = prefix.eq_ignore_ascii_case(stem)
-                    && title[stem.len()..].chars().next()
+                    && title[stem.len()..]
+                        .chars()
+                        .next()
                         .is_none_or(|ch| ch.is_whitespace() || ch == ':' || ch == '—');
             }
         }
@@ -176,7 +180,10 @@ fn adr_header_status(text: &str, path: &str) -> Option<String> {
 /// An explicitly accepted ADR qualifies its Decision section, not the
 /// implementation plan or unrelated possible changes elsewhere in the file.
 pub fn explicitly_accepted_adr_decision(document: &Document, chunk: &Chunk) -> bool {
-    chunk.heading_path.last().is_some_and(|h| h.trim().eq_ignore_ascii_case("decision"))
+    chunk
+        .heading_path
+        .last()
+        .is_some_and(|h| h.trim().eq_ignore_ascii_case("decision"))
         && adr_header_status(&document.text, &document.relative_path).as_deref() == Some("accepted")
 }
 
@@ -272,7 +279,8 @@ pub fn split_markdown(text: &str, root: &str, path: &str, limit: usize) -> Resul
                 } else {
                     context.clone()
                 };
-                let is_decision = heading_path.last()
+                let is_decision = heading_path
+                    .last()
                     .is_some_and(|h| h.trim().eq_ignore_ascii_case("decision"));
                 let input_digest = if is_decision && adr_status.is_some() {
                     util::json_digest(&(
