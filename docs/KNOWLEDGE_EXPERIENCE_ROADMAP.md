@@ -1,392 +1,401 @@
-# Lore Knowledge Experience — phased roadmap
+# Lore Knowledge Experience — empowerment-first roadmap
 
-**Status:** Proposed implementation plan, not a claim of shipped functionality. **Date:** 2026-10-09. **Baseline:** Lore 0.6. **Normative design proposal:** [Knowledge Experience design](KNOWLEDGE_EXPERIENCE_DESIGN.md).
+**Status:** Proposed implementation plan, not shipped functionality. **Roadmap revision:** 2. **Date:** 2026-10-09. **Baseline:** Lore 0.6.
 
-> Build knowledge that people can **explore, apply, learn from and verify**. Keep current Lore's evidence, historical truthfulness, local-first behavior and task guidance intact.
+**Designs:** [autonomous assistance and user empowerment](AUTONOMOUS_ASSISTANCE_DESIGN.md) and [Knowledge Experience architecture](KNOWLEDGE_EXPERIENCE_DESIGN.md).
 
-## 1. Scope and release principles
+> **Maximum useful autonomy. Minimum user burden.** First make Lore do the useful investigation and deliver an actionable answer. Then make that understanding easier to explore, apply, learn from and reuse.
 
-This is a **capability roadmap, not a release-number promise**. Assign version numbers only once implementation and evaluation justify them. Dates, team sizes, price, benchmark improvements and latency gains are not estimated or guaranteed here.
+Revision 2 moves adaptive assistance into the first delivery, rather than treating investigation as an optional late-stage agent feature. It preserves the R0–R7 knowledge workstreams and adds A1–A3 as the initial implementation path. Existing phase labels and original work-package labels remain traceable; order and acceptance criteria change. All commands, stores and contracts described as future work remain proposals.
 
-Phases are ordered by dependencies and value:
+## 1. Scope, priorities and release policy
 
-1. **R0: baseline and experiment contracts**
-2. **R1: contextualized segmentation and retrieval**
-3. **R2: evidence-preserving knowledge zoom**
-4. **R3: Diátaxis mode-specific experiences**
-5. **R4: decisions, negative cases and missing-knowledge capture**
-6. **R5: guided and optionally executable learning cases**
-7. **R6: change-impact/guardian and optional reader**
-8. **R7: cross-project and personalized knowledge, only if justified**
+This is a capability roadmap, not a version-number or calendar promise. A1–A3 form a candidate next-release scope; assign an actual release number only when implementation, migration and outcome evidence justify it. No dates, staffing assumptions, price or performance improvements are guaranteed here.
 
-A phase can remain experimental indefinitely. **Do not ship all phases in a single rewrite.** Before advancing, show measured user or agent benefit against current Lore and preserve its invariants.
+The intended everyday experience remains one request. Lore chooses useful retrieval, investigation and presentation within accepted permissions. Users should not need to choose investigation flags, graph depth, documentation mode or reasoning effort. Advanced controls remain available to restrict behavior or inspect what happened.
 
-### 1.1 Ship / no-ship criteria applying to every phase
+### 1.1 Delivery order
 
-- Existing 0.6 `lore context` schema 4 readiness, `--fast` schema 2, `--schema-version 3` and evidence/review commands still work with regression coverage.
-- Valid claims resolve to source revisions and retain modality, provenance, lifecycle and scope; new views never silently become accepted evidence.
-- Local-only, checkout-egress policy, quote integrity, source boundaries, no-op updates, non-mutating context and recoverable publish guarantees remain true.
-- New data has schema/version boundaries, no-op fingerprints, coherent invalidation and documented purge/backup behavior.
-- Every exposed command has examples, JSON contract, resource bounds, useful fallback behavior and tests.
-- Every quality claim is associated with an actual real-model/corpus run and independent review; fixture tests alone are not product validation.
-- No default-on tool execution, private-data telemetry, hosted model routing or user tracking.
-- Failed or partial generation does not publish a view that appears complete/current.
+| Stage | User-visible value | Dependency |
+| --- | --- | --- |
+| R0 | Establish baseline, UX/authority contract and small repeatable fixtures | None; run empirical evaluation alongside the first implementation |
+| A1 | Automatically resolve material uncertainty through permitted reads | Existing 0.6 retrieval/inspection plus R0 contract |
+| A2 | Answer first, preserve safe progress and avoid unnecessary handoffs | A1; presentation prototyping can run in parallel |
+| A3 | Reuse revision-bound investigative findings without stale certainty | A1/A2; no new accepted-facts store |
+| R1 | Better contextualized segments and exact retrieval | R0; can proceed alongside A1–A3 |
+| R2 | Knowledge Zoom over useful answers, findings and original evidence | A2/A3 interfaces; R1 only where measured helpful |
+| R3 | Explain, how-to, tutorial and reference suited to the goal | A2; richer zoom integration follows R2 |
+| R4 | Decision conditions, boundary cases and investigate-first gap capture | A1–A3; not dependent on a graphical reader |
+| R5A / R5B | Worked learning cases, then separately approved isolated replay | R3/R4; R5B requires independent security evidence |
+| R6 | Consequential change briefings, advisory guardian and optional reader | A1–A3/R4; UI can follow R2/R3 independently |
+| R7 | Optional personalization and cross-project transfer | Prior correctness, permission and usefulness gates |
 
-## 2. Backlog priority and product hypotheses
+**First useful vertical slice:** a behavior-preserving change with contradictory documentation. Lore reads relevant permitted source/test declarations, evaluates the discrepancy, revises its recommendation when needed, and returns a defensible next action without asking the user to do routine investigation. A second query reuses applicable findings only after revalidation. This does not require a hierarchy, GUI, new connector or test runner.
 
-| Priority | Workstream | Why now | Smallest useful result | Prerequisites |
-| --- | --- | --- | --- | --- |
-| P0 | Retrieval and segmentation benchmark | Can outperform hierarchy at lower cost | More accurate context units with scope | R0 |
-| P0 | Explain + reference at selectable depths | Foundational knowledge experience | Zoom into one project topic with original citations | R1 |
-| P0 | Qualifier and omission preservation | Compression can erase critical constraints | Adversarial summary audit | R1 |
-| P1 | Goal-specific how-to | Test outcome improvements | One safe task procedure with readiness and checks | R2 |
-| P1 | Reviewed decision conditions | Differentiation beyond a wiki | Trace assumptions and suggested reconsideration | R2 |
-| P1 | Negative/boundary cases | Captures consequential exceptions | Case retrieval beside a topic | R2 |
-| P2 | Tutorials/learning transfer | Distinct learning value | One usable worked exercise | R3 |
-| P2 | Tacit-knowledge questions | Captures knowledge sources omit | One reviewed gap with attributed note | R4 |
-| P2 | Revision-aware change briefing | High return-to-project utility | Differences since selected publication | R4 |
-| P3 | External sandboxed case execution | High payoff, high risk | Pin/replay one operator-approved test | R5 security RFC |
-| P3 | Optional visual reader | Strong polish, but not core accuracy | Local mode/depth switch + source drill-down | R2/R3 |
-| P3 | Advisory guardian | Potential agent benefit, false-positive risk | Evidence-linked diff risk report | R4/R5 |
-| Research | Cross-project analogy and personalization | Authority/privacy complexity | Small opt-in, namespace-safe experiment | Prior gates |
+### 1.2 Common release gates
 
-**Explicit non-goals for the first release:** mandatory MCP, graph database, daemon, hosted account, direct trackers, browser automations, autonomous code modification, execution of commands found in Markdown, auto-accepting speculative project decisions or semantic summaries as sources.
+- Preserve explicit schema-2/3/4 contracts, `--fast`, `--no-inspect`, no-cache, source evidence, review history and no-op behavior. A new default has explicit version/migration notes, not silent changes behind an old schema.
+- Source-dependent assertions retain exact evidence, revision, scope, modality and authority. Derived findings never become accepted policies through reuse.
+- Expand initiative inside accepted grants, not access. Existing denials survive upgrades; a repository's own configuration cannot authorize host execution or egress.
+- No generic investigative handoffs when a suitable permitted capability and budget exist. Remaining dependencies identify what is missing and why it affects action.
+- Resource exhaustion, capability unavailability and policy/requirements blockers remain distinct. Safe partial work cannot disguise a blocked full task.
+- Validate both caution and initiative: fewer false blocks must not increase unsafe proceeding or hidden preconditions.
+- Every stateful feature has versioning, bounded storage, invalidation, purge, privacy and crash recovery. Persistent citations outlive disposable cache eviction.
+- No secret/unauthorized egress, untrusted process execution, source mutation, hidden telemetry or background continuation by default.
+- Every quality claim has an actual reviewed experiment. Synthetic fixtures establish mechanics, not product superiority. Features can ship experimentally with honest status while evidence is collected.
 
-## 3. R0 — baseline, datasets and interface RFCs
+## 2. Backlog priorities
 
-**Purpose:** prevent building a costly hierarchy that does not outperform current Lore.
+| Priority | Workstream | Smallest useful result | Why it matters |
+| --- | --- | --- | --- |
+| P0 | Adaptive investigation | Useful permitted checks happen without extra flags | Removes investigative burden |
+| P0 | Outcome-first answer and scoped readiness | One recommendation, safe progress and exact remaining dependency | Enables action without hiding uncertainty |
+| P0 | Reusable investigations | Revalidated prior findings reduce duplicate work | Compounds project experience |
+| P0 | Permission UX and compatibility | Standing grants, restrictive overrides, no repeat prompts | Initiative without surprise access |
+| P0 | Full-task and handoff evaluation | Correct progress, burden and unsafe-proceeding metrics | Prevents optimizing apparent confidence |
+| P1 | Contextual segmentation/retrieval | More accurate exact and concept retrieval | May add value before a hierarchy |
+| P1 | Zoom and explain/reference | Expand a useful answer directly to detail/evidence | Reduces reading and navigation burden |
+| P1 | How-to and decision conditions | Applicable steps, tested assumptions where possible | Turns understanding into practical judgment |
+| P1 | Negative/boundary cases | Rare consequential exceptions appear when needed | Avoids expensive repeated mistakes |
+| P2 | Learning experiences | Prepared worked example and transfer task | Builds capability, not merely familiarity |
+| P2 | Investigate-first knowledge gaps | Resolve available gaps; optional focused capture for truly missing knowledge | Improves knowledge without a mandatory review queue |
+| P2 | Change impact and advisory guardian | Triage, investigate and explain meaningful risks/changes | Avoids an unfiltered warning feed |
+| P3 | Isolated verification/replay | Automatically select an approved check inside a standing grant | More capability after a distinct safety boundary |
+| P3 | Local visual reader | Optional mode/depth/evidence interaction | Polish must not delay core usefulness |
+| Research | Personalization/cross-project analogy | Explicit opt-in with namespace/authority boundaries | Conditional transfer, never policy merging |
+
+First-release non-goals remain mandatory MCP, graph database, hosted account, daemon, direct tracker setup, browser automation, arbitrary model-authored commands, autonomous code changes, production operation and automatically accepting generated policy. Capability scarcity is not an excuse to abandon useful retained-evidence assistance.
+
+## 3. R0 — baseline, contracts and evaluation foundation
+
+**Purpose:** define the experience and test it without making all research a prerequisite for writing the first useful implementation.
 
 ### Work items
 
-- **R0.1 Source snapshot.** Pin binary commit, configuration versions, corpus hashes, model aliases/resolved IDs and baseline 0.6 response fields. Distinguish static sources, source reports and bounded checkout observations.
-- **R0.2 Evaluation tasks.** Prepare held-out exact-lookup questions, broad orientation, decision-history, procedural tasks and learning-transfer tasks; at least three independent projects for general product claims. Add a document-only corpus.
-- **R0.3 Adversarial gold cases.** Include a single rarely mentioned but critical rule; table/header context; staging versus production; superseded ADR; reaffirmed ADR; conflict; deleted source; derived OpenWiki; false chronology; subtle negation; partial procedure; moved document; injection attempt.
-- **R0.4 Measurement harness.** Extend `evaluation/` in small scripts; integrate current coding/decision evaluation, cold/warm cache timings, prompt/token usage when reported, actual billed cost only when known, source attribution and blind human scoring.
-- **R0.5 Mode and view RFC.** Decide typed `ViewRequest` and `ViewPublication` v1, version negotiation, stable IDs, output budgets, fallbacks and human-readable rendering. Keep schema-4 `context` intact.
-- **R0.6 Resource/performance budget.** Record corpus sizes, current call/latency distribution, cost, page churn and selected-retrieval recall before setting quantitative gates.
-- **R0.7 Threat review.** Document risks from malicious Markdown, imported memories, secret-bearing checkouts and proposed view caches. Confirm no new implicit egress.
+- **R0.1 Pin the baseline:** source/build/config/model identities; current 0.6 default versus explicit inspection/investigation, including actual grants and resource ceilings.
+- **R0.2 Define outcome tasks:** exact lookup, orientation, behavior-preserving change, policy-changing request, partial progress, document-only assistance and learning transfer. Use independent held-out projects for general claims.
+- **R0.3 Adversarial fixtures:** retain prior provenance, chronology, table, exception, deletion, scope and injection cases; add the AT-01–AT-26 autonomy scenarios in the companion specification.
+- **R0.4 Extend measurement:** full assistance/caller/correction interaction, completed versus delegated checks, false blocks, unsafe proceeding, model/adapter attempts, cold/warm latency, actual usage and known billing.
+- **R0.5 Versioned contracts:** define request/result/controller types, scoped readiness, capability manifest, explicit legacy behavior, progress/cancel events and cache policy. Finalize view types only when needed by R2.
+- **R0.6 Set budgets and UX rubrics:** measure 0.6 behavior; choose initial bounded envelopes and pre-register outcome/non-inferiority targets before candidate scoring. No invented probabilistic value estimates.
+- **R0.7 Threat review:** distinguish trusted host grants, project preferences, caller restrictions, data classes and source-derived egress; document missing adapter capabilities honestly.
 
-### Deliverables
+### Deliverables and gate
 
-An executable benchmark manifest, reviewed task labels, pinned baselines, a view API/schema RFC and an approved security/data-handling checklist. No UI, hierarchy or new CLI needed.
+A contract RFC, adversarial manifest, reproducible baseline collector and independent scoring instructions. R0 contract/fixture readiness unlocks A1 development; held-out studies continue in parallel. Broad quality/default-on claims require reviewed evidence, but lack of a completed study does not indefinitely block an explicitly experimental build. Reviewers must distinguish static inspection, executed checks, source reports, inferences and authority.
 
-### Exit gate
+## 4. A1 — adaptive read-only assistance
 
-Existing Lore metrics are reproducibly collected; hidden tests and sources cannot leak between benchmark arms; reviewers understand the distinctions between *supported documented claim*, *verified code observation*, *inference* and *test result*. If held-out baselines cannot be established, defer ambitious feature implementation.
+**Purpose:** make Lore own useful investigation immediately using existing foundations.
 
-## 4. R1 — self-contained segments and better retrieval
+### PR-sized work packages
 
-**Purpose:** improve the foundational units before doing recursive summarization.
+- **A1.1 Effective policy resolver:** intersect trusted operator grants, project/root identity, caller access and request restrictions. Preserve old denials and data-class egress restrictions. Expose available capability IDs, not arbitrary tool strings.
+- **A1.2 Controller state:** goal/change kind, provisional answer, applicable constraints, material uncertainties, competing hypotheses, completed observations, candidate actions, shared budget and stop reason. No hidden chain-of-thought storage.
+- **A1.3 Typed read capabilities:** wrap existing registry/evidence/relation retrieval and no-follow bounded inspection. History reads initially use available snapshots; live history/connectors require an approved adapter, not a promised general capability.
+- **A1.4 Action selection:** rank narrow permitted checks by plausible impact on the answer, risk/reversibility and cost. Explicit requested identifiers/modes override routing; a decision model is advisory, never a relevance veto over critical constraints.
+- **A1.5 Recommendation revision:** incorporate new evidence and change the action when the premise fails. Do not merely append a warning to an unchanged bad recommendation.
+- **A1.6 Stopping:** decision sufficiency, low expected value, no information gain, capability absence, budget exhaustion, authority/requirement dependency, evidence mutation, cancellation and provider failure. No exhaustive-search requirement.
+- **A1.7 Resource ledger:** count all model attempts/retries, reads/rereads, indexes, waiting and verification/repair under aggregate bounds; reserve final validation. Independent parallel reads share budgets and cancellation.
+- **A1.8 Capability ergonomics:** one understandable standing envelope during trusted setup; no new grant through configure-only/untrusted repo settings; no repeated prompts within the same grant; useful restricted operation without setup nagging.
+- **A1.9 Regression scenarios:** AT-01–AT-10, AT-14–AT-16, AT-20–AT-21 and AT-24–AT-26; include no unnecessary reads on an exact lookup and a policy change that must not be authorized by inference.
 
-### PR-sized implementation slices
+### Deliverables and exit gate
 
-- **R1.1 Segmentation profile v1:** extend `src/sources.rs` with optional, derived context-aware unit metadata; keep existing extraction and section IDs stable unless an explicit migration proves necessary.
-- **R1.2 Structural handling:** grouped tables with headers; fenced code with label/context; list procedures with ordering; ADR metadata/decision context; examples with explicit negative conditions.
-- **R1.3 Context header:** small generated or deterministic heading/subject context stored as *non-evidentiary retrieval text*. Profile and prompt version part of cache fingerprint.
-- **R1.4 Retrieval experiment:** compare original units, contextualized units and contextualized chunks with lexical-only and hybrid embeddings; retain exact ID/path lookup.
-- **R1.5 Deduplication and containment:** overlapping context must not create separate evidence confirmations; no false merge across versions, environments or modalities.
-- **R1.6 Update/purge:** incremental fingerprinting; deleting or moving input invalidates derived segment metadata; no-op produces zero inference and no byte churn.
-- **R1.7 Tests:** table heading retention, procedures split at boundary, nested headings, repeated quote, large Unicode section, ADR acceptance, deleted source, prompt injection, old import with derived material and budget overflow.
+A future versioned/experimental adaptive command path produces a useful scoped answer with actual completed reads and truthful static-only observations. It works with configured documents alone when checkout access is unavailable. Contract tests prove limits, permissions, legacy behavior and counterevidence revision. Compared with a capability/budget-matched 0.6 inspected arm, measure whether adaptive selection/stopping improves burden or outcome without increasing material errors. Do not attribute gains solely to larger budgets or extra data.
 
-### Exit gate
+## 5. A2 — action-first UX, safe progress and minimal handoffs
 
-Contextual units improve held-out retrieval or downstream task utility enough to justify maintenance cost. No deterioration in exact reference tasks or critical constraint recall. New retrieval metadata cannot be quoted as primary evidence. If the gain is negligible, proceed to R2 with existing units and do not change segmentation globally.
+**Purpose:** make the answer empowering rather than an evidence dump or a list of homework.
 
-## 5. R2 — Knowledge Zoom and multi-resolution views
+### PR-sized work packages
 
-**Purpose:** present clear explanations at several depths, grounded in the same registry.
+- **A2.1 Answer composer:** direct answer/preferred approach first, decisive rationale, main trade-off and next useful action. Do not force every explanation or exact lookup into six compulsory headings.
+- **A2.2 Scoped readiness:** distinguish full requested outcome from independent actions; expose completion criteria and material remaining dependencies. A genuine blocker is specific to an action.
+- **A2.3 Delegation policy:** complete relevant available checks before handoff. Identify why an unavailable observable is material; distinguish future tests on code not yet changed from checks Lore could perform now.
+- **A2.4 Noninteractive behavior:** never wait for stdin to resolve a missing requirement; return structured dependency and useful work. Interactive escalation is one focused request only after meaningful assistance and only when necessary.
+- **A2.5 Progressive disclosure:** keep critical constraints visible; place detailed evidence, alternatives, history and budgets behind CLI detail options or reader expansion. The machine contract retains full required manifests.
+- **A2.6 Useful degradation:** repair/withdraw an invalid component while retaining independent supported findings. Never detach a material qualifier to make an answer fit. No stale answer relabeled current and no pretend model reasoning on deterministic fallback.
+- **A2.7 Agency and feedback:** allow scope narrowing, correction, cancellation and evidence inspection. Occasional synchronous progress explains useful findings, not raw tool chatter. No covert background continuation.
+- **A2.8 Golden UX examples:** useful one-value reference; three-versus-five refactor; genuine policy dependency with preparation work; unavailable runner; provider outage; document-only request; optional tutorial exercise; no meaningful independent work.
 
-### PR-sized implementation slices
+### Deliverables and exit gate
 
-- **R2.1 Derived-view data model:** versioned node, child, support, coverage, publication and dependency tables in disposable local state; staged migrations and clear purge. Include DAG acyclicity checks.
-- **R2.2 Grouping baselines:** topic-based grouping, binary hierarchy and 4-way grouping; optionally adaptive, overlapping concept groups. Measure quality before choosing a default.
-- **R2.3 Leaf builder:** compose from current knowledge units plus exact evidence, status and relationship manifests; avoid chains of summaries cited as proof.
-- **R2.4 Parent builder:** constrained summary schema; mandatory constraints/exceptions/conflict-endpoints; selected/eligible/omitted counts; explicit level, scope and data basis.
-- **R2.5 Cross-level retrieval:** combine summary navigation candidates with direct FTS5, optional embeddings, path and relation retrieval; protect exact identifier searches and negative cases.
-- **R2.6 Validation:** deterministic citation/resolution, scope/modality and dependency completeness plus optional fallible semantic verification. Require a truthful evidence-index fallback for rejected summaries.
-- **R2.7 Incremental invalidation:** source and graph changes dirty leaf views, affected parent closure and related topic views; stable IDs and no-op guarantee.
-- **R2.8 CLI/Markdown spike:** proposed `lore view TOPIC --mode explain --depth LEVEL`; JSON representation and human-readable fallback; stable evidence links and omissions.
-- **R2.9 Budget & scaling:** node, depth, fan-out, token, model-call and time limits; sparse on-demand construction; count cold and warm costs; staged publication recovery.
-- **R2.10 Usability:** compare 30-second orientation, mental-model accuracy, navigation time, caveat detection and exact citation drill-down to current Lore output.
+Users can identify the answer, next action and decisive boundary without reading an investigation log. Reviewers judge meaningful safe progress rather than filler. Tests reject generic delegation when the recorded capability was available and affordable, while permitting honest future implementation checks. Evaluate comprehension, correction effort, avoidable questions, false blocking and unsafe proceeding jointly. The shortest answer or fewest questions alone is not the objective.
 
-### Deliverables
+## 6. A3 — reusable investigative knowledge
 
-A small topic can be explored from orientation to evidence with portable Markdown and JSON. **No special graphical reader is necessary.** Related conflicts, critical exceptions and accepted constraints remain accessible across levels.
+**Purpose:** let each useful investigation reduce future work without turning guesses into accepted facts.
 
-### Exit gate
+### PR-sized work packages
 
-Demonstrate improved comprehension/retrieval against R0's current-Lore baseline without meaningful regression in exact answers, decision history, omissions, privacy or cost. Show at least one negative result where hierarchy isn't superior and ensure direct retrieval remains available. Reject all silently dropped critical constraints in curated fixtures.
+- **A3.1 Record/schema:** immutable ID/revision, task family/scope/applicability, original evidence, observations, hypotheses/alternatives, counterevidence, action changes, completed checks, validation/coverage, stop reason and concise rationale.
+- **A3.2 Derived store:** separate from accepted registry; bounded retention, schema migration, access/data-class labels, no-cache/read-only semantics and transparent actual writes. Routine reuse needs no human approval.
+- **A3.3 Revalidation:** bind all supporting source/unit/relationship revisions and inspected file hashes, including deeper follow-ups and dirty files. Check candidate inventories and newly relevant evidence, not only old support hashes.
+- **A3.4 Safe partial reuse:** a preserving-change finding cannot authorize a policy change. Reuse unaffected applicable observations while revising dependent recommendations; incomplete indexes become leads, not complete current answers.
+- **A3.5 Negative results:** empty bounded search is not global absence; permission denial/refusal/timeout is not domain evidence. Reconsider when capabilities or evidence change.
+- **A3.6 Publication lifecycle:** durable views retain referenced observation manifests/artifacts even after answer-cache eviction. Add dependency indexes, invalidation events, journal recovery and purge coverage.
+- **A3.7 Retrieval and cost:** use original unit retrieval alongside investigation candidates; avoid correlated-evidence double counting; record reused versus newly performed actions and revalidation cost.
+- **A3.8 Tests:** AT-11–AT-13, AT-18–AT-19, AT-21–AT-22 and AT-24; new ADR with unchanged older files, same-size edit, deleted deeper-round file, reduced permission, partial inventory and evicted record cited by a persistent view.
 
-## 6. R3 — Diátaxis experiences over common knowledge
+### Deliverables and exit gate
 
-**Purpose:** turn understanding into four task-specific formats.
+A subsequent related request benefits from safely reusable findings. A new contrary source invalidates or changes the old conclusion even when original evidence remains unchanged. No current view loses its cited observations on eviction. A warm/cold comparison reports avoided work, actual revalidation overhead, stale-answer errors and cross-task leakage controls. Findings remain derived; explicit authoring is required only for new primary notes/policy, not for every reusable insight.
+
+## 7. R1 — contextualized segments and retrieval
+
+**Purpose:** improve the informational units where measurement shows value, without delaying A1–A3.
+
+- **R1.1 Segmentation profile:** extend `src/sources.rs` with derived context metadata; preserve existing extraction/quote identities unless a demonstrated defect requires migration.
+- **R1.2 Structures:** tables with headers/units, fences with purpose, procedures with order/rollback, ADR status/decision scope, examples with negative conditions.
+- **R1.3 Retrieval headers:** deterministic/generated context is non-evidentiary metadata; preserve modality and prompt/profile fingerprint.
+- **R1.4 Ablations:** original units versus contextualized units/chunks; lexical-only versus hybrid; exact identifier/path bypass and direct access to rare exceptions.
+- **R1.5 Overlap/deduplication:** inherited context does not create independent corroboration or false merge across version/environment/modality.
+- **R1.6 Updates/purge:** invalidate inherited context on changed/deleted/moved sources; true no-op retains bytes with zero inference.
+- **R1.7 Tests:** table/procedure splits, repeated headings/quotes, large Unicode section, ADR acceptance, derived import, denied access and budget overflow.
+
+**Exit gate:** measurable retrieval/downstream improvement without exact-reference, constraint-recall or authority regression. When improvement is negligible, keep current units and proceed with useful assistance/views rather than forcing a segmentation redesign.
+
+## 8. R2 — evidence-preserving Knowledge Zoom
+
+**Purpose:** let the user expand a useful answer into a working model, decision detail and exact evidence without navigating first.
+
+- **R2.1 View storage:** versioned nodes, support, coverage, publications and dependencies in disposable derived state; DAG containment checks, migrations, retention and purge.
+- **R2.2 Grouping:** compare topic/relationship, binary, four-way and adaptive overlapping groups. Structural node counts are not performance claims.
+- **R2.3 Leaves:** source-bound knowledge and applicable investigation findings, with original evidence/observation manifests. No summaries used as proof.
+- **R2.4 Parents:** constrained fields preserve critical constraints, rare exceptions, conflict/transition endpoints, qualifiers and included/eligible/omitted counts.
+- **R2.5 Cross-level retrieval:** combine views with original lexical/path/semantic/relation access. An upper summary cannot exclude the only decisive lower-level fact.
+- **R2.6 Validation/degradation:** source/scope/modal/temporal checks plus fallible semantic review; preserve valid partial help before falling back to an evidence index.
+- **R2.7 Incremental invalidation:** source additions, edits, deletions, changed relationships and investigation counterevidence invalidate relevant parents, including untouched original topics.
+- **R2.8 CLI/Markdown:** proposed `lore view SUBJECT` infers a sensible mode/depth. Explicit mode/depth/as-of options are advanced, not a required form. Preserve stable links and source status.
+- **R2.9 Limits:** sparse on-demand builds, bounded nodes/fan-out/context/calls/deadlines and measured rebuild amplification; coherent staged publication and recovery.
+- **R2.10 Usability:** compare orientation accuracy, navigation time, rare-condition discovery and evidence drill-down against current Lore and the simpler A2 presentation.
+
+**Exit gate:** meaningful comprehension/retrieval benefit at measured cost, no erased critical conditions or false current/historical claims. Keep direct retrieval when it outperforms hierarchical routing. A graph canvas or dedicated UI is not required.
+
+## 9. R3 — Diátaxis experiences
+
+**Purpose:** fit the same investigated knowledge to the user's goal, not merely relabel four generic templates.
 
 ### R3.1 Explain
 
-Concept model, rationale if documented, alternatives, relationships, historical scope, confidence qualifications, original evidence navigation. Prevent invented causal links.
+Provide the decisive mental model, relevant history, recorded rationale and clearly labeled useful inference. Investigate ambiguity when it affects understanding; avoid invented causal bridges or pointless deep inspection for a simple concept question.
 
 ### R3.2 Reference
 
-Deterministic-oriented exact identifiers, enum values, steps/flags, inputs/outputs, environment versions, table cells and error definitions. Precision over prose; report "not available in selected evidence" instead of inventing defaults.
+Use exact identifiers, values/types, inputs/outputs, errors and scope/version conditions. Preserve table context and numeric precision. Resolve material ambiguity using available evidence without delaying a known exact answer with unrelated history.
 
 ### R3.3 How-to
 
-Goal, prerequisites, condition branches, safe ordered procedure, check/rollback, exact links, expected completion criteria and 0.6 readiness. Never turn a reported implementation into permission to violate an accepted policy.
+Provide goal, prerequisites, branches, safe order, implementation seams, rollback and observable completion. Complete available prerequisite investigations first. Separate completed checks, future implementation verification and external dependencies. Do not invent authority to change policy.
 
 ### R3.4 Tutorial
 
-Learner objective, safe starting state, stepwise action, predictions, observations, feedback, cleanup and transfer exercise. Initially provide **non-executable worked examples**, not new process execution.
+Prepare a bounded learner goal, starting state, purposeful actions/predictions, feedback, cleanup and a distinct transfer task. User exercises are appropriate only because learning was requested. First support non-executing worked examples; never pretend setup or replay passed.
 
-### Shared engineering and validation
+### Shared work
 
-- **R3.5 Intent routing:** explicit user mode wins; optionally use typed decision-model inference with refusal and unknown fallback; do not allow fast classifier to discard critical records.
-- **R3.6 Shared structured composition:** one knowledge snapshot, four renderers with explicit provenance, scope and mode-specific validators. Refuse a mode when source support is inadequate.
-- **R3.7 CLI/JSON mode switching:** render from the same supported IDs; content visibility and citations remain consistent across modes.
-- **R3.8 Accessibility/Markdown:** meaningful headings, tables, links, conditions and labels without a web app or color-coded truth.
-- **R3.9 Usability study:** randomize generic Lore versus mode-specific output for held-out explanation, task completion, exact lookup and novel-task learning tests.
+- **R3.5 Routing:** explicit user intent wins; sensible defaults, typed uncertainty/refusal and no cheap-model veto over critical evidence.
+- **R3.6 Composition:** one knowledge/observation snapshot with mode-specific schemas and validators. Investigate gaps, then provide the closest useful labeled alternative rather than fabricate or refuse all help.
+- **R3.7 Switching:** mode/depth changes reuse authorized evidence and completed work where applicable, not repeat discovery needlessly.
+- **R3.8 Accessibility:** meaningful Markdown/JSON, logical headings, screen-reader status and no color-only authority labels.
+- **R3.9 Study:** generic versus goal-specific responses, randomized tasks and controlled models/budgets; separately measure lookup, task completion, explanation and skill transfer.
 
-### Exit gate
+**Exit gate:** each mode has its own observed usefulness and failure boundaries. A failed tutorial experiment must not block good explanation/reference or core task assistance. No polished mode can compensate for missing critical evidence.
 
-How-to measurably reduces errors or task time on appropriate held-out tasks; reference does not lose numeric/type accuracy; tutorial users can transfer a learned step; explanations do not overstate source authority. If any mode fails, keep the working modes rather than shipping a generic all-mode promise.
-
-## 7. R4 — decision assumptions, exceptions and knowledge gaps
-
-**Purpose:** preserve reasoning, not merely facts and summaries.
+## 10. R4 — decisions, negative cases and investigate-first gaps
 
 ### R4.1 Decision lenses
 
-- Schema for `decision_unit_id`, source-scoped rationale, actual alternatives, documented assumptions, **inferred** condition candidates, applicability, review status and invalidation dependencies.
-- Exactly cite rationale *as documented*, never reconstruct a decision maker's motive as fact.
-- Generate potential reconsideration when a relevant condition changes, without assigning `superseded` or overriding adopted policy.
-- Link a proposed reconsideration to the existing review history without conflating "approve interpretation" and "approve a replacement decision".
-- Evaluate false reconsideration suggestions, missed meaningful changes and improved decision accuracy.
+Represent a decision's recorded problem/reasons/alternatives, documented assumptions, inferred conditions, applicability, review status and original evidence. Investigate possible condition changes before generating a review suggestion. Return the strongest provisional interpretation and action; use human attention only for consequential unavailable requirements or authority. Approving an interpretation is not superseding an ADR. Measure meaningful reconsiderations, false alarms and decision errors.
 
 ### R4.2 Negative and boundary cases
 
-- Add types `positive_example`, `counterexample`, `historical_failure`, `exception` and `incident` with scope, source and version references.
-- Attach cases to how-tos, decision lenses and relevant view nodes.
-- Make a rare exception visible even in a high-level summary when missing it would change action.
-- Separate reported incident resolution from verified reproduction.
+Add positive examples, counterexamples, historical failures, exceptions and incidents with source/environment/version. Attach them to relevant answers, how-tos and lenses. A rare case must survive compression when it changes action. A reported resolution is not a reproduced result; a historical failure is not a permanent prohibition. Reuse its conditions, not an unconditional ban.
 
-### R4.3 Targeted knowledge questions
+### R4.3 Knowledge gaps
 
-- Detect questions from ungrounded procedural preconditions, unexplained accepted choices, ambiguous conventions, recurring failure patterns and mismatches between sources/checkout.
-- Rank questions by expected decision impact, evidence, uncertainty and human effort.
-- Deduplicate, expire stale prompts, capture explicit declines and don't harass maintainers.
-- Accept a user's answer as a *new attributable source* through a deliberate authoring workflow—not as an implicit change to the project registry.
-- Respect author approval, scope, permission and history. An answered question may remain an unverified recollection.
+Investigate a gap's relevance and available evidence before surfacing it. Resolve from sources, approved tools or revalidated findings where possible; retain explicit non-blocking inference when useful. Keep non-material gaps quiet in ordinary assistance. Only an explicitly requested maintenance session should expose a ranked optional capture queue. Support declines/unknown, deduplication, expiry and attributable volunteered answers. Source authoring remains a separate authorized operation; ordinary investigation reuse requires no approval.
 
-### Exit gate
+**Exit gate:** fewer material mistakes and less unnecessary human review. A remaining question is actually consequential, unavailable to Lore and answerable; it is not work that Lore merely declined to do. Authored testimony retains scope and provenance without becoming runtime proof.
 
-Independent reviewers judge that decision lenses and negative cases improve accuracy more often than they trigger misleading reviews. A targeted question is genuinely answerable and consequential; authored answers preserve provenance and are not automatically promoted to runtime facts. Revisions invalidate condition and case applicability correctly.
+## 11. R5 — worked cases and separately authorized replay
 
-## 8. R5 — learning cases and explicitly sandboxed replay
+### R5A: no-execution cases
 
-**Purpose:** teach and verify behavior beyond prose while keeping source and execution boundaries distinct.
+Define case IDs, scenarios, prerequisites, source/decision revisions, inputs, expected outcomes, negative branches, success/failure conditions and cleanup. Connect them to tutorial/how-to/reference/explanation as appropriate. Lore prepares examples using permitted static evidence and clearly labels expectations versus observations. External test descriptions can be ingested without executing them. Measure transfer to a distinct task, not only recognition of the presented example.
 
-### R5A: safe, no-execution stage
+### R5B: isolated verification capability
 
-- Define `CaseRecord`: title, scenario, prerequisites, relevant source/decision revision, expected result, negative scenario, verification need and cleanup guidance.
-- Render as tutorial/how-to example and link to original evidence.
-- Integrate operator-provided test manifest descriptions but do not run commands.
-- Test learning transfer using distinct held-out tasks.
-- Mark all illustrative outputs as expectations rather than observed results.
+R5B has a separate threat-model/sandbox RFC and adversarial isolation evidence. It is not necessary to implement A1–A3.
 
-### R5B: gated executable stage
+- Bind a standing operator grant to known command/capability IDs, pinned project inputs, approved runtime and resource/network policy. Lore may select a material check automatically within that grant; no confirmation for every execution.
+- Deny arbitrary commands from source/model text, credentials, production data, host mutation and network by default. Enforce filesystem, process-tree, CPU/memory/disk/output/time limits and cancellation.
+- Record actual argv, input/code/test hashes, tool/runtime, policy, observed results, exit status, output artifacts and redaction. Generated expected output is never execution evidence.
+- Invalidate applicability when inputs/tests/runtime/permissions change. Retain historical outcomes honestly without a generic production-verified badge.
+- Persist derived observations under cache policy; new primary project notes/policy remain explicitly authored. Do not require humans to approve every result merely to reuse it.
+- Compare bounded execution with equivalent text/static cases, including setup overhead, cost, failures and security attacks.
 
-**Do not start R5B until a separate threat-model and sandbox RFC is approved.**
+**Exit gate:** enforceable isolation plus actual learning/task benefit, source/observation binding and zero unauthorized execution/egress. If isolation is absent, ship R5A and useful static assistance; do not substitute an unsafe shell or burden users with infrastructure setup to get an answer.
 
-- An isolated external runner accepts **operator-selected** command IDs, pinned snapshots and exact sandbox policies; never model-authored arbitrary commands.
-- Disable network, host mounts, credentials and production data by default; restrict filesystem, process tree, CPU, memory, disk, output bytes and time.
-- Bind observations to tool/runtime identity, source hashes, expected/actual outcome and a signed or otherwise trustworthy local run manifest as feasible.
-- Stale results lose the `passed` label when files, tests or runtime assumptions change.
-- Review outputs before authoring any durable documentary observation.
-- Compare executable cases with equivalent text-only cases, including warm cost, failure explanations and security attack attempts.
+## 12. R6 — impact briefings, advisory guardian and optional reader
 
-### Exit gate
+### R6.1 Consequential changes
 
-Proof of enforced isolation, negative tests for unauthorized execution and egress, exact reproducibility metadata and real task/learning benefit. If isolation cannot be demonstrated, **ship R5A only**. No code execution through `lore context --inspect`; 0.6 remains read-only.
+Compare named publication/source baselines or optional explicitly acknowledged revisions. Explain what the user should now understand/do differently about decisions, assumptions, procedures, cases and uncertainties. Investigate important apparent changes; suppress editorial churn. Keep source edits, reported outcomes, changed interpretations and scoped observations distinct. Never infer what someone learned from opening a page. Proposed `lore changes` remains a separate versioned command.
 
-## 9. R6 — impact briefings, advisory guardian, optional reader
+### R6.2 Advisory guardian
 
-**Purpose:** deliver knowledge where changing project conditions make it useful.
-
-### R6.1 "Since" view
-
-- Compare two explicit project publication IDs, or an opt-in acknowledged baseline.
-- Show documented decision/policy/procedure and case changes, affected concepts and relevant task impact.
-- Distinguish source edit, changing interpretation, reported outcome, verified observation and historical removal.
-- Never infer users' beliefs or memory from a page-open event.
-- Provide `lore changes --since ...` as a proposed versioned CLI with JSON and portable Markdown.
-
-### R6.2 Advisory change guardian
-
-- Consume an explicit task, selected paths and optional caller-provided patch/revision; don't claim to inspect a diff unless actually supplied/read.
-- Cross-reference accepted constraints, decision conditions, known negative cases and tests.
-- Output actionable warnings with severity, applicability, evidence and one specific check. Label unknowns.
-- Optimize for fewer *material* missed errors, not maximal number of warnings.
-- Do not mutate code, block merges or install hooks by default. Any CI enforcement is a separate, approved future project.
+Consume a supplied or actually inspected task/patch/revision and relate it to applicable rules, decision conditions, negative cases and checks. Complete available useful investigation before emitting a warning. Provide likely consequence, specific evidence, remedy and exact outstanding dependency—not an untriaged suspicion queue. Deduplicate unchanged findings and measure interruption cost, precision and missed material errors. No source edits, hooks or merge blocking by default; CI enforcement requires a separate policy decision.
 
 ### R6.3 Optional local reader
 
-- Depth and intent controls, concept breadcrumbs, contextual "why/source/what changed" navigation, expandable exceptions, historical timeline and source fragments.
-- Can render the same supported JSON contract and Markdown fallback offline.
-- Accessibility: keyboard, logical headings, readable contrast, screen reader status labels and small-screen layout.
-- Security: escaped untrusted Markdown, CSP, no arbitrary code rendering/execution, no background cloud calls or analytics without opt-in.
+Reuse the same result/view contract for answer-first content, mode/depth controls, breadcrumbs, why/source/changes actions, visible critical constraints and expandable detail. Support correction, narrowing/cancellation and evidence inspection without unnecessary repeated work. Preserve offline Markdown/CLI access, keyboard/screen-reader usability, responsive layout, escaping/CSP and no implicit analytics, remote images/egress or executable Markdown.
 
-### Exit gate
+**Exit gate:** faster accurate return-to-project understanding, useful low-burden warnings and no dependency on a visual client. A simpler reader that helps users act is preferable to a graph requiring them to reconstruct the answer.
 
-A returning user can correctly identify consequential changes faster than with file diff alone; guardian has measured precision/recall and acceptable interruption rate; static/CLI experience remains fully useful without optional UI.
+## 13. R7 — research extensions
 
-## 10. R7 — research extensions, not release commitments
+- **Cross-project analogies:** preserve namespace, authority, privacy, source correlation and conditions under which a lesson will not transfer. A candidate analogy cannot become merged policy.
+- **Personalized explanations:** explicit local preferences/acknowledged baselines, portable/deletable; no inferred beliefs or hidden activity tracking.
+- **Proactive workflows:** checks may be triggered by explicitly configured update/review workflows. Ordinary requests do not silently install background agents or notifications.
+- **More efficient routing:** evaluate learned decision-value selection against bounded heuristics, including false-negative recall and high-cost mistakes. Scores never replace evidence or permission.
+- **Alternative presentation:** diagrams, timelines or other media remain views of the same evidence and limitations. No interface-only source of truth.
 
-- **Cross-project analogy:** compare scoped patterns while preserving project namespace, source authority, confidentiality and incompatibilities. Do not merge decisions across projects.
-- **Adaptive personalized explanations:** preferences and voluntarily acknowledged baselines stored locally, exportable/deletable. No opaque "user understands X" claims.
-- **Proactive recommendations:** triggered only from explicit update/check workflow, not covert background agent activity. No automatic alerts unless a user separately configures them.
-- **More model-efficient view selection:** learned salience/decision routing with calibrated *recall* and strong conservative fallback, never source authority.
-- **Alternative presentation:** concept maps, timelines or audio where validated against the same evidence contract; no UI-only stored knowledge.
+Advance only with demonstrated demand and earlier outcome/security gates. Research experiments must not reopen the foundational commitment to useful autonomy inside existing permissions.
 
-Advance only when current phases have stable measurements and user demand.
+## 14. PR-sized delivery sequence and traceability
 
-## 11. Suggested PR sequence
+New package labels A01–A12 precede the original 01–19 backlog. They are planning IDs, not GitHub PR numbers. Preserve smaller independent changes, each with observable user benefit and targeted negative tests.
 
-A manageable first delivery could be split as follows:
-
-| PR | Target | Scope | Required test |
+| Package | Phase | Scope | Required evidence |
 | --- | --- | --- | --- |
-| 01 | R0 | Benchmark manifests and reviewed adversarial gold | Integrity and rubric reproducibility |
-| 02 | R0 | View JSON schema RFC + CLI interface tests | Unknown mode, version, budget and scope rejection |
-| 03 | R1 | Derived contextual segments | Byte identity, table/procedure/ADR/Unicode tests |
-| 04 | R1 | Retrieval ablations | Recall, false-merge and exact lookup regression |
-| 05 | R2 | Derived-view SQLite migrations, IDs and DAG | Acyclic IDs, rollback, purge, unknown reference |
-| 06 | R2 | Evidence-closed leaf and parent synthesis | Constraint/exception preservation and unsupported-text rejection |
-| 07 | R2 | Cross-level retrieval | Exact lookup bypass; relation endpoints and candidate bounds |
-| 08 | R2 | Invalidation and staged publication | No-op zero calls, moved/deleted evidence, interrupted publishing |
-| 09 | R2 | `lore view` explanation/Markdown/JSON | Evidence drill-down, budget omission and fallback |
-| 10 | R3 | Reference and explanation renderers | Numeric precision, temporal/causal review |
-| 11 | R3 | How-to with readiness and checks | Applicable procedure and constraint tests |
-| 12 | R3 | Tutorial/worked-example contract | Transfer task / no pretend execution |
-| 13 | R4 | Sourced decision lens + review workflow | Assumptions vs inference; no accidental supersession |
-| 14 | R4 | Exceptions and negative case records | Rare-case retrieval and invalidation |
-| 15 | R4 | Gap queue and explicit authored answer | Provenance, consent, declines, deduplication |
-| 16 | R5A | Non-executing case browser and worked examples | Case scope, rollback and learner experience |
-| 17 | R5B | Separate safe-runner RFC and security harness | Escape/egress/timeout adversarial tests |
-| 18 | R6 | Revision-aware briefing and advisory guardian | Factual impact, false alerts, source hashes |
-| 19 | R6 | Optional reader using same view API | Accessibility, XSS resistance and offline fallback |
+| A01 | R0 | Autonomy fixtures, burden rubric and matched 0.6 baseline | Reproducibility and no solved-task leakage |
+| A02 | A1 | Capability manifest, trust resolution and legacy policy | Denied grants, untrusted config, restrictive overrides |
+| A03 | A1 | Typed actions/controller and shared budgets | Simple task no-op, bounded calls and byte limits |
+| A04 | A1 | Material uncertainty and counterevidence revision | Recommendation changes when premise fails |
+| A05 | A1 | Stopping, cancellation and progress events | No endless loop; no background continuation |
+| A06 | A2 | Action-first future response schema and composer | Exact lookup/partial progress/true blocker examples |
+| A07 | A2 | Delegation/escalation and noninteractive contract | Available check completed, no stdin waiting |
+| A08 | A2 | Component validation and useful fallback | Invalid clause cannot poison unrelated findings |
+| A09 | A3 | Investigation records/store and permission inheritance | No-cache/read-only/purge/source authority |
+| A10 | A3 | Freshness, new-evidence search and selective reuse | New ADR, dirty/deeper file, incomplete inventory |
+| A11 | A3 | Durable publication dependencies and eviction | No dangling citations after cache removal |
+| A12 | A1–A3 | Matched outcome evaluation and default migration | Benefit versus inspected 0.6; correctness and latency gates |
+| 01 | R0 | Original knowledge adversarial gold | Provenance, chronology and exception preservation |
+| 02 | R0/R2 | View schema and CLI interface contract | Version, scope, intent and budget checks |
+| 03 | R1 | Contextual segments | Table, procedure, ADR and Unicode identities |
+| 04 | R1 | Retrieval ablations | Exact lookup, rare constraints and false merges |
+| 05 | R2 | Derived views, IDs and DAG | Migrations, rollback, purge and unknown refs |
+| 06 | R2 | Evidence-closed leaf/parent synthesis | Mandatory qualifier and support checks |
+| 07 | R2 | Cross-level retrieval | Direct bypass and conflict endpoints |
+| 08 | R2 | Invalidation/staged publication | New source, deleted evidence and true no-op |
+| 09 | R2 | Simple view/Markdown/JSON surface | Defaults, evidence drill-down and partial status |
+| 10 | R3 | Explain/reference renderers | Numeric, authority and temporal correctness |
+| 11 | R3 | How-to integrated with adaptive checks | Completed prerequisites versus future code tests |
+| 12 | R3 | Tutorial/worked examples | Transfer task, no pretend execution |
+| 13 | R4 | Investigated decision conditions | No automatic policy supersession |
+| 14 | R4 | Negative/boundary cases | Rare-case retrieval and version invalidation |
+| 15 | R4 | Investigate-first gaps and optional notes | No routine review burden; explicit authoring |
+| 16 | R5A | Worked case browsing | Scope, learner feedback and cleanup |
+| 17 | R5B | Separate safe-runner RFC/harness | Escape/egress/resource/cancel tests |
+| 18 | R6 | Consequential changes/advisory guardian | Triage value and interruption burden |
+| 19 | R6 | Optional reader | Accessibility, XSS/egress and offline fallback |
 
-PR numbers are work-package labels, **not GitHub issue numbers** or promises. These can be split further after profiling. Avoid bundling new storage schema and a new execution boundary into one PR.
+Package 17 is a new capability boundary, not a prerequisite to completing investigations with already available tools. APIs/schemas should share existing 0.6 types where appropriate; avoid a framework rewrite to accommodate one extra action.
 
-## 12. Dependencies and critical path
+## 15. Dependencies and first release boundary
 
 ```mermaid
 flowchart TD
-  R0["R0 benchmark + contract"] --> R1["R1 segmentation/retrieval"]
-  R1 --> R2["R2 zoom views"]
-  R2 --> R3["R3 Diátaxis experiences"]
-  R2 --> R4["R4 decisions / negative cases"]
-  R3 --> R5A["R5A worked cases"]
+  R0[R0 contracts and evaluation] --> A1[A1 adaptive reads]
+  A1 --> A2[A2 empowering answers]
+  A2 --> A3[A3 reusable findings]
+  R0 --> R1[R1 retrieval experiments]
+  A2 --> R3[R3 goal-specific presentation]
+  A3 --> R2[R2 Knowledge Zoom]
+  R1 -. measured improvements .-> R2
+  R2 --> R3
+  A3 --> R4[R4 conditions and negative cases]
+  R3 --> R5A[R5A worked cases]
   R4 --> R5A
-  R5A --> S["Security RFC + isolated runner"]
-  S --> R5B["R5B optional replay"]
-  R4 --> R6["R6 change impact / guardian"]
-  R3 --> R6
-  R2 --> UI["Optional local reader"]
-  R6 --> R7["R7 research"]
+  R5A --> S[Separate security and runner contract]
+  S --> R5B[R5B approved replay]
+  R4 --> R6[R6 impact and guardian]
+  R2 --> UI[Optional reader]
+  R3 --> UI
+  R6 --> R7[R7 research]
   R5B --> R7
 ```
 
-**Critical path to first real user value:** R0 → R1 measurement → R2 evidence-preserving zoom → R3 explanation/reference/how-to. **Differentiator path:** R2 → R4 decision lenses and negative cases. **Safety-sensitive path:** R5A → sandbox RFC → R5B. Don't let R5B delay the useful non-executing product.
+**First candidate release:** A1–A3, with R0 evaluation and only necessary R1 fixes. It must demonstrate an automatic permitted investigation, counterevidence-based recommendation revision, precise noninteractive dependency, meaningful partial progress, no unnecessary work for an easy request, and safe reuse after source mutation.
 
-## 13. Quality gates, release strategy and telemetry
+**What waits:** full hierarchical rebuild, all four polished modes, sandboxed execution, new connectors, personal profiles, a graphical reader and cross-project transfer. Retaining them as separate workstreams preserves ambition without diluting the immediate experience.
 
-### 13.1 Test layers
+## 16. Validation, rollout, risks and definition of done
 
-1. **Unit:** canonical segment context, parser boundaries, IDs, DAG cycles, scope filter, budgets and permission state.
-2. **Property/mutation:** source delete/edit/move, changed relation across untouched files, ambiguous matches, same-sized code edit, invalid cache, no-op, crash recovery.
-3. **Adversarial:** prompt injection, forged citations, negated rule, wrong environment, summary removing a single critical exception, nested derived source, secret leakage, malicious case commands.
-4. **Real-model corpus:** different providers/model versions with human-reviewed extraction, summaries and counterfactuals; measure false positives and false negatives.
-5. **Product:** time to correct task, independent transfer exercise, correct lookup, impact awareness, guardian interruption rate and human knowledge-capture burden.
-6. **Security:** checkout egress separate from documentary egress, execution sandbox boundary, denied network and write attempts, reader XSS and purge completeness.
+### 16.1 Test layers
 
-### 13.2 Suggested numeric policy
+Unit tests cover typed actions, state transitions, policy intersections, source IDs, hashes, scopes, DAGs, budgets and response contracts. Property/mutation tests cover source additions/deletions/moves, changed relationships, dirty/same-size/deeper file changes, incomplete indexes, no-op, stale reuse and crash recovery. Adversarial tests cover injection, forged citations, negation, scope/policy mistakes, hidden critical exceptions, secret egress, malicious runner requests and poisoned memory.
 
-Integrity contracts should be **hard requirements**: 100% successfully published citations resolvable for the claimed publication, zero silently lost seeded critical constraints/exceptions, zero automatic decision-policy replacement by generated prose, zero unintended network/execution/write paths, and zero model calls on a genuine no-op update.
+Real-model tests measure complete task outcomes and reasoning errors with independent review, including missed constraints, false causal/temporal claims and inappropriate authority. Product tests measure reading/correction effort, correct next action, cancellation/overrides, exact lookup, skill transfer, warnings and gap-capture burden. Runner/reader security tests are separate from prompt/schema tests.
 
-Improvements in task time, learning success, cost and retrieval quality require **pre-registered empirical targets** after R0 baseline measurement; choose target and sample size before seeing the new output. Do not claim numerical benefit from tests using synthetic providers or the example 256-leaf tree.
+### 16.2 Metrics and anti-gaming
 
-### 13.3 Feature gating and rollback
+Primary: unassisted correct progress and total time/effort to a correct, constraint-respecting outcome. Report task completion, avoidable delegation, true external dependencies, false blocking, unsafe proceeding, unnecessary investigation, clarity/agency, reuse benefit, cold/warm p50/p95 and actual usage/billing where known.
 
-- New modules/features default to disabled or explicitly experimental until gates pass.
-- Migrate derived state independently and leave authoritative source/evidence untouched.
-- Preserve both the previous valid view publication and its declared revision while a new build stages.
-- Restore previous valid current publication on rejected model output/interrupt only when its inputs are still current; otherwise label stale and provide a deterministic evidence index.
-- Release each mode independently; a bad tutorial generator must not break `lore context` or exact reference.
-- Use opt-in canary runs to measure cost, omissions and update amplification before wider defaults.
-- Publish versioned schemas and deprecation notices; unknown schema versions fail explicitly.
+Use matched-capability and matched-budget arms: original sources, current 0.6 default, explicit inspected/investigated 0.6, adaptive without reuse, adaptive with reuse, and naive always-investigate. Later add richer retrieval/views or execution separately. Keep the same coding model, source snapshots and external correctness checks; randomize and isolate caches. A reused prior solution must not leak held-out answers.
 
-### 13.4 Minimal evaluation report
+Pre-register improvement/non-inferiority targets and sample size after R0 baselines, before scoring candidate output. Zero questions, zero blockers, many checks or confident prose cannot be a standalone target. Hard safety/provenance gates remain mandatory; empirical task scores remain honestly unmeasured until executed.
 
-Record: Git revision; source file hashes and provenance; all selected/omitted candidates; model/provider/prompt; segmentation/grouping/version; mode/depth/scope; initial and repeated model calls; cache and latency; source evidence coverage; human scores; correctness/constraint tests; failures; egress/inspection/execution permissions; actual usage and billing if observed; declared unknowns. Never log raw private text as convenience telemetry.
+### 16.3 Rollout and rollback
 
-## 14. Risk register and mitigations
+Prototype the new controller behind an explicit experimental switch. The intended mature product is adaptive by default inside accepted permissions, not a permanent collection of per-query flags. Ship default changes only after version/migration, security, outcome and latency review. Existing deny settings cannot become grants during migration; registry-only adaptive reasoning remains useful.
 
-| Risk | Severity | Mitigation |
+Migrate derived stores independently, retaining accepted evidence and legacy schemas. Revert a failed controller/view feature without losing source history. A previous publication is a valid current fallback only if its dependencies remain current; otherwise label historical/stale and deliver fresh eligible findings. Separate optional modes/runner/UI so their failures do not break core context or reference. Respect cancellation and no-cache across all new stores.
+
+### 16.4 Risk register
+
+| Risk | Mitigation |
+| --- | --- |
+| Caution reappears as a required human review queue | Investigate-first contract; ordinary derived reuse needs no approval; measure burden |
+| Low blocker count hides unsafe action | Scoped readiness, explicit preconditions, unsafe-proceeding gate |
+| Autonomy means endless expensive exploration | Decision-value actions, no-information-gain stop, shared ledger and cancellation |
+| Automatic initiative becomes surprise access | Standing trusted grants, deny-preserving migration, typed capabilities |
+| Reuse turns speculation into truth | Original provenance, applicability, new-evidence checks and no authority promotion |
+| New ADR ignored because old hashes match | Corpus/relationship change cursor, bounded relevant-evidence scan, incomplete-index rules |
+| Summary erases a rare decisive exception | Critical inclusion manifests and adversarial retrieval tests |
+| Partial verification discards all useful work | Dependency-aware repair/withdrawal and truthful partial output |
+| Fallback preserves advice but removes its qualification | Atomic recommendation/condition handling; narrow or withhold action |
+| Runner escapes or leaks data | Distinct tested isolation, no arbitrary commands, explicit data-class egress |
+| Guardian overwhelms the user | Investigate/triage first, deduplicate, severity/applicability and interruption measures |
+| Source-derived summaries leak under reduced access | Restriction inheritance through views/vectors/records and permission revalidation |
+| UI implies user knowledge from page views | Explicit acknowledged baselines only; no hidden profiling |
+| Generated output overwrites authored text | Manifest ownership, explicit rebuild and staged publication |
+
+### 16.5 Definition of done
+
+Every ticket has a concrete user journey; out-of-scope/failure behavior; source/derived authority boundary; versioned request/result and migration; actual permission/resource/write effects; unit/negative/adversarial tests; invalidation/no-op/purge/publication as applicable; user help and honest examples; measured result or explicit unmeasured status; and rollback without accepted-evidence loss.
+
+Autonomy tickets additionally demonstrate no avoidable handoff within the available capability envelope, correct stopping, scoped partial progress, cancellation and counterevidence revision. Execution tickets require independent sandbox evidence. Model-quality tickets need a real-model evaluation plan/results and actual identities/usage; fixture success is never relabeled empirical utility.
+
+## 17. Settled direction, remaining choices and references
+
+| Question | Decision/default for this proposal | What remains to measure/design |
 | --- | --- | --- |
-| Hierarchy erases a rare but vital exception | Critical | Hard inclusion + exception/coverage manifest + adversarial gold |
-| Newer proposal is presented as current decision | Critical | Reuse existing documentary lifecycle and explicit supersession rules |
-| Multi-level synthesis launders hallucinated support | Critical | Original evidence closure, no summary-as-proof, cross-claim review |
-| Fast routing silently discards relevant content | High | Always query original units, conservative candidate union and recall measurements |
-| Expensive full-tree regeneration | High | Lazy/sparse views, fingerprints, bounded fan-out and dependency closure |
-| View becomes stale but still appears current | High | Publication/revision binding, stale markers, fail-safe invalidation |
-| Agent output creates an undocumented policy | High | Explicit source-authoring review; no authority promotion |
-| Case runner escapes host/sandbox or leaks secrets | Critical | Separate operator-approved runner, independently tested isolation, deny by default |
-| Guardian overwhelms developer with false alarms | High | Advisory opt-in, targeted warnings, calibrated precision and human feedback |
-| Diátaxis mode labels fail to match user intent | Medium | Manual override, independent mode contracts and usefulness studies |
-| Cross-project scope leaks private documents | Critical | Namespace/permission partition, explicit egress and no automatic merges |
-| User personalization implies unobserved knowledge | Medium | Optional explicit acknowledged snapshot only, no inferred beliefs |
-| Generated docs are edited by hand and overwritten | High | Manifest ownership and explicit `--rebuild`, staged publication |
+| Who owns available investigation? | Lore; humans are not the default fallback | Typed adapter coverage and task-specific value |
+| Everyday effort selection? | Automatic inside standing permissions | Numerical limits and calibrated routing |
+| Must uncertainty be eliminated? | No; resolve what changes action, expose material residual conditions | Sufficiency/error and burden trade-offs |
+| What ships first? | A1–A3 empowering read-only assistance and reuse | Default rollout requires matched outcome/migration evidence |
+| Does every finding need approval? | No; derived findings reuse automatically under policy | Explicit source-authoring review remains separate |
+| How to handle true blockers? | Exact missing decision/observable plus meaningful safe work | Do not fabricate safe progress where none exists |
+| Hierarchy and segmentation? | Improve when measured; never required navigation | Grouping, salience and stable identity |
+| Execution? | Separate approved runner; automatic choice inside grant only | Isolation implementation, cost and actual benefit |
+| Reader/personalization? | Optional; CLI/Markdown first, no hidden tracking | Demonstrated usability and privacy value |
+| Cross-project transfer? | Research with strict scope and authority separation | Reliable permissions and actual usefulness |
 
-## 15. Definition of done for any implementation ticket
+Project references: [autonomy and UX contract](AUTONOMOUS_ASSISTANCE_DESIGN.md), [full knowledge architecture](KNOWLEDGE_EXPERIENCE_DESIGN.md), [vision](../VISION.md), [existing design](../DESIGN.md), [0.6 behavior](V06.md), [0.6 decision evaluation](../evaluation/DECISION_INTELLIGENCE.md).
 
-A ticket is complete only if it includes:
+Research/product context remains [Diátaxis](https://diataxis.fr/), [RAPTOR](https://arxiv.org/abs/2401.18059), [GraphRAG](https://arxiv.org/abs/2404.16130) and [OpenWiki](https://github.com/langchain-ai/openwiki). They motivate experiments, not claims of novelty or measured gains for Lore.
 
-- A specific supported user journey and out-of-scope cases.
-- Source/knowledge/derived authority boundaries.
-- Versioned request and response representation, and migration/compatibility story.
-- Resource, egress, filesystem and execution behavior (including default denial).
-- Deterministic contract tests, negative tests, error/fallback behavior.
-- Dependency invalidation, no-op, purge and publication coverage as applicable.
-- User-facing docs, CLI help, JSON examples and status/omission labels.
-- Measured result or explicit "quality not yet measured", including test provenance.
-- A change that can be rolled back without losing accepted evidence.
-
-For model-based tickets, add a human-reviewed real-model evaluation, provider identity/usage reporting and a check against unsupported causal, temporal and authority claims. For execution tickets, add a distinct security approval and adversarial sandbox test results.
-
-## 16. Decisions needed before implementation
-
-| Decision | Proposed default | Evidence to reconsider |
-| --- | --- | --- |
-| Reuse 0.6 knowledge core? | Yes; separate derived views | Only if a missing semantic invariant requires a narrowly scoped migration |
-| First content mode? | Explain + exact reference | User trials show how-to provides greater measured value sooner |
-| Hierarchy branching? | Start with topic/relations; benchmark binary and 4-way | Ablations justify adaptive clustering |
-| Build timing? | Lazy/sparse views | Repeat-use savings exceed update cost and staleness |
-| Database? | SQLite derived store | Scale tests show unacceptable cost with bounded SQLite design |
-| Execution? | Off, separate runner later | Reviewed sandbox and measured learning benefit |
-| Auto-accept decisions? | Never from inference alone | Only explicit authoritative project source + existing rules |
-| Reader? | Optional after CLI/Markdown | User demand and accessibility test results |
-| Personal state? | No implicit tracking | Clear opt-in requirement and deletion/export design |
-| Cross-project? | Research only | Reliable authority separation and actual task benefit |
-
-## 17. Useful source links
-
-- [Detailed design and data contracts](KNOWLEDGE_EXPERIENCE_DESIGN.md)
-- [Existing Lore technical design](../DESIGN.md)
-- [Lore vision](../VISION.md)
-- [0.6 implementation and constraints](V06.md)
-- [0.6 decision evaluation](../evaluation/DECISION_INTELLIGENCE.md)
-- [Diátaxis](https://diataxis.fr/)
-- [RAPTOR](https://arxiv.org/abs/2401.18059)
-- [GraphRAG](https://arxiv.org/abs/2404.16130)
-- [OpenWiki](https://github.com/langchain-ai/openwiki)
-
-**Bottom line:** prove that a small, accurately grounded knowledge experience helps the user **understand or do something better**; only then add agentic discovery, executable cases, an optional visual reader or automatic change warnings.
+**Acceptance question:** Did Lore do the useful work it could perform and leave the user more able to understand or proceed correctly, with less burden and without inventing certainty or authority?
