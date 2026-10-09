@@ -40,7 +40,9 @@ pub(super) fn validate(
             }
         }
     }
-    if invalid_count == 0 { return Ok(()); }
+    if invalid_count == 0 {
+        return Ok(());
+    }
     let record = json!({
         "schema_version": 1, "event": "rejected_citations",
         "contract": CONTRACT_VERSION, "task": task, "run": run,
@@ -57,6 +59,9 @@ pub(super) fn validate(
     let first = &issues[0];
     bail!(
         "{task} cited unknown or duplicate knowledge at section {}, paragraph {}, citation {}. Copy knowledge_ids exactly from knowledge[].id using the schema enum, not evidence/assertion IDs or document names. Safe rejection metadata: {}",
-        first["section"], first["paragraph"], first["citation"], file.display()
+        first["section"],
+        first["paragraph"],
+        first["citation"],
+        file.display()
     )
 }
