@@ -16,7 +16,9 @@ pub const SCHEMA_V2: &str = include_str!("../migrations/0002_runtime.sql");
 pub const SCHEMA_V3: &str = include_str!("../migrations/0003_reaffirmations.sql");
 pub const SCHEMA_V4: &str = include_str!("../migrations/0004_review_history.sql");
 pub const SCHEMA_V5: &str = include_str!("../migrations/0005_source_provenance.sql");
-pub const SCHEMA_VERSION: i64 = 5;
+pub const SCHEMA_V6: &str = include_str!("../migrations/0006_native_observations.sql");
+pub const SCHEMA_V7: &str = include_str!("../migrations/0007_cross_source.sql");
+pub const SCHEMA_VERSION: i64 = 7;
 pub fn migrate(conn: &Connection) -> rusqlite::Result<()> {
     conn.pragma_update(None, "foreign_keys", "ON")?;
     let version: i64 = conn.pragma_query_value(None, "user_version", |r| r.get(0))?;
@@ -38,6 +40,12 @@ pub fn migrate(conn: &Connection) -> rusqlite::Result<()> {
         }
         if version < 5 {
             conn.execute_batch(SCHEMA_V5)?;
+        }
+        if version < 6 {
+            conn.execute_batch(SCHEMA_V6)?;
+        }
+        if version < 7 {
+            conn.execute_batch(SCHEMA_V7)?;
         }
         Ok(())
     })();

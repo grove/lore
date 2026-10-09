@@ -197,6 +197,9 @@ pub fn backfill(conn: &Connection) -> Result<()> {
     Ok(())
 }
 fn fingerprint(conn: &Connection, id: &str) -> Result<String> {
+    if let Some(fingerprint) = crate::imports::relationships::review_fingerprint(conn, id)? {
+        return Ok(fingerprint);
+    }
     let row: Option<(Option<String>, Option<String>)> = conn
         .query_row(
             "SELECT assertion_revision_id,target_unit_id FROM review_context WHERE review_id=?1",
@@ -289,6 +292,52 @@ pub fn refresh(conn: &Connection) -> Result<usize> {
     for item in list(conn, true)? {
         let history = events(conn, &item.id)?;
         let Some(last) = history.last() else { continue };
+        if let Some(comparison) = crate::imports::relationships::review_comparison(conn, &item.id)?
+        {
+            let now = fingerprint(conn, &item.id)?;
+            // Respect a human disposition while its exact comparison inputs
+            // remain unchanged, including an explicitly reopened question.
+            if last.actor_type == "user" && now == last.context_digest {
+                continue;
+            }
+            if comparison.raises_question {
+                if item.status != "pending" {
+                    changed += transition(
+                        conn,
+                        &item.id,
+                        "pending",
+                        "automatic",
+                        "lore",
+                        "evidence_changed",
+                        "Evidence or the comparison context changed and the current cross-source interpretation raises a question; review it again.",
+                        None,
+                    )? as usize;
+                }
+            } else if item.status == "pending" {
+                let (code, note) = if comparison.current {
+                    (
+                        "inputs_no_longer_raise_question",
+                        "The current interpretation of this pair no longer raises the earlier question. The historical comparison is retained; this does not independently verify implementation, deployment, or approval.",
+                    )
+                } else {
+                    (
+                        "comparison_retired",
+                        "This comparison is no longer part of the current reconciliation inputs. Its question and evidence are retained as history; retirement is not evidence that the reported behavior or approval did or did not occur.",
+                    )
+                };
+                changed += transition(
+                    conn,
+                    &item.id,
+                    "resolved",
+                    "automatic",
+                    "lore",
+                    code,
+                    note,
+                    None,
+                )? as usize;
+            }
+            continue;
+        }
         if last.actor_type == "user" {
             let now = fingerprint(conn, &item.id)?;
             if now.is_empty() || now == last.context_digest {

@@ -1,5 +1,6 @@
 //! Deterministic, read-only task context from the existing knowledge registry.
 //! Selection never changes knowledge, generates claims, or invokes a model.
+pub mod imports;
 pub mod retrieval;
 
 use crate::{
@@ -11,7 +12,7 @@ use rusqlite::{Connection, OptionalExtension};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
-pub const CONTEXT_SCHEMA_VERSION: u32 = 1;
+pub const CONTEXT_SCHEMA_VERSION: u32 = 2;
 pub const DEFAULT_MAX_TOKENS: usize = 3_000;
 pub const MIN_MAX_TOKENS: usize = 256;
 pub const MAX_MAX_TOKENS: usize = 100_000;
@@ -155,6 +156,13 @@ pub struct ContextOmissions {
     pub knowledge_units: usize,
     pub critical_groups: usize,
     pub unsupported_units: usize,
+    #[serde(default)]
+    pub imported_observations: usize,
+    #[serde(default)]
+    pub discrepancies: usize,
+    /// Source diagnostics whose complete text did not fit the warning summary.
+    #[serde(default)]
+    pub source_warnings: usize,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -173,6 +181,17 @@ pub struct ContextResult {
     pub suggested_inspection: Vec<InspectionPath>,
     pub omissions: ContextOmissions,
     pub warnings: Vec<String>,
+    /// Additive v2 fields; v1 documentary sections retain their meanings.
+    #[serde(default)]
+    pub imported_observations: Vec<imports::ContextObservation>,
+    #[serde(default)]
+    pub imported_evidence: Vec<imports::ContextImportedEvidence>,
+    #[serde(default)]
+    pub cross_source_relations: Vec<crate::imports::relationships::CrossSourceRelation>,
+    #[serde(default)]
+    pub discrepancies: Vec<imports::ContextDiscrepancy>,
+    #[serde(default)]
+    pub recommended_verification: Vec<imports::ContextVerification>,
 }
 
 #[derive(Clone, Copy)]
@@ -268,6 +287,7 @@ fn conflict(kind: &str) -> bool {
 
 fn assemble(conn: &Connection, options: &ContextOptions) -> Result<ContextResult> {
     let retrieval = retrieval::retrieve_with_report(conn, options.task.trim(), &options.paths)?;
+    let native = imports::retrieve(conn, options.task.trim(), &options.paths)?;
     let hits = retrieval.hits;
     let views: BTreeMap<_, _> = storage::views(conn)?
         .into_iter()
@@ -279,10 +299,17 @@ fn assemble(conn: &Connection, options: &ContextOptions) -> Result<ContextResult
         .iter()
         .map(|h| (h.knowledge.id.clone(), h.reasons.clone()))
         .collect();
-    let scores: BTreeMap<_, _> = hits
+    reasons.extend(
+        native
+            .reasons
+            .iter()
+            .map(|(id, reasons)| (id.clone(), reasons.clone())),
+    );
+    let mut scores: BTreeMap<_, _> = hits
         .iter()
         .map(|h| (h.knowledge.id.clone(), h.score))
         .collect();
+    scores.extend(native.scores.iter().map(|(id, score)| (id.clone(), *score)));
     let mut adjacency: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     for fact in facts.iter().filter(|f| critical(&f.kind)) {
         adjacency
@@ -293,6 +320,21 @@ fn assemble(conn: &Connection, options: &ContextOptions) -> Result<ContextResult
             .entry(fact.to.clone())
             .or_default()
             .insert(fact.from.clone());
+    }
+    // A cross-source relationship is useful only with all its endpoints and
+    // evidence. Budget entire connected groups, including documentary intent
+    // and native observations, before considering isolated records.
+    for relation in &native.relations {
+        if let Some(to) = &relation.to {
+            adjacency
+                .entry(relation.from.id.clone())
+                .or_default()
+                .insert(to.id.clone());
+            adjacency
+                .entry(to.id.clone())
+                .or_default()
+                .insert(relation.from.id.clone());
+        }
     }
     // Reviews are associated by stored IDs only. A prose resemblance cannot
     // bind a review to a task or silently close a recorded disagreement.
@@ -317,11 +359,13 @@ fn assemble(conn: &Connection, options: &ContextOptions) -> Result<ContextResult
     }
     let mut seen = BTreeSet::new();
     let mut groups = Vec::new();
-    for hit in &hits {
-        if seen.contains(&hit.knowledge.id) {
+    let mut seed_ids: Vec<_> = scores.keys().cloned().collect();
+    seed_ids.sort_by(|a, b| scores[b].total_cmp(&scores[a]).then_with(|| a.cmp(b)));
+    for seed_id in seed_ids {
+        if seen.contains(&seed_id) {
             continue;
         }
-        let mut stack = vec![hit.knowledge.id.clone()];
+        let mut stack = vec![seed_id];
         let mut ids = BTreeSet::new();
         while let Some(id) = stack.pop() {
             if !ids.insert(id.clone()) {
@@ -332,14 +376,14 @@ fn assemble(conn: &Connection, options: &ContextOptions) -> Result<ContextResult
             }
         }
         for id in &ids {
-            if !views.contains_key(id) {
+            if !views.contains_key(id) && !native.observations.contains_key(id) {
                 return Err(failure(
                     "invalid_registry",
                     "A relevant recorded relationship refers to missing knowledge; run lore audit.",
                 ));
             }
             reasons.entry(id.clone()).or_insert_with(|| {
-                vec!["Required by a recorded decision, conflict, or review relationship.".into()]
+                vec!["Required by a recorded decision, conflict, review, or cross-source relationship.".into()]
             });
         }
         seen.extend(ids.iter().cloned());
@@ -348,9 +392,18 @@ fn assemble(conn: &Connection, options: &ContextOptions) -> Result<ContextResult
             .any(|f| conflict(&f.kind) && (ids.contains(&f.from) || ids.contains(&f.to)))
             || review_bindings
                 .values()
-                .any(|bound| !bound.is_disjoint(&ids));
+                .any(|bound| !bound.is_disjoint(&ids))
+            || native.relations.iter().any(|relation| {
+                ids.contains(&relation.from.id)
+                    && matches!(
+                        relation.kind.as_str(),
+                        "potential_discrepancy" | "uncertain" | "verification_question"
+                    )
+            });
         let current_guidance = |id: &String| {
-            let view = &views[id];
+            let Some(view) = views.get(id) else {
+                return false;
+            };
             matches!(view.lifecycle.as_str(), "active" | "accepted")
                 && view.support_state == "current_documentary_support"
                 && view
@@ -360,15 +413,13 @@ fn assemble(conn: &Connection, options: &ContextOptions) -> Result<ContextResult
         };
         let priority = if has_conflict {
             0
-        } else if ids
-            .iter()
-            .any(|id| views[id].kind == "constraint" && current_guidance(id))
-        {
+        } else if ids.iter().any(|id| {
+            views.get(id).is_some_and(|view| view.kind == "constraint") && current_guidance(id)
+        }) {
             1
-        } else if ids
-            .iter()
-            .any(|id| views[id].kind == "decision" && current_guidance(id))
-        {
+        } else if ids.iter().any(|id| {
+            views.get(id).is_some_and(|view| view.kind == "decision") && current_guidance(id)
+        }) {
             2
         } else {
             3
@@ -411,8 +462,9 @@ fn assemble(conn: &Connection, options: &ContextOptions) -> Result<ContextResult
     let unsupported: BTreeSet<_> = candidates
         .iter()
         .filter(|id| {
-            let view = &views[*id];
-            view.support_state == "unsupported" || view.evidence.is_empty()
+            views
+                .get(*id)
+                .is_some_and(|view| view.support_state == "unsupported" || view.evidence.is_empty())
         })
         .cloned()
         .collect();
@@ -427,7 +479,8 @@ fn assemble(conn: &Connection, options: &ContextOptions) -> Result<ContextResult
         groups: &groups,
         candidates: &candidates,
         unsupported: &unsupported,
-        retrieval_truncated: retrieval.truncated,
+        native: &native,
+        retrieval_truncated: retrieval.truncated || native.truncated,
     };
     let mut selected = BTreeSet::new();
     let mut result = assembly.result(&selected)?;
@@ -468,6 +521,7 @@ struct Assembly<'a> {
     groups: &'a [Group],
     candidates: &'a BTreeSet<String>,
     unsupported: &'a BTreeSet<String>,
+    native: &'a imports::NativeRetrieval,
     retrieval_truncated: bool,
 }
 
@@ -499,15 +553,48 @@ impl Assembly<'_> {
             evidence: vec![],
             suggested_inspection: vec![],
             omissions: ContextOmissions {
-                knowledge_units: self.candidates.len() - selected.len(),
+                knowledge_units: self
+                    .candidates
+                    .iter()
+                    .filter(|id| self.views.contains_key(*id) && !selected.contains(*id))
+                    .count(),
                 critical_groups: self
                     .groups
                     .iter()
                     .filter(|g| g.critical && g.ids.is_disjoint(selected))
                     .count(),
                 unsupported_units: self.unsupported.len(),
+                imported_observations: self
+                    .candidates
+                    .iter()
+                    .filter(|id| {
+                        self.native.observations.contains_key(*id) && !selected.contains(*id)
+                    })
+                    .count(),
+                discrepancies: self
+                    .native
+                    .relations
+                    .iter()
+                    .filter(|relation| {
+                        matches!(
+                            relation.kind.as_str(),
+                            "potential_discrepancy" | "uncertain" | "verification_question"
+                        ) && (self.candidates.contains(&relation.from.id)
+                            || relation
+                                .to
+                                .as_ref()
+                                .is_some_and(|endpoint| self.candidates.contains(&endpoint.id)))
+                            && !selected.contains(&relation.from.id)
+                    })
+                    .count(),
+                source_warnings: self.native.omitted_warnings,
             },
             warnings: vec![],
+            imported_observations: vec![],
+            imported_evidence: vec![],
+            cross_source_relations: vec![],
+            discrepancies: vec![],
+            recommended_verification: vec![],
         };
         let mut evidence_active: BTreeMap<String, bool> = BTreeMap::new();
         for group in self.groups {
@@ -515,7 +602,9 @@ impl Assembly<'_> {
                 if !selected.contains(id) {
                     continue;
                 }
-                let view = &self.views[id];
+                let Some(view) = self.views.get(id) else {
+                    continue;
+                };
                 for evidence in &view.evidence {
                     *evidence_active.entry(evidence.id.clone()).or_default() |= evidence.active;
                 }
@@ -622,7 +711,8 @@ impl Assembly<'_> {
                 .collect();
             let evidence_ids = knowledge_ids
                 .iter()
-                .flat_map(|id| self.views[id].evidence.iter().map(|e| e.id.clone()))
+                .filter_map(|id| self.views.get(id))
+                .flat_map(|view| view.evidence.iter().map(|e| e.id.clone()))
                 .collect::<BTreeSet<_>>()
                 .into_iter()
                 .collect();
@@ -633,7 +723,8 @@ impl Assembly<'_> {
                 evidence_ids,
             });
         }
-        if result.omissions.knowledge_units > 0 {
+        imports::populate(self.conn, self.native, selected, self.reasons, &mut result)?;
+        if result.omissions.knowledge_units > 0 || result.omissions.imported_observations > 0 {
             result.warnings.push("Some relevant knowledge was omitted. Increase --max-tokens or narrow the task; complete records and critical relationship groups are kept together.".into());
         }
         if result.retrieval_truncated {
@@ -653,6 +744,8 @@ impl Assembly<'_> {
         if selected.is_empty() && self.candidates.is_empty() {
             result.warnings.push("No relevant stored knowledge found. This does not establish that no constraints exist.".into());
         }
+        result.warnings.sort();
+        result.warnings.dedup();
         Ok(result)
     }
 }
@@ -849,6 +942,9 @@ pub fn render_context(result: &ContextResult) -> String {
         ));
     }
     text.push_str("Documentary context; source reports are not independent verification of implementation.\n\n");
+    if !result.imported_observations.is_empty() && result.sections.items().next().is_some() {
+        text.push_str("## Documented intent and project knowledge\n\n");
+    }
     for (title, items) in [
         ("Constraints", &result.sections.constraints),
         ("Relevant decisions", &result.sections.decisions),
@@ -870,7 +966,12 @@ pub fn render_context(result: &ContextResult) -> String {
         if items.is_empty() {
             continue;
         }
-        text.push_str(&format!("## {title}\n\n"));
+        let heading = if result.imported_observations.is_empty() {
+            "##"
+        } else {
+            "###"
+        };
+        text.push_str(&format!("{heading} {title}\n\n"));
         for item in items {
             text.push_str(&format!(
                 "- {} ({}, {}, {}; scope: {}) [{}]\n",
@@ -894,6 +995,7 @@ pub fn render_context(result: &ContextResult) -> String {
         }
         text.push('\n');
     }
+    imports::render(result, &mut text);
     if !result.relations.is_empty() {
         text.push_str("## Recorded relationships\n\n");
         for relation in &result.relations {
@@ -973,10 +1075,11 @@ pub fn render_context(result: &ContextResult) -> String {
         text.push_str("No knowledge records included.\n\n");
     }
     for warning in &result.warnings {
-        text.push_str(&format!("Warning: {warning}\n"));
+        text.push_str(&format!("Warning: {}\n", display_text(warning)));
     }
-    text.push_str(&format!("\nBudget: {}/{} {} tokens (both output formats). Omitted: {} knowledge units, {} critical groups; {} unsupported units. Model calls: 0.\n",
+    text.push_str(&format!("\nBudget: {}/{} {} tokens (both output formats). Omitted: {} knowledge units, {} imported observations, {} critical groups, {} discrepancies, {} complete source warnings; {} unsupported units. Model calls: 0.\n",
         result.budget.used_tokens, result.budget.max_tokens, result.budget.tokenizer,
-        result.omissions.knowledge_units, result.omissions.critical_groups, result.omissions.unsupported_units));
+        result.omissions.knowledge_units, result.omissions.imported_observations,
+        result.omissions.critical_groups, result.omissions.discrepancies, result.omissions.source_warnings, result.omissions.unsupported_units));
     text
 }

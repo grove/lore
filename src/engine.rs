@@ -1,5 +1,6 @@
 //! Deterministic orchestration with bounded, validated semantic steps.
 mod citations;
+mod cross_source;
 mod grounding;
 mod overview;
 mod reconcile;
@@ -45,6 +46,12 @@ pub struct QualityDiagnostic {
 pub struct Report {
     pub no_op: bool,
     pub source_files: usize,
+    #[serde(default)]
+    pub imported_records: usize,
+    #[serde(default)]
+    pub changed_imported_records: usize,
+    #[serde(default)]
+    pub retired_imported_records: usize,
     pub processed_sections: usize,
     pub extracted_assertions: usize,
     pub knowledge_units: usize,
@@ -70,6 +77,8 @@ pub struct Status {
     pub needs_update: bool,
     pub pending_publication: bool,
     pub source_files: usize,
+    pub imported_records: usize,
+    pub imports_changed: bool,
     pub new_files: Vec<String>,
     pub changed_files: Vec<String>,
     pub removed_files: Vec<String>,
@@ -164,6 +173,13 @@ fn make_plan(
         Some(c) => storage::meta(c, "config_digest")?.as_deref() != Some(&config.fingerprint),
         None => true,
     };
+    let imports_changed = match conn {
+        Some(c) => {
+            storage::meta(c, "import_inventory_digest")?.as_deref()
+                != Some(&inventory.imports.digest)
+        }
+        None => !inventory.imports.sources.is_empty(),
+    };
     let presentation_changed = match conn {
         Some(c) if initialized => {
             storage::meta(c, "presentation_contract")?.as_deref()
@@ -190,6 +206,7 @@ fn make_plan(
         initialized,
         needs_update: !initialized
             || configuration_changed
+            || imports_changed
             || presentation_changed
             || pending
             || output_modified
@@ -199,6 +216,8 @@ fn make_plan(
             || !renamed_files.is_empty(),
         pending_publication: pending,
         source_files: inventory.documents.len(),
+        imported_records: inventory.imports.records(),
+        imports_changed,
         new_files,
         changed_files,
         removed_files: removed
@@ -260,6 +279,7 @@ pub async fn update(
             .is_some_and(|page| page.content.contains(overview::DEGRADED_MARKER));
         let degraded_topics = render::degraded_topics(&old_pages);
         let mut warnings = inventory.warnings;
+        warnings.extend(crate::imports::relationships::warnings(&conn)?);
         if degraded_overview {
             warnings.push("OVERVIEW_DEGRADED: stored overview contains source excerpts; semantic narrative verification has not passed".into());
         }
@@ -272,6 +292,7 @@ pub async fn update(
         return Ok(Report {
             no_op: true,
             source_files: inventory.documents.len(),
+            imported_records: inventory.imports.records(),
             knowledge_units: storage::views(&conn)?.len(),
             pending_reviews: pending_reviews(&conn)?,
             degraded_overview,
@@ -307,10 +328,14 @@ pub async fn update(
     )?;
     let mut report = Report {
         source_files: inventory.documents.len(),
+        imported_records: inventory.imports.records(),
         warnings: inventory.warnings.clone(),
         generation: Some(generation.clone()),
         ..Report::default()
     };
+    let imported = crate::imports::storage::persist(&conn, &config.project_id, &inventory.imports)?;
+    report.changed_imported_records = imported.changed;
+    report.retired_imported_records = imported.retired;
     for head in &plan.removed {
         storage::retire_source(&conn, &head.id)?;
     }
@@ -469,6 +494,10 @@ pub async fn update(
         [&generation],
     )?;
     storage::refresh_knowledge(&conn, &config.project_id)?;
+    if options.refresh || options.deep {
+        storage::set_meta(&conn, "native_reconciliation_epoch", &generation)?;
+    }
+    cross_source::reconcile(&mut runner).await?;
     crate::reviews::refresh(&conn)?;
     let knowledge = storage::views(&conn)?;
     report.knowledge_units = knowledge.len();
@@ -476,7 +505,7 @@ pub async fn update(
         "UPDATE runs SET phase='synthesizing' WHERE id=?1",
         [&generation],
     )?;
-    let pages = render::build(
+    let mut pages = render::build(
         &mut runner,
         &knowledge,
         &old_pages,
@@ -490,6 +519,7 @@ pub async fn update(
             || !plan.status.renamed_files.is_empty(),
     )
     .await?;
+    crate::imports::render::augment(&conn, &mut pages)?;
     report.changed_pages = pages
         .iter()
         .filter(|(path, p)| {
@@ -506,7 +536,7 @@ pub async fn update(
     )?;
     ensure!(
         sources::scan(config)?.digest == inventory.digest,
-        "source documents changed during compilation; rerun update (valid model results are cached)"
+        "source inputs changed during compilation; rerun update (valid model results are cached)"
     );
     publish::validate_existing(config, &old_pages, options.rebuild)?;
     let integrity: String = conn.query_row("PRAGMA integrity_check", [], |r| r.get(0))?;
@@ -530,6 +560,7 @@ pub async fn update(
         ("presentation_contract", citations::CONTRACT_VERSION),
         ("config_digest", config.fingerprint.as_str()),
         ("inventory_digest", inventory.digest.as_str()),
+        ("import_inventory_digest", inventory.imports.digest.as_str()),
         ("generation", generation.as_str()),
     ] {
         storage::set_meta(&conn, k, v)?;
@@ -572,6 +603,8 @@ pub fn audit(config: &ResolvedConfig) -> Result<Value> {
     ensure!(status.initialized, "run lore init before auditing");
     let conn = storage::read_only(&config.state.join("state.db"))?;
     let mut issues = Vec::new();
+    issues.extend(crate::imports::storage::audit(&conn)?);
+    issues.extend(crate::imports::relationships::audit(&conn)?);
     let integrity: String = conn.query_row("PRAGMA integrity_check", [], |r| r.get(0))?;
     if integrity != "ok" {
         issues.push("SQLite integrity check failed".to_owned());
@@ -673,6 +706,7 @@ pub fn change_review(
         .content
         .replace_range(start..end, &crate::reviews::status_block(&conn)?);
     index.output_digest = util::digest(&index.content);
+    crate::imports::render::augment(&conn, &mut pages)?;
     storage::save_pages(&conn, &pages)?;
     conn.execute("INSERT INTO runs(id,project_id,phase,source_inventory_digest,started_at,finished_at) VALUES(?1,?2,'completed',?3,?4,?4)",params![generation,config.project_id,inventory.digest,util::now()])?;
     let wiki_digest = util::json_digest(
@@ -699,6 +733,15 @@ pub fn change_review(
 
 pub fn evidence(config: &ResolvedConfig, id: &str) -> Result<Value> {
     let conn = storage::read_only(&config.state.join("state.db"))?;
+    if id.starts_with("ne_") {
+        let snapshot = crate::imports::evidence(&conn, id)?;
+        let mut value = serde_json::to_value(snapshot)?;
+        value["evidence_type"] = json!("structured_native_record");
+        value["qualification"] = json!(
+            "A retained native record with a verified content hash and resolvable record pointers. Upstream verification applies only to its recorded revision; current imported status is not proof of the current implementation."
+        );
+        return Ok(value);
+    }
     let snapshot = storage::evidence_snapshot(&conn, id)?;
     let qualification = if snapshot.root_path.is_none() {
         "Legacy source observation; source material was not recorded. Not proof of current implementation."

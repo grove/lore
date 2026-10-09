@@ -1,3 +1,4 @@
+pub use crate::domain::ImportKind;
 use crate::{domain::SourceMaterial, inference::ReasoningEffort, util};
 use anyhow::{Context, Result, ensure};
 use serde::{Deserialize, Serialize};
@@ -12,6 +13,8 @@ pub struct Config {
     pub schema_version: u32,
     pub project: Project,
     pub sources: Sources,
+    /// Read-only, file-based snapshots from independently maintained systems.
+    pub imports: Vec<ImportSource>,
     pub output: Output,
     pub models: Models,
     pub providers: BTreeMap<String, ProviderSettings>,
@@ -24,6 +27,7 @@ impl Default for Config {
             schema_version: 1,
             project: Project::default(),
             sources: Sources::default(),
+            imports: Vec::new(),
             output: Output::default(),
             models: Models::default(),
             providers: BTreeMap::new(),
@@ -31,6 +35,17 @@ impl Default for Config {
             privacy: Privacy::default(),
         }
     }
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ImportSource {
+    pub id: String,
+    pub kind: ImportKind,
+    pub path: PathBuf,
+    #[serde(default)]
+    pub project: Option<String>,
+    #[serde(default)]
+    pub include_memories: bool,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
@@ -144,7 +159,7 @@ impl Reasoning {
         }
         Some(match task {
             "extract" => self.extraction,
-            "reconcile" => self.reconciliation,
+            "reconcile" | "cross_source_reconcile" => self.reconciliation,
             "synthesize" => self.synthesis,
             "overview" => self.overview,
             "verify" => self.verification,
@@ -210,6 +225,7 @@ pub struct ResolvedConfig {
     pub wiki: PathBuf,
     pub state: PathBuf,
     pub roots: Vec<(String, PathBuf)>,
+    pub imports: Vec<(String, PathBuf)>,
     pub project_id: String,
     pub fingerprint: String,
 }
@@ -237,8 +253,12 @@ impl ResolvedConfig {
     }
     fn resolve_impl(config: Config, config_path: &Path, validate_inference: bool) -> Result<Self> {
         ensure!(
-            config.schema_version == 1,
+            (1..=2).contains(&config.schema_version),
             "unsupported configuration schema_version"
+        );
+        ensure!(
+            config.schema_version >= 2 || config.imports.is_empty(),
+            "native imports require configuration schema_version: 2"
         );
         ensure!(
             !config.project.name.trim().is_empty()
@@ -261,8 +281,8 @@ impl ResolvedConfig {
             "outputs cannot contain the project root"
         );
         ensure!(
-            !config.sources.roots.is_empty(),
-            "configure at least one Markdown source root"
+            !config.sources.roots.is_empty() || !config.imports.is_empty(),
+            "configure at least one Markdown source root or native import"
         );
         let mut ids = BTreeSet::new();
         let mut roots = Vec::new();
@@ -297,6 +317,52 @@ impl ResolvedConfig {
                 "source roots overlap; each file must have one owner"
             );
             roots.push((root.id.clone(), p));
+        }
+        let mut imports = Vec::new();
+        for source in &config.imports {
+            ensure!(
+                !source.id.is_empty()
+                    && source.id.len() <= 80
+                    && source
+                        .id
+                        .bytes()
+                        .all(|c| c.is_ascii_alphanumeric() || c == b'_' || c == b'-'),
+                "invalid import ID"
+            );
+            ensure!(ids.insert(source.id.clone()), "duplicate source/import ID");
+            ensure!(
+                source.project.as_ref().is_none_or(|p| !p.trim().is_empty()
+                    && p.len() <= 200
+                    && !p.chars().any(char::is_control)),
+                "import project filter must contain 1..200 bytes without control characters"
+            );
+            ensure!(
+                source.kind == ImportKind::Engram || source.project.is_none(),
+                "project filter is supported only for Engram imports"
+            );
+            ensure!(
+                source.kind == ImportKind::Beads || !source.include_memories,
+                "include_memories is supported only for Beads imports"
+            );
+            let path = util::absolute(&base, &source.path)?;
+            ensure!(
+                !path.starts_with(&wiki)
+                    && !path.starts_with(&state)
+                    && !wiki.starts_with(&path)
+                    && !state.starts_with(&path),
+                "an import must not overlap generated output"
+            );
+            ensure!(
+                !roots
+                    .iter()
+                    .chain(imports.iter())
+                    .any(
+                        |(_, previous): &(String, PathBuf)| path.starts_with(previous)
+                            || previous.starts_with(&path)
+                    ),
+                "source roots and native imports overlap; each input must have one owner"
+            );
+            imports.push((source.id.clone(), path));
         }
         if validate_inference {
             let p = &config.processing;
@@ -347,7 +413,7 @@ impl ResolvedConfig {
         }
         let fingerprint = util::json_digest(&(
             env!("CARGO_PKG_VERSION"),
-            "pipeline-v11-substantive-decision-reconciliation",
+            "pipeline-v12-native-observations",
             &config,
         ))?;
         let project_id = format!("project_{}", &util::digest(&config.project.name)[7..31]);
@@ -358,6 +424,7 @@ impl ResolvedConfig {
             wiki,
             state,
             roots,
+            imports,
             project_id,
             fingerprint,
         })

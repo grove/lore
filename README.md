@@ -2,9 +2,9 @@
 
 **Give your project a memory that grows with it.**
 
-Projects collect their history in architecture notes, ADRs, plans, issue exports, investigations, and half-finished ideas. Those documents are valuable, but understanding a subject often means piecing together several files written at different times for different reasons. Lore is a Rust command-line application that reads your project's Markdown directories and maintains evidence-backed project knowledge. It retrieves the decisions, constraints, history, and open questions relevant to your next task. The same knowledge powers a linked, topic-oriented Markdown wiki.
+Projects collect their history in architecture notes, ADRs, plans, issue exports, investigations, and previous agent experiences. Understanding a subject often means piecing together several sources written at different times for different reasons. Lore is a Rust command-line application that reads your project's Markdown directories and optional native knowledge snapshots, maintains evidence-backed project understanding, and retrieves the decisions, constraints, history, and open questions relevant to your next task. The same knowledge powers a linked, topic-oriented Markdown wiki.
 
-**Lore 0.3 makes that knowledge available at the moment a change is being planned:** `lore context "Implement payment retries"` returns deterministic, source-cited task context without a model call, network access, or a database write. Retrieval combines lexical matches, path hints, topic and subject connections, and stored relationships. Results preserve documentary status, expose known conflicts, distinguish primary from derived sources, and fit an explicit output budget. See [the v0.3 guide](docs/V03.md) for the interface, upgrade behavior, and limitations. Real-model accuracy and a measurable advantage over ordinary wiki use remain evaluation goals, not claims established by fixture tests.
+**Lore 0.4 connects understanding across independently maintained sources.** Native, read-only adapters consume OpenWiki OKF/Claims, Engram JSON exports, and Beads JSONL exports. Lore preserves each system's evidence and authority, records qualified relationships and possible discrepancies, and returns complete relevant groups through `lore context "Implement payment retries"`. Retrieval remains deterministic, local, model-free, and bounded by an explicit output budget. See [the 0.4 guide](docs/V04.md) for setup, the versioned context contract, and limitations. Real-model accuracy and a measurable benefit over the same tools without Lore remain evaluation gates; fixture tests do not establish those results.
 
 ## Vision
 
@@ -14,7 +14,7 @@ Lore's goal is not to generate more documentation. It is to help people and agen
 
 Humans should get an inviting, navigable guide to the project's architecture, concepts, decisions, and open questions. Coding agents should be able to retrieve the relevant, evidence-backed context for a task instead of rediscovering intent from scattered files. Both experiences should draw from the same versioned knowledge, clearly distinguishing accepted decisions, proposals, historical context, and unverified reports.
 
-The current CLI, task-context interface, and generated Markdown wiki are the foundation. A richer reading experience, conversational grounded questions and answers, and direct source integrations remain future directions. Read the [full vision](VISION.md) for the product principles, intended experience, and measures of success.
+The CLI, task-context interface, native snapshot adapters, and generated Markdown wiki are the foundation. A richer reading experience, conversational grounded questions and answers, and live source synchronization remain future directions. Read the [full vision](VISION.md) for the product principles, intended experience, and measures of success.
 
 ## Evaluating Lore
 
@@ -171,7 +171,49 @@ sources:
       origin: https://github.com/example/payment-service
 ```
 
-Roots default to `material: primary`. Mark generated or secondary summaries as `derived`; `origin` is optional descriptive provenance supplied by you, not a fetched or verified upstream source. Imported OpenWiki Markdown uses the ordinary source pipeline. Lore preserves its origin and derived status, and context does not treat derived-only evidence as independent verification of code behavior. A native OpenWiki state adapter, automatic wiki aggregation, and tracker connectors are outside 0.3. See [multi-source provenance](docs/V03.md#multi-source-provenance) for upgrade and trust boundaries.
+Roots default to `material: primary`. Mark generated or secondary summaries as `derived`; `origin` is optional descriptive provenance supplied by you, not a fetched or verified upstream source. Imported OpenWiki Markdown uses the ordinary source pipeline. Lore preserves its origin and derived status, and context does not treat derived-only evidence as independent verification of code behavior. For native OpenWiki Claims, use the 0.4 import configuration below. Keep the Markdown-only path when the upstream format is unsupported. Each input must have one owner: do not configure the same OpenWiki directory as both a Markdown root and a native import.
+
+## Connect OpenWiki, Engram, and Beads
+
+Set `schema_version: 2` and add only the imports you use:
+
+```yaml
+schema_version: 2
+project:
+  name: payments
+sources:
+  roots:
+    - id: decisions
+      path: ./docs/decisions
+      material: primary
+imports:
+  - id: implementation
+    kind: openwiki
+    path: ./openwiki
+  - id: agent-memory
+    kind: engram
+    path: ./imports/engram.json
+    project: payments
+  - id: work-history
+    kind: beads
+    path: ./imports/beads.jsonl
+    include_memories: false
+```
+
+Prepare local snapshots with your upstream tools, then update Lore:
+
+```bash
+engram export ./imports/engram.json --project payments
+bd export -o ./imports/beads.jsonl
+lore update
+lore context "Implement payment retries"
+```
+
+OpenWiki supplies its existing `openwiki/` directory. Lore never starts these tools, changes their records, or contacts them while importing. Ordinary documents remain sufficient; imports are optional, and an imports-only project can set `sources: { roots: [] }`.
+
+An accepted ADR can say three retries while OpenWiki reports five at a captured evidence revision. Lore can retain a **potential discrepancy**, attach both evidence records, connect relevant work history, and recommend checking the current implementation and policy. A completed Beads task remains work history; an Engram memory remains a reported recollection. Neither becomes an accepted architectural decision or independently verified implementation. Opaque OpenWiki revision tokens are retained without assuming that they identify a Git commit or the current checkout.
+
+Native evidence uses stable `ne_…` IDs resolved by `lore --json evidence ID`; the returned record includes its original parsed payload, content hash, source references, verification metadata, and current-import status. Human readers can start from the generated `imports.md` page. [The 0.4 guide](docs/V04.md) explains version support, authority, history, and failure behavior. [Cross-source evaluation](evaluation/CROSS_SOURCE.md) defines the four-system comparison and release gates.
 
 ## Evidence and failure safety
 
@@ -185,6 +227,6 @@ Deleting a source is not the same as deleting its retained history. To intention
 
 Run `cargo test --all-targets --locked` for the offline compiler, provider, database, source-boundary, retrieval, context-budget, and CLI tests. No real API credentials or installed model weights are needed for these tests. The implementation deliberately favors correctness and inspectable history over maximum throughput: source processing is sequential, candidate comparisons are exhaustive in bounded batches, and topic pages are regenerated as coherent units. These choices can make large first-time compilations expensive. The current automatic supersession guard recognizes explicit English replacement wording and predecessor references; less explicit or differently worded cases remain reviewable instead of being guessed.
 
-Lore reads local Markdown, including exported issues and discussions. Direct tracker connectors, automatic verification against code or production systems, a hosted service, a graph editor, and optimized large-corpus retrieval are not part of this initial implementation. The architecture and remaining trade-offs are described in [DESIGN.md](DESIGN.md), while [docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md) documents the implemented behavior, recovery, provider testing, and operational limitations. Feedback grounded in a small reproducible document corpus is particularly welcome.
+Lore reads local Markdown and optional native snapshots from OpenWiki, Engram, and Beads. Direct tracker connectors, bidirectional writes, automatic verification against code or production systems, a hosted service, and a graph editor remain outside 0.4. Cross-source comparisons use bounded candidate indexes; large-corpus recall and semantic quality still require independent evaluation. The architecture and remaining trade-offs are described in [DESIGN.md](DESIGN.md), while [docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md) documents the implemented behavior, recovery, provider testing, and operational limitations. Feedback grounded in a small reproducible document corpus is particularly welcome.
 
 Lore is inspired by [OpenWiki](https://github.com/langchain-ai/openwiki) and research on grounded generation, provenance, and incremental knowledge maintenance. It is licensed under the [Apache License 2.0](LICENSE).

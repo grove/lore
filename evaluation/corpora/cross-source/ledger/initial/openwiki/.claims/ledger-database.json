@@ -1,0 +1,20 @@
+{
+  "claims": [
+    {
+      "evidence": [
+        {
+          "resource": "repo://src/ledger/database.py",
+          "version": "repo-file-v1:sha256:b1476dcd5573411b7c0454130434b1367744c62eb95bd2617b212fb6f94322a7"
+        }
+      ],
+      "id": "claim-ledger-database",
+      "statement": "The ledger uses PostgreSQL transactions."
+    }
+  ],
+  "pageVersion": "sha256:7378dc166613b8848f8e401aa37daadda4a3161a774cba3b2f1a7e5d1e7fd89c",
+  "schemaVersion": 1,
+  "verification": {
+    "at": "2026-10-01T12:00:00Z",
+    "by": "openwiki/0.7.1"
+  }
+}

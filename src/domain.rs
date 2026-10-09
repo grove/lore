@@ -3,6 +3,23 @@ use anyhow::{Result, ensure};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ImportKind {
+    Openwiki,
+    Engram,
+    Beads,
+}
+impl ImportKind {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Openwiki => "openwiki",
+            Self::Engram => "engram",
+            Self::Beads => "beads",
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Extraction {

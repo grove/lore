@@ -1,0 +1,31 @@
+{
+  "exported_at": "2026-10-01T12:00:00Z",
+  "observations": [
+    {
+      "content": "I changed the retry limit to five and marked the implementation work complete. Approval of the retry policy was not part of this session.",
+      "created_at": "2026-09-30 12:00:00",
+      "duplicate_count": 0,
+      "id": 2,
+      "project": "payments",
+      "revision_count": 1,
+      "scope": "project",
+      "session_id": "session-payments",
+      "sync_id": "obs-payments-new",
+      "title": "Payment retries changed",
+      "topic_key": "payment-retry-policy",
+      "type": "discovery",
+      "updated_at": "2026-10-01 12:00:00"
+    }
+  ],
+  "prompts": [],
+  "relations": [],
+  "sessions": [
+    {
+      "directory": "/fixture/payments",
+      "id": "session-payments",
+      "project": "payments",
+      "started_at": "2026-09-30 12:00:00"
+    }
+  ],
+  "version": "0.2.0"
+}
