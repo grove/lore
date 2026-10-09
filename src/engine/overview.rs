@@ -122,8 +122,17 @@ fn select<'a>(
     // Represent documentary kinds, including reported outcomes, before
     // filling the remaining space with many similar decisions or designs.
     const ROLES: &[&str] = &[
-        "reported_outcome", "decision", "design", "constraint", "procedure",
-        "risk", "question", "plan", "proposal", "issue_state", "observation",
+        "reported_outcome",
+        "decision",
+        "design",
+        "constraint",
+        "procedure",
+        "risk",
+        "question",
+        "plan",
+        "proposal",
+        "issue_state",
+        "observation",
     ];
     for kind in ROLES {
         if selected.iter().any(|unit| unit.kind == *kind) {
@@ -175,7 +184,10 @@ fn citable_decisions<'a>(
     selected: &[&KnowledgeView],
     budget: usize,
 ) -> Result<Vec<&'a DecisionLink>> {
-    let included = selected.iter().map(|unit| unit.id.as_str()).collect::<BTreeSet<_>>();
+    let included = selected
+        .iter()
+        .map(|unit| unit.id.as_str())
+        .collect::<BTreeSet<_>>();
     let mut bytes = 2usize;
     let mut links = Vec::new();
     for link in decisions {
@@ -192,7 +204,10 @@ fn citable_decisions<'a>(
 }
 
 fn overview_scope(knowledge: &[KnowledgeView], selected: &[&KnowledgeView]) -> String {
-    let ids = selected.iter().map(|unit| unit.id.as_str()).collect::<BTreeSet<_>>();
+    let ids = selected
+        .iter()
+        .map(|unit| unit.id.as_str())
+        .collect::<BTreeSet<_>>();
     let omitted = knowledge.len().saturating_sub(selected.len());
     let mut content = format!(
         "## Overview scope\n\nThis overview synthesizes {} of {} documented knowledge units. \
@@ -654,8 +669,15 @@ mod selection_contracts {
     fn oversubscribed_64kb_overview_preserves_navigation_and_records_omissions() {
         let names = ["architecture", "policies", "operations"];
         let kinds = [
-            "design", "decision", "constraint", "reported_outcome", "procedure",
-            "plan", "observation", "risk", "issue_state",
+            "design",
+            "decision",
+            "constraint",
+            "reported_outcome",
+            "procedure",
+            "plan",
+            "observation",
+            "risk",
+            "issue_state",
         ];
         let mut units = (0..48)
             .map(|i| {
@@ -684,7 +706,10 @@ mod selection_contracts {
         let selected = select(&units, &[relation.clone()], 23_808).unwrap();
         assert!(selected.len() < units.len());
         assert!(selected.iter().any(|u| u.kind == "reported_outcome"));
-        let represented = selected.iter().map(|u| u.topic.as_str()).collect::<BTreeSet<_>>();
+        let represented = selected
+            .iter()
+            .map(|u| u.topic.as_str())
+            .collect::<BTreeSet<_>>();
         assert_eq!(represented.len(), names.len());
         let serialized_bytes = 2 + selected
             .iter()
@@ -694,10 +719,15 @@ mod selection_contracts {
 
         let relationships = [relation];
         let links = citable_decisions(&relationships, &selected, 2_000).unwrap();
-        let ids = selected.iter().map(|u| u.id.as_str()).collect::<BTreeSet<_>>();
-        assert!(links.iter().all(|link|
-            ids.contains(link.from_id.as_str()) && ids.contains(link.to_id.as_str())
-        ));
+        let ids = selected
+            .iter()
+            .map(|u| u.id.as_str())
+            .collect::<BTreeSet<_>>();
+        assert!(
+            links.iter().all(
+                |link| ids.contains(link.from_id.as_str()) && ids.contains(link.to_id.as_str())
+            )
+        );
         let scope = overview_scope(&units, &selected);
         assert!(scope.contains("representative guide"));
         assert!(scope.contains("additional units"));
@@ -715,7 +745,11 @@ mod selection_contracts {
         let units = [old, next];
         let selected = select(&units, &[edge.clone()], budget).unwrap();
         assert_eq!(selected.len(), 1);
-        assert!(citable_decisions(&[edge], &selected, 4_096).unwrap().is_empty());
+        assert!(
+            citable_decisions(&[edge], &selected, 4_096)
+                .unwrap()
+                .is_empty()
+        );
         assert!(overview_scope(&units, &selected).contains("1 additional units"));
     }
 
