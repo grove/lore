@@ -73,13 +73,13 @@ class SuiteTests(unittest.TestCase):
   with tempfile.TemporaryDirectory() as temp:
    run=completed(Path(temp)/'atlas');reviewed(run)
    metrics=run/'metrics.json';record=json.loads(metrics.read_text())
-   record['phases']['after_mutation']['report']={'degraded_topics':['ledger-persistence']}
+   record['phases']['after_mutation']['report'].update({'degraded_topics':['ledger-persistence']})
    metrics.write_text(json.dumps(record))
    passed,failures=suite.automated_checks(record)
    self.assertFalse(passed)
    self.assertTrue(any('degraded evidence-only' in error for error in failures))
    self.assertFalse(suite.assess_run(run)['ready'])
-   record['phases']['after_mutation']['report']={'degraded_topics':[]}
+   record['phases']['after_mutation']['report'].update({'degraded_topics':[]})
    metrics.write_text(json.dumps(record))
    self.assertTrue(suite.automated_checks(record)[0])
 
