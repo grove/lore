@@ -231,7 +231,7 @@ def subprocess_json(binary: str, project: Path, *args: str, timeout: int = 3600,
                     env: dict[str, str] | None = None) -> tuple[dict, float]:
     start = time.monotonic()
     completed = subprocess.run([binary, "--config", str(project / "lore.yml"), "--json", *args],
-                               capture_output=True, text=True, timeout=timeout, env=env)
+                               capture_output=True, text=True, encoding="utf-8", timeout=timeout, env=env)
     elapsed = round(time.monotonic() - start, 3)
     if completed.returncode != 0:
         # Do not copy potentially sensitive CLI stdout/stderr into benchmark output.

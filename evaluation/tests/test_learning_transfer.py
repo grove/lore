@@ -41,8 +41,8 @@ def setup(root: Path):
 
 def implement(workspace: Path, function: str):
     path = workspace / "src" / "refund_adapter.py"
-    header = path.read_text().split("def refund_or_reconcile", 1)[0]
-    path.write_text(header + function)
+    header = path.read_text(encoding="utf-8").split("def refund_or_reconcile", 1)[0]
+    path.write_text(header + function, encoding="utf-8")
 
 
 class LearningTransferTests(unittest.TestCase):

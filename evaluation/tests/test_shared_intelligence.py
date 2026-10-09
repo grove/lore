@@ -48,7 +48,7 @@ def fixture_response(project: Path, experience: str, task: str) -> dict:
 
 def fixture_run(root: Path):
     binary = root / "lore-fixture"
-    binary.write_text("No binary execution; mocked protocol fixture identity")
+    binary.write_text("No binary execution; mocked protocol fixture identity", encoding="utf-8")
     args = argparse.Namespace(output=root / "run", cases=coding.DEFAULT_CASES,
         lore_binary=binary, provider="ollama", model="fixture-not-a-model", embedding_model=None,
         decision_provider=None, decision_model=None, allow_hosted=False,
@@ -132,7 +132,7 @@ class SharedIntelligenceTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             project = Path(temporary).resolve()
             (project / "src").mkdir()
-            (project / "src/example.py").write_text("value = 'følge'\n")
+            (project / "src/example.py").write_text("value = 'følge'\n", encoding="utf-8")
             original = fixture_response(project, "onboard", "Understand the workflow")
             self.assertEqual(shared.verify_shared_references(original, "onboard", project)["checked"], 1)
             for field, value in (("evidence_ids", ["ev_not_in_core"]), ("observation_ids", ["co_invented"]),
@@ -154,7 +154,7 @@ class SharedIntelligenceTests(unittest.TestCase):
                 adaptive = sample["experiences"]["adaptive"]["response"]
                 if change == "source":
                     source = directory / sample["source_root"]
-                    next((source / "src").glob("*.py")).write_text("changed source")
+                    next((source / "src").glob("*.py")).write_text("changed source", encoding="utf-8")
                 elif change == "snapshot":
                     adaptive["snapshot"]["registry_revision"] = "different-source-revision"
                 elif change == "observation":
