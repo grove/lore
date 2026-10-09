@@ -166,6 +166,8 @@ async fn verifier_feedback_repairs_unsupported_order_without_degradation() {
         .await
         .unwrap();
     assert!(report.degraded_topics.is_empty());
+    // Semantic verification rejects the invented chronology, and the
+    // rewrite loop must repair it without publishing a degraded topic.
     assert!(model.rejects.load(Ordering::SeqCst) > 0);
     assert!(model.repairs.load(Ordering::SeqCst) > 0);
     let topic = fs::read_to_string(cfg.wiki.join("topics/ledger.md")).unwrap();
