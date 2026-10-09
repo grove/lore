@@ -1,5 +1,6 @@
 //! Deterministic orchestration with bounded, validated semantic steps.
 mod citations;
+mod grounding;
 mod overview;
 mod reconcile;
 mod render;
