@@ -1,8 +1,5 @@
 //! Necessary source/citation checks, not a substitute for semantic verification.
 //! Ordering paragraphs is presentation; only assertions in the text are claims.
-#[path = "synthesis.rs"]
-pub(crate) mod synthesis;
-
 use super::timeline::DecisionLink;
 use crate::domain::{KnowledgeView, PageDraft};
 use anyhow::{Result, ensure};
@@ -20,19 +17,40 @@ pub(crate) struct Finding {
 
 impl Finding {
     pub fn validate(&self, draft: &PageDraft) -> Result<()> {
-        let section = draft.sections.get(self.section).ok_or_else(|| anyhow::anyhow!("unknown finding section"))?;
+        let section = draft
+            .sections
+            .get(self.section)
+            .ok_or_else(|| anyhow::anyhow!("unknown finding section"))?;
         let text = match self.paragraph {
-            Some(index) => &section.paragraphs.get(index).ok_or_else(|| anyhow::anyhow!("unknown finding paragraph"))?.text,
+            Some(index) => {
+                &section
+                    .paragraphs
+                    .get(index)
+                    .ok_or_else(|| anyhow::anyhow!("unknown finding paragraph"))?
+                    .text
+            }
             None => &section.heading,
         };
-        ensure!(!self.excerpt.trim().is_empty() && text.contains(&self.excerpt), "finding must quote the exact offending text");
-        ensure!(!self.reason.trim().is_empty() && self.reason.len() <= 4000, "invalid finding reason");
+        ensure!(
+            !self.excerpt.trim().is_empty() && text.contains(&self.excerpt),
+            "finding must quote the exact offending text"
+        );
+        ensure!(
+            !self.reason.trim().is_empty() && self.reason.len() <= 4000,
+            "invalid finding reason"
+        );
         Ok(())
     }
 }
 
 fn normalize(text: &str) -> String {
-    format!(" {} ", text.split_whitespace().collect::<Vec<_>>().join(" ").to_lowercase())
+    format!(
+        " {} ",
+        text.split_whitespace()
+            .collect::<Vec<_>>()
+            .join(" ")
+            .to_lowercase()
+    )
 }
 
 /// Locate every rejected paragraph. Repairs preserve non-rejected paragraphs.
@@ -42,46 +60,95 @@ pub(crate) fn findings(draft: &PageDraft, units: &[&KnowledgeView]) -> Vec<Findi
     for (section, s) in draft.sections.iter().enumerate() {
         for (paragraph, p) in s.paragraphs.iter().enumerate() {
             let prose = normalize(&p.text);
-            let cited = p.knowledge_ids.iter().filter_map(|id| by_id.get(id.as_str()).copied()).collect::<Vec<_>>();
-            let evidence = cited.iter().flat_map(|u| &u.evidence).map(|e| normalize(&e.excerpt)).collect::<Vec<_>>();
+            let cited = p
+                .knowledge_ids
+                .iter()
+                .filter_map(|id| by_id.get(id.as_str()).copied())
+                .collect::<Vec<_>>();
+            let evidence = cited
+                .iter()
+                .flat_map(|u| &u.evidence)
+                .map(|e| normalize(&e.excerpt))
+                .collect::<Vec<_>>();
             let mut reasons = Vec::new();
-            for phrase in ["available records do not", "supplied record does not", "records do not show",
-                "records do not resolve", "sources do not say", "documentation does not state",
-                "does not state the rationale", "no record of", "no evidence exists", "nothing in the sources",
-                "no further detail", "no additional detail", "no additional information", "no further information",
-                "provides no detail", "provides no further", "gives no further", "gives no additional", "does not provide any details"] {
+            for phrase in [
+                "available records do not",
+                "supplied record does not",
+                "records do not show",
+                "records do not resolve",
+                "sources do not say",
+                "documentation does not state",
+                "does not state the rationale",
+                "no record of",
+                "no evidence exists",
+                "nothing in the sources",
+                "no further detail",
+                "no additional detail",
+                "no additional information",
+                "no further information",
+                "provides no detail",
+                "provides no further",
+                "gives no further",
+                "gives no additional",
+                "does not provide any details",
+            ] {
                 if prose.contains(phrase) && !evidence.iter().any(|e| e.contains(phrase)) {
                     reasons.push(format!("Unsupported source-wide absence claim ({phrase}); a sample cannot establish that information is missing elsewhere."));
                     break;
                 }
             }
-            for phrase in [" before ", " after ", " earlier than ", " later than ", " subsequently ", " preceded ", " followed by "] {
+            for phrase in [
+                " before ",
+                " after ",
+                " earlier than ",
+                " later than ",
+                " subsequently ",
+                " preceded ",
+                " followed by ",
+            ] {
                 if !prose.contains(phrase) || evidence.iter().any(|e| e.contains(phrase)) {
                     continue;
                 }
                 // Unrelated date fields are not a blanket license to invent
                 // order. The semantic verifier still checks event identity
                 // and direction when dates are explicitly part of the claim.
-                let dates = cited.iter().filter(|u| !u.effective_at.is_empty()
-                    && p.text.contains(&u.effective_at)
-                    && u.evidence.iter().any(|e| e.excerpt.contains(&u.effective_at)))
-                    .map(|u| u.effective_at.as_str()).collect::<BTreeSet<_>>();
+                let dates = cited
+                    .iter()
+                    .filter(|u| {
+                        !u.effective_at.is_empty()
+                            && p.text.contains(&u.effective_at)
+                            && u.evidence
+                                .iter()
+                                .any(|e| e.excerpt.contains(&u.effective_at))
+                    })
+                    .map(|u| u.effective_at.as_str())
+                    .collect::<BTreeSet<_>>();
                 if dates.len() < 2 {
                     reasons.push(format!("unsupported event ordering ({phrase:?}); preserve the source's temporal wording. In particular, 'when' does not establish 'before' or 'after'."));
                     break;
                 }
             }
             if !reasons.is_empty() {
-                out.push(Finding { section, paragraph: Some(paragraph), excerpt: p.text.clone(), reason: reasons.join(" ") });
+                out.push(Finding {
+                    section,
+                    paragraph: Some(paragraph),
+                    excerpt: p.text.clone(),
+                    reason: reasons.join(" "),
+                });
             }
         }
     }
     out
 }
 
-pub(super) fn validate_prose(draft: &PageDraft, units: &[&KnowledgeView]) -> Result<()> {
+#[cfg(test)]
+fn validate_prose(draft: &PageDraft, units: &[&KnowledgeView]) -> Result<()> {
     let issues = findings(draft, units);
-    ensure!(issues.is_empty(), "{}", issues.first().map(|i| i.reason.as_str()).unwrap_or(""));
+    ensure!(
+        issues.is_empty(),
+        "{}",
+        issues.first().map(|i| i.reason.as_str()).unwrap_or("")
+    );
     Ok(())
 }
 
@@ -98,9 +165,14 @@ pub(crate) fn decision_findings(draft: &PageDraft, links: &[&DecisionLink]) -> V
                     text.contains("supersed") || text.contains("replac")
                 };
                 let names_successor = text.contains(&link.from_label.to_lowercase());
-                let names_predecessor = text.contains(&link.to_label.to_lowercase()) || p.knowledge_ids.contains(&link.to_id);
-                if action && names_successor && names_predecessor
-                    && !(p.knowledge_ids.contains(&link.from_id) && p.knowledge_ids.contains(&link.to_id)) {
+                let names_predecessor = text.contains(&link.to_label.to_lowercase())
+                    || p.knowledge_ids.contains(&link.to_id);
+                if action
+                    && names_successor
+                    && names_predecessor
+                    && !(p.knowledge_ids.contains(&link.from_id)
+                        && p.knowledge_ids.contains(&link.to_id))
+                {
                     out.push(Finding { section, paragraph: Some(paragraph), excerpt: p.text.clone(),
                         reason: format!("The named {} relationship must cite both {} and {}. Add the supplied endpoint citations or remove the relationship claim.", link.relation, link.from_id, link.to_id) });
                     break;
@@ -116,16 +188,49 @@ mod tests {
     use super::*;
     use crate::domain::{EvidenceView, PageSection, Paragraph};
     fn unit(excerpt: &str) -> KnowledgeView {
-        KnowledgeView { id: "k".into(), revision_id: "r".into(), statement: excerpt.into(), topic: "policy".into(), topic_title: "Policy".into(), subject: "committee".into(), kind: "observation".into(), lifecycle: "unknown".into(), base_lifecycle: "unknown".into(), scope: "team".into(), effective_at: String::new(), support_state: "current_documentary_support".into(), relations: vec![], evidence: vec![EvidenceView { id: "e".into(), assertion_id: "a".into(), source_id: "s".into(), source: "minutes".into(), excerpt: excerpt.into(), captured_at: String::new(), active: true }] }
+        KnowledgeView {
+            id: "k".into(),
+            revision_id: "r".into(),
+            statement: excerpt.into(),
+            topic: "policy".into(),
+            topic_title: "Policy".into(),
+            subject: "committee".into(),
+            kind: "observation".into(),
+            lifecycle: "unknown".into(),
+            base_lifecycle: "unknown".into(),
+            scope: "team".into(),
+            effective_at: String::new(),
+            support_state: "current_documentary_support".into(),
+            relations: vec![],
+            evidence: vec![EvidenceView {
+                id: "e".into(),
+                assertion_id: "a".into(),
+                source_id: "s".into(),
+                source: "minutes".into(),
+                excerpt: excerpt.into(),
+                captured_at: String::new(),
+                active: true,
+            }],
+        }
     }
     fn draft(text: &str) -> PageDraft {
-        PageDraft { sections: vec![PageSection { heading: "Understanding".into(), paragraphs: vec![Paragraph { text: text.into(), knowledge_ids: vec!["k".into()] }] }] }
+        PageDraft {
+            sections: vec![PageSection {
+                heading: "Understanding".into(),
+                paragraphs: vec![Paragraph {
+                    text: text.into(),
+                    knowledge_ids: vec!["k".into()],
+                }],
+            }],
+        }
     }
     #[test]
     fn when_does_not_become_before_or_after() {
         let u = unit("The inquiry closed when the report was delivered.");
         for word in ["before", "after"] {
-            let d = draft(&format!("The inquiry closed {word} the report was delivered."));
+            let d = draft(&format!(
+                "The inquiry closed {word} the report was delivered."
+            ));
             let f = findings(&d, &[&u]);
             assert_eq!(f.len(), 1);
             f[0].validate(&d).unwrap();
@@ -137,7 +242,10 @@ mod tests {
     fn presentation_order_is_not_an_event_claim() {
         let u = unit("The committee approved a policy. The study was reported complete.");
         let mut d = draft("The committee approved a policy.");
-        d.sections[0].paragraphs.push(Paragraph { text: "The study was reported complete.".into(), knowledge_ids: vec!["k".into()] });
+        d.sections[0].paragraphs.push(Paragraph {
+            text: "The study was reported complete.".into(),
+            knowledge_ids: vec!["k".into()],
+        });
         assert!(findings(&d, &[&u]).is_empty());
         d.sections[0].paragraphs.reverse();
         assert!(findings(&d, &[&u]).is_empty());

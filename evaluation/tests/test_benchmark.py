@@ -174,7 +174,7 @@ class BenchmarkTests(unittest.TestCase):
             CREATE TABLE knowledge_relations(id TEXT,from_revision_id TEXT,to_revision_id TEXT,relation TEXT);
             CREATE TABLE knowledge_revisions(id TEXT,knowledge_id TEXT);
             CREATE TABLE relation_assertions(relation_id TEXT,assertion_revision_id TEXT);
-            CREATE TABLE reaffirmation_links(from_unit_id TEXT,to_unit_id TEXT,assertion_revision_id TEXT);
+            CREATE TABLE reaffirmation_links(from_unit_id TEXT,to_unit_id TEXT,assertion_revision_id TEXT,evidence_id TEXT);
             INSERT INTO sources VALUES('s1','docs','POL-001.md');
             INSERT INTO sources VALUES('s2','docs','review.md');
             INSERT INTO source_current VALUES('s1');
@@ -194,7 +194,7 @@ class BenchmarkTests(unittest.TestCase):
             INSERT INTO assertion_assignments VALUES('a2','review');
             INSERT INTO evidence_snapshots VALUES('e1','The board adopted the two-person approval rule.');
             INSERT INTO evidence_snapshots VALUES('e2','The committee reaffirmed POL-001 and two-person approval.');
-            INSERT INTO reaffirmation_links VALUES('review','policy','a2');
+            INSERT INTO reaffirmation_links VALUES('review','policy','a2','e2');
             """)
             db.executemany("INSERT INTO assertion_details VALUES(?,?)", [
                 ("a1", json.dumps({"kind":"decision","lifecycle":"accepted"})),
@@ -220,7 +220,7 @@ class BenchmarkTests(unittest.TestCase):
             score = bench.score_project(project, gold)
             self.assertEqual(score["gold"]["matched_type_and_lifecycle"], 1)
             self.assertEqual(score["gold"]["relation_tests_passed"], 1)
-            self.assertEqual(score["gold"]["scorer_version"], "source-endpoints-v2")
+            self.assertEqual(score["gold"]["scorer_version"], "source-witness-sets-v3")
             review = next(m for m in score["gold"]["matches"] if m["id"] == "review")
             self.assertIsNone(review["matching_knowledge_id"])
             self.assertEqual(review["relation_knowledge_id"], "review")

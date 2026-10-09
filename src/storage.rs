@@ -427,9 +427,10 @@ pub struct RelationFact {
     pub source_revision_id: String,
     pub source_locator: String,
     pub active: bool,
+    pub exact_excerpt: String,
 }
 pub fn relation_facts(conn: &Connection) -> Result<Vec<RelationFact>> {
-    let mut q=conn.prepare("SELECT r.id,f.knowledge_id,t.knowledge_id,r.relation,r.evidence_id,ra.assertion_revision_id,ar.source_id,ar.source_revision_id,s.root_id||':'||s.relative_path,EXISTS(SELECT 1 FROM active_assertions a WHERE a.assertion_revision_id=ar.id) FROM knowledge_relations r JOIN knowledge_revisions f ON f.id=r.from_revision_id JOIN knowledge_revisions t ON t.id=r.to_revision_id JOIN relation_assertions ra ON ra.relation_id=r.id JOIN assertion_revisions ar ON ar.id=ra.assertion_revision_id JOIN sources s ON s.id=ar.source_id UNION ALL SELECT r.id,r.from_unit_id,r.to_unit_id,'reaffirms',r.evidence_id,r.assertion_revision_id,ar.source_id,ar.source_revision_id,s.root_id||':'||s.relative_path,EXISTS(SELECT 1 FROM active_assertions a WHERE a.assertion_revision_id=ar.id) FROM reaffirmation_links r JOIN assertion_revisions ar ON ar.id=r.assertion_revision_id JOIN sources s ON s.id=ar.source_id ORDER BY 1")?;
+    let mut q=conn.prepare("SELECT r.id,f.knowledge_id,t.knowledge_id,r.relation,r.evidence_id,ra.assertion_revision_id,ar.source_id,ar.source_revision_id,s.root_id||':'||s.relative_path,EXISTS(SELECT 1 FROM active_assertions a WHERE a.assertion_revision_id=ar.id),COALESCE((SELECT exact_excerpt FROM evidence_snapshots WHERE id=r.evidence_id),'') FROM knowledge_relations r JOIN knowledge_revisions f ON f.id=r.from_revision_id JOIN knowledge_revisions t ON t.id=r.to_revision_id JOIN relation_assertions ra ON ra.relation_id=r.id JOIN assertion_revisions ar ON ar.id=ra.assertion_revision_id JOIN sources s ON s.id=ar.source_id UNION ALL SELECT r.id,r.from_unit_id,r.to_unit_id,'reaffirms',r.evidence_id,r.assertion_revision_id,ar.source_id,ar.source_revision_id,s.root_id||':'||s.relative_path,EXISTS(SELECT 1 FROM active_assertions a WHERE a.assertion_revision_id=ar.id),COALESCE((SELECT exact_excerpt FROM evidence_snapshots WHERE id=r.evidence_id),'') FROM reaffirmation_links r JOIN assertion_revisions ar ON ar.id=r.assertion_revision_id JOIN sources s ON s.id=ar.source_id ORDER BY 1")?;
     Ok(q.query_map([], |r| {
         Ok(RelationFact {
             id: r.get(0)?,
@@ -442,6 +443,7 @@ pub fn relation_facts(conn: &Connection) -> Result<Vec<RelationFact>> {
             source_revision_id: r.get(7)?,
             source_locator: r.get(8)?,
             active: r.get(9)?,
+            exact_excerpt: r.get(10)?,
         })
     })?
     .collect::<rusqlite::Result<_>>()?)

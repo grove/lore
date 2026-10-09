@@ -20,6 +20,8 @@ pub(super) struct DecisionLink {
     pub claimed_effective_at: Option<String>,
     pub supporting_source: Option<String>,
     pub evidence_id: Option<String>,
+    /// Exact source-bound witness for the relation, not a model paraphrase.
+    pub exact_excerpt: String,
 }
 impl DecisionLink {
     pub fn touches(&self, slug: &str) -> bool {
@@ -66,6 +68,7 @@ pub(super) fn decision_links(
             },
             supporting_source: Some(relation.source_locator.clone()),
             evidence_id: Some(relation.evidence_id.clone()),
+            exact_excerpt: relation.exact_excerpt.clone(),
         });
     }
     out.sort_by(|a, b| {

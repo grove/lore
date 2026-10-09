@@ -1,6 +1,7 @@
 """Generic relationship witness and candidate-set regressions; no inference."""
 from pathlib import Path
 import sys
+import sqlite3
 import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import relationship_scoring as scoring
@@ -67,6 +68,41 @@ class RelationshipScoringTests(unittest.TestCase):
         result = scoring.assess({"id": "r", "type": "equivalent", "expected": True},
                                 left, right, [], lambda e: True)
         self.assertFalse(result["assessable"])
+
+    def test_witness_must_be_the_same_source_revision_and_part_of_its_assertion(self):
+        conn = sqlite3.connect(":memory:")
+        conn.row_factory = sqlite3.Row
+        conn.executescript("""
+            CREATE TABLE assertion_revisions(id TEXT, source_id TEXT, source_revision_id TEXT);
+            CREATE TABLE evidence_snapshots(id TEXT, exact_excerpt TEXT, source_id TEXT, source_revision_id TEXT);
+            INSERT INTO assertion_revisions VALUES('a-review','minutes','v1');
+            INSERT INTO evidence_snapshots VALUES('ev','reaffirmed the policy','minutes','v1');
+        """)
+        candidates = [{**row("a-review", "review"), "excerpt": "The committee reaffirmed the policy at its meeting."}]
+        self.assertTrue(scoring.grounded_edge(conn, edge(), candidates))
+        for field, value in (("source_id", "another-source"), ("source_revision_id", "v2"),
+                             ("exact_excerpt", "A quote absent from the candidate passage")):
+            conn.execute(f"UPDATE evidence_snapshots SET {field}=? WHERE id='ev'", (value,))
+            self.assertFalse(scoring.grounded_edge(conn, edge(), candidates))
+            conn.execute("UPDATE evidence_snapshots SET source_id='minutes',source_revision_id='v1',exact_excerpt='reaffirmed the policy'")
+        self.assertFalse(scoring.grounded_edge(conn, edge(assertion="different-assertion"), candidates))
+        self.assertFalse(scoring.grounded_edge(conn, edge(evidence=None), candidates))
+        conn.close()
+
+    def test_negative_expectation_checks_every_candidate_pair(self):
+        left = scoring.identity([row("a-review", "review"), row("question", "question")], set())
+        right = scoring.identity([row("adopted", "policy"), row("constraint", "rule")], set())
+        observed = [edge(source="question", target="rule", assertion="question")]
+        result = scoring.assess({"id":"r", "type":"reaffirms", "expected":False},
+                                left, right, observed, lambda e: True)
+        self.assertTrue(result["assessable"])
+        self.assertTrue(result["actual"])
+        self.assertFalse(result["passed"])
+
+    def test_candidate_order_does_not_pick_a_convenient_identity(self):
+        candidates = [row("a-review", "review"), row("question", "question")]
+        self.assertEqual(scoring.identity(candidates, set()),
+                         scoring.identity(list(reversed(candidates)), set()))
 
 
 if __name__ == "__main__":

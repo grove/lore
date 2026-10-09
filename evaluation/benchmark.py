@@ -18,6 +18,8 @@ import subprocess
 import sys
 import time
 
+import relationship_scoring
+
 ROOT = Path(__file__).resolve().parent
 TARGETS = ROOT / "targets.json"
 MAX_DOCUMENTS = 36
@@ -316,46 +318,16 @@ def score_project(project: Path, gold_path: Path | None = None,
                 "matching_knowledge_id": best["knowledge_id"] if best else None,
                 "relation_knowledge_id": relation_unit,
                 "relation_identity_candidates": len(endpoint_ids)})
-        # Relationship scoring must not be gated by the separate lifecycle
-        # classification rubric. This is not a fuzzy or arbitrary fallback.
-        matched_units = {x["id"]: x["relation_knowledge_id"] for x in source_expectations}
-        relation_rows = [tuple(row) for row in conn.execute("""
-            SELECT fr.knowledge_id, tr.knowledge_id, rel.relation
-            FROM knowledge_relations rel
-            JOIN knowledge_revisions fr ON fr.id=rel.from_revision_id
-            JOIN knowledge_revisions tr ON tr.id=rel.to_revision_id
-            JOIN relation_assertions ra ON ra.relation_id=rel.id
-            JOIN active_assertions act ON act.assertion_revision_id=ra.assertion_revision_id
-        """)]
-        # Version 3 records reaffirmation as a separate, immutable,
-        # source-backed event rather than incorrectly merging two decisions.
-        has_reaffirmations = conn.execute(
-            "SELECT count(*) FROM sqlite_master WHERE type='table' AND name='reaffirmation_links'"
-        ).fetchone()[0] > 0
-        if has_reaffirmations:
-            relation_rows.extend(tuple(row) for row in conn.execute("""
-                SELECT from_unit_id,to_unit_id,'reaffirms'
-                FROM reaffirmation_links link
-                JOIN active_assertions act
-                  ON act.assertion_revision_id=link.assertion_revision_id
-            """))
-        gold_relations = []
-        if gold_path:
-            for rule in load_json(gold_path).get("expected_relations", []):
-                if phase not in rule.get("phases", ["initial"]):
-                    continue
-                left, right = matched_units.get(rule["from"]), matched_units.get(rule["to"])
-                assessable = left is not None and right is not None
-                if not assessable:
-                    actual = None
-                elif rule["type"] == "equivalent":
-                    actual = left == right
-                else:
-                    actual = (left, right, rule["type"]) in relation_rows
-                gold_relations.append({"id": rule["id"], "relation": rule["type"],
-                    "expected": bool(rule["expected"]), "actual": actual, "assessable": assessable,
-                    "identity_method": "unique_source_excerpt_assignment_v2",
-                    "passed": assessable and actual == bool(rule["expected"])})
+        # The checkpoint denotes a candidate set of source assertions, not
+        # an arbitrary single knowledge unit. Preserve the label diagnostics;
+        # relationship truth requires an active, same-source evidence witness.
+        gold_relations, identities = relationship_scoring.score(
+            conn, gold,
+            load_json(gold_path).get("expected_relations", []) if gold_path else [],
+            assertions, {row["assertion_id"] for row in evidence_problems}, phase,
+        )
+        for match in source_expectations:
+            match["relation_identity"] = identities[match["id"]]
         calls_sql = """SELECT task,provider,model,cache_hit,COUNT(*) AS n,
                          SUM(duration_ms) AS duration_ms FROM model_calls"""
         if run_id:
@@ -380,7 +352,7 @@ def score_project(project: Path, gold_path: Path | None = None,
                 "current_excerpt_checks": len(assertions),
                 "current_excerpt_failures": evidence_problems,
                 "gold": {"total": len(gold), "matched_quote": matched,
-                    "scorer_version": "source-endpoints-v2",
+                    "scorer_version": relationship_scoring.VERSION,
                     "matched_type_and_lifecycle": typed,
                     "lexical_coverage_proxy": round(matched / len(gold), 3) if gold else None,
                     "typed_coverage_proxy": round(typed / len(gold), 3) if gold else None,
@@ -444,7 +416,7 @@ def report_markdown(report: dict) -> str:
             lines.append(f"- Acceptable labelled type alternatives (still lexical): {gold.get('acceptable_type_and_lifecycle_count', gold['matched_type_and_lifecycle'])}/{gold['total']}")
         if gold["relation_tests_total"]:
             lines.append(f"- Labeled relationship checks: {gold['relation_tests_passed']}/{gold['relation_tests_total']} (unassessable count as failed)")
-            lines.append(f"- Relationship endpoint scorer: {gold.get('scorer_version','legacy')} (unique source-backed knowledge assignments, independent of lifecycle labels)")
+            lines.append(f"- Relationship endpoint scorer: {gold.get('scorer_version','legacy')} (source-bound graph witnesses; independent of lifecycle labels)")
         if "elapsed_seconds" in entry:
             lines.append(f"- CLI elapsed seconds: {entry['elapsed_seconds']}")
         degraded=entry.get("report",{}).get("degraded_topics",[])
@@ -455,7 +427,7 @@ def report_markdown(report: dict) -> str:
             lines.append(f"- Synthesis/verification draft rejections: {len(diagnostics)}")
             for note in diagnostics[:10]:
                 tag = f"{note.get('task','unknown')}/{note.get('topic','unknown')}"
-                reason = "; ".join(str(s).replace("\\n", " ")[:160] for s in note.get("issues", [])[:2])
+                reason = "; ".join(str(s).replace("\n", " ")[:160] for s in note.get("issues", [])[:2])
                 lines.append(f"  - {tag}, attempt {note.get('attempt','?')}, {note.get('check','unknown')}: {reason}")
         if entry.get("report",{}).get("degraded_overview") is True:
             lines.append("- **DEGRADED OVERVIEW: source excerpts published; semantic narrative verification did not pass. This run fails the beta gate.**")

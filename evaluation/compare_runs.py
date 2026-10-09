@@ -64,6 +64,10 @@ def snapshot(run: Path) -> dict[str, Any]:
         "binary_sha256": metrics.get("lore_binary_sha256"),
         "configuration_sha256": metrics.get("configuration_sha256"),
         "rubric": metrics.get("rubric"),
+        "relationship_scorers": sorted({
+            phase.get("score", {}).get("gold", {}).get("scorer_version", "legacy")
+            for phase in metrics.get("phases", {}).values()
+        }),
         "observed_model_pairs": sorted([list(row) for row in records]),
         "topics": sorted(topics), "topic_count": len(topics),
         "knowledge_count": len(statements),
@@ -89,6 +93,8 @@ def compare(a: dict, b: dict) -> dict:
         reasons.append("Different effective provider/pipeline configurations")
     if a.get("rubric") != b.get("rubric"):
         reasons.append("Different evaluation rubrics; label scores are not comparable")
+    if a.get("relationship_scorers") != b.get("relationship_scorers"):
+        reasons.append("Different relationship scorers; graph scores are not directly comparable")
     models_a={(m,p) for m,p,_ in a["observed_model_pairs"]}
     models_b={(m,p) for m,p,_ in b["observed_model_pairs"]}
     if models_a and models_b and models_a != models_b:
