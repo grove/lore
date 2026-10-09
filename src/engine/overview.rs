@@ -533,6 +533,7 @@ mod selection_contracts {
                 excerpt: format!("Exact original text for {id}"),
                 captured_at: "2026-10-09".into(),
                 active: true,
+                ..EvidenceView::default()
             }],
         }
     }

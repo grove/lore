@@ -65,9 +65,9 @@ Agents should not need to load an entire wiki, rely on a proprietary protocol, o
 
 ## Where we are today
 
-Lore 0.2 is a local-first Rust CLI that ingests local Markdown, stores exact source evidence and versioned knowledge, incrementally reconciles updates, and publishes a cited, topic-oriented Markdown wiki with a project overview. It supports search, read, JSON output, and an evidence-bound review workflow. Local inference and explicitly configured hosted inference are supported.
+Lore 0.3 is a local-first Rust CLI that ingests local Markdown, stores exact source evidence and versioned knowledge, incrementally reconciles updates, and publishes a cited, topic-oriented Markdown wiki with a project overview. Its `lore context` command retrieves deterministic, budgeted task context from the same registry without model calls. It also supports search, read, JSON output, multi-source provenance, and an evidence-bound review workflow. Local inference and explicitly configured hosted inference are supported for compilation.
 
-The knowledge compiler and its integrity safeguards are implemented, but **real-model factual quality and end-user usefulness still need empirical validation**. Lore does not yet offer a dedicated web UI, conversational grounded Q&A, task-focused agent context packages, direct issue-tracker or GitHub Wiki connectors, or independent verification of the running system. See [README.md](README.md), [the v0.2 guide](docs/V02.md), and [the evaluation baseline](evaluation/BASELINE.md) for the current state.
+The knowledge compiler, task-context interface, and integrity safeguards are implemented, but **real-model factual quality and end-user usefulness still need empirical validation**. Lore does not yet offer a dedicated web UI, conversational grounded Q&A, direct issue-tracker or GitHub Wiki connectors, or independent verification of the running system. Retrieval uses lexical, path, concept, and stored relationship signals; arbitrary terminology mismatches can still be missed. See [README.md](README.md), [the v0.3 guide](docs/V03.md), and [the evaluation baseline](evaluation/BASELINE.md) for the current state.
 
 ## What we should build toward
 
@@ -75,11 +75,11 @@ The sequence matters more than any specific interface:
 
 1. **Prove understanding.** Evaluate real model outputs with human reviewers. Measure omissions, false merges, incorrect decision timelines, evidence quality, utility, latency, and cost.
 2. **Make understanding delightful to use.** Improve the project overview, navigation, explanations, links, and review experience for humans.
-3. **Deliver relevant agent context.** Offer deterministic, budgeted, evidence-carrying retrieval through stable CLI/JSON interfaces, with optional integrations where helpful.
+3. **Prove the usefulness of agent context.** Measure whether the deterministic, budgeted CLI/JSON retrieval introduced in 0.3 reduces missed constraints and improves task decisions, then improve it with evidence from those evaluations.
 4. **Make knowledge easier to ask and maintain.** Explore grounded Q&A, change awareness, and direct integrations for sources such as GitHub Wiki and YouTrack.
 5. **Connect documented intent to code carefully.** Where useful, distinguish documentation from implementation observations and help flag possible mismatches without claiming that a citation alone verifies runtime behavior.
 
-Possible future commands such as `lore open`, `lore ask`, or `lore context` are **illustrative product ideas**, not current CLI commands or commitments to a particular design.
+`lore context` is available in 0.3. Possible future commands such as `lore open` or `lore ask` remain **illustrative product ideas**, not current CLI commands or commitments to a particular design.
 
 ## How we will know it works
 

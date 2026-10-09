@@ -1,4 +1,4 @@
-use crate::{config::ResolvedConfig, util};
+use crate::{config::ResolvedConfig, domain::SourceMaterial, util};
 use anyhow::{Context, Result, ensure};
 use globset::{Glob, GlobSetBuilder};
 use pulldown_cmark::{Event, Options, Parser, Tag, TagEnd};
@@ -18,6 +18,9 @@ pub struct Chunk {
 #[derive(Debug, Clone)]
 pub struct Document {
     pub root_id: String,
+    pub root_path: PathBuf,
+    pub material: SourceMaterial,
+    pub origin: Option<String>,
     pub relative_path: String,
     pub physical_path: PathBuf,
     pub text: String,
@@ -40,6 +43,20 @@ pub fn scan(config: &ResolvedConfig) -> Result<Inventory> {
     let mut documents = Vec::new();
     let mut warnings = Vec::new();
     for (root_id, root) in &config.roots {
+        let source_config = config
+            .config
+            .sources
+            .roots
+            .iter()
+            .find(|source| source.id == *root_id)
+            .context("resolved source root has no configuration")?;
+        let provenance_digest = util::json_digest(&(
+            "source-provenance-v1",
+            root_id,
+            root,
+            source_config.material,
+            &source_config.origin,
+        ))?;
         util::reject_symlinks(root)?;
         ensure!(
             root.is_dir(),
@@ -90,14 +107,22 @@ pub fn scan(config: &ResolvedConfig) -> Result<Inventory> {
                 continue;
             }
             let text = util::read_limited(path, config.config.processing.max_file_bytes)?;
-            let chunks = split_markdown(
+            let mut chunks = split_markdown(
                 &text,
                 root_id,
                 &relative,
                 config.config.processing.max_section_bytes,
             )?;
+            // Provenance changes must create fresh assertion/evidence revisions
+            // even when the imported Markdown bytes remain identical.
+            for chunk in &mut chunks {
+                chunk.input_digest = util::json_digest(&(&chunk.input_digest, &provenance_digest))?;
+            }
             documents.push(Document {
                 root_id: root_id.clone(),
+                root_path: root.clone(),
+                material: source_config.material,
+                origin: source_config.origin.clone(),
                 relative_path: relative,
                 physical_path: path.to_owned(),
                 digest: util::digest(&text),
@@ -110,7 +135,16 @@ pub fn scan(config: &ResolvedConfig) -> Result<Inventory> {
     let digest = util::json_digest(
         &documents
             .iter()
-            .map(|d| (&d.root_id, &d.relative_path, &d.digest))
+            .map(|d| {
+                (
+                    &d.root_id,
+                    &d.root_path,
+                    &d.relative_path,
+                    &d.digest,
+                    d.material,
+                    &d.origin,
+                )
+            })
             .collect::<Vec<_>>(),
     )?;
     Ok(Inventory {

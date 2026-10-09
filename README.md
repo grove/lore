@@ -2,9 +2,9 @@
 
 **Give your project a memory that grows with it.**
 
-Projects collect their history in architecture notes, ADRs, plans, issue exports, investigations, and half-finished ideas. Those documents are valuable, but understanding a subject often means piecing together several files written at different times for different reasons. Lore is a Rust command-line application that reads your project's Markdown directories and turns them into a linked, evidence-backed wiki. It organizes knowledge by topic rather than producing another stack of file-by-file summaries.
+Projects collect their history in architecture notes, ADRs, plans, issue exports, investigations, and half-finished ideas. Those documents are valuable, but understanding a subject often means piecing together several files written at different times for different reasons. Lore is a Rust command-line application that reads your project's Markdown directories and maintains evidence-backed project knowledge. It retrieves the decisions, constraints, history, and open questions relevant to your next task. The same knowledge powers a linked, topic-oriented Markdown wiki.
 
-Lore 0.2 adds clearer knowledge classification, an evidence-bound review workflow, and a cited project overview to the working incremental compiler. Documented architecture is distinguished from future plans and source-reported delivery; review questions can be resolved without erasing their history. The offline suite exercises the compiler, HTTP contracts, actual CLI and failure recovery, while the cross-project evaluation suite makes real-model and human validation reproducible. This is early software: implemented safeguards and passing fixture tests are not a claim of universal model accuracy. See [the v0.2 guide](docs/V02.md) for the changes and upgrade behavior.
+**Lore 0.3 makes that knowledge available at the moment a change is being planned:** `lore context "Implement payment retries"` returns deterministic, source-cited task context without a model call, network access, or a database write. Retrieval combines lexical matches, path hints, topic and subject connections, and stored relationships. Results preserve documentary status, expose known conflicts, distinguish primary from derived sources, and fit an explicit output budget. See [the v0.3 guide](docs/V03.md) for the interface, upgrade behavior, and limitations. Real-model accuracy and a measurable advantage over ordinary wiki use remain evaluation goals, not claims established by fixture tests.
 
 ## Vision
 
@@ -14,7 +14,7 @@ Lore's goal is not to generate more documentation. It is to help people and agen
 
 Humans should get an inviting, navigable guide to the project's architecture, concepts, decisions, and open questions. Coding agents should be able to retrieve the relevant, evidence-backed context for a task instead of rediscovering intent from scattered files. Both experiences should draw from the same versioned knowledge, clearly distinguishing accepted decisions, proposals, historical context, and unverified reports.
 
-The current CLI and generated Markdown wiki are the foundation. A richer reading experience, task-focused agent context, grounded questions and answers, and direct source integrations are future directions—not features claimed by this README. Read the [full vision](VISION.md) for the product principles, intended experience, and measures of success.
+The current CLI, task-context interface, and generated Markdown wiki are the foundation. A richer reading experience, conversational grounded questions and answers, and direct source integrations remain future directions. Read the [full vision](VISION.md) for the product principles, intended experience, and measures of success.
 
 ## Evaluating Lore
 
@@ -53,6 +53,25 @@ lore init
 
 The result is ordinary Markdown under `lore/`, with an index and topic pages. Lore keeps its database, exact evidence snapshots, and reusable inference results under `.lore/`. Add `.lore/` to your project's `.gitignore`; it contains potentially sensitive copied project material. Review generated pages before publishing them, just as you would review other documentation.
 
+## Retrieve context for your next change
+
+```bash
+lore context "Implement payment retries"
+lore context "Implement payment retries" \
+  --path src/payments/retry.rs \
+  --path docs/payments/retry-policy.md \
+  --max-tokens 3000
+lore --json context "Implement payment retries"
+```
+
+`context` selects knowledge from the last compiled registry. It groups relevant constraints, decisions, documented design, historical knowledge, proposals, and items needing verification; each material assertion carries an archived evidence reference. Stored supersession and conflict relationships retain their endpoints and evidence. A tight budget can omit a complete connected group, with explicit omission counts and warnings, so callers can request more context without mistaking a partial result for complete guidance. Paths are optional relevance hints, not files to read or code changes to perform. Suggested inspection locations come from captured sources or documented references.
+
+The default budget is 3,000 tokens. Lore counts the entire compact JSON and human-readable output with the embedded `cl100k_base` tokenizer and bounds both forms. This includes citations, metadata, and warnings; it does not include your surrounding prompt or guarantee the same count for another model's tokenizer. Whole records are selected without silently shortening their statements or evidence. See [the output and budget contract](docs/V03.md#output-and-budget-contract).
+
+Retrieval runs locally without credentials, a running inference server, an embedding service, or MCP. It does not inspect live source changes or infer new contradictions; run `lore status` and `lore update` when the source corpus changes. A successful empty result means no eligible knowledge was retrieved, not that the task has no constraints. Lexical and relationship expansion can bridge connected concepts, but arbitrary synonyms and unstored relationships can still be missed.
+
+For Codex, Claude Code, and other command-capable agents, use the [optional agent instruction snippet](docs/AGENTS.example.md). Agents can inspect any returned snapshot with `lore --json evidence EVIDENCE_ID` and should verify implementation details in the actual code and tests.
+
 ## Keep the wiki current
 
 After editing your sources, run `lore update`. Lore compares file and section fingerprints, re-extracts changed sections, finds related knowledge, and regenerates affected topic pages. A genuinely unchanged run makes no model calls and leaves wiki content byte-for-byte unchanged. It can therefore complete without API credentials or a running inference server when the configuration and successful baseline are unchanged. New documents are compared with existing knowledge even when that knowledge's original source files were not edited.
@@ -66,9 +85,9 @@ lore read database-strategy
 lore audit
 ```
 
-`status`, `update --dry-run`, search, reading, and the ordinary audit do not call a model. `audit --deep` performs a broader, model-assisted refresh and reconciliation; it can be expensive. `update --refresh` bypasses semantic caches and re-extracts all sources, which is useful after changing a model behind an unchanged model alias. `update --rebuild` explicitly allows replacement of Lore-owned generated output, including manual edits, while retaining the knowledge history. By default, Lore refuses to overwrite edited pages or unmanaged files.
+`status`, `update --dry-run`, `context`, search, reading, and the ordinary audit do not call a model. `audit --deep` performs a broader, model-assisted refresh and reconciliation; it can be expensive. `update --refresh` bypasses semantic caches and re-extracts all sources, which is useful after changing a model behind an unchanged model alias. `update --rebuild` explicitly allows replacement of Lore-owned generated output, including manual edits, while retaining the knowledge history. By default, Lore refuses to overwrite edited pages or unmanaged files.
 
-The CLI also provides `lore evidence <evidence-id>` for an exact archived passage and `lore review` for unresolved questions. `lore review show <review-id>` displays the history and evidence binding; `resolve`, `dismiss` and `reopen` accept an explicit `--reason` and optional `--actor`. These actions record a disposition, not a new project fact, and make no model calls. Specific relationship questions can also close automatically when active evidence from the same source revision establishes the named replacement; withdrawn evidence reopens them. `--config path/to/lore.yml` selects another configuration, and `--json` produces machine-readable results. Operational errors exit with code 1, argument errors with code 2, and audit findings with code 3.
+The CLI also provides `lore evidence <evidence-id>` for an exact archived passage and `lore review` for unresolved questions. `lore review show <review-id>` displays the history and evidence binding; `resolve`, `dismiss` and `reopen` accept an explicit `--reason` and optional `--actor`. These actions record a disposition, not a new project fact, and make no model calls. Specific relationship questions can also close automatically when active evidence from the same source revision establishes the named replacement; withdrawn evidence reopens them. `--config path/to/lore.yml` selects another configuration, and the global `--json` option produces machine-readable results, including argument errors. Operational errors exit with code 1, argument errors with code 2, and audit findings with code 3.
 
 ## An overview you can follow back to evidence
 
@@ -135,6 +154,25 @@ You can mix roles—for example, Ollama for synthesis and OpenAI for decisions�
 
 An experimental TypeSafe System One adapter is included for evaluating Jev as a decision backend: select `provider: typesafe`, a model such as `jev-latest`, and `TYPESAFE_API_KEY`. Its protocol is covered by fixtures, but it remains a candidate rather than a claim of production-validated compatibility. Official provider contracts and further configuration examples are linked in [the implementation guide](docs/IMPLEMENTATION.md).
 
+## Combine ordinary Markdown sources
+
+Several source roots can contribute to one knowledge registry while keeping their own stable source identities. For example, ingest local exports from two projects and a generated wiki:
+
+```yaml
+sources:
+  roots:
+    - id: service-docs
+      path: ./docs
+    - id: platform-docs
+      path: ../platform/docs
+    - id: generated-wiki
+      path: ./imports/openwiki-markdown
+      material: derived
+      origin: https://github.com/example/payment-service
+```
+
+Roots default to `material: primary`. Mark generated or secondary summaries as `derived`; `origin` is optional descriptive provenance supplied by you, not a fetched or verified upstream source. Imported OpenWiki Markdown uses the ordinary source pipeline. Lore preserves its origin and derived status, and context does not treat derived-only evidence as independent verification of code behavior. A native OpenWiki state adapter, automatic wiki aggregation, and tracker connectors are outside 0.3. See [multi-source provenance](docs/V03.md#multi-source-provenance) for upgrade and trust boundaries.
+
 ## Evidence and failure safety
 
 Lore stores exact original excerpts rather than asking a model to invent a citation. A proposed quote must resolve unambiguously in the captured source bytes before it becomes evidence. SQLite keeps source observations and assertion histories append-only during normal operation, with current support maintained separately. Generated prose includes citations and explicit qualifications for historical evidence, proposals, unresolved conflicts, and reported outcomes. An optional second generative check reviews synthesis for unsupported claims; this is a fallible quality check, not a proof of truth.
@@ -145,7 +183,7 @@ Deleting a source is not the same as deleting its retained history. To intention
 
 ## Development and current boundaries
 
-Run `cargo test --all-targets --locked` for the offline compiler, provider, database, source-boundary, and CLI tests. No real API credentials or installed model weights are needed for these tests. The implementation deliberately favors correctness and inspectable history over maximum throughput: source processing is sequential, candidate comparisons are exhaustive in bounded batches, and topic pages are regenerated as coherent units. These choices can make large first-time compilations expensive. The current automatic supersession guard recognizes explicit English replacement wording and predecessor references; less explicit or differently worded cases remain reviewable instead of being guessed.
+Run `cargo test --all-targets --locked` for the offline compiler, provider, database, source-boundary, retrieval, context-budget, and CLI tests. No real API credentials or installed model weights are needed for these tests. The implementation deliberately favors correctness and inspectable history over maximum throughput: source processing is sequential, candidate comparisons are exhaustive in bounded batches, and topic pages are regenerated as coherent units. These choices can make large first-time compilations expensive. The current automatic supersession guard recognizes explicit English replacement wording and predecessor references; less explicit or differently worded cases remain reviewable instead of being guessed.
 
 Lore reads local Markdown, including exported issues and discussions. Direct tracker connectors, automatic verification against code or production systems, a hosted service, a graph editor, and optimized large-corpus retrieval are not part of this initial implementation. The architecture and remaining trade-offs are described in [DESIGN.md](DESIGN.md), while [docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md) documents the implemented behavior, recovery, provider testing, and operational limitations. Feedback grounded in a small reproducible document corpus is particularly welcome.
 

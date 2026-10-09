@@ -44,6 +44,8 @@ fn generated_output_is_never_ingested_when_source_is_project_root() {
     config.sources.roots = vec![SourceRoot {
         id: "project".into(),
         path: ".".into(),
+        material: Default::default(),
+        origin: None,
     }];
     let c = ResolvedConfig::resolve(config, &cfg.config_path).unwrap();
     let inventory = scan(&c).unwrap();
@@ -60,6 +62,8 @@ fn rejects_unsafe_output_paths_and_overlapping_source_ownership() {
     config.sources.roots.push(SourceRoot {
         id: "nested".into(),
         path: "docs/nested".into(),
+        material: Default::default(),
+        origin: None,
     });
     assert!(ResolvedConfig::resolve(config, &cfg.config_path).is_err());
     assert!(util::safe_slug("../escape").is_err());
