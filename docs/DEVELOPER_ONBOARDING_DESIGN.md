@@ -1,12 +1,12 @@
 # Lore Developer Onboarding — product and technical design
 
-**Status:** Proposed; not implemented in Lore 0.6. **Design revision:** 1. **Date:** 2026-10-09.
+**Status:** Proposed; not implemented in Lore 0.6. **Design revision:** 2 — flagship human learning experience over a shared intelligence core. **Date:** 2026-10-09.
 **Primary audience:** Developers new to an existing software project, including experienced developers unfamiliar with this codebase.
-**Related proposals:** [Knowledge Experience](KNOWLEDGE_EXPERIENCE_DESIGN.md), [Autonomous Assistance](AUTONOMOUS_ASSISTANCE_DESIGN.md), [implementation roadmap](KNOWLEDGE_EXPERIENCE_ROADMAP.md), [vision](../VISION.md).
+**Related proposals:** [Knowledge Experience](KNOWLEDGE_EXPERIENCE_DESIGN.md), [Coding-Agent Intelligence](CODING_AGENT_INTELLIGENCE_DESIGN.md) (coequal agent experience), [Autonomous Assistance](AUTONOMOUS_ASSISTANCE_DESIGN.md), [roadmap](KNOWLEDGE_EXPERIENCE_ROADMAP.md), [vision](../VISION.md).
 
 > **Get up to speed on an unfamiliar project, make your first correct contribution, and become increasingly independent.**
 
-The onboarding experience is **the proposed primary product journey**, not a secondary tutorial buried in a wiki. Lore should build a usable mental model of a real project, reveal how and why it works, accompany the developer through a meaningful change, and gradually withdraw scaffolding as competence becomes visible. Existing developers and coding agents continue to use Lore's decision-ready task assistance without a mandatory onboarding flow.
+The onboarding experience is Lore's **flagship human learning journey**, not a secondary tutorial buried in a wiki and **not the scope of the entire Lore product**. Lore should build a usable mental model, reveal real workflows and decisions, support meaningful changes, and gradually withdraw scaffolding as demonstrated competence grows. Experienced developers, maintainers and coding agents have equally important **direct decision-intelligence experiences** over the same knowledge core—without a mandatory onboarding flow.
 
 ## 1. Product outcomes and design philosophy
 
@@ -127,12 +127,12 @@ Each concept has:
 - Stable concept ID/title, human-readable summary and optional domain glossary.
 - Scope: project/revision, environment, version and audience assumptions.
 - Evidence-backed descriptions and exact supporting units/references.
-- Typed relations: \`prerequisite_for\`, \`applies_to\`, \`part_of\`, \`flows_to\`, \`illustrated_by\`, \`often_confused_with\`, \`related_to\`.
-- Dependency rationale and basis: \`documented\`, \`inferred\`, \`checked\`, plus optional review state.
+- Typed relations: `prerequisite_for`, `applies_to`, `part_of`, `flows_to`, `illustrated_by`, `often_confused_with`, `related_to`.
+- Dependency rationale and basis: `documented`, `inferred`, `checked`, plus optional review state.
 - Source/observation freshness, alternative traversal paths and missing evidence.
 - Consequential constraints/exceptions and cases needed to avoid oversimplification.
 
-Educational \`prerequisite_for\` edges are fallible. The planner may use them for sequencing but must not manufacture a mandatory skill gate from an unverified LLM claim. Strongly connected prerequisite loops should be detected and presented as a co-learned module or resolved with reviewable evidence, not topologically sorted arbitrarily.
+Educational `prerequisite_for` edges are fallible. The planner may use them for sequencing but must not manufacture a mandatory skill gate from an unverified LLM claim. Strongly connected prerequisite loops should be detected and presented as a co-learned module or resolved with reviewable evidence, not topologically sorted arbitrarily.
 
 ### 4.2 Selecting what to learn
 
@@ -280,13 +280,13 @@ This schema sketch uses illustrative IDs, not actual Lore units:
 }
 ```
 
-Implementations require exact enum sets, complete manifest resolution, budgets, ownership and immutable version binding. A \`learning_path\` is derived from source evidence; it does not establish project policy. A link to an unretained code observation must not survive publication cache eviction.
+Implementations require exact enum sets, complete manifest resolution, budgets, ownership and immutable version binding. A `learning_path` is derived from source evidence; it does not establish project policy. A link to an unretained code observation must not survive publication cache eviction.
 
 ### 8.2 Learning activity and assessment
 
-Proposed \`LearningActivity\` fields: stable ID/revision, activity type (\`explain\`, \`predict\`, \`locate\`, \`trace\`, \`change\`), concept prerequisites, starting evidence, task text, expected observation or objectively checkable outcome, allowed hints, feedback strategy, optional execution manifest, independent verifier, completion/cleanup, provenance and scope.
+Proposed `LearningActivity` fields: stable ID/revision, activity type (`explain`, `predict`, `locate`, `trace`, `change`), concept prerequisites, starting evidence, task text, expected observation or objectively checkable outcome, allowed hints, feedback strategy, optional execution manifest, independent verifier, completion/cleanup, provenance and scope.
 
-Proposed \`AssessmentResult\` fields: task ID/attempt, evidence source (\`independent_test\`, \`human_review\`, \`grounded_rubric\`, \`self_report\`), outcome, rubric version, confidence limitations, hints used, model/provider identity where applicable, exact project revision and consented retention. A model-graded explanation is a **fallible judgment**; it is not identical to independent correctness or mastery.
+Proposed `AssessmentResult` fields: task ID/attempt, evidence source (`independent_test`, `human_review`, `grounded_rubric`, `self_report`), outcome, rubric version, confidence limitations, hints used, model/provider identity where applicable, exact project revision and consented retention. A model-graded explanation is a **fallible judgment**; it is not identical to independent correctness or mastery.
 
 For a task that changes code, verify against a checkout/snapshot and tests **after** the learner edits. The existing 0.6 read-only inspector never pretends to run those checks.
 
@@ -303,7 +303,7 @@ lore onboard --json                     # Scriptable versioned current view
 lore onboard reset                     # Remove optional learner-state locally
 ```
 
-Do not require \`lore onboard\` to use \`lore context\`; existing command contracts and agent workflows remain supported. The CLI must work without a web reader. A later reader may add tours, adjustable zoom, explanations, hint reveal and progress navigation while consuming the **same JSON contract**, not a duplicate knowledge store. Explicit learning controls cannot grant filesystem, execution or egress permissions.
+Do not require `lore onboard` to use `lore context`; existing command contracts and agent workflows remain supported. The CLI must work without a web reader. A later reader may add tours, adjustable zoom, explanations, hint reveal and progress navigation while consuming the **same JSON contract**, not a duplicate knowledge store. Explicit learning controls cannot grant filesystem, execution or egress permissions.
 
 ### 8.4 Learner state and privacy
 
@@ -348,7 +348,7 @@ When a source, decision or code revision changes:
 - Preserve completed learner history as “completed on snapshot X,” not “currently mastered on snapshot Y.”
 - Rebuild only affected derived lessons, keeping stable step IDs where their actual educational meaning remains the same.
 - Show consequential differences to a returning learner, not a noisy changed-file dump.
-- No model calls or generated page rewrites on an actually unchanged \`lore update\`.
+- No model calls or generated page rewrites on an actually unchanged `lore update`.
 
 A renamed path whose exact semantic identity cannot be established should not silently carry completion/verification forward. An imported OpenWiki-derived statement does not independently prove the code claim it summarizes.
 
@@ -376,7 +376,7 @@ Failure behavior:
 
 Learning exercises can include untrusted snippets, dependencies, intentionally failing code or security-sensitive examples. They remain **data**, never commands to run.
 
-Normal \`onboard\` and \`context\` inherit the existing permission envelope and do not execute code, modify source or change project policy. Optional exercise replay or external verification requires an approved isolated runner, a trusted operator-selected command capability, pinned inputs, no default network/credentials/host mutation, output quotas and actual recorded results. An instruction inside a Markdown tutorial cannot grant sandbox access.
+Normal `onboard` and `context` inherit the existing permission envelope and do not execute code, modify source or change project policy. Optional exercise replay or external verification requires an approved isolated runner, a trusted operator-selected command capability, pinned inputs, no default network/credentials/host mutation, output quotas and actual recorded results. An instruction inside a Markdown tutorial cannot grant sandbox access.
 
 Avoid teaching a newcomer to perform dangerous real-world operations “for practice.” Use reversible, local/synthetic scenarios. In production-sensitive domains, a guided inspection or hypothetical case may be safer than execution. Always distinguish documentary constraints from independently observed behavior.
 
@@ -420,7 +420,7 @@ Set and preregister numeric success and non-inferiority thresholds only after th
 - No unauthorized execution/egress, policy edits, secret leakage or synthetic output presented as an observed pass.
 - All lesson/checkpoint references bind to the correct source/knowledge revision; mutations invalidate as specified.
 - No required learner profiling, long onboarding questionnaire, hosted account, reader UI or noninteractive stdin prompt.
-- Deterministic/legacy \`lore context --fast\` and schema-2/3/4 remain unchanged; true no-op compilation remains zero-model.
+- Deterministic/legacy `lore context --fast` and schema-2/3/4 remain unchanged; true no-op compilation remains zero-model.
 - Empirical claims of improved onboarding require externally assessed first-task correctness **and** transfer outcomes without increased material error/unsafe behavior.
 - A prototype that fails a learning-transfer study can remain experimental; attractive generated tours alone do not satisfy the primary goal.
 
@@ -455,7 +455,7 @@ Set and preregister numeric success and non-inferiority thresholds only after th
 
 ## 12. Prioritized implementation slices
 
-This work is the **front-door product journey**. The existing [roadmap](KNOWLEDGE_EXPERIENCE_ROADMAP.md) orders foundational A1/A2 assistance alongside the following proposed onboarding packages (planning identifiers, not GitHub PR numbers):
+This is the **front door for learning**, not a mandatory gate to using Lore. The [roadmap](KNOWLEDGE_EXPERIENCE_ROADMAP.md) sequences the initial shared M0 milestone (small human orientation **and** agent task package) and separately tracks the richer O-series onboarding packages (planning identifiers, not GitHub PR numbers):
 
 - **O01** — Newcomer evaluation corpus, first/second task rubrics, benchmark protocol.
 - **O02** — Stateless immediate orientation from existing Lore evidence.
@@ -468,20 +468,21 @@ This work is the **front-door product journey**. The existing [roadmap](KNOWLEDG
 - **O09** — Adaptive Knowledge Zoom integration and cross-cutting concept navigation.
 - **O10** — Accessibility, usability, mutation, privacy and default-on release evaluation.
 
-First usable slice is **O01 + O02 + a narrow O03 + O05 prototype** with A1/A2 investigation/readiness reused; don't require a fully materialized hierarchy or custom web app before showing a useful tour. A successful onboarding release requires a real first contribution and transfer study, not just attractive orientation prose. Build optional isolated replay, work trackers and graphical reader later on separate gates.
+The **M0 shared engineering slice** uses a small subset of O01/O02/O03/O05 (orientation, short grounded tour and one optional learning activity), the minimal A1/A2 intelligence core and a G1 agent task example. It does **not** claim complete learning transfer or agent productivity improvement. A **complete onboarding product** later requires an actual correct first contribution and independent transfer study. The agent path has its **own** implementation-quality release gate. No fully materialized hierarchy, bespoke web app or sandbox runner is required for M0.
 
 ## 13. Decisions and open questions
 
-**Proposed decisions:** newcomers are the primary experience and benchmark; tutorial is the learning-path anchor; first real contribution is the transition to a how-to; autonomy does homework but doesn't confiscate practice; concept prerequisites are separate from source evidence; Knowledge Zoom remains adaptive with resource guardrails rather than fixed ontology depth; progress is voluntary and evidence-based; previous Lore 0.6 contracts remain untouched.
+**Proposed decisions:** newcomer onboarding is the flagship **human learning** experience and benchmark, while coding agents have a coequal decision-intelligence experience; tutorial is the learning-path anchor; first real contribution is the transition to a how-to; autonomy does homework but doesn't confiscate practice; concept prerequisites are separate from source evidence; Knowledge Zoom remains adaptive with resource guardrails rather than fixed ontology depth; progress is voluntary and evidence-based; previous Lore 0.6 contracts remain untouched.
 
 **Still to decide through tests:** first-run CLI ergonomics on different platforms; how to select one valuable entry workflow; the reliable threshold for an educational prerequisite; lesson-cache lifetime with frequently changing code; evidence-backed feedback quality for unexecuted tasks; optional state consent UX; genuine low-risk starter-task sourcing; appropriate first-task/transfer sampling and cohort balance; and when a standalone reader offers measurable learning benefit beyond CLI/Markdown.
 
-**Boundary:** These are implementation-ready design targets, not a claim that \`lore onboard\`, interactive activities, full call tracing, grading, hint adaptation or persistence already work.
+**Boundary:** These are implementation-ready design targets, not a claim that `lore onboard`, interactive activities, full call tracing, grading, hint adaptation or persistence already work.
 
 ## 14. References
 
 - [Knowledge Experience architecture](KNOWLEDGE_EXPERIENCE_DESIGN.md)
 - [Autonomous Assistance design](AUTONOMOUS_ASSISTANCE_DESIGN.md)
+- [Coding-Agent Intelligence design](CODING_AGENT_INTELLIGENCE_DESIGN.md)
 - [Phased implementation roadmap](KNOWLEDGE_EXPERIENCE_ROADMAP.md)
 - [Lore 0.6 behavior](V06.md)
 - [Existing evaluation](../evaluation/DECISION_INTELLIGENCE.md)
