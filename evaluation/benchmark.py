@@ -303,11 +303,22 @@ def score_project(project: Path, gold_path: Path | None = None,
             acceptable = next((a for a in candidates if
                 (a["proposal"].get("kind"), a["proposal"].get("lifecycle")) in accepted_pairs), None)
             best = match or acceptable
+            # A relationship's endpoint is an evidence identity, not a
+            # particular type/lifecycle prediction. Keep the label proxies
+            # untouched, and refuse to guess when one source checkpoint
+            # actually matches multiple distinct knowledge units.
+            endpoint_ids = sorted({a["knowledge_id"] for a in candidates
+                                   if a["knowledge_id"] is not None})
+            relation_unit = endpoint_ids[0] if len(endpoint_ids) == 1 else None
             source_expectations.append({"id": expected["id"], "quote_found": bool(candidates),
                 "kind_and_lifecycle_match": bool(match),
                 "acceptable_type_and_lifecycle_match": bool(acceptable),
-                "matching_knowledge_id": best["knowledge_id"] if best else None})
-        matched_units = {x["id"]: x["matching_knowledge_id"] for x in source_expectations}
+                "matching_knowledge_id": best["knowledge_id"] if best else None,
+                "relation_knowledge_id": relation_unit,
+                "relation_identity_candidates": len(endpoint_ids)})
+        # Relationship scoring must not be gated by the separate lifecycle
+        # classification rubric. This is not a fuzzy or arbitrary fallback.
+        matched_units = {x["id"]: x["relation_knowledge_id"] for x in source_expectations}
         relation_rows = [tuple(row) for row in conn.execute("""
             SELECT fr.knowledge_id, tr.knowledge_id, rel.relation
             FROM knowledge_relations rel
@@ -343,6 +354,7 @@ def score_project(project: Path, gold_path: Path | None = None,
                     actual = (left, right, rule["type"]) in relation_rows
                 gold_relations.append({"id": rule["id"], "relation": rule["type"],
                     "expected": bool(rule["expected"]), "actual": actual, "assessable": assessable,
+                    "identity_method": "unique_source_excerpt_assignment_v2",
                     "passed": assessable and actual == bool(rule["expected"])})
         calls_sql = """SELECT task,provider,model,cache_hit,COUNT(*) AS n,
                          SUM(duration_ms) AS duration_ms FROM model_calls"""
@@ -368,6 +380,7 @@ def score_project(project: Path, gold_path: Path | None = None,
                 "current_excerpt_checks": len(assertions),
                 "current_excerpt_failures": evidence_problems,
                 "gold": {"total": len(gold), "matched_quote": matched,
+                    "scorer_version": "source-endpoints-v2",
                     "matched_type_and_lifecycle": typed,
                     "lexical_coverage_proxy": round(matched / len(gold), 3) if gold else None,
                     "typed_coverage_proxy": round(typed / len(gold), 3) if gold else None,
@@ -431,11 +444,19 @@ def report_markdown(report: dict) -> str:
             lines.append(f"- Acceptable labelled type alternatives (still lexical): {gold.get('acceptable_type_and_lifecycle_count', gold['matched_type_and_lifecycle'])}/{gold['total']}")
         if gold["relation_tests_total"]:
             lines.append(f"- Labeled relationship checks: {gold['relation_tests_passed']}/{gold['relation_tests_total']} (unassessable count as failed)")
+            lines.append(f"- Relationship endpoint scorer: {gold.get('scorer_version','legacy')} (unique source-backed knowledge assignments, independent of lifecycle labels)")
         if "elapsed_seconds" in entry:
             lines.append(f"- CLI elapsed seconds: {entry['elapsed_seconds']}")
         degraded=entry.get("report",{}).get("degraded_topics",[])
         if degraded:
             lines.append("- **DEGRADED: documentary excerpts published without passing semantic synthesis:** "+", ".join(degraded))
+        diagnostics = entry.get("report",{}).get("quality_diagnostics", [])
+        if diagnostics:
+            lines.append(f"- Synthesis/verification draft rejections: {len(diagnostics)}")
+            for note in diagnostics[:10]:
+                tag = f"{note.get('task','unknown')}/{note.get('topic','unknown')}"
+                reason = "; ".join(str(s).replace("\\n", " ")[:160] for s in note.get("issues", [])[:2])
+                lines.append(f"  - {tag}, attempt {note.get('attempt','?')}, {note.get('check','unknown')}: {reason}")
         if entry.get("report",{}).get("degraded_overview") is True:
             lines.append("- **DEGRADED OVERVIEW: source excerpts published; semantic narrative verification did not pass. This run fails the beta gate.**")
         lines.append("")

@@ -145,6 +145,99 @@ class BenchmarkTests(unittest.TestCase):
             score=bench.score_project(project,gold)
             self.assertEqual(score["current_excerpt_failures"][0]["reason"],"excerpt_not_in_current_source")
 
+    def test_relationship_identity_ignores_lifecycle_but_not_evidence_ambiguity(self):
+        """A policy review may be active without being a newly accepted policy."""
+        with tempfile.TemporaryDirectory() as temp:
+            project = Path(temp)
+            docs = project/"docs"
+            docs.mkdir()
+            (docs/"POL-001.md").write_text(
+                "The board adopted the two-person approval rule.\n", encoding="utf-8")
+            (docs/"review.md").write_text(
+                "The committee reaffirmed POL-001 and two-person approval.\n", encoding="utf-8")
+            (project/".lore").mkdir()
+            db = sqlite3.connect(project/".lore"/"state.db")
+            db.executescript("""
+            CREATE TABLE source_current(source_id TEXT);
+            CREATE TABLE source_revisions(id TEXT);
+            CREATE TABLE knowledge_units(id TEXT);
+            CREATE TABLE knowledge_current(knowledge_id TEXT);
+            CREATE TABLE evidence_snapshots(id TEXT,exact_excerpt TEXT);
+            CREATE TABLE review_items(status TEXT);
+            CREATE TABLE model_calls(task TEXT,provider TEXT,model TEXT,cache_hit INTEGER,duration_ms INTEGER);
+            CREATE TABLE active_assertions(assertion_revision_id TEXT);
+            CREATE TABLE assertion_revisions(id TEXT,source_id TEXT,modality TEXT);
+            CREATE TABLE sources(id TEXT,root_id TEXT,relative_path TEXT);
+            CREATE TABLE assertion_details(assertion_revision_id TEXT,proposal_json TEXT);
+            CREATE TABLE assertion_evidence(assertion_revision_id TEXT,evidence_id TEXT);
+            CREATE TABLE assertion_assignments(assertion_revision_id TEXT,knowledge_id TEXT);
+            CREATE TABLE knowledge_relations(id TEXT,from_revision_id TEXT,to_revision_id TEXT,relation TEXT);
+            CREATE TABLE knowledge_revisions(id TEXT,knowledge_id TEXT);
+            CREATE TABLE relation_assertions(relation_id TEXT,assertion_revision_id TEXT);
+            CREATE TABLE reaffirmation_links(from_unit_id TEXT,to_unit_id TEXT,assertion_revision_id TEXT);
+            INSERT INTO sources VALUES('s1','docs','POL-001.md');
+            INSERT INTO sources VALUES('s2','docs','review.md');
+            INSERT INTO source_current VALUES('s1');
+            INSERT INTO source_current VALUES('s2');
+            INSERT INTO source_revisions VALUES('revision');
+            INSERT INTO knowledge_units VALUES('policy');
+            INSERT INTO knowledge_units VALUES('review');
+            INSERT INTO knowledge_current VALUES('policy');
+            INSERT INTO knowledge_current VALUES('review');
+            INSERT INTO active_assertions VALUES('a1');
+            INSERT INTO active_assertions VALUES('a2');
+            INSERT INTO assertion_revisions VALUES('a1','s1','decision');
+            INSERT INTO assertion_revisions VALUES('a2','s2','decision');
+            INSERT INTO assertion_evidence VALUES('a1','e1');
+            INSERT INTO assertion_evidence VALUES('a2','e2');
+            INSERT INTO assertion_assignments VALUES('a1','policy');
+            INSERT INTO assertion_assignments VALUES('a2','review');
+            INSERT INTO evidence_snapshots VALUES('e1','The board adopted the two-person approval rule.');
+            INSERT INTO evidence_snapshots VALUES('e2','The committee reaffirmed POL-001 and two-person approval.');
+            INSERT INTO reaffirmation_links VALUES('review','policy','a2');
+            """)
+            db.executemany("INSERT INTO assertion_details VALUES(?,?)", [
+                ("a1", json.dumps({"kind":"decision","lifecycle":"accepted"})),
+                ("a2", json.dumps({"kind":"decision","lifecycle":"active"})),
+            ])
+            db.commit()
+            gold = project/"gold.json"
+            gold.write_text(json.dumps({
+                "schema_version": 1,
+                "expected_assertions": [
+                    {"id":"original","source":"docs:POL-001.md",
+                     "needle":"two-person approval rule",
+                     "kind":"decision","lifecycle":"accepted"},
+                    {"id":"review","source":"docs:review.md",
+                     "needle":"committee reaffirmed POL-001",
+                     "kind":"decision","lifecycle":"accepted"},
+                ],
+                "expected_relations": [
+                    {"id":"reaffirmation","from":"review","to":"original",
+                     "type":"reaffirms","expected":True},
+                ],
+            }))
+            score = bench.score_project(project, gold)
+            self.assertEqual(score["gold"]["matched_type_and_lifecycle"], 1)
+            self.assertEqual(score["gold"]["relation_tests_passed"], 1)
+            self.assertEqual(score["gold"]["scorer_version"], "source-endpoints-v2")
+            review = next(m for m in score["gold"]["matches"] if m["id"] == "review")
+            self.assertIsNone(review["matching_knowledge_id"])
+            self.assertEqual(review["relation_knowledge_id"], "review")
+
+            # Overlapping source excerpts assigned to different units must
+            # remain unassessable, not arbitrarily pick the first unit.
+            db.execute("INSERT INTO knowledge_units VALUES('ambiguous')")
+            db.execute("INSERT INTO assertion_assignments VALUES('a2','ambiguous')")
+            db.commit()
+            score = bench.score_project(project, gold)
+            self.assertFalse(score["gold"]["relations"][0]["assessable"])
+            self.assertFalse(score["gold"]["relations"][0]["passed"])
+            self.assertEqual(
+                next(m for m in score["gold"]["matches"] if m["id"] == "review")
+                    ["relation_identity_candidates"], 2)
+            db.close()
+
     def test_report_is_honest_about_cost_and_quality(self):
         self.assertTrue(bench.overlap_match("MySQL","Selected MySQL for the ledger"))
         self.assertFalse(bench.overlap_match("PostgreSQL","Selected MySQL for the ledger"))

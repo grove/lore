@@ -317,7 +317,7 @@ impl ResolvedConfig {
         }
         let fingerprint = util::json_digest(&(
             env!("CARGO_PKG_VERSION"),
-            "pipeline-v8-budgeted-overview-context",
+            "pipeline-v9-cross-topic-evidence",
             &config,
         ))?;
         let project_id = format!("project_{}", &util::digest(&config.project.name)[7..31]);

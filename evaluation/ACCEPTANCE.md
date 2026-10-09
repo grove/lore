@@ -18,3 +18,9 @@ The initial user-supplied Atlas run at `9479727` passed relationship 3/3, proven
 
 
 The no-op gate also requires quality-state consistency: the no-op's degraded_topics list and degraded_overview flag must match the published initial state, recorded as degradation_status_matches_publication=true. An unchanged update that hides published degradation in its JSON report fails acceptance even when it makes zero model calls and leaves Markdown unchanged.
+
+## Endpoint scoring and cross-topic integrity
+
+Relationship checks resolve each gold checkpoint to a uniquely assigned knowledge unit through its source locator and exact evidence excerpt, **independently** of the kind/lifecycle label rubric. Strict and acceptable label scores remain unchanged and separate; ambiguous or missing source-to-unit assignments remain unassessable failures. The scorer records its version and must not be compared naively against the older label-gated metric. This improves measurement, not the model's decisions.
+
+Review both same-document cross-topic completeness (a page must not claim its cited document has no further information when sibling topics contain supporting assertions) and document versus event chronology. A dated document heading is provenance metadata, never automatic evidence for when a decision took effect or a deployment happened. Evaluate and investigate the structured `quality_diagnostics` attached to each generation phase; an eventually repaired rejection remains evidence of model variability, not a passing human assessment.

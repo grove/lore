@@ -5,6 +5,7 @@ mod overview;
 mod reconcile;
 mod render;
 mod runner;
+mod source_context;
 mod timeline;
 use crate::{
     config::ResolvedConfig,
@@ -28,6 +29,17 @@ pub struct UpdateOptions {
     pub refresh: bool,
     pub deep: bool,
 }
+/// A single rejected synthesis/verification draft. Kept separate from the
+/// final publication status because repaired drafts are useful diagnostics.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QualityDiagnostic {
+    pub task: String,
+    pub topic: String,
+    pub attempt: usize,
+    pub check: String,
+    pub issues: Vec<String>,
+}
+
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Report {
     pub no_op: bool,
@@ -41,6 +53,9 @@ pub struct Report {
     pub decision_calls: usize,
     pub pending_reviews: usize,
     pub warnings: Vec<String>,
+    /// Rejection reasons collected across attempts; not proof of semantic quality.
+    #[serde(default)]
+    pub quality_diagnostics: Vec<QualityDiagnostic>,
     pub degraded_topics: Vec<String>,
     /// An evidence-only overview is safe to publish but has not passed
     /// semantic narrative verification. This status survives no-op updates.
@@ -527,6 +542,7 @@ pub async fn update(
     report.cache_hits = runner.cache_hits;
     report.decision_calls = runner.decision_calls;
     report.warnings.extend(runner.warnings.clone());
+    report.quality_diagnostics = runner.quality_diagnostics.clone();
     report.degraded_topics = render::degraded_topics(&pages);
     report.degraded_overview = pages
         .get("index.md")
