@@ -137,9 +137,21 @@ A future versioned/experimental adaptive command path produces a useful scoped a
 - **A2.7 Agency and feedback:** allow scope narrowing, correction, cancellation and evidence inspection. Occasional synchronous progress explains useful findings, not raw tool chatter. No covert background continuation.
 - **A2.8 Golden UX examples:** useful one-value reference; three-versus-five refactor; genuine policy dependency with preparation work; unavailable runner; provider outage; document-only request; optional tutorial exercise; no meaningful independent work.
 
+### G1 — coding-agent flagship (built on A1/A2; not a second intelligence engine)
+
+Implement the [Coding-Agent Intelligence design](CODING_AGENT_INTELLIGENCE_DESIGN.md) in small slices:
+
+- **G1.1 Compact versioned JSON:** preferred approach, scoped readiness, material constraints/negative cases, actual inspected implementation seams, completed investigation, future completion criteria, uncertainty and exact manifests. Explicit schema-2/3/4 behavior remains intact.
+- **G1.2 Task-context orchestration:** use the same selected source/knowledge snapshot and bounded automatic permitted reads as the human experience. No redundant search agent, wiki regeneration or new unconstrained tool loop.
+- **G1.3 Agent consumption examples:** optional Codex/Claude/other agent guidance and correct fallback handling. No required MCP server, IDE plugin or provider-specific agent runtime.
+- **G1.4 Agent outcome tests:** AG-01–AG-18, real held-out implementation/constraint checks against original sources, current Lore 0.6 and OpenWiki (when available) at matched capabilities and comparable budgets.
+- **G1.5 Experienced human/maintainer routing:** answer direct questions and decisions without forcing learning steps, agent-only JSON, learner state or an onboarding questionnaire.
+
+**M0 scope of G1:** one bounded task, one evidence-bound recommended change, one actually inspected seam when permitted, one future verification criterion and an explicitly documented fallback. Mature revalidated investigation reuse, broad integration and performance claims come later.
+
 ### Deliverables and exit gate
 
-Users can identify the answer, next action and decisive boundary without reading an investigation log. Reviewers judge meaningful safe progress rather than filler. Tests reject generic delegation when the recorded capability was available and affordable, while permitting honest future implementation checks. Evaluate comprehension, correction effort, avoidable questions, false blocking and unsafe proceeding jointly. The shortest answer or fewest questions alone is not the objective.
+Humans can identify the answer, next action and decisive boundary without reading an investigation log; coding agents receive the same decisive knowledge in a **compact, source-bound, versioned machine contract** without a tutorial. Reviewers judge meaningful safe progress rather than filler. Tests reject generic delegation when the recorded capability was available and affordable, while permitting honest future implementation checks. Evaluate comprehension, correction effort, avoidable questions, false blocking and unsafe proceeding jointly. The shortest answer or fewest questions alone is not the objective.
 
 ## 6. A3 — reusable investigative knowledge
 
@@ -326,7 +338,7 @@ Advance only with demonstrated demand and earlier outcome/security gates. Resear
 
 ## 17. PR-sized delivery sequence and traceability
 
-Package IDs A01–A12 and O01–O10 extend the original 01–19 work packages. These labels are not actual GitHub PR numbers. Prioritize the coherent newcomer journey, not numeric order. Split changes further as needed and keep user-value and negative tests explicit.
+Package IDs A01–A12, O01–O10 and G01–G04 extend the original 01–19 work packages. They are planning identifiers, **not actual GitHub PR numbers**. M0 uses small subsets from A01/A02/A03/A06, O02/O03/O05 and G01/G02; do not implement each full phase as a prerequisite. Split changes further as needed and track separately assessed human/agent outcomes.
 
 | Package | Phase | Scope | Required evidence |
 | --- | --- | --- | --- |
@@ -342,6 +354,10 @@ Package IDs A01–A12 and O01–O10 extend the original 01–19 work packages. T
 | A10 | A3 | Freshness, new-evidence search and selective reuse | New ADR, dirty/deeper file, incomplete inventory |
 | A11 | A3 | Durable publication dependencies and eviction | No dangling citations after cache removal |
 | A12 | A1–A3 | Matched outcome evaluation and default migration | Benefit versus inspected 0.6; correctness and latency gates |
+| G01 | R0/G1 | Versioned coding-agent JSON contract with schema-2/3/4 compatibility | Required source manifests, readiness, budget and fallback integrity |
+| G02 | G1 | Context composer using permitted investigated observations | Actual inspected seam, no invented code/test execution |
+| G03 | G1 | Optional agent consumption guidance and noninteractive errors | Different agent wrappers, no required MCP/service |
+| G04 | R0/G1 | Independent agent coding-task benchmark | OpenWiki/current Lore comparisons, constraint preservation and real cost |
 | O01 | R0 | First/second task benchmark and independently reviewed rubric | No leaked solutions, real novice task outcomes |
 | O02 | O1 | Immediate grounded orientation and newcomer entry | ON-01/02 and document-only fallback |
 | O03 | O1 | End-to-end tour with real code/source landmarks | Static-versus-runtime basis and exact refs |
@@ -378,57 +394,61 @@ Package 17 is a new capability boundary, not a prerequisite to completing invest
 
 ```mermaid
 flowchart TD
-  R0[R0 newcomer evaluation and contracts] --> A1[A1 permitted investigation]
-  A1 --> A2[A2 empowering answers]
-  A2 --> O1[O1 orientation and guided tour]
-  O1 --> O2[O2 learning path and tutorial]
-  O2 --> O3[O3 first contribution and transfer]
-  A1 --> A3[A3 revalidated investigation reuse]
-  A3 -. speeds up .-> O2
-  A3 -. speeds up .-> O3
+  R0[R0 two outcome tracks and shared contract] --> B[Bounded A1/A2 common intelligence slice]
+  B --> O1[O1 short grounded orientation and tour]
+  O1 --> O2[O2 one optional learning activity]
+  B --> G1[G1 coding-agent action JSON]
+  O2 --> M0[M0 assessed shared-intelligence prototype]
+  G1 --> M0
+  M0 --> O3[O3 first contribution and transfer]
+  M0 --> A3[A3 investigation reuse]
   R0 --> R1[R1 contextual retrieval experiments]
   R1 -. if useful .-> R2[R2 adaptive Knowledge Zoom]
   O1 --> R2
-  R2 -. enriches concepts .-> O2
-  O2 --> R3[R3 full Diataxis experiences]
+  O2 --> R3[R3 full Diataxis modes]
   A3 --> R4[R4 decision conditions and negative cases]
-  R4 -. cases .-> O2
   R3 --> R5A[R5A worked cases]
-  R5A --> S[Separate runner safety approval]
+  R5A --> S[Separate safe runner review]
   S --> R5B[R5B authorized replay]
-  R4 --> R6[R6 impact and guardian]
-  R2 --> UI[Optional local reader]
+  R4 --> R6[R6 guardian and change impact]
+  R2 --> UI[Optional reader]
   R3 --> UI
   R6 --> R7[R7 future research]
 ```
 
-**First credible newcomer release:** R0 plus a minimal A1/A2 and O1/O2/O3 path. Deliver a grounded project essence, a coherent tour, one meaningful tutorial and support for a correct first task; validate a different second task. A3 reuse is valuable but should not delay first product proof.
+**M0 is an assessed engineering prototype, not the complete onboarding or agent-performance product.** One human experience and one agent package use one knowledge core on a representative project. The prototype exits only after valid source/permission/provenance behavior, explicit legacy compatibility, meaningful failure paths and an independently reviewed human concept/agent coding example. Do not infer population-level benefit from these examples.
 
-**What waits:** complete corpus hierarchy, a wide library of tutorials, a hosted account, new connectors, sandboxed execution, user tracking, dedicated reader UI and cross-project transfer. Avoid both shortcuts: a polished orientation with no learning outcome, and an agent-written contribution misreported as developer competence.
+**Next product-level gates are independent:** O3/newcomer cohorts must demonstrate an understood correct first task and less-assisted transfer. G1/A1–A3/agent cohorts must demonstrate better **correctness-constrained** coding-task efficiency against comparable current tooling. Both use held-out projects, cost accounting and meaningful baseline arms.
+
+**What waits:** full multi-level corpus compilation, a large curriculum/catalog, persistent learner profile, mandatory agent integration, runtime/sandboxed execution, new connectors, bespoke GUI and cross-project transfer. None is necessary to show that shared project intelligence provides value to both audiences.
 
 ## 19. Validation, rollout, risks and definition of done
 
-### 16.1 Test layers
+### 19.1 Test layers
 
 Unit tests cover typed actions, state transitions, policy intersections, source IDs, hashes, scopes, DAGs, budgets and response contracts. Property/mutation tests cover source additions/deletions/moves, changed relationships, dirty/same-size/deeper file changes, incomplete indexes, no-op, stale reuse and crash recovery. Adversarial tests cover injection, forged citations, negation, scope/policy mistakes, hidden critical exceptions, secret egress, malicious runner requests and poisoned memory.
 
-Real-model tests measure complete task outcomes and reasoning errors with independent review, including missed constraints, false causal/temporal claims and inappropriate authority. Product tests measure first-minute orientation, project/workflow understanding, trace accuracy, first correct contribution, independent second-task transfer, mentor assistance, hint use and learner agency; also reading/correction effort, cancellation, exact lookup, warnings and gap-capture burden. Runner/reader security tests are separate from prompt/schema tests.
+Real-model tests independently measure **human learning** (orientation, grounded workflow explanation, first correct contribution, different-task transfer, mentor burden) and **agent task outcomes** (real implementation correctness, missed constraints, rework, duplicated investigation, time/cost), along with reasoning errors, false causal/temporal claims and inappropriate authority. Keep baseline code/model/tool/snapshot budgets comparable; report source preparation cost separately. General product tests also measure correction effort, cancellation, exact lookup, warnings and gap-capture burden. Runner/reader security tests are separate from prompt/schema tests.
 
-### 16.2 Metrics and anti-gaming
+### 19.2 Metrics and anti-gaming
 
-Primary for onboarding: **time to a correct and understood first contribution plus a correct, less-assisted transfer task**. Separately track independent developer understanding and agent-authored task completion. For general task assistance, retain unassisted correct progress and total effort to a constraint-respecting outcome. Report task completion, avoidable delegation, true external dependencies, false blocking, unsafe proceeding, unnecessary investigation, clarity/agency, reuse benefit, cold/warm p50/p95 and actual usage/billing where known.
+**Two independent outcomes:** (1) human onboarding: correct and understood first contribution **plus** correct second task with less help; (2) coding agents: a correct constraint-respecting change with fewer material mistakes and less total effort. Track experienced-developer decision quality as a direct-assistance use case, not as novice learning. Agent-authored code cannot satisfy the human learning score; a strong tutorial cannot substitute for weak agent correctness. Report task completion, avoidable delegation, true external dependencies, false blocking, unsafe proceeding, unnecessary investigation, clarity/agency, reuse benefit, cold/warm p50/p95 and actual usage/billing where known.
 
-Use matched-capability and matched-budget arms: original source/docs, current OpenWiki if available, current 0.6, adaptive alone, and onboarding tour/tutorial/companion with optional investigation reuse. Compare identical first/second tasks, appropriately balanced newcomer experience and verified outcomes. For autonomy-only ablations, retain explicit inspected/investigated 0.6 and an always-investigate arm. Later add richer retrieval/views or execution separately. Keep the same coding model, source snapshots and external correctness checks; randomize and isolate caches. A reused prior solution or generated tutorial must not leak held-out answers. A first contribution completed entirely by a coding agent counts as agent completion, not demonstrated developer competence.
+**Human track:** compare original docs, OpenWiki where available, Lore 0.6 and adaptive onboarding with controlled newcomer tasks, mentors and assistance, including distinct held-out transfer.
+
+**Agent track:** compare original code/docs, OpenWiki alone, Lore 0.6 fast/intelligent/inspected (where relevant), adaptive Lore without/with reused investigation, and optional OpenWiki + Lore. Fix the coding agent, tools, source snapshot, allowed privileges and independently scored real task. Record context-preparation cost separately from warm recurring use; don't silently grant one arm more source access.
+
+**Autonomy ablations:** retain explicit inspected/investigated 0.6 and an always-investigate arm to isolate routing from larger budgets. Later add richer retrieval/views or execution separately. Keep the same coding model, source snapshots and external correctness checks; randomize and isolate caches. A reused prior solution or generated tutorial must not leak held-out answers. A first contribution completed entirely by a coding agent counts as agent completion, not demonstrated developer competence.
 
 Pre-register improvement/non-inferiority targets and sample size after R0 baselines, before scoring candidate output. Zero questions, zero blockers, many checks or confident prose cannot be a standalone target. Hard safety/provenance gates remain mandatory; empirical task scores remain honestly unmeasured until executed.
 
-### 16.3 Rollout and rollback
+### 19.3 Rollout and rollback
 
 Prototype the new controller behind an explicit experimental switch. The intended mature product is adaptive by default inside accepted permissions, not a permanent collection of per-query flags. Ship default changes only after version/migration, security, outcome and latency review. Existing deny settings cannot become grants during migration; registry-only adaptive reasoning remains useful.
 
 Migrate derived stores independently, retaining accepted evidence and legacy schemas. Revert a failed controller/view feature without losing source history. A previous publication is a valid current fallback only if its dependencies remain current; otherwise label historical/stale and deliver fresh eligible findings. Separate optional modes/runner/UI so their failures do not break core context or reference. Respect cancellation and no-cache across all new stores.
 
-### 16.4 Risk register
+### 19.4 Risk register
 
 | Risk | Mitigation |
 | --- | --- |
@@ -452,11 +472,11 @@ Migrate derived stores independently, retaining accepted evidence and legacy sch
 | Knowledge/learning depth fixed to four levels | Adaptive meaningful hierarchy with bounded computation, not fixed ontology depth |
 | Generated output overwrites authored text | Manifest ownership, explicit rebuild and staged publication |
 
-### 16.5 Definition of done
+### 19.5 Definition of done
 
 Every ticket has a concrete user journey; out-of-scope/failure behavior; source/derived authority boundary; versioned request/result and migration; actual permission/resource/write effects; unit/negative/adversarial tests; invalidation/no-op/purge/publication as applicable; user help and honest examples; measured result or explicit unmeasured status; and rollback without accepted-evidence loss.
 
-Onboarding tickets additionally demonstrate source-bound tours, optional purposeful practice, learner control, privacy, and measured first-task or second-task outcomes. Autonomy tickets demonstrate no avoidable handoff within the permitted envelope, correct stopping, scoped partial progress, cancellation and counterevidence revision. Execution tickets require independent sandbox evidence. Model-quality tickets need a real-model evaluation plan/results and actual identities/usage; fixture success is never relabeled empirical utility.
+Onboarding tickets demonstrate source-bound tours, intentional practice, learner control, privacy and assessed first-task or transfer outcomes. **Agent tickets** demonstrate stable machine contracts, concise task-specific output, evidence/observation resolution, valid readiness, completed-vs-future checks and independently assessed implementation/constraint outcomes. Autonomy tickets demonstrate no avoidable handoff within the permitted envelope, correct stopping, scoped partial progress, cancellation and counterevidence revision. Execution tickets require independent sandbox evidence. Model-quality tickets need a real-model evaluation plan/results and actual identities/usage; fixture success is never relabeled empirical utility.
 
 ## 20. Settled direction, remaining choices and references
 
@@ -465,9 +485,11 @@ Onboarding tickets additionally demonstrate source-bound tours, optional purpose
 | Who owns available investigation? | Lore; humans are not the default fallback | Typed adapter coverage and task-specific value |
 | Everyday effort selection? | Automatic inside standing permissions | Numerical limits and calibrated routing |
 | Must uncertainty be eliminated? | No; resolve what changes action, expose material residual conditions | Sufficiency/error and burden trade-offs |
-| What ships first? | R0 + minimal A1/A2 + O1/O2/O3 newcomer path; A3 in parallel | Independent first-task and transfer verification |
-| Primary audience? | Newcomers to an unfamiliar project, whether junior or experienced | Compare experience levels in held-out evaluation |
-| What proves success? | Correct and understood first task plus new less-assisted second task | Non-leaking checks and developer authorship |
+| What ships first? | **M0:** shared bounded A1/A2 + small O1/O2 human path + G1 agent package | Human comprehension and agent implementation examples; no implied measured superiority |
+| When is onboarding complete? | O3: first understood correct contribution plus distinct less-assisted second task | Independent study and learner authorship |
+| When is agent benefit established? | G1/A1–A3 real task improvements with constraints preserved | Independent coding checks, time/cost and matched OpenWiki/Lore baselines |
+| Primary audience? | Humans (newcomers, experienced developers, maintainers) **and coding agents** | Newcomer learning and agent task quality evaluated separately |
+| What proves success? | Better project understanding and **correct work** with less avoidable effort, per audience | Human transfer, real agent implementations, provenance and full cost |
 | Role of Diátaxis? | Tutorials lead onboarding; Explanation/Reference/How-to are just-in-time | Validate switching without forced quizzes |
 | Does every finding need approval? | No; derived findings reuse automatically under policy | Explicit source-authoring review remains separate |
 | How to handle true blockers? | Exact missing decision/observable plus meaningful safe work | Do not fabricate safe progress where none exists |
@@ -476,8 +498,8 @@ Onboarding tickets additionally demonstrate source-bound tours, optional purpose
 | Reader/personalization? | Optional; CLI/Markdown first, no hidden tracking | Demonstrated usability and privacy value |
 | Cross-project transfer? | Research with strict scope and authority separation | Reliable permissions and actual usefulness |
 
-Project references: [developer onboarding design](DEVELOPER_ONBOARDING_DESIGN.md), [autonomy and UX contract](AUTONOMOUS_ASSISTANCE_DESIGN.md), [full knowledge architecture](KNOWLEDGE_EXPERIENCE_DESIGN.md), [vision](../VISION.md), [existing design](../DESIGN.md), [0.6 behavior](V06.md), [0.6 decision evaluation](../evaluation/DECISION_INTELLIGENCE.md).
+Project references: [coding-agent intelligence design](CODING_AGENT_INTELLIGENCE_DESIGN.md), [developer onboarding design](DEVELOPER_ONBOARDING_DESIGN.md), [autonomy and UX contract](AUTONOMOUS_ASSISTANCE_DESIGN.md), [full knowledge architecture](KNOWLEDGE_EXPERIENCE_DESIGN.md), [vision](../VISION.md), [existing design](../DESIGN.md), [0.6 behavior](V06.md), [0.6 decision evaluation](../evaluation/DECISION_INTELLIGENCE.md).
 
 Research/product context remains [Diátaxis](https://diataxis.fr/), [RAPTOR](https://arxiv.org/abs/2401.18059), [GraphRAG](https://arxiv.org/abs/2404.16130) and [OpenWiki](https://github.com/langchain-ai/openwiki). They motivate experiments, not claims of novelty or measured gains for Lore.
 
-**Acceptance question:** Did Lore help a developer unfamiliar with the project form an accurate mental model, make a correct first contribution, and approach a different second task more independently—while performing the investigation it reasonably could and preserving user agency, evidence and safety?
+**Acceptance question:** Did the **same evidence-backed, permission-aware Lore engine** make a newcomer better at understanding/contributing **and** help a coding agent produce a more correct change with less wasted investigation, without substituting one success for the other?
