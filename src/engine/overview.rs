@@ -328,7 +328,9 @@ pub(super) async fn build(
                 .await?;
             if let Err(error) = grounding::validate_prose(&draft, &selected) {
                 if attempt == 2 {
-                    runner.warnings.push(format!("OVERVIEW_DEGRADED: grounding rejected three drafts: {error}"));
+                    runner.warnings.push(format!(
+                        "OVERVIEW_DEGRADED: grounding rejected three drafts: {error}"
+                    ));
                     break;
                 }
                 input["repair_feedback"] = json!({
