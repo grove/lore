@@ -17,7 +17,7 @@ def completed(root:Path,target='atlas')->Path:
  db.executescript("CREATE TABLE evidence_snapshots(id TEXT); INSERT INTO evidence_snapshots VALUES('ev-fixture');");db.commit();db.close()
  score={'sqlite_integrity_ok':True,'current_excerpt_failures':[],'current_excerpt_checks':1,'gold':{'relation_tests_total':2,'relation_tests_passed':2}}
  after={**score,'gold':{'relation_tests_total':3,'relation_tests_passed':3}}
- (root/'metrics.json').write_text(json.dumps({'schema_version':1,'target':target,'lore_binary_sha256':'fixture-only','synthesis_verification':True,'provider':'fixture','model':'not-real','no_op':{'no_op':True,'zero_generations':True,'pages_unchanged':True},'phases':{'initial':{'score':score,'report':{'degraded_overview':False,'degraded_topics':[]}},'after_mutation':{'score':after,'report':{'degraded_overview':False,'degraded_topics':[]}}}}))
+ (root/'metrics.json').write_text(json.dumps({'schema_version':1,'target':target,'lore_binary_sha256':'fixture-only','synthesis_verification':True,'provider':'fixture','model':'not-real','no_op':{'no_op':True,'zero_generations':True,'pages_unchanged':True,'degradation_status_matches_publication':True},'phases':{'initial':{'score':score,'report':{'degraded_overview':False,'degraded_topics':[]}},'after_mutation':{'score':after,'report':{'degraded_overview':False,'degraded_topics':[]}}}}))
  return root
 
 def reviewed(run:Path):

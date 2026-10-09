@@ -8,6 +8,24 @@ use anyhow::{Context, Result, ensure};
 use serde_json::json;
 use std::collections::{BTreeMap, BTreeSet};
 
+/// Marker used for fully cited but semantically unverified topic fallbacks.
+pub(super) const DEGRADED_MARKER: &str = "<!-- lore:degraded-topic-synthesis -->";
+
+/// Determine current quality state from what was actually published, not
+/// only from a mutable runner's warnings during an update. A true no-op
+/// must report the same degradation as the unchanged Markdown bytes.
+pub(super) fn degraded_topics(pages: &BTreeMap<String, StoredPage>) -> Vec<String> {
+    pages
+        .iter()
+        .filter_map(|(path, page)| {
+            let slug = path.strip_prefix("topics/")?.strip_suffix(".md")?;
+            page.content
+                .contains(DEGRADED_MARKER)
+                .then(|| slug.to_owned())
+        })
+        .collect()
+}
+
 pub(super) async fn build(
     runner: &mut Runner<'_>,
     knowledge: &[KnowledgeView],
@@ -299,7 +317,8 @@ fn append_evidence_only(
 ) -> Result<()> {
     let heading = "Source excerpts — synthesis requires review";
     if seen_heading.insert(heading.to_owned()) {
-        out.push_str("<!-- lore:degraded-topic-synthesis -->\n\n");
+        out.push_str(DEGRADED_MARKER);
+        out.push_str("\n\n");
         out.push_str("## Source excerpts — synthesis requires review\n\n");
         out.push_str(
             "The generated narrative failed semantic verification. These verbatim source excerpts are documentary evidence, not a verified chronology, current-state summary or implementation claim.\n\n",
