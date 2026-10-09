@@ -1,4 +1,4 @@
-use crate::{inference::ReasoningEffort, util};
+use crate::{domain::SourceMaterial, inference::ReasoningEffort, util};
 use anyhow::{Context, Result, ensure};
 use serde::{Deserialize, Serialize};
 use std::{
@@ -56,6 +56,8 @@ impl Default for Sources {
             roots: vec![SourceRoot {
                 id: "docs".into(),
                 path: "./docs".into(),
+                material: SourceMaterial::Primary,
+                origin: None,
             }],
             exclude: vec!["**/node_modules/**".into(), "**/target/**".into()],
         }
@@ -66,6 +68,13 @@ impl Default for Sources {
 pub struct SourceRoot {
     pub id: String,
     pub path: PathBuf,
+    /// Importer-declared provenance, never a claim of verified correctness.
+    #[serde(default)]
+    pub material: SourceMaterial,
+    /// Optional upstream identity (for example a repository URL). Lore records
+    /// this label verbatim and never fetches it or treats it as primary evidence.
+    #[serde(default)]
+    pub origin: Option<String>,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
@@ -206,6 +215,14 @@ pub struct ResolvedConfig {
 }
 impl ResolvedConfig {
     pub fn load(path: &Path) -> Result<Self> {
+        Self::load_impl(path, true)
+    }
+    /// Read stored knowledge without requiring a usable inference setup. Source
+    /// paths may be offline; the normal schema and filesystem safety checks apply.
+    pub fn load_for_read(path: &Path) -> Result<Self> {
+        Self::load_impl(path, false)
+    }
+    fn load_impl(path: &Path, validate_inference: bool) -> Result<Self> {
         ensure!(
             !std::fs::symlink_metadata(path)?.file_type().is_symlink(),
             "configuration must not be a symlink"
@@ -213,9 +230,12 @@ impl ResolvedConfig {
         let absolute = path.canonicalize().context("locate lore.yml")?;
         let config: Config = serde_yaml::from_str(&util::read_limited(&absolute, 128_000)?)
             .context("invalid lore.yml")?;
-        Self::resolve(config, &absolute)
+        Self::resolve_impl(config, &absolute, validate_inference)
     }
     pub fn resolve(config: Config, config_path: &Path) -> Result<Self> {
+        Self::resolve_impl(config, config_path, true)
+    }
+    fn resolve_impl(config: Config, config_path: &Path, validate_inference: bool) -> Result<Self> {
         ensure!(
             config.schema_version == 1,
             "unsupported configuration schema_version"
@@ -257,6 +277,14 @@ impl ResolvedConfig {
                 "invalid source root ID"
             );
             ensure!(ids.insert(root.id.clone()), "duplicate source root ID");
+            if let Some(origin) = &root.origin {
+                ensure!(
+                    !origin.trim().is_empty()
+                        && origin.len() <= 2048
+                        && !origin.chars().any(char::is_control),
+                    "source origin must be a nonempty label of at most 2048 bytes without control characters"
+                );
+            }
             let p = util::absolute(&base, &root.path)?;
             ensure!(
                 !p.starts_with(&wiki) && !p.starts_with(&state),
@@ -270,49 +298,51 @@ impl ResolvedConfig {
             );
             roots.push((root.id.clone(), p));
         }
-        let p = &config.processing;
-        ensure!(
-            (1..=600).contains(&p.timeout_seconds) && p.retry_attempts <= 5,
-            "invalid timeout/retry budget"
-        );
-        ensure!(
-            p.max_section_bytes >= 512
-                && p.max_section_bytes <= 100_000
-                && p.max_file_bytes >= p.max_section_bytes
-                && p.max_file_bytes <= 50_000_000,
-            "invalid file/section limits"
-        );
-        ensure!(
-            p.max_context_bytes >= p.max_section_bytes * 2 + 8192
-                && p.max_context_bytes <= 1_000_000,
-            "invalid context budget"
-        );
-        ensure!(
-            (1..=100).contains(&p.candidate_limit),
-            "candidate_limit must be 1..100"
-        );
-        ensure!(
-            config.models.generative.enabled && config.models.generative.provider != "typesafe",
-            "a supported generative model must be enabled"
-        );
-        for role in std::iter::once(&config.models.generative)
-            .chain(config.models.decision.iter().filter(|r| r.enabled))
-        {
+        if validate_inference {
+            let p = &config.processing;
             ensure!(
-                ["ollama", "openai", "typesafe"].contains(&role.provider.as_str()),
-                "unsupported provider {}",
-                role.provider
+                (1..=600).contains(&p.timeout_seconds) && p.retry_attempts <= 5,
+                "invalid timeout/retry budget"
             );
-            ensure!(!role.model.trim().is_empty(), "model name is required");
-            if config.privacy.local_only {
+            ensure!(
+                p.max_section_bytes >= 512
+                    && p.max_section_bytes <= 100_000
+                    && p.max_file_bytes >= p.max_section_bytes
+                    && p.max_file_bytes <= 50_000_000,
+                "invalid file/section limits"
+            );
+            ensure!(
+                p.max_context_bytes >= p.max_section_bytes * 2 + 8192
+                    && p.max_context_bytes <= 1_000_000,
+                "invalid context budget"
+            );
+            ensure!(
+                (1..=100).contains(&p.candidate_limit),
+                "candidate_limit must be 1..100"
+            );
+            ensure!(
+                config.models.generative.enabled && config.models.generative.provider != "typesafe",
+                "a supported generative model must be enabled"
+            );
+            for role in std::iter::once(&config.models.generative)
+                .chain(config.models.decision.iter().filter(|r| r.enabled))
+            {
                 ensure!(
-                    role.provider == "ollama",
-                    "local_only forbids hosted providers; explicitly set privacy.local_only: false to opt in"
+                    ["ollama", "openai", "typesafe"].contains(&role.provider.as_str()),
+                    "unsupported provider {}",
+                    role.provider
                 );
-                ensure!(
-                    !role.model.contains(":cloud") && !role.model.ends_with("-cloud"),
-                    "cloud model tag is forbidden in local_only mode"
-                );
+                ensure!(!role.model.trim().is_empty(), "model name is required");
+                if config.privacy.local_only {
+                    ensure!(
+                        role.provider == "ollama",
+                        "local_only forbids hosted providers; explicitly set privacy.local_only: false to opt in"
+                    );
+                    ensure!(
+                        !role.model.contains(":cloud") && !role.model.ends_with("-cloud"),
+                        "cloud model tag is forbidden in local_only mode"
+                    );
+                }
             }
         }
         let fingerprint = util::json_digest(&(

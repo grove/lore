@@ -71,6 +71,9 @@ pub(super) fn sibling_rows(
             "statement": unit.statement,
             "source": evidence.source,
             "evidence_id": evidence.id,
+            "source_material": evidence.material,
+            "source_origin": evidence.origin,
+            "source_qualification": evidence.material.qualification(),
             "exact_excerpt": evidence.excerpt,
             "citation_role": "verifier_context_only_not_citeable_in_this_topic",
         });
@@ -159,6 +162,7 @@ mod tests {
                 excerpt: format!("Exact {id}"),
                 captured_at: String::new(),
                 active: true,
+                ..EvidenceView::default()
             }],
         }
     }

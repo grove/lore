@@ -6,6 +6,7 @@ use crate::{
     util,
 };
 use anyhow::{Context, Result, ensure};
+use rusqlite::OptionalExtension;
 use serde_json::json;
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -316,26 +317,40 @@ pub(super) async fn build(
 
 fn append_citation(content: &mut String, unit: &KnowledgeView, runner: &Runner<'_>) -> Result<()> {
     let mut evidence = unit.evidence.iter().collect::<Vec<_>>();
-    evidence.sort_by_key(|e| (!e.active, e.id.clone()));
+    evidence.sort_by_key(|e| (!e.active, e.material, e.id.clone()));
     let mut sources = BTreeSet::new();
     let mut refs = Vec::new();
     for e in evidence {
-        if !sources.insert((&e.source, e.active)) {
+        if !sources.insert((&e.source, e.active, e.material, &e.origin, &e.root_path)) {
             continue;
         }
         if refs.len() >= 8 {
             break;
         }
-        let cite = if e.active {
-            let (root, relative) = e.source.split_once(':').context("invalid source locator")?;
-            if let Some((_, directory)) = runner.config.roots.iter().find(|(id, _)| id == root) {
-                let target = directory.join(relative);
+        let current: Option<(String, String)> = if e.active {
+            runner.conn.query_row(
+                "SELECT s.root_id,s.relative_path FROM sources s JOIN source_current c ON c.source_id=s.id WHERE s.id=?1 AND s.removed_at IS NULL",
+                [&e.source_id],
+                |row| Ok((row.get(0)?, row.get(1)?)),
+            ).optional()?
+        } else {
+            None
+        };
+        let cite = if let Some((root, path)) = current {
+            if let Some((_, directory)) = runner.config.roots.iter().find(|(id, _)| id == &root) {
+                let target = directory.join(&path);
                 let relative = pathdiff::diff_paths(&target, runner.config.wiki.join("topics"))
                     .context("source and wiki cannot be relativized")?;
                 let link = encode_path(&relative.to_string_lossy().replace('\\', "/"));
+                let current_source = format!("{root}:{path}");
+                let captured = if current_source == e.source {
+                    String::new()
+                } else {
+                    format!("; captured as {}", util::markdown_text(&e.source))
+                };
                 format!(
-                    "[{}]({link}); evidence `{}`",
-                    util::markdown_text(&e.source),
+                    "[{}]({link}){captured}; evidence `{}`",
+                    util::markdown_text(&current_source),
                     e.id
                 )
             } else {
@@ -353,7 +368,17 @@ fn append_citation(content: &mut String, unit: &KnowledgeView, runner: &Runner<'
                 e.id
             )
         };
-        refs.push(cite);
+        let qualification = if e.root_path.is_none() {
+            "Legacy provenance unspecified; not independent verification of implementation."
+        } else {
+            e.material.qualification()
+        };
+        let origin = e
+            .origin
+            .as_ref()
+            .map(|origin| format!(" Declared origin: {}.", util::markdown_text(origin)))
+            .unwrap_or_default();
+        refs.push(format!("{cite}; {qualification}{origin}"));
     }
     content.push_str(&format!(
         "[^{}]: {} / {} / {}. {}.\n\n",

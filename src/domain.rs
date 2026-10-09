@@ -84,12 +84,57 @@ pub struct RelationProposal {
     pub quote: String,
     pub reason: String,
 }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+/// Source material is declared by the importer. It describes provenance, not
+/// confidence: even a primary document is not independent proof of its claims.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SourceMaterial {
+    #[default]
+    Primary,
+    Derived,
+}
+impl SourceMaterial {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Primary => "primary",
+            Self::Derived => "derived",
+        }
+    }
+    pub fn qualification(self) -> &'static str {
+        match self {
+            Self::Primary => {
+                "Primary source material; documentary evidence, not independent verification of its claims."
+            }
+            Self::Derived => {
+                "Derived source material; not independent primary evidence or verification of the underlying claims."
+            }
+        }
+    }
+}
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct EvidenceView {
     pub id: String,
     pub assertion_id: String,
     pub source_id: String,
     pub source: String,
+    /// These fields describe the captured revision, even after a file moves or
+    /// an import's material/origin settings change. Older JSON remains readable.
+    #[serde(default)]
+    pub root_id: String,
+    #[serde(default)]
+    pub path: String,
+    #[serde(default)]
+    pub source_revision_id: String,
+    #[serde(default)]
+    pub root_path: Option<String>,
+    #[serde(default)]
+    pub material: SourceMaterial,
+    #[serde(default)]
+    pub origin: Option<String>,
+    #[serde(default)]
+    pub line_start: Option<i64>,
+    #[serde(default)]
+    pub line_end: Option<i64>,
     pub excerpt: String,
     pub captured_at: String,
     pub active: bool,

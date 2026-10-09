@@ -69,6 +69,8 @@ fn rejects_too_small_context_and_sources_inside_generated_state() {
     c.sources.roots = vec![SourceRoot {
         id: "bad".into(),
         path: ".lore/snapshots".into(),
+        material: Default::default(),
+        origin: None,
     }];
     assert!(ResolvedConfig::resolve(c, &cfg.config_path).is_err());
 }
@@ -96,6 +98,8 @@ fn parser_does_not_ingest_publication_backups() {
     c.sources.roots = vec![SourceRoot {
         id: "project".into(),
         path: ".".into(),
+        material: Default::default(),
+        origin: None,
     }];
     let c = ResolvedConfig::resolve(c, &cfg.config_path).unwrap();
     let backup = cfg.base.join(".lore-backup-run_old");

@@ -2,6 +2,7 @@ use anyhow::{Context, Result, ensure};
 use clap::{Parser, Subcommand};
 use lore::{
     config::{Config, ResolvedConfig, SourceRoot},
+    context::{self, ContextOptions},
     engine::{self, UpdateOptions},
     http::HttpModel,
     inference::{
@@ -21,7 +22,7 @@ use std::{
 #[command(
     name = "lore",
     version,
-    about = "Compile project Markdown into an evidence-backed, incrementally maintained wiki"
+    about = "Maintain project knowledge and retrieve evidence-backed context for a task"
 )]
 struct Cli {
     #[arg(long, global = true, default_value = "lore.yml")]
@@ -80,6 +81,20 @@ enum Command {
         #[arg(long, default_value_t = 10)]
         limit: usize,
     },
+    /// Retrieve source-cited task context from the registry, offline and without writes.
+    Context {
+        #[arg(value_name = "TASK", value_parser = nonempty_task)]
+        task: String,
+        #[arg(
+            long = "path",
+            value_name = "PATH",
+            help = "A relevant path hint; may be repeated"
+        )]
+        paths: Vec<String>,
+        #[arg(long, default_value_t = context::DEFAULT_MAX_TOKENS, value_name = "N", value_parser = context_budget,
+            help = "Maximum complete-output token count using the offline cl100k_base tokenizer")]
+        max_tokens: usize,
+    },
     /// Read a generated topic by slug, or index.
     Read { topic: String },
     /// Inspect an immutable, verbatim source evidence snapshot.
@@ -134,21 +149,44 @@ enum ReviewCommand {
 
 #[tokio::main]
 async fn main() {
-    let cli = Cli::parse();
+    let args: Vec<_> = std::env::args_os().collect();
+    let json_requested = args
+        .iter()
+        .skip(1)
+        .take_while(|arg| *arg != "--")
+        .any(|arg| arg == "--json");
+    let cli = match Cli::try_parse_from(args) {
+        Ok(cli) => cli,
+        Err(error) => {
+            // clap normally exits before run(), which otherwise makes argument
+            // errors the one failure agents cannot parse with --json.
+            if json_requested && error.use_stderr() {
+                println!(
+                    "{}",
+                    json!({"error":error.to_string(),"code":"invalid_arguments"})
+                );
+                std::process::exit(2);
+            }
+            error.exit();
+        }
+    };
     let json = cli.json;
     let result = tokio::select! {result=run(cli)=>result,_=tokio::signal::ctrl_c()=>Err(anyhow::anyhow!("cancelled; run update to recover any pending publication"))};
     match result {
         Ok(code) => std::process::exit(code),
         Err(e) => {
+            let context_error = e.downcast_ref::<context::ContextError>();
+            let code = context_error.map_or("operation_failed", |error| error.code);
             if json {
-                println!(
-                    "{}",
-                    json!({"error":format!("{e:#}"),"code":"operation_failed"})
-                );
+                println!("{}", json!({"error":format!("{e:#}"),"code":code}));
             } else {
                 eprintln!("Lore: {e:#}");
             }
-            std::process::exit(1);
+            std::process::exit(if matches!(code, "invalid_query" | "invalid_budget") {
+                2
+            } else {
+                1
+            });
         }
     }
 }
@@ -169,8 +207,15 @@ async fn run(cli: Cli) -> Result<i32> {
             return Ok(0);
         }
     }
-    let config = ResolvedConfig::load(&cli.config)
-        .context("load configuration (start with lore init --configure-only)")?;
+    let config = if matches!(
+        &cli.command,
+        Command::Context { .. } | Command::Evidence { .. }
+    ) {
+        ResolvedConfig::load_for_read(&cli.config)
+    } else {
+        ResolvedConfig::load(&cli.config)
+    }
+    .context("load configuration (start with lore init --configure-only)")?;
     if !matches!(
         &cli.command,
         Command::Init { .. }
@@ -296,6 +341,29 @@ async fn run(cli: Cli) -> Result<i32> {
             }).collect::<Vec<_>>();
             emit(json!({"results":results}), cli.json)?;
         }
+        Command::Context {
+            task,
+            paths,
+            max_tokens,
+        } => {
+            let conn = storage::read_only(&config.state.join("state.db"))
+                .context("open knowledge registry (run lore init or lore update first)")?;
+            let result = context::build_context(
+                &conn,
+                &ContextOptions {
+                    task,
+                    paths,
+                    max_tokens,
+                },
+            )?;
+            if cli.json {
+                // Keep this representation in sync with the context budget
+                // estimator; generic emit() pretty-prints and adds whitespace.
+                println!("{}", serde_json::to_string(&result)?);
+            } else {
+                print!("{}", context::render_context(&result));
+            }
+        }
         Command::Read { topic } => {
             let path = if topic == "index" || topic == "reviews" {
                 format!("{topic}.md")
@@ -388,12 +456,16 @@ fn bootstrap(path: &Path, sources: &[PathBuf], name: Option<&str>) -> Result<()>
             .map(|(i, p)| SourceRoot {
                 id: format!("source-{}", i + 1),
                 path: p.clone(),
+                material: Default::default(),
+                origin: None,
             })
             .collect();
     } else if !parent.join("docs").is_dir() {
         config.sources.roots = vec![SourceRoot {
             id: "project".into(),
             path: ".".into(),
+            material: Default::default(),
+            origin: None,
         }];
     }
     let bytes = serde_yaml::to_string(&config)?;
@@ -460,4 +532,27 @@ async fn compile(config: &ResolvedConfig, options: UpdateOptions, json_output: b
 fn emit(value: Value, _json: bool) -> Result<()> {
     println!("{}", serde_json::to_string_pretty(&value)?);
     Ok(())
+}
+
+fn nonempty_task(task: &str) -> std::result::Result<String, String> {
+    if task.trim().is_empty() {
+        Err("TASK must contain a non-whitespace task description".into())
+    } else {
+        Ok(task.into())
+    }
+}
+
+fn context_budget(value: &str) -> std::result::Result<usize, String> {
+    let budget = value
+        .parse::<usize>()
+        .map_err(|_| "--max-tokens must be a positive integer".to_owned())?;
+    if !(context::MIN_MAX_TOKENS..=context::MAX_MAX_TOKENS).contains(&budget) {
+        Err(format!(
+            "--max-tokens must be between {} and {}",
+            context::MIN_MAX_TOKENS,
+            context::MAX_MAX_TOKENS
+        ))
+    } else {
+        Ok(budget)
+    }
 }

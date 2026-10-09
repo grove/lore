@@ -210,6 +210,7 @@ mod tests {
                 excerpt: excerpt.into(),
                 captured_at: String::new(),
                 active: true,
+                ..EvidenceView::default()
             }],
         }
     }

@@ -1,5 +1,5 @@
 use crate::{
-    domain::{AssertionProposal, EvidenceView, KnowledgeView},
+    domain::{AssertionProposal, EvidenceView, KnowledgeView, SourceMaterial},
     sources::{Chunk, Document, locate_quote},
     util,
 };
@@ -15,7 +15,8 @@ pub const SCHEMA_V1: &str = include_str!("../migrations/0001_knowledge.sql");
 pub const SCHEMA_V2: &str = include_str!("../migrations/0002_runtime.sql");
 pub const SCHEMA_V3: &str = include_str!("../migrations/0003_reaffirmations.sql");
 pub const SCHEMA_V4: &str = include_str!("../migrations/0004_review_history.sql");
-pub const SCHEMA_VERSION: i64 = 4;
+pub const SCHEMA_V5: &str = include_str!("../migrations/0005_source_provenance.sql");
+pub const SCHEMA_VERSION: i64 = 5;
 pub fn migrate(conn: &Connection) -> rusqlite::Result<()> {
     conn.pragma_update(None, "foreign_keys", "ON")?;
     let version: i64 = conn.pragma_query_value(None, "user_version", |r| r.get(0))?;
@@ -34,6 +35,9 @@ pub fn migrate(conn: &Connection) -> rusqlite::Result<()> {
         }
         if version < 4 {
             conn.execute_batch(SCHEMA_V4)?;
+        }
+        if version < 5 {
+            conn.execute_batch(SCHEMA_V5)?;
         }
         Ok(())
     })();
@@ -88,12 +92,121 @@ pub struct SourceHead {
     pub path: String,
     pub revision: String,
     pub digest: String,
+    #[serde(default)]
+    pub root_path: Option<String>,
+    #[serde(default)]
+    pub material: SourceMaterial,
+    #[serde(default)]
+    pub origin: Option<String>,
+}
+impl SourceHead {
+    pub fn provenance_matches(&self, document: &Document) -> bool {
+        self.root == document.root_id
+            && self.root_path.as_deref() == Some(document.root_path.to_string_lossy().as_ref())
+            && self.material == document.material
+            && self.origin == document.origin
+    }
+}
+fn has_source_provenance(conn: &Connection) -> rusqlite::Result<bool> {
+    conn.query_row(
+        "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='source_revision_provenance')",
+        [],
+        |row| row.get(0),
+    )
+}
+fn material_column(row: &rusqlite::Row<'_>, index: usize) -> rusqlite::Result<SourceMaterial> {
+    match row.get::<_, String>(index)?.as_str() {
+        "primary" => Ok(SourceMaterial::Primary),
+        "derived" => Ok(SourceMaterial::Derived),
+        _ => Err(rusqlite::Error::InvalidQuery),
+    }
+}
+/// Read a revision's original import metadata. Version 4 databases and legacy
+/// revisions remain readable without migration; unknown old paths stay unknown.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SourceProvenance {
+    pub root_id: String,
+    pub root_path: Option<String>,
+    pub material: SourceMaterial,
+    pub origin: Option<String>,
+}
+pub fn source_provenance(conn: &Connection, revision: &str) -> Result<SourceProvenance> {
+    let sql = if has_source_provenance(conn)? {
+        "SELECT COALESCE(p.root_id,s.root_id),p.configured_path,COALESCE(p.material,'primary'),p.origin FROM source_revisions r JOIN sources s ON s.id=r.source_id LEFT JOIN source_revision_provenance p ON p.source_revision_id=r.id WHERE r.id=?1"
+    } else {
+        "SELECT s.root_id,NULL,'primary',NULL FROM source_revisions r JOIN sources s ON s.id=r.source_id WHERE r.id=?1"
+    };
+    Ok(conn.query_row(sql, [revision], |r| {
+        Ok(SourceProvenance {
+            root_id: r.get(0)?,
+            root_path: r.get(1)?,
+            material: material_column(r, 2)?,
+            origin: r.get(3)?,
+        })
+    })?)
+}
+
+/// A resolvable immutable quotation with the provenance captured when it was
+/// imported. JSON keeps the existing `lore evidence` locator field names.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EvidenceSnapshot {
+    pub id: String,
+    pub source_id: String,
+    pub source_revision_id: String,
+    #[serde(rename = "root")]
+    pub root_id: String,
+    #[serde(rename = "observed_path")]
+    pub path: String,
+    pub root_path: Option<String>,
+    pub material: SourceMaterial,
+    pub origin: Option<String>,
+    pub excerpt: String,
+    pub context_before: String,
+    pub context_after: String,
+    pub digest: String,
+    pub line_start: Option<i64>,
+    pub line_end: Option<i64>,
+    pub captured_at: String,
+}
+pub fn evidence_snapshot(conn: &Connection, id: &str) -> Result<EvidenceSnapshot> {
+    let mut snapshot = conn.query_row(
+        "SELECT e.source_id,e.source_revision_id,s.root_id,r.observed_path,e.exact_excerpt,e.context_before,e.context_after,e.excerpt_digest,e.line_start,e.line_end,e.captured_at FROM evidence_snapshots e JOIN sources s ON s.id=e.source_id JOIN source_revisions r ON r.id=e.source_revision_id WHERE e.id=?1",
+        [id],
+        |r| Ok(EvidenceSnapshot {
+            id: id.to_owned(),
+            source_id: r.get(0)?,
+            source_revision_id: r.get(1)?,
+            root_id: r.get(2)?,
+            path: r.get(3)?,
+            root_path: None,
+            material: SourceMaterial::Primary,
+            origin: None,
+            excerpt: r.get(4)?,
+            context_before: r.get(5)?,
+            context_after: r.get(6)?,
+            digest: r.get(7)?,
+            line_start: r.get(8)?,
+            line_end: r.get(9)?,
+            captured_at: r.get(10)?,
+        }),
+    ).context("evidence ID not found")?;
+    let provenance = source_provenance(conn, &snapshot.source_revision_id)?;
+    snapshot.root_id = provenance.root_id;
+    snapshot.root_path = provenance.root_path;
+    snapshot.material = provenance.material;
+    snapshot.origin = provenance.origin;
+    Ok(snapshot)
 }
 pub fn source_heads(conn: &Connection) -> Result<Vec<SourceHead>> {
     if meta(conn, "initialized")?.is_none() {
         return Ok(vec![]);
     }
-    let mut s = conn.prepare("SELECT s.id,s.root_id,s.relative_path,c.source_revision_id,c.content_digest FROM sources s JOIN source_current c ON s.id=c.source_id WHERE s.removed_at IS NULL ORDER BY s.root_id,s.relative_path")?;
+    let sql = if has_source_provenance(conn)? {
+        "SELECT s.id,s.root_id,s.relative_path,c.source_revision_id,c.content_digest,p.configured_path,COALESCE(p.material,'primary'),p.origin FROM sources s JOIN source_current c ON s.id=c.source_id LEFT JOIN source_revision_provenance p ON p.source_revision_id=c.source_revision_id WHERE s.removed_at IS NULL ORDER BY s.root_id,s.relative_path"
+    } else {
+        "SELECT s.id,s.root_id,s.relative_path,c.source_revision_id,c.content_digest,NULL,'primary',NULL FROM sources s JOIN source_current c ON s.id=c.source_id WHERE s.removed_at IS NULL ORDER BY s.root_id,s.relative_path"
+    };
+    let mut s = conn.prepare(sql)?;
     Ok(s.query_map([], |r| {
         Ok(SourceHead {
             id: r.get(0)?,
@@ -101,6 +214,9 @@ pub fn source_heads(conn: &Connection) -> Result<Vec<SourceHead>> {
             path: r.get(2)?,
             revision: r.get(3)?,
             digest: r.get(4)?,
+            root_path: r.get(5)?,
+            material: material_column(r, 6)?,
+            origin: r.get(7)?,
         })
     })?
     .collect::<rusqlite::Result<_>>()?)
@@ -124,7 +240,9 @@ pub fn begin_source(
             params![source_id, doc.root_id, doc.relative_path],
         )?;
     }
-    let unchanged = existing.is_some_and(|h| h.digest == doc.digest && h.path == doc.relative_path);
+    let unchanged = existing.is_some_and(|h| {
+        h.digest == doc.digest && h.path == doc.relative_path && h.provenance_matches(doc)
+    });
     let revision = if unchanged {
         existing.unwrap().revision.clone()
     } else {
@@ -138,6 +256,10 @@ pub fn begin_source(
                 doc.digest,
                 util::now()
             ],
+        )?;
+        conn.execute(
+            "INSERT INTO source_revision_provenance(source_revision_id,root_id,configured_path,material,origin) VALUES(?1,?2,?3,?4,?5)",
+            params![revision, doc.root_id, doc.root_path.to_string_lossy(), doc.material.as_str(), doc.origin],
         )?;
         revision
     };
@@ -430,7 +552,7 @@ pub struct RelationFact {
     pub exact_excerpt: String,
 }
 pub fn relation_facts(conn: &Connection) -> Result<Vec<RelationFact>> {
-    let mut q=conn.prepare("SELECT r.id,f.knowledge_id,t.knowledge_id,r.relation,r.evidence_id,ra.assertion_revision_id,ar.source_id,ar.source_revision_id,s.root_id||':'||s.relative_path,EXISTS(SELECT 1 FROM active_assertions a WHERE a.assertion_revision_id=ar.id),COALESCE((SELECT exact_excerpt FROM evidence_snapshots WHERE id=r.evidence_id),'') FROM knowledge_relations r JOIN knowledge_revisions f ON f.id=r.from_revision_id JOIN knowledge_revisions t ON t.id=r.to_revision_id JOIN relation_assertions ra ON ra.relation_id=r.id JOIN assertion_revisions ar ON ar.id=ra.assertion_revision_id JOIN sources s ON s.id=ar.source_id UNION ALL SELECT r.id,r.from_unit_id,r.to_unit_id,'reaffirms',r.evidence_id,r.assertion_revision_id,ar.source_id,ar.source_revision_id,s.root_id||':'||s.relative_path,EXISTS(SELECT 1 FROM active_assertions a WHERE a.assertion_revision_id=ar.id),COALESCE((SELECT exact_excerpt FROM evidence_snapshots WHERE id=r.evidence_id),'') FROM reaffirmation_links r JOIN assertion_revisions ar ON ar.id=r.assertion_revision_id JOIN sources s ON s.id=ar.source_id ORDER BY 1")?;
+    let mut q=conn.prepare("SELECT r.id,f.knowledge_id,t.knowledge_id,r.relation,r.evidence_id,ra.assertion_revision_id,ar.source_id,ar.source_revision_id,s.root_id||':'||sr.observed_path,EXISTS(SELECT 1 FROM active_assertions a WHERE a.assertion_revision_id=ar.id),COALESCE((SELECT exact_excerpt FROM evidence_snapshots WHERE id=r.evidence_id),'') FROM knowledge_relations r JOIN knowledge_revisions f ON f.id=r.from_revision_id JOIN knowledge_revisions t ON t.id=r.to_revision_id JOIN relation_assertions ra ON ra.relation_id=r.id JOIN assertion_revisions ar ON ar.id=ra.assertion_revision_id JOIN sources s ON s.id=ar.source_id JOIN source_revisions sr ON sr.id=ar.source_revision_id UNION ALL SELECT r.id,r.from_unit_id,r.to_unit_id,'reaffirms',r.evidence_id,r.assertion_revision_id,ar.source_id,ar.source_revision_id,s.root_id||':'||sr.observed_path,EXISTS(SELECT 1 FROM active_assertions a WHERE a.assertion_revision_id=ar.id),COALESCE((SELECT exact_excerpt FROM evidence_snapshots WHERE id=r.evidence_id),'') FROM reaffirmation_links r JOIN assertion_revisions ar ON ar.id=r.assertion_revision_id JOIN sources s ON s.id=ar.source_id JOIN source_revisions sr ON sr.id=ar.source_revision_id ORDER BY 1")?;
     Ok(q.query_map([], |r| {
         Ok(RelationFact {
             id: r.get(0)?,
@@ -549,14 +671,37 @@ pub fn add_relation(
 pub fn review(conn: &Connection, project: &str, key: &str, reason: &str) -> Result<()> {
     crate::reviews::record(conn, project, key, reason)
 }
-fn evidence_for(conn: &Connection, unit: &str) -> Result<Vec<EvidenceView>> {
-    let mut s=conn.prepare("SELECT e.id,a.assertion_revision_id,s.id,s.root_id||':'||s.relative_path,e.exact_excerpt,e.captured_at,EXISTS(SELECT 1 FROM active_assertions x WHERE x.assertion_revision_id=a.assertion_revision_id) FROM assertion_assignments a JOIN assertion_evidence ae ON ae.assertion_revision_id=a.assertion_revision_id JOIN evidence_snapshots e ON e.id=ae.evidence_id JOIN sources s ON s.id=e.source_id WHERE a.knowledge_id=?1 ORDER BY e.id")?;
+fn evidence_for(conn: &Connection, unit: &str, has_provenance: bool) -> Result<Vec<EvidenceView>> {
+    let provenance_fields = if has_provenance {
+        "COALESCE(p.root_id,s.root_id),p.configured_path,COALESCE(p.material,'primary'),p.origin"
+    } else {
+        "s.root_id,NULL,'primary',NULL"
+    };
+    let provenance_join = if has_provenance {
+        "LEFT JOIN source_revision_provenance p ON p.source_revision_id=e.source_revision_id"
+    } else {
+        ""
+    };
+    let sql = format!(
+        "SELECT e.id,a.assertion_revision_id,s.id,r.observed_path,e.exact_excerpt,e.captured_at,EXISTS(SELECT 1 FROM active_assertions x WHERE x.assertion_revision_id=a.assertion_revision_id),e.source_revision_id,e.line_start,e.line_end,{provenance_fields} FROM assertion_assignments a JOIN assertion_evidence ae ON ae.assertion_revision_id=a.assertion_revision_id JOIN evidence_snapshots e ON e.id=ae.evidence_id JOIN sources s ON s.id=e.source_id JOIN source_revisions r ON r.id=e.source_revision_id {provenance_join} WHERE a.knowledge_id=?1 ORDER BY e.id"
+    );
+    let mut s = conn.prepare(&sql)?;
     Ok(s.query_map([unit], |r| {
+        let root_id: String = r.get(10)?;
+        let path: String = r.get(3)?;
         Ok(EvidenceView {
             id: r.get(0)?,
             assertion_id: r.get(1)?,
             source_id: r.get(2)?,
-            source: r.get(3)?,
+            source: format!("{root_id}:{path}"),
+            root_id,
+            path,
+            source_revision_id: r.get(7)?,
+            line_start: r.get(8)?,
+            line_end: r.get(9)?,
+            root_path: r.get(11)?,
+            material: material_column(r, 12)?,
+            origin: r.get(13)?,
             excerpt: r.get(4)?,
             captured_at: r.get(5)?,
             active: r.get(6)?,
@@ -566,6 +711,7 @@ fn evidence_for(conn: &Connection, unit: &str) -> Result<Vec<EvidenceView>> {
 }
 pub fn views(conn: &Connection) -> Result<Vec<KnowledgeView>> {
     let edges = relations(conn)?;
+    let has_provenance = has_source_provenance(conn)?;
     let mut s=conn.prepare("SELECT u.knowledge_id,u.revision_id,k.statement,t.slug,t.title,d.subject,k.kind,k.lifecycle,d.base_lifecycle,d.scope,d.effective_at,k.support_state FROM knowledge_current u JOIN knowledge_revisions k ON k.id=u.revision_id JOIN knowledge_details d ON d.knowledge_id=u.knowledge_id JOIN topics t ON t.id=d.topic_id ORDER BY t.slug,u.knowledge_id")?;
     let rows = s
         .query_map([], |r| {
@@ -589,7 +735,7 @@ pub fn views(conn: &Connection) -> Result<Vec<KnowledgeView>> {
         .collect::<rusqlite::Result<Vec<_>>>()?;
     rows.into_iter()
         .map(|mut v| {
-            v.evidence = evidence_for(conn, &v.id)?;
+            v.evidence = evidence_for(conn, &v.id, has_provenance)?;
             v.relations = edges
                 .iter()
                 .filter(|e| e.from == v.id || e.to == v.id)
