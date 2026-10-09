@@ -34,10 +34,10 @@ impl GenerativeModel for Captured {
             let input: serde_json::Value =
                 serde_json::from_str(&request.input).expect("Lore input JSON");
             let task = input["task"].as_str().expect("task");
-            self.seen.lock().unwrap().push((
-                task.to_owned(),
-                request.reasoning_effort,
-            ));
+            self.seen
+                .lock()
+                .unwrap()
+                .push((task.to_owned(), request.reasoning_effort));
             self.fake.generate(request).await
         })
     }
@@ -123,9 +123,11 @@ fn responses_effort_is_optional_and_not_an_ollama_or_decisions_setting() {
         reasoning_effort: None,
         ..request
     };
-    assert!(openai_responses_request(&request, "gpt-6-luna")
-        .get("reasoning")
-        .is_none());
+    assert!(
+        openai_responses_request(&request, "gpt-6-luna")
+            .get("reasoning")
+            .is_none()
+    );
 
     let decisions = lore::provider_wire::openai_decisions_request(
         &DecisionRequest {
@@ -156,14 +158,9 @@ async fn configured_effort_routes_to_tasks_and_changes_invalidate_cache() {
         "PLAN database: Consider PostgreSQL migration.\n",
     );
     let capture = Captured::new();
-    let first = engine::update(
-        &config,
-        &capture,
-        None,
-        UpdateOptions::default(),
-    )
-    .await
-    .unwrap();
+    let first = engine::update(&config, &capture, None, UpdateOptions::default())
+        .await
+        .unwrap();
     assert!(!first.no_op);
     let seen = capture.seen.lock().unwrap().clone();
     for (task, effort) in seen {
@@ -178,24 +175,14 @@ async fn configured_effort_routes_to_tasks_and_changes_invalidate_cache() {
     changed.models.reasoning.verification = ReasoningEffort::Low;
     let altered = ResolvedConfig::resolve(changed, &config.config_path).unwrap();
     assert_ne!(config.fingerprint, altered.fingerprint);
-    let rerun = engine::update(
-        &altered,
-        &capture,
-        None,
-        UpdateOptions::default(),
-    )
-    .await
-    .unwrap();
+    let rerun = engine::update(&altered, &capture, None, UpdateOptions::default())
+        .await
+        .unwrap();
     assert!(!rerun.no_op);
     assert!(rerun.model_calls > 0);
-    let no_op = engine::update(
-        &altered,
-        &capture,
-        None,
-        UpdateOptions::default(),
-    )
-    .await
-    .unwrap();
+    let no_op = engine::update(&altered, &capture, None, UpdateOptions::default())
+        .await
+        .unwrap();
     assert!(no_op.no_op);
     assert_eq!(no_op.model_calls, 0);
 }

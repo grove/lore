@@ -115,7 +115,8 @@ fn malformed_requests_and_wrong_choice_are_rejected() {
 }
 #[test]
 fn generative_requests_are_provider_specific_and_remote_is_opt_in() {
-    let req = GenerationRequest { reasoning_effort: Some(ReasoningEffort::Low),
+    let req = GenerationRequest {
+        reasoning_effort: Some(ReasoningEffort::Low),
         instructions: "Extract assertions".into(),
         input: "An ADR replaces another".into(),
         schema: Some(
@@ -147,7 +148,8 @@ fn ensure_object_safe_traits(_: &dyn GenerativeModel, _: &dyn DecisionModel) {}
 #[test]
 fn openai_uses_passage_ids_without_changing_ollama_schema() {
     let schema = lore::domain::extraction_schema_for("First source line.\nSecond source line.");
-    let request = GenerationRequest { reasoning_effort: None,
+    let request = GenerationRequest {
+        reasoning_effort: None,
         instructions: "Extract assertions".into(),
         input: "First source line.\nSecond source line.".into(),
         schema: Some(schema.clone()),
@@ -193,7 +195,8 @@ fn openai_uses_passage_ids_without_changing_ollama_schema() {
 
 #[test]
 fn openai_passage_ids_preserve_source_bytes_and_empty_quotes() {
-    let request = GenerationRequest { reasoning_effort: None,
+    let request = GenerationRequest {
+        reasoning_effort: None,
         instructions: "Reconcile assertions".into(),
         input: "Source text".into(),
         schema: Some(json!({"type":"string","enum":["", "(a)[b]{c}.*+?^$|\\\r\n\t"]})),

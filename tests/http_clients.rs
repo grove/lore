@@ -233,7 +233,8 @@ async fn openai_http_restores_source_passages_before_validation() {
     let _serial = HTTP_FIXTURE_LOCK.lock().unwrap_or_else(|p| p.into_inner());
     let (_dir, cfg, _) = project();
     let quote = "Synthetic source: use `database`.\r\nKeep the qualifier (local-only).";
-    let request = GenerationRequest { reasoning_effort: None,
+    let request = GenerationRequest {
+        reasoning_effort: None,
         instructions: "Extract evidence".into(),
         input: "Synthetic test".into(),
         schema: Some(
@@ -272,7 +273,8 @@ async fn openai_live_preserves_multiline_quote_constraints() {
     assert_eq!(role.provider, "openai");
     let model = HttpModel::new(&config, role).unwrap();
     let quote = "Synthetic source: use `database`.\r\nKeep the qualifier (local-only).";
-    let request = GenerationRequest { reasoning_effort: None,
+    let request = GenerationRequest {
+        reasoning_effort: None,
         instructions: "Return a JSON object whose quote is only the word fabricated.".into(),
         input: "Synthetic constraint test; no project material.".into(),
         schema: Some(
@@ -330,7 +332,8 @@ async fn retries_transient_errors_and_withholds_failure_body() {
     });
     let (c, role) = configured(&cfg, &server, "ollama");
     let model = HttpModel::new(&c, &role).unwrap();
-    let request = GenerationRequest { reasoning_effort: None,
+    let request = GenerationRequest {
+        reasoning_effort: None,
         instructions: "Answer".into(),
         input: "Synthetic".into(),
         schema: None,
@@ -399,7 +402,8 @@ fn real_cli_compiles_over_http_then_updates_with_server_offline() {
         assert_eq!(request.path, "/api/chat");
         assert_eq!(request.body["stream"], false);
         assert!(request.body.get("reasoning").is_none());
-        let r = GenerationRequest { reasoning_effort: None,
+        let r = GenerationRequest {
+            reasoning_effort: None,
             instructions: request.body["messages"][0]["content"]
                 .as_str()
                 .unwrap()
