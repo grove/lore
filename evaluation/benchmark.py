@@ -444,12 +444,20 @@ def report_markdown(report: dict) -> str:
             lines.append(f"- Acceptable labelled type alternatives (still lexical): {gold.get('acceptable_type_and_lifecycle_count', gold['matched_type_and_lifecycle'])}/{gold['total']}")
         if gold["relation_tests_total"]:
             lines.append(f"- Labeled relationship checks: {gold['relation_tests_passed']}/{gold['relation_tests_total']} (unassessable count as failed)")
+            lines.append(f"- Relationship endpoint scorer: {gold.get('scorer_version','legacy')} (unique source-backed knowledge assignments, independent of lifecycle labels)")
         if "elapsed_seconds" in entry:
             lines.append(f"- CLI elapsed seconds: {entry['elapsed_seconds']}")
         degraded=entry.get("report",{}).get("degraded_topics",[])
         if degraded:
             lines.append("- **DEGRADED: documentary excerpts published without passing semantic synthesis:** "+", ".join(degraded))
-        if entry.get("report",{}).get("degraded_overview") is True:
+        diagnostics = entry.get("report",{}).get("quality_diagnostics", [])
+        if diagnostics:
+            lines.append(f"- Synthesis/verification draft rejections: {len(diagnostics)}")
+            for note in diagnostics[:10]:
+                tag = f"{note.get('task','unknown')}/{note.get('topic','unknown')}"
+                reason = "; ".join(str(s).replace("\\n", " ")[:160] for s in note.get("issues", [])[:2])
+                lines.append(f"  - {tag}, attempt {note.get('attempt','?')}, {note.get('check','unknown')}: {reason}")
+                if entry.get("report",{}).get("degraded_overview") is True:
             lines.append("- **DEGRADED OVERVIEW: source excerpts published; semantic narrative verification did not pass. This run fails the beta gate.**")
         lines.append("")
     noop = report.get("no_op", {})
