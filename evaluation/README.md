@@ -111,3 +111,9 @@ python3 evaluation/suite.py assess \
 ```
 
 Assessment exits with code 2 when the quality gate is incomplete or fails. It requires the three target projects, matching binary/model roles, passing automated evidence/no-op checks, Atlas relationships and synthesis verification, plus human scores at least 2 and no critical errors. A fixture can test these rules, but only model-enabled runs and real human readings can satisfy them in practice. See [ACCEPTANCE.md](ACCEPTANCE.md). This implementation does not claim a new live-model quality score. The Atlas rubric is versioned and its previous definition archived; scores across changed rubrics must not be presented as model improvements.
+
+## Source-bound verifier context and rejection diagnostics
+
+Lore's topic verifier can inspect a bounded set of active evidence from **the same source document** even when the assertions appear on other topic pages. Those context rows are verifier-only, not extra citation privileges for the topic writer. The active source document's heading path may include a date; this dates the documentation, not automatically a decision's effective time or a reported deployment. If the verifier's context budget omits some sibling rows, it is explicitly marked incomplete and must not support claims that nothing else exists.
+
+Evaluation phase reports retain bounded `quality_diagnostics` entries (topic, attempt, validator, issue description) for rejected drafts, even when a repair succeeds. These are diagnostic data, not proof of factual reliability; review the underlying source documents and published pages. Atlas relationship scoring now requires a *unique source-backed knowledge-unit assignment* instead of an exact kind/lifecycle match, with the scorer version recorded in metrics. Compare versions separately and preserve the strict type/lifecycle classification score.
