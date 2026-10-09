@@ -692,7 +692,8 @@ mod selection_contracts {
             .sum::<usize>();
         assert!(serialized_bytes <= 23_808);
 
-        let links = citable_decisions(&[relation], &selected, 2_000).unwrap();
+        let relationships = [relation];
+        let links = citable_decisions(&relationships, &selected, 2_000).unwrap();
         let ids = selected.iter().map(|u| u.id.as_str()).collect::<BTreeSet<_>>();
         assert!(links.iter().all(|link|
             ids.contains(link.from_id.as_str()) && ids.contains(link.to_id.as_str())
