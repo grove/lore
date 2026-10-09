@@ -7,6 +7,7 @@ pub mod experience;
 pub mod http;
 pub mod imports;
 pub mod inference;
+pub mod insights;
 pub mod provider_wire;
 pub mod publish;
 pub mod reviews;
