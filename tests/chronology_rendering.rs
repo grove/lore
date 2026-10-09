@@ -149,7 +149,7 @@ async fn persistent_semantic_rejection_publishes_only_attributed_source_excerpts
     );
 }
 #[tokio::test]
-async fn verifier_feedback_repairs_unsupported_order_without_degradation() {
+async fn grounding_feedback_repairs_unsupported_order_without_degradation() {
     let (_temp, cfg, _) = project();
     let model = ChronologyModel::new(ResponseMode::RepairSupportedProse);
     put(
@@ -166,7 +166,9 @@ async fn verifier_feedback_repairs_unsupported_order_without_degradation() {
         .await
         .unwrap();
     assert!(report.degraded_topics.is_empty());
-    assert!(model.rejects.load(Ordering::SeqCst) > 0);
+    // The deterministic grounding guard catches the invented ordering before
+    // the semantic verifier runs; the rewrite loop still repairs the draft.
+    assert_eq!(model.rejects.load(Ordering::SeqCst), 0);
     assert!(model.repairs.load(Ordering::SeqCst) > 0);
     let topic = fs::read_to_string(cfg.wiki.join("topics/ledger.md")).unwrap();
     assert!(!topic.contains("Before ADR-002, the entire migration plan was accepted."));
