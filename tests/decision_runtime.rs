@@ -18,7 +18,7 @@ use rusqlite::Connection;
 use serde_json::{Value, json};
 use std::{
     collections::BTreeSet,
-    fs::{self, File, FileTimes},
+    fs::{self, FileTimes, OpenOptions},
     path::PathBuf,
     sync::{
         Mutex,
@@ -783,11 +783,16 @@ async fn deeper_only_file_change_invalidates_cached_reasoning_even_with_restored
     let before = fs::metadata(&path).unwrap();
     let replacement = DEEP.replace("false;", "true; ");
     assert_eq!(replacement.len(), DEEP.len());
-    fs::write(&path, replacement).unwrap();
-    File::open(&path)
+    fs::write(&path, &replacement).unwrap();
+    // Windows requires write access to restore timestamps. Open the existing
+    // file without creation or truncation so this remains a same-size change.
+    OpenOptions::new()
+        .write(true)
+        .open(&path)
         .unwrap()
         .set_times(FileTimes::new().set_modified(before.modified().unwrap()))
         .unwrap();
+    assert_eq!(fs::read_to_string(&path).unwrap(), replacement);
     assert_eq!(
         fs::metadata(&path).unwrap().modified().unwrap(),
         before.modified().unwrap()
