@@ -1,14 +1,14 @@
 # Lore vision
 
-> **Get up to speed on any project.**
+> **Understand any project. Work with confidence.**
 
-**Our primary mission is to help a new developer become productive in an unfamiliar project—then become more independent with every task.** We also want experienced developers and coding agents to draw on the same evolving, evidence-backed project intelligence.
+**Lore is a shared project intelligence system for everyone working on a project—newcomers, experienced developers, maintainers, and coding agents.** It distills the project's collective knowledge and experience, investigates what matters, and helps each user understand and act with confidence.
 
-Lore should make project knowledge easy to discover, learn, appropriately trust and put to work. Its most compelling achievement is not another generated wiki: **a newcomer builds an accurate mental model, makes a correct first contribution, and successfully tackles a different related task with less help**.
+Lore should make knowledge easy to discover, learn, appropriately trust and apply. Its ambition is not more documentation but **better understanding, better decisions, and more capable people and agents**. Newcomer onboarding is the **flagship human learning experience and initial deep-understanding benchmark**, not the product's only purpose. **Decision-ready, automatically investigated task context is the flagship coding-agent experience**; experienced humans and maintainers also receive direct practical intelligence.
 
 ## The problem
 
-Joining an existing project is hard even for an experienced engineer. Code and documents rarely provide a coherent route from **what this system is for** to **how a real request flows**, **why its constraints exist** and **where a first safe change belongs**. New developers don't know what matters yet; giving them more pages or a search box often increases the burden.
+An unfamiliar project is hard to understand, and that difficulty does not vanish after onboarding. Newcomers need a coherent path from purpose to workflows and first contributions; experienced engineers need reliable constraints and reasons before changing systems; maintainers need decision history and emerging risks; coding agents need the same project intelligence without loading an entire wiki or duplicating investigation. More pages and a search box alone cannot solve these problems.
 
 Project intent is scattered across architecture documents, ADRs, plans, issue trackers, investigations and conversations. The code shows much of what was implemented, but often cannot explain why an approach was chosen, which alternatives were rejected, whether a proposal was approved or what changed since an earlier decision.
 
@@ -23,17 +23,19 @@ Lore helps answer four questions:
 3. **Now what?** What is the current documented understanding, what changed and what remains uncertain?
 4. **So what?** What matters for my task, and what is the best useful action I can take?
 
-For **newcomers**, these answers become a guided journey: project essence → real workflow → small practice → first correct contribution → independent second task. For other developers and coding agents, the fourth question remains a direct decision-ready answer. Neither group should be forced through a documentation hierarchy.
+**Two flagship experiences share one intelligence engine:** newcomers explore the project essence, a real workflow, deliberate practice, a first correct contribution, and independent transfer; coding agents obtain a concise, machine-readable, automatically investigated task recommendation. Experienced developers and maintainers get direct answers, applicable decisions, history, trade-offs and change consequences. No audience must traverse a wiki hierarchy or complete a tutorial before receiving help.
 
-## Teach a new developer the project
+## Flagship experiences: learning and action
 
-The first experience should be welcoming and immediately useful. A proposed `lore onboard` shows the project's purpose, a few pivotal concepts and one evidenced workflow **without a setup questionnaire**. A short source-linked tour follows a request through the important boundaries, decisions and failure cases. The developer can dive into any concept or skip straight to a real task.
+**Human onboarding flagship:** the first experience should be welcoming and immediately useful. A proposed `lore onboard` shows the project's purpose, a few pivotal concepts and one evidenced workflow **without a setup questionnaire**. A short source-linked tour follows a request through the important boundaries, decisions and failure cases. The developer can dive into any concept or skip straight to a real task.
 
 A tailored learning path follows **conceptual prerequisites**, not directories or a fixed-depth summary tree. **Adaptive Knowledge Zoom** shows an overview or the exact evidence at the depth needed. **Diátaxis** gives each interaction its proper shape: Tutorials lead the learning journey; Explanation clarifies why; Reference answers precise questions; How-to supports actual contributions.
 
 Lore helps a learner predict behavior, understand a failure, and work through one purposeful exercise. It then supports a real bounded task, performs routine investigation itself, and offers progressively fewer hints for a new related task. The learner remains in control of their work; an agent producing code is not the same as the developer having learned. Voluntary checkpoints can demonstrate understanding, but page views cannot certify mastery.
 
-This is a proposed product direction, not a claim that these capabilities are implemented in 0.6. See [Developer Onboarding design](docs/DEVELOPER_ONBOARDING_DESIGN.md).
+**Coding-agent flagship:** `lore context "TASK"` should evolve into a focused, source-bound decision package: preferred approach, scoped readiness, critical constraints/negative cases, actual investigated implementation seams, completed checks, future completion criteria, alternatives and material unresolved dependencies. Lore performs suitable permitted investigation; the calling agent owns edits, tests and delivery. This is also useful directly to experienced developers who want decisions rather than lessons.
+
+These are proposed product directions, not claims of implementation in 0.6. See the [Developer Onboarding design](docs/DEVELOPER_ONBOARDING_DESIGN.md) and [Coding-Agent Intelligence design](docs/CODING_AGENT_INTELLIGENCE_DESIGN.md).
 
 ## Maximum useful autonomy. Minimum user burden.
 
@@ -49,11 +51,11 @@ Incomplete knowledge does not necessarily prevent a good next action. Lore shoul
 
 These are product commitments for future development, not claims that Lore 0.6 already implements the adaptive default. The [autonomous assistance design](docs/AUTONOMOUS_ASSISTANCE_DESIGN.md) defines the proposed controller, answer contract, permissions, stopping rules and acceptance tests.
 
-## One knowledge core, two experiences
+## One knowledge core, audience-appropriate experiences
 
 ### For humans
 
-For someone new to the project, opening Lore should feel like meeting a patient, knowledgeable teammate who has already done the investigative homework and knows a sensible order in which to teach the project. Show an immediate overview, an understandable guided tour, one small exercise and a clear route to the first meaningful contribution. Let experienced newcomers skip lessons. Beyond onboarding, opening Lore should feel like consulting that same knowledgeable teammate. Lead with an understandable answer, a clear mental model or the preferred next action. Let the reader expand naturally into systems, concepts, decisions, history, examples and exact evidence.
+For someone new to the project, opening Lore should feel like meeting a knowledgeable teammate who has done the investigative homework and can teach it in a sensible order. Show an immediate overview, an understandable guided tour, one small exercise and a clear route to the first meaningful contribution. Let experienced newcomers skip lessons. For an experienced developer or maintainer, Lore should give a direct, project-aware answer or recommendation, with important assumptions, historical constraints and their consequences. Lead with an understandable answer, a clear mental model or the preferred next action. Let the reader expand naturally into systems, concepts, decisions, history, examples and exact evidence.
 
 Important conditions stay visible; detailed investigation logs and source manifests are available on demand. Show what materially changed without requiring someone to reread the collection. Make assumptions easy to correct, alternatives easy to compare and scope easy to narrow. A learning experience can deliberately invite practice; an ordinary request for help should not become a questionnaire.
 
@@ -61,11 +63,11 @@ The reading experience should be welcoming and polished without requiring a spec
 
 ### For coding agents
 
-A coding agent should be able to ask: What matters before changing this part of the system, and what should I do next?
+A coding agent should be able to ask: **What matters before changing this part of the system, and what should I do next?** This is a **coequal flagship experience**, not a tutorial in machine-readable form.
 
-Lore should return a focused machine-readable package: preferred approach, applicable constraints, decisive evidence, observations already collected, safe progress, completion criteria and exact unresolved dependencies. It should distinguish documentary intent, reported behavior, static inspection, actual executed checks and inference. Do not make the calling agent repeat investigation Lore already performed or could reasonably have completed.
+Lore should return a compact versioned, machine-readable package: preferred approach, applicable constraints and exceptions, evidence and actual inspected implementation seams, observations already collected, safe progress, completion criteria and exact unresolved dependencies. It should distinguish documentary intent, reported behavior, static inspection, actual executed checks and inference. Do not make the calling agent repeat investigation Lore already performed or could reasonably have completed.
 
-The agent still owns implementation and verification of code it subsequently changes. A test to run after a future edit is different from an existing-source inspection Lore could perform now. Context should make that distinction explicit.
+The agent still owns implementation, verification and delivery of code it subsequently changes. A test to run after a future edit is different from an existing-source inspection Lore could perform now. Context should make that distinction explicit.
 
 Agents should not need to load an entire wiki, rely on a proprietary protocol or invoke another coding agent merely to retrieve project understanding. Markdown and CLI/JSON are foundations; an optional MCP adapter can improve compatibility without becoming mandatory.
 
@@ -73,7 +75,11 @@ Agents should not need to load an entire wiki, rely on a proprietary protocol or
 
 ## Product principles
 
-**Newcomer competence over documentation volume.** Optimize for an accurate mental model, correct first contribution, justified choices and less-assisted success on a distinct follow-up task. A generated solution without human understanding does not satisfy the mission.
+**Shared intelligence, not an onboarding-only product.** Optimize for accurate project understanding and better decisions for newcomers, experienced contributors, maintainers and coding agents. Audience-specific views never create competing versions of project truth.
+
+**Newcomer competence over documentation volume.** Optimize the human learning experience for a correct, understood first contribution and independent performance on a distinct follow-up task. A generated solution without human understanding is not evidence of learning.
+
+**Agent implementation quality over context volume.** Optimize task-specific context for correctly completed changes, fewer missed constraints and less unnecessary investigation. A long answer or high `proceed` rate is not evidence of value.
 
 **Empowerment over output.** Optimize for correct progress, understanding and user control—not pages, warnings, model calls or a high proceed rate in isolation. Include reading, correction, repeated investigation and waiting in the cost of an answer.
 
@@ -107,27 +113,30 @@ The intelligence layer and its integrity checks are implemented, but real-model 
 
 ## What we should build toward
 
-**Start with the complete newcomer journey, not a separate knowledge feature.** Reuse Lore 0.6 retrieval and permitted inspection, add minimal adaptive investigation and build:
+**First, prove one shared intelligence engine across two small, real experiences.** Reuse the existing Lore 0.6 source and decision core, add bounded adaptive permitted investigation, and expose a consistent source/permission contract to both:
 
-1. An immediate grounded project orientation and tour of one real workflow.
-2. A short, source-bound learning path through prerequisites, with one meaningful tutorial exercise.
-3. A first-contribution companion that supplies concrete context, constraints and progressively optional hints.
-4. Independent assessment of a distinct second task, avoiding credit for code written entirely by a coding agent.
+1. **Human slice:** a useful newcomer orientation, a short grounded workflow tour and one optional meaningful learning activity.
+2. **Agent slice:** one task-specific machine-readable package containing an actionable recommendation, concrete constraints, real inspected observations and future completion checks.
 
-Only after this coherent experience should we optimize broad recursive distillation, large learning catalogs, optional personalization, elaborate reader interfaces or automatic execution. Adaptive Knowledge Zoom and the four Diátaxis modes remain vital building blocks, but **they serve competence rather than become the product goal**.
+This **first engineering milestone** is intentionally smaller than a complete onboarding curriculum or multi-level wiki rebuild. It excludes a bespoke GUI, mandatory agent runtime, code edits, sandboxed test execution, live tracker integrations and persistent learner profiles. It must demonstrate correct source binding and at least one independently assessed example from each experience; synthetic fixtures establish contracts, not measured superiority.
 
-The [Developer Onboarding design](docs/DEVELOPER_ONBOARDING_DESIGN.md), [Knowledge Experience architecture](docs/KNOWLEDGE_EXPERIENCE_DESIGN.md), [Autonomous Assistance contract](docs/AUTONOMOUS_ASSISTANCE_DESIGN.md) and [newcomer-first roadmap](docs/KNOWLEDGE_EXPERIENCE_ROADMAP.md) specify these proposals. The roadmap sequences R0, minimal A1/A2 and O1–O3 into a working onboarding slice; A3 experience reuse and broader R1–R7 enrich it. These are **not current Lore 0.6 commands or features**.
+**Next, deepen each experience on its own merits.** Complete the first-contribution and independent-transfer evaluations for humans; establish held-out coding-task improvements for agents; then add revalidated investigation reuse, richer Knowledge Zoom, four Diátaxis modes, documented decision conditions, negative cases and optional reader/approved execution. These capabilities share evidence and source authority without forcing a single user flow.
 
-`lore context` has provided task retrieval since 0.3 and intelligent guidance since 0.5. Proposed `lore onboard`, view, learning, change and reader interfaces remain unimplemented until explicitly released.
+The [Developer Onboarding design](docs/DEVELOPER_ONBOARDING_DESIGN.md), [Coding-Agent Intelligence design](docs/CODING_AGENT_INTELLIGENCE_DESIGN.md), [Knowledge Experience architecture](docs/KNOWLEDGE_EXPERIENCE_DESIGN.md), [Autonomous Assistance contract](docs/AUTONOMOUS_ASSISTANCE_DESIGN.md), and [phased roadmap](docs/KNOWLEDGE_EXPERIENCE_ROADMAP.md) are future proposals. Lore 0.6's command/schema and permission behavior remain unchanged until an explicitly validated release.
 
 ## How we will know it works
 
-Our north star for onboarding is **time to a correct, understood first contribution—and independently correct work on a different related task with less assistance**.
+**Two independent north-star outcomes:**
 
-Test whether a newcomer can accurately explain an end-to-end workflow, predict a relevant edge case, make a correct bounded change and transfer that understanding to a new task; distinguish their work from a coding agent's code. Compare original docs, OpenWiki when available, current Lore and the new guided experience under matched capability and budget. Also test whether an agent makes better changes while preserving constraints; whether Lore completes available investigation instead of handing it off; and whether important uncertainty changes the action when it should. Measure false blocking and unsafe proceeding together, so apparent decisiveness never substitutes for judgment.
+- **Human learning:** time to a correct, understood first contribution, plus success on a distinct related task with less assistance.
+- **Coding-agent quality:** time and total effort to a correct, constraint-respecting implementation, including avoided repeated investigation and material mistakes.
+
+Neither score substitutes for the other. Experienced developers and maintainers additionally need direct correctness, usable decision explanations and fewer avoidable handoffs.
+
+Test newcomers on architecture understanding, first-task success and transfer; test coding agents separately on real task completion, policy/exception preservation and rework. Include original sources, OpenWiki where available, current Lore and new/combined experiences under comparable permissions, models and budgets. Record which work was performed by a human versus an agent; whether Lore completed worthwhile investigations; and whether counterevidence changed the recommendation when warranted. Measure false blocking and unsafe proceeding together, so apparent decisiveness never substitutes for judgment.
 
 Measure clarity, reading/correction burden, useful partial progress, actual completion time, learning transfer, cancellation/override behavior, cold/warm cost and latency, and safely avoided repeated work. Reuse must detect new contrary evidence, changed deeper-round source and reduced permissions. Historical evidence remains available without appearing current.
 
 Keep operational promises measurable: exact source binding, controlled egress, bounded inference/inspection, recoverable publication, purge, portable output and zero model calls on a genuinely unchanged update.
 
-**Lore succeeds when someone new to a project can understand its important ideas, make a correct first change, and approach the next change with genuine independence.** It achieves this by doing useful investigation, teaching through meaningful practice and respecting the learner's judgment—not by producing more documentation.
+**Lore succeeds when everyone working in a project becomes more capable:** newcomers learn and contribute independently; experienced developers and maintainers make sounder decisions; coding agents implement better changes with less wasted effort. It achieves this through shared evidence, initiative, useful distillation and adaptable presentation—not by producing more documentation.
