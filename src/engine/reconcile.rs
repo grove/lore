@@ -387,18 +387,47 @@ fn quoted_document_action(quote: &str, identifier: &str) -> Option<&'static str>
             // "ADR-027 supersedes ADR-001, but does not verify deployment"
             // establishes replacement and separately qualifies runtime state.
             let uncertain_prior = [
-                " not ", " never ", " no ", "without ", "unless ",
-                "until ", " if ", "could ", "might ", "may ",
-                "should ", "would ", "consider ", "propos",
-                "possibly ", "unclear ", "whether ", "pending ",
-                "isn't ", "wasn't ", "doesn't ", "hasn't ",
-            ].iter().any(|word| prior.contains(word));
+                " not ",
+                " never ",
+                " no ",
+                "without ",
+                "unless ",
+                "until ",
+                " if ",
+                "could ",
+                "might ",
+                "may ",
+                "should ",
+                "would ",
+                "consider ",
+                "propos",
+                "possibly ",
+                "unclear ",
+                "whether ",
+                "pending ",
+                "isn't ",
+                "wasn't ",
+                "doesn't ",
+                "hasn't ",
+            ]
+            .iter()
+            .any(|word| prior.contains(word));
             let first_clause = suffix.split(',').next().unwrap_or(suffix);
             let conditional_after = [
-                " if ", " only if", " unless ", " subject to ",
-                " provided ", " pending ", " might ", " could ",
-                " may ", " would ", " should ",
-            ].iter().any(|word| first_clause.contains(word));
+                " if ",
+                " only if",
+                " unless ",
+                " subject to ",
+                " provided ",
+                " pending ",
+                " might ",
+                " could ",
+                " may ",
+                " would ",
+                " should ",
+            ]
+            .iter()
+            .any(|word| first_clause.contains(word));
             if uncertain_prior
                 || prior.trim_start().starts_with("no ")
                 || prior.trim_start().starts_with("not ")
@@ -601,7 +630,10 @@ mod explicit_reference_tests {
             Some("supersedes")
         );
         assert_eq!(
-            quoted_document_action("ADR-027 supersedes ADR-001 only if production approval is granted.", "adr-001"),
+            quoted_document_action(
+                "ADR-027 supersedes ADR-001 only if production approval is granted.",
+                "adr-001"
+            ),
             None
         );
         let review = "The review reaffirmed that the ledger remains committed to the MySQL decision in ADR-001.";
