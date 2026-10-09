@@ -40,6 +40,10 @@ impl ModelServer {
             while !stop.load(Ordering::SeqCst) {
                 match listener.accept() {
                     Ok((mut stream, _)) => {
+                        // Explicitly reset the mode inherited from the
+                        // nonblocking listener on BSD/macOS; request parsing
+                        // below uses blocking reads with bounded timeouts.
+                        stream.set_nonblocking(false).unwrap();
                         stream
                             .set_read_timeout(Some(Duration::from_secs(5)))
                             .unwrap();

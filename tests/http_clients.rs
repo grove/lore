@@ -47,6 +47,10 @@ impl Server {
             while !stop.load(Ordering::SeqCst) {
                 match listener.accept() {
                     Ok((mut stream, _)) => {
+                        // BSD/macOS can inherit the listener's nonblocking
+                        // flag. Reads below expect blocking I/O with a timeout,
+                        // not a transient WouldBlock before request delivery.
+                        stream.set_nonblocking(false).unwrap();
                         stream
                             .set_read_timeout(Some(Duration::from_secs(5)))
                             .unwrap();
