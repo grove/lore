@@ -2,7 +2,7 @@ mod common;
 use common::*;
 use lore::{
     config::{ModelRole, ProviderSettings, ResolvedConfig},
-    http::{HttpModel, decode_generation},
+    http::{HttpModel, decode_embeddings, decode_generation},
     inference::*,
 };
 use serde_json::{Value, json};
@@ -462,4 +462,224 @@ fn real_cli_compiles_over_http_then_updates_with_server_offline() {
     assert!(run(&["audit"]).status.success());
     assert!(run(&["search", "MySQL"]).status.success());
     assert!(run(&["read", "database"]).status.success());
+}
+
+#[tokio::test]
+async fn calls_ollama_embedding_api_with_explicit_input_bounds() {
+    let _serial = HTTP_FIXTURE_LOCK.lock().unwrap_or_else(|p| p.into_inner());
+    let (_dir, cfg, _) = project();
+    let server = Server::new(|request, _| {
+        assert_eq!(request.path, "/api/embed");
+        assert_eq!(request.body["model"], "fixture-v1");
+        assert_eq!(
+            request.body["input"],
+            json!(["first input", "second input"])
+        );
+        assert_eq!(request.body["truncate"], false);
+        (
+            200,
+            json!({"model":"fixture-v1:latest","embeddings":[[1.0,0.0],[0.0,1.0]]}),
+        )
+    });
+    let (config, role) = configured(&cfg, &server, "ollama");
+    let model = HttpModel::new(&config, &role).unwrap();
+    let response = model
+        .embed(&EmbeddingRequest {
+            inputs: vec!["first input".into(), "second input".into()],
+        })
+        .await
+        .unwrap();
+    assert_eq!(response.embeddings, vec![vec![1.0, 0.0], vec![0.0, 1.0]]);
+    assert!(
+        model
+            .embed(&EmbeddingRequest { inputs: vec![] })
+            .await
+            .is_err()
+    );
+    assert!(
+        model
+            .embed(&EmbeddingRequest {
+                inputs: vec![" ".into()]
+            })
+            .await
+            .is_err()
+    );
+    assert!(
+        model
+            .embed(&EmbeddingRequest {
+                inputs: vec!["x".repeat(config.config.processing.max_context_bytes + 1)]
+            })
+            .await
+            .is_err()
+    );
+    assert_eq!(server.requests.lock().unwrap().len(), 1);
+}
+
+#[tokio::test]
+async fn openai_embedding_response_indices_preserve_exact_input_association() {
+    let _serial = HTTP_FIXTURE_LOCK.lock().unwrap_or_else(|p| p.into_inner());
+    let (_dir, cfg, _) = project();
+    let server = Server::new(|request, _| {
+        assert_eq!(request.path, "/v1/embeddings");
+        assert!(request.authorized);
+        assert_eq!(request.body["encoding_format"], "float");
+        assert_eq!(
+            request.body["input"],
+            json!(["first input", "second input"])
+        );
+        (
+            200,
+            json!({"model":"hosted-test","object":"list","data":[
+                {"object":"embedding","index":1,"embedding":[0.0,1.0]},
+                {"object":"embedding","index":0,"embedding":[1.0,0.0]}
+            ]}),
+        )
+    });
+    let (config, role) = configured(&cfg, &server, "openai");
+    let model = HttpModel::new(&config, &role)
+        .unwrap()
+        .with_credential("test-key".into());
+    let response = model
+        .embed(&EmbeddingRequest {
+            inputs: vec!["first input".into(), "second input".into()],
+        })
+        .await
+        .unwrap();
+    assert_eq!(response.embeddings, vec![vec![1.0, 0.0], vec![0.0, 1.0]]);
+}
+
+#[test]
+fn embedding_decoder_rejects_model_substitution_counts_indices_and_invalid_vectors() {
+    let descriptor = ModelDescriptor {
+        provider: Provider::OpenAi,
+        model: "vectors".into(),
+        location: ExecutionLocation::Hosted,
+    };
+    let request = EmbeddingRequest {
+        inputs: vec!["first".into(), "second".into()],
+    };
+    for data in [
+        json!([]),
+        json!([{"index":0,"embedding":[1,0]}]),
+        json!([{"index":0,"embedding":[1,0]},{"index":0,"embedding":[0,1]}]),
+        json!([{"index":0,"embedding":[1,0]},{"index":2,"embedding":[0,1]}]),
+        json!([{"index":0,"embedding":[1,0]},{"embedding":[0,1]}]),
+        json!([{"index":0,"embedding":[1,0]},{"index":1,"embedding":[0,1,0]}]),
+        json!([{"index":0,"embedding":[1,0]},{"index":1,"embedding":[0,0]}]),
+        json!([{"index":0,"embedding":[1,0]},{"index":1,"embedding":[1e99,0]}]),
+        json!([{"index":0,"embedding":[1,0]},{"index":1,"embedding":"AQID"}]),
+    ] {
+        assert!(
+            decode_embeddings(
+                &descriptor,
+                &request,
+                &json!({"model":"vectors","data":data})
+            )
+            .is_err()
+        );
+    }
+    let valid = json!([{"index":0,"embedding":[1,0]},{"index":1,"embedding":[0,1]}]);
+    assert!(
+        decode_embeddings(
+            &descriptor,
+            &request,
+            &json!({"model":"different-model","data":valid})
+        )
+        .is_err()
+    );
+    assert!(
+        decode_embeddings(
+            &descriptor,
+            &request,
+            &json!({"model":"vectors","data":valid})
+        )
+        .is_ok()
+    );
+}
+
+#[test]
+fn http_constructor_enforces_inference_contract_after_read_only_config_loading() {
+    let (_dir, cfg, _) = project();
+    for model_name in [
+        "",
+        "   ",
+        "invalid\nmodel",
+        "invalid model",
+        "fixture:cloud",
+        "fixture-cloud",
+    ] {
+        let mut role = cfg.config.models.generative.clone();
+        role.model = model_name.into();
+        assert!(
+            HttpModel::new(&cfg, &role).is_err(),
+            "accepted model {model_name:?}"
+        );
+    }
+    let mut role = cfg.config.models.generative.clone();
+    role.enabled = false;
+    assert!(HttpModel::new(&cfg, &role).is_err());
+    for (seconds, retries, bytes) in [
+        (0, 0, 32_000),
+        (601, 0, 32_000),
+        (1, 6, 32_000),
+        (1, 0, 0),
+        (1, 0, 1_000_001),
+    ] {
+        let mut config = cfg.clone();
+        config.config.processing.timeout_seconds = seconds;
+        config.config.processing.retry_attempts = retries;
+        config.config.processing.max_context_bytes = bytes;
+        assert!(HttpModel::new(&config, &config.config.models.generative).is_err());
+    }
+}
+
+#[test]
+fn model_cache_identities_include_endpoint_but_never_credentials() {
+    let (_dir, cfg, _) = project();
+    let role = cfg.config.models.generative.clone();
+    let first = HttpModel::new(&cfg, &role)
+        .unwrap()
+        .with_credential("private-secret".into());
+    let mut config = cfg.clone();
+    config.config.providers.insert(
+        "ollama".into(),
+        ProviderSettings {
+            base_url: Some("http://127.0.0.1:11435/".into()),
+            api_key_env: None,
+        },
+    );
+    let second = HttpModel::new(&config, &role).unwrap();
+    assert_ne!(
+        GenerativeModel::cache_identity(&first),
+        GenerativeModel::cache_identity(&second)
+    );
+    assert_ne!(
+        EmbeddingModel::cache_identity(&first),
+        EmbeddingModel::cache_identity(&second)
+    );
+    assert!(!first.cache_identity().contains("private-secret"));
+}
+
+#[tokio::test]
+async fn embedding_retries_count_as_one_logical_inference_call() {
+    let _serial = HTTP_FIXTURE_LOCK.lock().unwrap_or_else(|p| p.into_inner());
+    let (_dir, cfg, _) = project();
+    let server = Server::new(|request, _| {
+        assert_eq!(request.path, "/api/embed");
+        (503, json!({"error":"temporary fixture failure"}))
+    });
+    let (mut config, role) = configured(&cfg, &server, "ollama");
+    config.config.processing.retry_attempts = 2;
+    let model = HttpModel::new(&config, &role).unwrap();
+    assert!(
+        model
+            .embed(&EmbeddingRequest {
+                inputs: vec!["fixture input".into()]
+            })
+            .await
+            .is_err()
+    );
+    assert_eq!(model.embedding_calls.load(Ordering::Relaxed), 1);
+    assert_eq!(model.requests.load(Ordering::Relaxed), 3);
+    assert_eq!(server.requests.lock().unwrap().len(), 3);
 }

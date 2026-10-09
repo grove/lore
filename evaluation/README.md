@@ -1,5 +1,12 @@
 # Evaluating Lore on real projects
 
+For Lore 0.5's executable baseline / fast / intelligent coding-task comparison,
+see [Intelligence evaluation](INTELLIGENCE.md). It runs a supplied real coding
+agent, applies allowed implementation changes to isolated copies, executes
+correctness and constraint checks, and retains bound human-review packets.
+Fallbacks and synthetic fixtures do not establish intelligent benefit; unknown
+inference charges remain unknown.
+
 For Lore 0.4's native-import scenarios and four-setup engineering-task comparison, see [Cross-source evaluation](CROSS_SOURCE.md). Its mechanical tests and preparation command run without inference. The semantic release gates require actual model runs and blind human review; bundled fixtures cannot establish measured benefit.
 
 This directory is a **reproducible evaluation harness**, not a claim that model quality has already been established. It defines four document collections: an evolving, human-curated payments project called Atlas; Lore's own documentation; and pinned revisions of the public OpenWiki and LLM Wiki repositories. External repositories are fetched only when explicitly selected and at the exact commit recorded in [targets.json](targets.json). The script copies permitted Markdown documents into an isolated workspace and never executes source-repository code or edits the original files.
@@ -49,7 +56,7 @@ The same command can target lore-self, openwiki, and llm-wiki with their respect
 
 ## Compare reasoning-effort settings
 
-The benchmark and three-project suite now record a per-task `reasoning` policy. By default, OpenAI Responses runs use `low` for extraction, `high` for reconciliation/verification, and `medium` for page and overview synthesis. Use flags such as `--reasoning-reconciliation medium`, `--reasoning-verification xhigh` or `--disable-reasoning` to test other settings. Do not interpret different reasoning policies as identical-run repeatability: the comparator explicitly flags different or missing policies, and suite acceptance requires the same configured policy for each target. Keep the model, corpus, binary and verification settings fixed while varying one effort. See [Reasoning configuration](../docs/REASONING.md) for the six task settings and supported values.
+The benchmark and three-project suite now record a per-task `reasoning` policy. By default, OpenAI Responses runs use `low` for extraction, `high` for reconciliation/verification, and `medium` for page and overview synthesis. Lore 0.5 adds `context_synthesis: medium` and `context_verification: high`. Use flags such as `--reasoning-reconciliation medium`, `--reasoning-verification xhigh`, `--reasoning-context-synthesis high` or `--disable-reasoning` to test other settings. Do not interpret different reasoning policies as identical-run repeatability: the comparator explicitly flags different or missing policies, and suite acceptance requires the same configured policy for each target. Keep the model, corpus, binary and verification settings fixed while varying one effort. See [Reasoning configuration](../docs/REASONING.md) for task settings and supported values.
 
 ## Inspect without using any models
 

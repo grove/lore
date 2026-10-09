@@ -5,7 +5,9 @@
 //! currently checked-out code. Context preserves those independent dimensions.
 
 use super::{
-    ContextEvidence, ContextResult, ContextReview, InspectionPath, display_text, failure, retrieval,
+    ContextEvidence, ContextResult, ContextReview, InspectionPath, display_text, failure,
+    retrieval,
+    semantic::{self, SemanticHit},
 };
 use crate::{
     domain::ImportKind,
@@ -257,6 +259,15 @@ fn summarize_warnings(mut warnings: Vec<String>) -> (Vec<String>, usize) {
 }
 
 pub(super) fn retrieve(conn: &Connection, task: &str, paths: &[String]) -> Result<NativeRetrieval> {
+    retrieve_hybrid(conn, task, paths, &[])
+}
+
+pub(super) fn retrieve_hybrid(
+    conn: &Connection,
+    task: &str,
+    paths: &[String],
+    semantic_hits: &[SemanticHit],
+) -> Result<NativeRetrieval> {
     // Old registries remain queryable without a write or migration.
     let available: bool = conn.query_row(
         "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='native_records')",
@@ -288,14 +299,43 @@ pub(super) fn retrieve(conn: &Connection, task: &str, paths: &[String]) -> Resul
     let mut candidates = BTreeMap::new();
     let (lexical, limited) = lexical_hits(conn, &terms)?;
     report.truncated |= limited;
-    for (id, rank) in lexical {
-        if let Some(observation) = report.observations.get(&id) {
+    for (id, rank) in &lexical {
+        if let Some(observation) = report.observations.get(id) {
             add_candidate(
                 &mut candidates,
                 &id,
                 5.0 + 3.0 * rank - if historical(observation) { 0.5 } else { 0.0 },
                 "task keyword relevance in native source record (BM25)".into(),
             );
+        }
+    }
+    let semantic_hits: Vec<_> = semantic_hits
+        .iter()
+        .filter(|hit| {
+            hit.score.is_finite()
+                && hit.score > 0.0
+                && hit.score <= 1.0
+                && report.observations.contains_key(&hit.id)
+        })
+        .cloned()
+        .collect();
+    if !semantic_hits.is_empty() {
+        for (id, rank) in semantic::fuse_ranks(&lexical, &semantic_hits) {
+            if let Some(observation) = report.observations.get(&id) {
+                let candidate = candidates.entry(id).or_default();
+                candidate.score =
+                    5.0 + 3.0 * rank - if historical(observation) { 0.5 } else { 0.0 };
+            }
+        }
+        for hit in &semantic_hits {
+            candidates
+                .entry(hit.id.clone())
+                .or_default()
+                .reasons
+                .insert(
+                    "semantic relevance in native source record (cosine; reciprocal rank fusion)"
+                        .into(),
+                );
         }
     }
     for observation in report.observations.values() {

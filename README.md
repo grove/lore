@@ -1,10 +1,10 @@
 # Lore
 
-**Give your project a memory that grows with it.**
+**Understand your project. Make better changes.**
 
-Projects collect their history in architecture notes, ADRs, plans, issue exports, investigations, and previous agent experiences. Understanding a subject often means piecing together several sources written at different times for different reasons. Lore is a Rust command-line application that reads your project's Markdown directories and optional native knowledge snapshots, maintains evidence-backed project understanding, and retrieves the decisions, constraints, history, and open questions relevant to your next task. The same knowledge powers a linked, topic-oriented Markdown wiki.
+Projects collect their history in architecture notes, ADRs, plans, issue exports, investigations, and previous agent experiences. Understanding a subject often means piecing together several sources written at different times for different reasons. Lore is a Rust command-line application that reads your project's Markdown directories and optional native knowledge snapshots, maintains evidence-backed project understanding, and uses the decisions, constraints, history, and open questions to recommend an approach for your next task. The same knowledge powers a linked, topic-oriented Markdown wiki.
 
-**Lore 0.4 connects understanding across independently maintained sources.** Native, read-only adapters consume OpenWiki OKF/Claims, Engram JSON exports, and Beads JSONL exports. Lore preserves each system's evidence and authority, records qualified relationships and possible discrepancies, and returns complete relevant groups through `lore context "Implement payment retries"`. Retrieval remains deterministic, local, model-free, and bounded by an explicit output budget. See [the 0.4 guide](docs/V04.md) for setup, the versioned context contract, and limitations. Real-model accuracy and a measurable benefit over the same tools without Lore remain evaluation gates; fixture tests do not establish those results.
+**Lore 0.5 turns connected knowledge into actionable project intelligence.** `lore context "Implement payment retries"` leads with a recommended approach, explains likely rationale, highlights constraints and risks, and suggests the next useful steps. Documented knowledge, observed reports, and inferred explanations stay distinct, with exact retained evidence behind every citation. Optional hybrid semantic search finds related knowledge even when the task uses different words. `--fast` keeps the deterministic, read-only 0.4 experience. See [the 0.5 guide](docs/V05.md) for the response contract, configuration, caching, and evaluation status.
 
 ## Vision
 
@@ -24,7 +24,7 @@ Lore's first CLI implementation is available, but we are still validating how ac
 
 Suppose an accepted ADR selects MySQL, a later idea proposes PostgreSQL, and an issue asks someone to investigate migration. A summary that treats every sentence as a current fact might announce that the project is moving to PostgreSQL. Lore instead preserves the distinction between an accepted decision, a proposal, and a work item. Closing the issue does not establish that anything shipped. A later document explicitly replacing the ADR can change the documented decision, while a deployment report remains a report rather than independent verification of production.
 
-Each source keeps its own assertions and provenance. Equivalent assertions may support one consolidated knowledge unit, but their original excerpts remain separate and inspectable. When a document disappears, its historical evidence is retained and no longer presented as current support. When sources disagree, Lore preserves the disagreement and records a review item rather than choosing whichever document happened to be newest.
+Each source keeps its own assertions and provenance. Equivalent assertions may support one consolidated knowledge unit, but their original excerpts remain separate and inspectable. When a document disappears, its historical evidence is retained and no longer presented as current support. When sources disagree, Lore preserves the disagreement and records a review item. The task briefing can still propose a likely explanation and a practical provisional approach, with its supporting evidence, alternatives, and applicability. These interpretations never change an accepted decision or close a review.
 
 ## Get started
 
@@ -62,13 +62,35 @@ lore context "Implement payment retries" \
   --path docs/payments/retry-policy.md \
   --max-tokens 3000
 lore --json context "Implement payment retries"
+lore context "Implement payment retries" --fast
+lore context "Implement payment retries" --no-cache
 ```
 
-`context` selects knowledge from the last compiled registry. It groups relevant constraints, decisions, documented design, historical knowledge, proposals, and items needing verification; each material assertion carries an archived evidence reference. Stored supersession and conflict relationships retain their endpoints and evidence. A tight budget can omit a complete connected group, with explicit omission counts and warnings, so callers can request more context without mistaking a partial result for complete guidance. Paths are optional relevance hints, not files to read or code changes to perform. Suggested inspection locations come from captured sources or documented references.
+`context` combines relevant knowledge from the last compiled registry with the configured generative model. The versioned schema 3 briefing contains one preferred approach, original documented/observed statements, revision-bound hypotheses, recommended actions, risks, accepted-guidance checks, and next steps. Inferences include alternative explanations and applicability conditions. Additional scrutiny checks consequential recommendations and inferred explanations before they are shown. Neither generation nor semantic search edits the knowledge registry, original sources, or generated wiki.
 
-The default budget is 3,000 tokens. Lore counts the entire compact JSON and human-readable output with the embedded `cl100k_base` tokenizer and bounds both forms. This includes citations, metadata, and warnings; it does not include your surrounding prompt or guarantee the same count for another model's tokenizer. Whole records are selected without silently shortening their statements or evidence. See [the output and budget contract](docs/V03.md#output-and-budget-contract).
+The default output budget is 3,000 tokens. Lore measures the complete compact JSON and human-readable output with the embedded `cl100k_base` tokenizer and bounds both forms, including citations, metadata, and warnings. The model's evidence input is separately limited by `processing.max_context_bytes`. Whole optional brief items can be omitted with an explicit count; required risk and constraint qualifications stay with the recommendation. When a valid briefing cannot fit, inference fails, or the configured provider is unavailable, `mode: fast_fallback` identifies a deterministic result without fresh reasoning. Use `mode`, `model_calls`, and `cache_status` to distinguish those outcomes.
 
-Retrieval runs locally without credentials, a running inference server, an embedding service, or MCP. It does not inspect live source changes or infer new contradictions; run `lore status` and `lore update` when the source corpus changes. A successful empty result means no eligible knowledge was retrieved, not that the task has no constraints. Lexical and relationship expansion can bridge connected concepts, but arbitrary synonyms and unstored relationships can still be missed.
+`lore context --fast` emits the unchanged schema 2 retrieval contract with zero model calls and no writes, credentials, model server, or embedding service required. It groups related documentary/native records with their evidence and preserves conflict endpoints. A tight budget can omit an entire connected group, with explicit omission counts. Paths are relevance hints and captured inspection leads; Lore does not inspect a live checkout. An empty result means no eligible knowledge was retrieved, not that no constraints apply.
+
+Unchanged queries reuse guidance bound to the task, selected evidence revisions, endpoint/model identity, reasoning settings, privacy, prompt version, and budgets. Changed evidence is re-evaluated on the next query. `--no-cache` bypasses both guidance and embedding caches for one call; `context.cache: false` disables their persistence in configuration. Refresh explicitly after changing the weights behind an unchanged model alias.
+
+### Optional semantic retrieval
+
+Intelligent guidance works with the existing lexical and relationship retrieval immediately. To also match concepts across different wording, configure a separate embedding model you have installed or explicitly opted into:
+
+```yaml
+models:
+  generative:
+    provider: ollama
+    model: gemma4:12b
+  embedding:
+    provider: ollama
+    model: embeddinggemma
+```
+
+Install the selected embedding model in Ollama, then run `lore doctor --inference` to check it. [The complete local example](examples/lore.intelligent.yml) includes the default privacy and reasoning settings. Hosted embeddings require `privacy.local_only: false`, an explicit embedding provider/model, and that provider's credentials; enabling a chat model never implicitly enables embeddings.
+
+Lore stores embeddings for original knowledge units and imported observations in a separate SQLite cache, combines semantic and lexical ranks, and retrieves their recorded relationship groups. No vector extension, Node.js process, or separate search service is required. The first semantic query builds the index; later queries reuse unchanged record and query vectors. Large initial indexes can involve many embedding calls. Indexing, record text, and candidate counts are bounded and reported when truncated. If embeddings are unavailable, guidance can still use lexical retrieval.
 
 For Codex, Claude Code, and other command-capable agents, use the [optional agent instruction snippet](docs/AGENTS.example.md). Agents can inspect any returned snapshot with `lore --json evidence EVIDENCE_ID` and should verify implementation details in the actual code and tests.
 
@@ -85,7 +107,7 @@ lore read database-strategy
 lore audit
 ```
 
-`status`, `update --dry-run`, `context`, search, reading, and the ordinary audit do not call a model. `audit --deep` performs a broader, model-assisted refresh and reconciliation; it can be expensive. `update --refresh` bypasses semantic caches and re-extracts all sources, which is useful after changing a model behind an unchanged model alias. `update --rebuild` explicitly allows replacement of Lore-owned generated output, including manual edits, while retaining the knowledge history. By default, Lore refuses to overwrite edited pages or unmanaged files.
+`status`, `update --dry-run`, `context --fast`, search, reading, and the ordinary audit do not call a model. `audit --deep` performs a broader, model-assisted refresh and reconciliation; it can be expensive. `update --refresh` bypasses semantic caches and re-extracts all sources, which is useful after changing a model behind an unchanged model alias. `update --rebuild` explicitly allows replacement of Lore-owned generated output, including manual edits, while retaining the knowledge history. By default, Lore refuses to overwrite edited pages or unmanaged files.
 
 The CLI also provides `lore evidence <evidence-id>` for an exact archived passage and `lore review` for unresolved questions. `lore review show <review-id>` displays the history and evidence binding; `resolve`, `dismiss` and `reopen` accept an explicit `--reason` and optional `--actor`. These actions record a disposition, not a new project fact, and make no model calls. Specific relationship questions can also close automatically when active evidence from the same source revision establishes the named replacement; withdrawn evidence reopens them. `--config path/to/lore.yml` selects another configuration, and the global `--json` option produces machine-readable results, including argument errors. Operational errors exit with code 1, argument errors with code 2, and audit findings with code 3.
 
@@ -97,7 +119,7 @@ Documentary status and factual verification stay separate. An architecture speci
 
 ## Reasoning effort by task
 
-When using an OpenAI Responses-compatible generative model, Lore explicitly requests a **task-appropriate reasoning effort**: `low` for evidence extraction, `high` for semantic reconciliation and verification, and `medium` for topic and overview writing. These are configurable starting points, not benchmark-proven optimal levels. Set `models.reasoning` in `lore.yml` to override one or all tasks; `enabled: false` leaves the provider's reasoning level unspecified. The setting does not affect Ollama, Clef-Flash, TypeSafe Jev, or OpenAI Decisions. See [Reasoning configuration](docs/REASONING.md) for all supported levels, exact keys, and benchmark override flags.
+When using an OpenAI Responses-compatible generative model, Lore explicitly requests a **task-appropriate reasoning effort**: `low` for evidence extraction, `high` for semantic reconciliation and verification, and `medium` for topic writing, overview writing, and task-context synthesis. Context verification defaults to `high`. These are configurable starting points, not benchmark-proven optimal levels. Set `models.reasoning` in `lore.yml` to override one or all tasks; `enabled: false` leaves the provider's reasoning level unspecified. The setting does not affect Ollama, Clef-Flash, TypeSafe Jev, or OpenAI Decisions. See [Reasoning configuration](docs/REASONING.md) for all supported levels, exact keys, and benchmark override flags.
 
 ## Local, hosted, or a combination
 
@@ -227,6 +249,6 @@ Deleting a source is not the same as deleting its retained history. To intention
 
 Run `cargo test --all-targets --locked` for the offline compiler, provider, database, source-boundary, retrieval, context-budget, and CLI tests. No real API credentials or installed model weights are needed for these tests. The implementation deliberately favors correctness and inspectable history over maximum throughput: source processing is sequential, candidate comparisons are exhaustive in bounded batches, and topic pages are regenerated as coherent units. These choices can make large first-time compilations expensive. The current automatic supersession guard recognizes explicit English replacement wording and predecessor references; less explicit or differently worded cases remain reviewable instead of being guessed.
 
-Lore reads local Markdown and optional native snapshots from OpenWiki, Engram, and Beads. Direct tracker connectors, bidirectional writes, automatic verification against code or production systems, a hosted service, and a graph editor remain outside 0.4. Cross-source comparisons use bounded candidate indexes; large-corpus recall and semantic quality still require independent evaluation. The architecture and remaining trade-offs are described in [DESIGN.md](DESIGN.md), while [docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md) documents the implemented behavior, recovery, provider testing, and operational limitations. Feedback grounded in a small reproducible document corpus is particularly welcome.
+Lore reads local Markdown and optional native snapshots from OpenWiki, Engram, and Beads. Direct tracker connectors, bidirectional writes, automatic verification against code or production systems, a hosted service, and a graph editor remain outside 0.5. Cross-source comparisons and hybrid search use bounded candidate indexes; large-corpus recall, recommendation quality, and actual coding-task improvements still require independent evaluation. [The coding-task evaluator](evaluation/INTELLIGENCE.md) compares baseline, fast, and intelligent context using executable changes; fixture tests establish contracts, not measured model-quality gains. The architecture and remaining trade-offs are described in [DESIGN.md](DESIGN.md), while [docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md) documents the implemented behavior, recovery, provider testing, and operational limitations. Feedback grounded in a small reproducible document corpus is particularly welcome.
 
 Lore is inspired by [OpenWiki](https://github.com/langchain-ai/openwiki) and research on grounded generation, provenance, and incremental knowledge maintenance. It is licensed under the [Apache License 2.0](LICENSE).

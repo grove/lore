@@ -1,7 +1,9 @@
 //! Deterministic, read-only task context from the existing knowledge registry.
 //! Selection never changes knowledge, generates claims, or invokes a model.
 pub mod imports;
+pub mod intelligence;
 pub mod retrieval;
+pub mod semantic;
 
 use crate::{
     domain::{KnowledgeView, SourceMaterial, documentary_basis},
@@ -219,6 +221,25 @@ pub fn count_tokens(text: &str) -> usize {
 }
 
 pub fn build_context(conn: &Connection, options: &ContextOptions) -> Result<ContextResult> {
+    build_context_impl(conn, options, None)
+}
+
+/// Assemble semantically discovered records with the same complete evidence
+/// groups, authority qualifications and output budgeting as fast context.
+/// Embeddings are supplied by the caller; this function never invokes a model.
+pub fn build_context_with_semantic(
+    conn: &Connection,
+    options: &ContextOptions,
+    semantic: &semantic::SemanticReport,
+) -> Result<ContextResult> {
+    build_context_impl(conn, options, Some(semantic))
+}
+
+fn build_context_impl(
+    conn: &Connection,
+    options: &ContextOptions,
+    semantic: Option<&semantic::SemanticReport>,
+) -> Result<ContextResult> {
     validate_options(options)?;
     let version: i64 = conn.pragma_query_value(None, "user_version", |r| r.get(0))?;
     if !(4..=storage::SCHEMA_VERSION).contains(&version) {
@@ -230,7 +251,7 @@ pub fn build_context(conn: &Connection, options: &ContextOptions) -> Result<Cont
     // Hold a single SQLite read snapshot for all queries, even when the caller
     // did not open an explicit transaction. SAVEPOINT makes this composable.
     conn.execute_batch("SAVEPOINT lore_context_read")?;
-    let result = assemble(conn, options);
+    let result = assemble(conn, options, semantic);
     let released = conn.execute_batch("RELEASE lore_context_read");
     match result {
         Ok(result) => {
@@ -285,9 +306,29 @@ fn conflict(kind: &str) -> bool {
     matches!(kind, "contradicts" | "suspected_conflict")
 }
 
-fn assemble(conn: &Connection, options: &ContextOptions) -> Result<ContextResult> {
-    let retrieval = retrieval::retrieve_with_report(conn, options.task.trim(), &options.paths)?;
-    let native = imports::retrieve(conn, options.task.trim(), &options.paths)?;
+fn assemble(
+    conn: &Connection,
+    options: &ContextOptions,
+    semantic: Option<&semantic::SemanticReport>,
+) -> Result<ContextResult> {
+    let retrieval = match semantic {
+        Some(report) => retrieval::retrieve_hybrid_with_report(
+            conn,
+            options.task.trim(),
+            &options.paths,
+            &report.knowledge,
+        )?,
+        None => retrieval::retrieve_with_report(conn, options.task.trim(), &options.paths)?,
+    };
+    let native = match semantic {
+        Some(report) => imports::retrieve_hybrid(
+            conn,
+            options.task.trim(),
+            &options.paths,
+            &report.observations,
+        )?,
+        None => imports::retrieve(conn, options.task.trim(), &options.paths)?,
+    };
     let hits = retrieval.hits;
     let views: BTreeMap<_, _> = storage::views(conn)?
         .into_iter()
@@ -480,7 +521,9 @@ fn assemble(conn: &Connection, options: &ContextOptions) -> Result<ContextResult
         candidates: &candidates,
         unsupported: &unsupported,
         native: &native,
-        retrieval_truncated: retrieval.truncated || native.truncated,
+        retrieval_truncated: retrieval.truncated
+            || native.truncated
+            || semantic.is_some_and(|report| report.truncated),
     };
     let mut selected = BTreeSet::new();
     let mut result = assembly.result(&selected)?;

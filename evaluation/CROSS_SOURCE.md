@@ -1,5 +1,10 @@
 # Lore 0.4 cross-source evaluation
 
+On Lore 0.5 this collector explicitly invokes `lore context --fast`, retaining
+the schema 2, deterministic, model-free contract evaluated here. For the new
+baseline / fast / intelligent comparison with executable coding tasks, see
+[Intelligence evaluation](INTELLIGENCE.md).
+
 This extension separates **interoperability contracts** from **measured benefit
 to a coding agent**. It does not claim that Lore has achieved the proposed
 quality thresholds. The included projects are synthetic fixtures; an

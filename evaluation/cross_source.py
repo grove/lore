@@ -215,7 +215,7 @@ def run_phase(binary: str, project: Path, result_dir: Path, case: dict,
     retrieval_seconds = 0.0
     for query in case["queries"]:
         answer, elapsed = bench.subprocess_json(binary, project, "context", query["task"],
-                                               "--max-tokens", str(max_tokens), timeout=timeout)
+                                               "--fast", "--max-tokens", str(max_tokens), timeout=timeout)
         evidence_ids.update(cited_ids(answer))
         contexts.append({"task": query["task"], "response": answer, "response_sha256": digest(answer)})
         path = result_dir / f"{name}-{query['id']}.json"

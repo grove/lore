@@ -92,17 +92,52 @@ fn json_argument_errors_work_before_configuration_is_loaded() {
     let (_temp, cfg, _model) = project();
     fs::remove_file(&cfg.config_path).unwrap();
     for args in [
-        vec!["--json", "context"],
-        vec!["context", "--json"],
-        vec!["--json", "context", ""],
-        vec!["context", " \t ", "--json"],
-        vec!["--json", "context", "retries", "--max-tokens", "0"],
-        vec!["--json", "context", "retries", "--max-tokens", "255"],
-        vec!["--json", "context", "retries", "--max-tokens", "100001"],
-        vec!["--json", "context", "retries", "--max-tokens", "many"],
-        vec!["--json", "context", "retries", "--max-tokens", "-1"],
-        vec!["--json", "context", "retries", "--path"],
-        vec!["--json", "context", "retries", "--unknown"],
+        vec!["--json", "context", "--fast"],
+        vec!["context", "--fast", "--json"],
+        vec!["--json", "context", "--fast", ""],
+        vec!["context", "--fast", " \t ", "--json"],
+        vec![
+            "--json",
+            "context",
+            "--fast",
+            "retries",
+            "--max-tokens",
+            "0",
+        ],
+        vec![
+            "--json",
+            "context",
+            "--fast",
+            "retries",
+            "--max-tokens",
+            "255",
+        ],
+        vec![
+            "--json",
+            "context",
+            "--fast",
+            "retries",
+            "--max-tokens",
+            "100001",
+        ],
+        vec![
+            "--json",
+            "context",
+            "--fast",
+            "retries",
+            "--max-tokens",
+            "many",
+        ],
+        vec![
+            "--json",
+            "context",
+            "--fast",
+            "retries",
+            "--max-tokens",
+            "-1",
+        ],
+        vec!["--json", "context", "--fast", "retries", "--path"],
+        vec!["--json", "context", "--fast", "retries", "--unknown"],
     ] {
         error(&run(&cfg, &args), 2, "invalid_arguments");
     }
@@ -114,7 +149,10 @@ fn json_argument_errors_work_before_configuration_is_loaded() {
 fn missing_registry_is_an_actionable_json_error_without_initialization() {
     let (_temp, cfg, _model) = project();
     let before = snapshot(&cfg.base);
-    let output = run(&cfg, &["--json", "context", "Implement payment retries"]);
+    let output = run(
+        &cfg,
+        &["--json", "context", "--fast", "Implement payment retries"],
+    );
     error(&output, 1, "operation_failed");
     let result: Value = serde_json::from_slice(&output.stdout).unwrap();
     assert!(result["error"].as_str().unwrap().contains("lore init"));
@@ -127,9 +165,16 @@ async fn context_validation_errors_keep_the_typed_json_contract() {
     let (_temp, cfg, _model) = compiled_project().await;
     let before = snapshot(&cfg.base);
     for args in [
-        vec!["--json", "context", "!!!"],
-        vec!["--json", "context", "Payment\nretries"],
-        vec!["--json", "context", "Payment retries", "--path", ""],
+        vec!["--json", "context", "--fast", "!!!"],
+        vec!["--json", "context", "--fast", "Payment\nretries"],
+        vec![
+            "--json",
+            "context",
+            "--fast",
+            "Payment retries",
+            "--path",
+            "",
+        ],
     ] {
         error(&run(&cfg, &args), 2, "invalid_query");
     }
@@ -137,7 +182,14 @@ async fn context_validation_errors_keep_the_typed_json_contract() {
     error(
         &run(
             &cfg,
-            &["--json", "context", &long_task, "--max-tokens", "512"],
+            &[
+                "--json",
+                "context",
+                "--fast",
+                &long_task,
+                "--max-tokens",
+                "512",
+            ],
         ),
         2,
         "invalid_budget",
@@ -146,7 +198,7 @@ async fn context_validation_errors_keep_the_typed_json_contract() {
 }
 
 #[tokio::test]
-async fn repeated_context_is_read_only_offline_and_has_resolvable_evidence() {
+async fn repeated_fast_context_is_read_only_offline_and_has_resolvable_evidence() {
     let (_temp, cfg, _model) = compiled_project().await;
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();
     listener.set_nonblocking(true).unwrap();
@@ -164,6 +216,7 @@ async fn repeated_context_is_read_only_offline_and_has_resolvable_evidence() {
     let before = snapshot(&cfg.base);
     let args = [
         "context",
+        "--fast",
         "Implement payment retries",
         "--path",
         "src/payments/retry.rs",
@@ -208,6 +261,7 @@ async fn human_and_json_output_fit_the_named_tokenizer_budget() {
             &[
                 "--json",
                 "context",
+                "--fast",
                 "Implement payment retries",
                 "--max-tokens",
                 &budget_arg,
@@ -218,6 +272,7 @@ async fn human_and_json_output_fit_the_named_tokenizer_budget() {
             &cfg,
             &[
                 "context",
+                "--fast",
                 "Implement payment retries",
                 "--max-tokens",
                 &budget_arg,
@@ -254,7 +309,7 @@ async fn context_does_not_require_working_inference_configuration_or_live_source
     // or silently change support status when the caller is offline.
     fs::remove_dir_all(cfg.base.join("docs")).unwrap();
     let before = snapshot(&cfg.base);
-    let output = run(&cfg, &["--json", "context", "Payment retries"]);
+    let output = run(&cfg, &["--json", "context", "--fast", "Payment retries"]);
     let result = success(&output);
     assert_eq!(result["model_calls"], 0);
     assert_eq!(result["empty"], false);
@@ -272,7 +327,10 @@ async fn context_does_not_require_working_inference_configuration_or_live_source
 async fn unmatched_task_returns_a_successful_explicit_empty_result() {
     let (_temp, cfg, _model) = compiled_project().await;
     let before = snapshot(&cfg.base);
-    let output = run(&cfg, &["--json", "context", "zygomorphic xylophony"]);
+    let output = run(
+        &cfg,
+        &["--json", "context", "--fast", "zygomorphic xylophony"],
+    );
     let result = success(&output);
     assert_eq!(result["empty"], true);
     assert_eq!(result["model_calls"], 0);
@@ -285,7 +343,7 @@ async fn pending_publication_is_not_recovered_or_read_by_context() {
     let (_temp, cfg, _model) = compiled_project().await;
     fs::write(cfg.state.join("publication.json"), "{\"pending\":true}").unwrap();
     let before = snapshot(&cfg.base);
-    let output = run(&cfg, &["--json", "context", "Payment retries"]);
+    let output = run(&cfg, &["--json", "context", "--fast", "Payment retries"]);
     error(&output, 1, "operation_failed");
     let result: Value = serde_json::from_slice(&output.stdout).unwrap();
     assert!(result["error"].as_str().unwrap().contains("lore update"));

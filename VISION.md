@@ -57,7 +57,7 @@ Agents should not need to load an entire wiki, rely on a proprietary protocol, o
 
 **Context at the moment of decision.** Optimize for the information needed to understand and complete a task, not for maximizing wiki pages, knowledge units, or generated words.
 
-**Radically simple UX.** A small set of predictable entry points should cover setup, updates, reading, searching, reviewing, and—eventually—task-focused retrieval. Sophistication belongs in the engine, not in configuration burden.
+**Radically simple UX.** A small set of predictable entry points should cover setup, updates, reading, searching, reviewing, and task-focused guidance. Sophistication belongs in the engine, not in configuration burden.
 
 **Local-first, open, and portable.** Keep the core usable without a hosted service or mandatory MCP server. Preserve user control over where inference runs and when project information leaves the machine. Prefer plain Markdown and stable machine-readable interfaces.
 
@@ -65,9 +65,11 @@ Agents should not need to load an entire wiki, rely on a proprietary protocol, o
 
 ## Where we are today
 
-Lore 0.4 is a local-first Rust CLI that ingests local Markdown and optional OpenWiki, Engram, and Beads snapshots, stores exact source evidence and versioned knowledge, incrementally reconciles updates, and publishes a cited, topic-oriented Markdown wiki with a project overview. Its `lore context` command retrieves deterministic, budgeted task context from the same registry without model calls. It also supports search, read, JSON output, multi-source provenance, native structured evidence, qualified cross-source discrepancies, and an evidence-bound review workflow. Local inference and explicitly configured hosted inference are supported for compilation.
+Lore 0.5 is a local-first Rust CLI that ingests local Markdown and optional OpenWiki, Engram, and Beads snapshots, retains exact evidence and versioned knowledge, and publishes a cited Markdown wiki. Its default `lore context` command now produces a recommended approach, interprets relevant history, develops conditional hypotheses, and suggests useful next steps. Optional semantic retrieval combines embeddings with lexical and recorded relationship signals. `--fast` preserves deterministic, budgeted, model-free retrieval.
 
-The knowledge compiler, task-context interface, and integrity safeguards are implemented, but **real-model factual quality and end-user usefulness still need empirical validation**. Lore does not yet offer a dedicated web UI, conversational grounded Q&A, direct issue-tracker or GitHub Wiki connectors, or independent verification of the running system. Retrieval uses lexical, path, concept, and stored relationship signals; arbitrary terminology mismatches can still be missed. See [README.md](README.md), [the v0.4 guide](docs/V04.md), and [the evaluation baseline](evaluation/BASELINE.md) for the current state.
+Generated interpretations and search indexes remain separate from the knowledge registry. Current source evidence, documentary authority, reported implementation, and inferred rationale retain distinct meanings. Local inference remains the default; hosted inference requires explicit configuration. Search, reading, JSON output, provenance, native structured evidence, cross-source discrepancies, and the evidence-bound review workflow remain available.
+
+The intelligence layer and its integrity checks are implemented, but **real-model factual quality and end-user usefulness still need empirical validation**. The coding-task evaluator compares actual proposed implementations with baseline sources, fast context, and intelligent guidance; bundled fixtures cannot establish independent model-quality gains. Lore does not yet provide a dedicated web UI, conversational grounded Q&A, direct issue-tracker synchronization, or independent verification of a running system. See [README.md](README.md), [the v0.5 guide](docs/V05.md), and [the coding-task evaluation guide](evaluation/INTELLIGENCE.md).
 
 ## What we should build toward
 
@@ -75,11 +77,11 @@ The sequence matters more than any specific interface:
 
 1. **Prove understanding.** Evaluate real model outputs with human reviewers. Measure omissions, false merges, incorrect decision timelines, evidence quality, utility, latency, and cost.
 2. **Make understanding delightful to use.** Improve the project overview, navigation, explanations, links, and review experience for humans.
-3. **Prove the usefulness of agent context.** Measure whether the deterministic, budgeted CLI/JSON retrieval introduced in 0.3 reduces missed constraints and improves task decisions, then improve it with evidence from those evaluations.
+3. **Prove the usefulness of agent context.** Measure whether 0.5 guidance avoids mistakes and improves implementations beyond deterministic context, then improve retrieval and reasoning using those results.
 4. **Make knowledge easier to ask and maintain.** Explore grounded Q&A, change awareness, and direct integrations for sources such as GitHub Wiki and YouTrack.
 5. **Connect documented intent to code carefully.** Where useful, distinguish documentation from implementation observations and help flag possible mismatches without claiming that a citation alone verifies runtime behavior.
 
-`lore context` is available in 0.3. Possible future commands such as `lore open` or `lore ask` remain **illustrative product ideas**, not current CLI commands or commitments to a particular design.
+`lore context` has provided task retrieval since 0.3 and intelligent guidance since 0.5. Possible future commands such as `lore open` or `lore ask` remain **illustrative product ideas**, not current CLI commands or commitments to a particular design.
 
 ## How we will know it works
 

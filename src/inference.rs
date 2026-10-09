@@ -86,10 +86,115 @@ pub struct GenerationResponse {
 }
 pub trait GenerativeModel: Send + Sync {
     fn descriptor(&self) -> &ModelDescriptor;
+    /// Stable model/configuration identity for disposable derived caches.
+    /// Remote clients also include their endpoint, never credentials.
+    fn cache_identity(&self) -> String {
+        model_cache_identity(self.descriptor())
+    }
     fn generate<'a>(
         &'a self,
         request: &'a GenerationRequest,
     ) -> ModelFuture<'a, GenerationResponse>;
+}
+
+pub fn model_cache_identity(descriptor: &ModelDescriptor) -> String {
+    format!(
+        "{:?}:{}:{:?}",
+        descriptor.provider, descriptor.model, descriptor.location
+    )
+}
+
+/// The embedding interface is separate from generation: configuring a chat
+/// model does not imply that it supports vector inference or permit a second
+/// provider. Callers must apply the same egress policy before invoking it.
+#[derive(Debug, Clone)]
+pub struct EmbeddingRequest {
+    pub inputs: Vec<String>,
+}
+
+pub const MAX_EMBEDDING_INPUTS: usize = 32;
+pub const MAX_EMBEDDING_DIMENSIONS: usize = 16_384;
+
+impl EmbeddingRequest {
+    pub fn validate(&self, max_input_bytes: usize) -> Result<(), ModelError> {
+        if self.inputs.is_empty()
+            || self.inputs.len() > MAX_EMBEDDING_INPUTS
+            || self.inputs.iter().any(|input| input.trim().is_empty())
+            || self.inputs.iter().map(String::len).sum::<usize>() > max_input_bytes
+        {
+            return Err(ModelError::InvalidRequest(
+                "embedding input is empty or exceeds its batch/context budget".into(),
+            ));
+        }
+        Ok(())
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct EmbeddingResponse {
+    pub model: String,
+    /// Position corresponds exactly to the original request input position.
+    pub embeddings: Vec<Vec<f32>>,
+}
+
+impl EmbeddingResponse {
+    /// Reject partial batches, model substitution, malformed vectors and
+    /// mixed dimensions before any vector is cached or used for retrieval.
+    pub fn validate(
+        &self,
+        request: &EmbeddingRequest,
+        descriptor: &ModelDescriptor,
+    ) -> Result<usize, ModelError> {
+        let model_matches = self.model == descriptor.model
+            || descriptor.provider == Provider::Ollama
+                && self.model.strip_suffix(":latest").unwrap_or(&self.model)
+                    == descriptor
+                        .model
+                        .strip_suffix(":latest")
+                        .unwrap_or(&descriptor.model);
+        if self.model.trim().is_empty() || !model_matches {
+            return Err(ModelError::InvalidResponse(
+                "embedding response model does not match the configured model".into(),
+            ));
+        }
+        if request.inputs.is_empty() || self.embeddings.len() != request.inputs.len() {
+            return Err(ModelError::InvalidResponse(
+                "embedding response has the wrong vector count".into(),
+            ));
+        }
+        let dimensions = self.embeddings.first().map_or(0, Vec::len);
+        if dimensions == 0
+            || dimensions > MAX_EMBEDDING_DIMENSIONS
+            || self
+                .embeddings
+                .iter()
+                .any(|vector| vector.len() != dimensions || !valid_embedding(vector))
+        {
+            return Err(ModelError::InvalidResponse(
+                "embedding vectors have invalid dimensions, magnitude or numeric values".into(),
+            ));
+        }
+        Ok(dimensions)
+    }
+}
+
+pub fn valid_embedding(vector: &[f32]) -> bool {
+    !vector.is_empty()
+        && vector.len() <= MAX_EMBEDDING_DIMENSIONS
+        && vector.iter().all(|value| value.is_finite())
+        && vector
+            .iter()
+            .map(|value| f64::from(*value).powi(2))
+            .sum::<f64>()
+            > 0.0
+}
+
+pub trait EmbeddingModel: Send + Sync {
+    fn descriptor(&self) -> &ModelDescriptor;
+    fn cache_identity(&self) -> String {
+        model_cache_identity(self.descriptor())
+    }
+    fn embed<'a>(&'a self, request: &'a EmbeddingRequest) -> ModelFuture<'a, EmbeddingResponse>;
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

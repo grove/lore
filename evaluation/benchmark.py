@@ -147,6 +147,8 @@ REASONING_DEFAULTS = {
     "overview": "medium",
     "verification": "high",
     "overview_verification": "high",
+    "context_synthesis": "medium",
+    "context_verification": "high",
 }
 REASONING_LEVELS = ("none", "low", "medium", "high", "xhigh", "max")
 

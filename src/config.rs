@@ -20,6 +20,8 @@ pub struct Config {
     pub providers: BTreeMap<String, ProviderSettings>,
     pub processing: Processing,
     pub privacy: Privacy,
+    /// Task guidance settings; deterministic `context --fast` ignores these.
+    pub context: ContextSettings,
 }
 impl Default for Config {
     fn default() -> Self {
@@ -33,6 +35,7 @@ impl Default for Config {
             providers: BTreeMap::new(),
             processing: Processing::default(),
             privacy: Privacy::default(),
+            context: ContextSettings::default(),
         }
     }
 }
@@ -135,6 +138,8 @@ pub struct Reasoning {
     pub overview: ReasoningEffort,
     pub verification: ReasoningEffort,
     pub overview_verification: ReasoningEffort,
+    pub context_synthesis: ReasoningEffort,
+    pub context_verification: ReasoningEffort,
 }
 impl Default for Reasoning {
     fn default() -> Self {
@@ -147,6 +152,8 @@ impl Default for Reasoning {
             overview: ReasoningEffort::Medium,
             verification: ReasoningEffort::High,
             overview_verification: ReasoningEffort::High,
+            context_synthesis: ReasoningEffort::Medium,
+            context_verification: ReasoningEffort::High,
         }
     }
 }
@@ -164,6 +171,8 @@ impl Reasoning {
             "overview" => self.overview,
             "verify" => self.verification,
             "verify_overview" => self.overview_verification,
+            "context_synthesis" => self.context_synthesis,
+            "context_verification" => self.context_verification,
             _ => self.default,
         })
     }
@@ -174,6 +183,8 @@ impl Reasoning {
 pub struct Models {
     pub generative: ModelRole,
     pub decision: Option<ModelRole>,
+    /// Optional semantic search. No embedding model is contacted unless enabled.
+    pub embedding: Option<ModelRole>,
     /// Sent to OpenAI Responses (not OpenAI Decisions or Ollama).
     pub reasoning: Reasoning,
 }
@@ -191,6 +202,18 @@ pub struct Privacy {
 impl Default for Privacy {
     fn default() -> Self {
         Self { local_only: true }
+    }
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct ContextSettings {
+    /// Cache guidance and embeddings outside the source knowledge registry.
+    /// `context --no-cache` overrides this for one invocation.
+    pub cache: bool,
+}
+impl Default for ContextSettings {
+    fn default() -> Self {
+        Self { cache: true }
     }
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -392,6 +415,7 @@ impl ResolvedConfig {
             );
             for role in std::iter::once(&config.models.generative)
                 .chain(config.models.decision.iter().filter(|r| r.enabled))
+                .chain(config.models.embedding.iter().filter(|r| r.enabled))
             {
                 ensure!(
                     ["ollama", "openai", "typesafe"].contains(&role.provider.as_str()),
@@ -409,6 +433,12 @@ impl ResolvedConfig {
                         "cloud model tag is forbidden in local_only mode"
                     );
                 }
+            }
+            if let Some(role) = config.models.embedding.as_ref().filter(|r| r.enabled) {
+                ensure!(
+                    ["ollama", "openai"].contains(&role.provider.as_str()),
+                    "embedding requires the ollama or openai provider"
+                );
             }
         }
         let fingerprint = util::json_digest(&(

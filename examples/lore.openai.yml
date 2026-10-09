@@ -26,6 +26,8 @@ models:
     overview: medium
     verification: high
     overview_verification: high
+    context_synthesis: medium
+    context_verification: high
 providers:
   openai:
     base_url: https://api.openai.com/v1
