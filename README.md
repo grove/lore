@@ -6,6 +6,16 @@ Projects collect their history in architecture notes, ADRs, plans, issue exports
 
 Lore 0.2 adds clearer knowledge classification, an evidence-bound review workflow, and a cited project overview to the working incremental compiler. Documented architecture is distinguished from future plans and source-reported delivery; review questions can be resolved without erasing their history. The offline suite exercises the compiler, HTTP contracts, actual CLI and failure recovery, while the cross-project evaluation suite makes real-model and human validation reproducible. This is early software: implemented safeguards and passing fixture tests are not a claim of universal model accuracy. See [the v0.2 guide](docs/V02.md) for the changes and upgrade behavior.
 
+## Vision
+
+**Make every developer and coding agent feel like they've been working on the project for years.**
+
+Lore's goal is not to generate more documentation. It is to help people and agents understand **what** a project does, **how** it works, **why** decisions were made, **what has changed**, and **what matters** when making the next change.
+
+Humans should get an inviting, navigable guide to the project's architecture, concepts, decisions, and open questions. Coding agents should be able to retrieve the relevant, evidence-backed context for a task instead of rediscovering intent from scattered files. Both experiences should draw from the same versioned knowledge, clearly distinguishing accepted decisions, proposals, historical context, and unverified reports.
+
+The current CLI and generated Markdown wiki are the foundation. A richer reading experience, task-focused agent context, grounded questions and answers, and direct source integrations are future directions—not features claimed by this README. Read the [full vision](VISION.md) for the product principles, intended experience, and measures of success.
+
 ## Evaluating Lore
 
 Lore's first CLI implementation is available, but we are still validating how accurately **real inference models** understand heterogeneous project documents. The [evaluation toolkit](evaluation/README.md) includes a controlled, evolving project with reviewed source checkpoints, Lore's own documentation, and pinned public OpenWiki and LLM Wiki corpora. It can run local Ollama or explicitly authorized hosted OpenAI inference, report provenance and incremental-update checks, and produce a human review sheet. Automated fixture tests and source hashes cannot establish semantic correctness, so [the baseline](evaluation/BASELINE.md) clearly separates what is already measured from the quality and billing data we still need to collect.
