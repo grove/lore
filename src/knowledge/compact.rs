@@ -305,7 +305,7 @@ impl CompactExploreResult {
                 .cloned()
                 .context("dangling compact string reference")
         };
-        let optional = |index: Option<usize>| index.map(&text).transpose();
+        let optional = |index: Option<usize>| index.map(text).transpose();
         let mut source_revisions = Vec::new();
         let mut source_ids = BTreeSet::new();
         for row in &self.source_revisions {

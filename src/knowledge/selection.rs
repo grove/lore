@@ -149,15 +149,16 @@ fn select_impl(
         .unwrap_or_else(|| records.keys().copied().collect());
     let query_terms = terms(&options.query);
     let references = reference_terms(&options.query);
+    let symbols = symbol_terms(&options.query);
     let query_empty = options.query.trim().is_empty();
-    let mut ranked = Vec::<(String, usize, bool)>::new();
+    let mut ranked = Vec::<(String, usize, u8)>::new();
     for record in &graph.knowledge {
         if !allowed.contains(record.id.as_str())
             || (fixed_candidates && !candidate_ids.contains(record.id.as_str()))
         {
             continue;
         }
-        let exact = exact_match(record, &options.query, &references);
+        let exact = reference_priority(record, &options.query, &references, &symbols);
         let metadata = terms(&format!("{} {}", record.subject, record.topic_title));
         let body = format!(
             "{} {}",
@@ -170,13 +171,22 @@ fn select_impl(
                 .join(" ")
         )
         .to_lowercase();
-        let score = query_terms.intersection(&metadata).count() * 8
+        let matching_terms = query_terms.intersection(&metadata).count()
             + query_terms
                 .iter()
                 .filter(|term| body.contains(term.as_str()))
-                .count()
+                .count();
+        // Rank coverage of the request, not just a matching topic label.
+        // Normalize squared query-term overlap by the complete text length,
+        // so a long, broadly related record does not win on incidental words.
+        // Every original excerpt still participates in matching, and actual
+        // identifiers retain the separate reference priority below.
+        let words = body.split_whitespace().count() + metadata.len();
+        let score = matching_terms * matching_terms * 1_024 / words.max(1)
             + usize::from(candidate_ids.contains(record.id.as_str())) * 4;
-        if fixed_candidates || query_empty || exact || score > 0 {
+        // Length normalization can round a sparse match to zero. This affects
+        // rank only; it must never erase an otherwise eligible original.
+        if fixed_candidates || query_empty || exact > 0 || matching_terms > 0 || score > 0 {
             ranked.push((record.id.clone(), score, exact));
         }
     }
@@ -186,13 +196,13 @@ fn select_impl(
             .then(critical(records[b.0.as_str()]).cmp(&critical(records[a.0.as_str()])))
             .then(a.0.cmp(&b.0))
     });
-    let has_exact = ranked.iter().any(|(_, _, exact)| *exact);
+    let has_exact = ranked.iter().any(|(_, _, exact)| *exact > 0);
     let selected_node = if let Some(node) = requested {
         Some(node)
     } else if has_exact {
         ranked
             .iter()
-            .filter(|(_, _, exact)| *exact)
+            .filter(|(_, _, exact)| *exact > 0)
             .find_map(|(id, _, _)| nodes.get(stable_id("record", id).as_str()).copied())
     } else if query_empty {
         nodes.get(graph.root_id.as_str()).copied()
@@ -564,15 +574,16 @@ fn subject_terms(text: &str) -> BTreeSet<String> {
     words
 }
 
-// Numeric values remain exact retrieval signals but do not make unrelated
-// rules (for example a queue limit of 8 and credential 8) depend on one another.
+// Numeric values and uppercase prose acronyms remain exact retrieval signals,
+// but do not by themselves make distinct subjects depend on one another.
+// Obligations require an explicit code symbol, path or long option, a named
+// subject, or an original documentary relationship/reference.
 fn symbol_terms(text: &str) -> Vec<String> {
     reference_terms(text)
         .into_iter()
         .filter(|word| {
             word.chars().any(char::is_alphabetic)
-                && (word.contains(['/', '_', '.'])
-                    || word.chars().filter(|c| c.is_ascii_uppercase()).count() >= 2)
+                && (word.contains(['/', '_', '.']) || word.contains("::") || word.starts_with("--"))
         })
         .collect()
 }
@@ -817,17 +828,20 @@ fn reference_terms(query: &str) -> Vec<String> {
     query
         .split_whitespace()
         .map(|word| {
-            word.trim_matches(|c: char| {
-                matches!(
-                    c,
-                    '`' | '"' | '\'' | '?' | ',' | ';' | '(' | ')' | '[' | ']'
-                )
-            })
+            // Sentence punctuation is not part of a symbol or file path.
+            // Preserve a leading dot in relative/hidden paths, and internal
+            // punctuation in actual references such as src/file.rs or a::b.
+            word.trim_start_matches(['`', '"', '\'', '(', '[', '{'])
+                .trim_end_matches([
+                    '`', '"', '\'', '?', ',', ';', '(', ')', '[', ']', '{', '}', '.', ':', '!',
+                ])
         })
         .filter(|word| !word.is_empty() && word.len() <= 300)
         .filter(|word| {
             word.chars().any(|c| c.is_ascii_digit())
                 || word.contains(['/', '_', '.'])
+                || word.contains("::")
+                || (word.starts_with('-') && word.chars().any(char::is_alphabetic))
                 || word.chars().filter(|c| c.is_ascii_uppercase()).count() >= 2
         })
         .take(32)
@@ -835,10 +849,15 @@ fn reference_terms(query: &str) -> Vec<String> {
         .collect()
 }
 
-fn exact_match(record: &KnowledgeView, query: &str, references: &[String]) -> bool {
+fn reference_priority(
+    record: &KnowledgeView,
+    query: &str,
+    references: &[String],
+    symbols: &[String],
+) -> u8 {
     let query = query.trim();
     if query == record.id || query == record.revision_id {
-        return true;
+        return 3;
     }
     let texts: Vec<&str> = std::iter::once(record.statement.as_str())
         .chain(record.evidence.iter().flat_map(|e| {
@@ -852,19 +871,28 @@ fn exact_match(record: &KnowledgeView, query: &str, references: &[String]) -> bo
         }))
         .collect();
     if texts.contains(&query) && !query.is_empty() {
-        return true;
+        return 3;
     }
-    references
+    if symbols
         .iter()
         .any(|needle| texts.iter().any(|text| exact_fragment(text, needle)))
+    {
+        return 2;
+    }
+    u8::from(
+        references
+            .iter()
+            .any(|needle| texts.iter().any(|text| exact_fragment(text, needle))),
+    )
 }
 
 fn exact_fragment(text: &str, needle: &str) -> bool {
     text.match_indices(needle).any(|(start, _)| {
         let before = text[..start].chars().next_back();
         let after = text[start + needle.len()..].chars().next();
-        !before.is_some_and(|c| c.is_alphanumeric() || c == '_')
-            && !after.is_some_and(|c| c.is_alphanumeric() || c == '_')
+        let continues_identifier =
+            |c: char| c.is_alphanumeric() || c == '_' || (needle.starts_with('-') && c == '-');
+        !before.is_some_and(continues_identifier) && !after.is_some_and(continues_identifier)
     })
 }
 

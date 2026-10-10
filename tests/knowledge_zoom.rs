@@ -2108,6 +2108,18 @@ fn compact_historical_evidence_and_unfit_obligations_are_explicit() {
         assert_eq!(result.coverage.omitted_units, 1);
         assert!(!result.coverage.omission_reasons.is_empty());
     }
+    let sparse_match = knowledge::select_compact(
+        &graph,
+        &ExploreOptions {
+            query: "initialization".into(),
+            max_tokens: 512,
+            ..ExploreOptions::default()
+        },
+    )
+    .unwrap();
+    assert_compact_originals(&conn, &sparse_match);
+    assert_eq!(sparse_match.status, "budget_limited");
+    assert_eq!(sparse_match.coverage.omitted_units, 1);
     let absent = knowledge::select_compact(
         &graph,
         &ExploreOptions {
@@ -2245,5 +2257,179 @@ fn generic_shared_cli_words_are_context_not_transitive_obligations() {
             .knowledge
             .iter()
             .any(|record| record.id == exception.id)
+    );
+}
+
+#[test]
+fn sentence_punctuation_does_not_turn_prose_into_an_exact_reference() {
+    let conn = database();
+    let expected = record(
+        &conn,
+        "archive.md",
+        "search",
+        "compressed archives",
+        "constraint",
+        "Compressed archives are searched with the --archive flag.",
+    );
+    record(
+        &conn,
+        "plain.md",
+        "search",
+        "plain text",
+        "constraint",
+        "Ordinary text search accepts files.",
+    );
+    let graph = build(&conn);
+    let result = knowledge::select_compact(
+        &graph,
+        &ExploreOptions {
+            query: "Search compressed archives inside files.".into(),
+            max_tokens: 1_500,
+            ..ExploreOptions::default()
+        },
+    )
+    .unwrap();
+    assert_compact_originals(&conn, &result);
+    assert_eq!(result.retrieval, "cross_level");
+    assert!(
+        result
+            .resolve()
+            .unwrap()
+            .knowledge
+            .iter()
+            .any(|record| record.id == expected.id)
+    );
+}
+
+#[test]
+fn format_acronyms_do_not_bind_unrelated_options_but_explicit_flags_do() {
+    let conn = database();
+    let rule = record(
+        &conn,
+        "plain.md",
+        "formatting",
+        "plain output",
+        "constraint",
+        "The --plain-text option writes XML text directly.",
+    );
+    let exception = record(
+        &conn,
+        "nul.md",
+        "formatting",
+        "embedded characters",
+        "constraint",
+        "With --plain-text, embedded NUL characters must produce an error.",
+    );
+    let unrelated = record(
+        &conn,
+        "decode.md",
+        "formatting",
+        "input parsing",
+        "constraint",
+        "The decoder must parse XML input using the --decode option.",
+    );
+    let extension = record(
+        &conn,
+        "syntax.md",
+        "formatting",
+        "syntax checking",
+        "constraint",
+        "The --plain-text-syntax option must validate XML document structure.",
+    );
+    let graph = build(&conn);
+    let bundle = knowledge::inspect_bundles(&graph, std::slice::from_ref(&rule.id)).unwrap();
+    assert_eq!(
+        bundle[0].knowledge_ids,
+        BTreeSet::from([rule.id.clone(), exception.id.clone()])
+    );
+    assert!(!bundle[0].knowledge_ids.contains(&unrelated.id));
+    assert!(!bundle[0].knowledge_ids.contains(&extension.id));
+    let result = knowledge::select_compact(
+        &graph,
+        &ExploreOptions {
+            query: "What does --plain-text output for XML?".into(),
+            max_tokens: 1_500,
+            ..ExploreOptions::default()
+        },
+    )
+    .unwrap();
+    assert_compact_originals(&conn, &result);
+    assert_eq!(result.retrieval, "direct_reference");
+    let resolved = result.resolve().unwrap();
+    for expected in [&rule.id, &exception.id] {
+        assert!(
+            resolved
+                .knowledge
+                .iter()
+                .any(|record| &record.id == expected)
+        );
+    }
+}
+
+#[test]
+fn requested_body_conditions_outrank_a_broad_matching_subject() {
+    let conn = database();
+    let required = record(
+        &conn,
+        "headerless.md",
+        "export",
+        "headerless export",
+        "constraint",
+        "The --headerless mode writes binary content without an audit header.",
+    );
+    let related = record(
+        &conn,
+        "binary.md",
+        "export",
+        "binary payload",
+        "constraint",
+        "The --binary option exports a binary payload with an audit header. The header records the producing service, encoding version and creation time. This mode supports interchange between compatible services and retains the original creation information for downstream readers. Every reader must validate that information before it processes the message contents.",
+    );
+    let graph = build(&conn);
+    // Both complete originals fit separately, so skipping an oversized rival
+    // cannot explain the requested rule's selection under the shared budget.
+    for id in [&required.id, &related.id] {
+        let alone = knowledge::select_compact(
+            &graph,
+            &ExploreOptions {
+                query: id.clone(),
+                max_tokens: 800,
+                ..ExploreOptions::default()
+            },
+        )
+        .unwrap();
+        assert!(
+            alone
+                .resolve()
+                .unwrap()
+                .knowledge
+                .iter()
+                .any(|record| &record.id == id)
+        );
+    }
+    let result = knowledge::select_compact(
+        &graph,
+        &ExploreOptions {
+            query: "Produce a binary payload without an audit header.".into(),
+            max_tokens: 800,
+            ..ExploreOptions::default()
+        },
+    )
+    .unwrap();
+    assert_compact_originals(&conn, &result);
+    let resolved = result.resolve().unwrap();
+    assert!(
+        resolved
+            .knowledge
+            .iter()
+            .any(|record| record.id == required.id)
+    );
+    assert!(
+        !resolved
+            .knowledge
+            .iter()
+            .any(|record| record.id == related.id),
+        "both originals fit at {} tokens",
+        result.used_tokens
     );
 }
