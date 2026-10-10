@@ -447,8 +447,11 @@ impl CompactExploreResult {
         );
         ensure!(
             self.coverage.included_units == knowledge.len()
-                && self.coverage.eligible_units
-                    == self.coverage.included_units + self.coverage.omitted_units,
+                && self
+                    .coverage
+                    .included_units
+                    .checked_add(self.coverage.omitted_units)
+                    == Some(self.coverage.eligible_units),
             "inconsistent compact coverage"
         );
         Ok(ExploreResult {

@@ -1325,6 +1325,47 @@ fn recomputing_the_cache_checksum_cannot_authorize_forged_summary_or_scope() {
 }
 
 #[test]
+fn a_resigned_cache_rejects_overflowing_summary_coverage_without_panicking() {
+    let conn = database();
+    record(
+        &conn,
+        "capacity.md",
+        "dispatch",
+        "dispatch",
+        "constraint",
+        "QUEUE_CAPACITY must remain at 128 jobs.",
+    );
+    storage::refresh_knowledge(&conn, "p").unwrap();
+    let temp = tempfile::tempdir().unwrap();
+    let directory = fs::canonicalize(temp.path()).unwrap().join("zoom");
+    knowledge::build_cached(&conn, &ZoomOptions::default(), &directory).unwrap();
+    let path = directory.join("snapshot.json");
+    let mut changed: serde_json::Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    let node = changed["nodes"]
+        .as_array_mut()
+        .unwrap()
+        .iter_mut()
+        .find(|node| node["summary_coverage"]["included_units"] == 1)
+        .unwrap();
+    assert_eq!(node["summary_coverage"]["eligible_units"], 1);
+    node["summary_coverage"]["omitted_units"] = serde_json::json!(usize::MAX);
+    resign_cache(&mut changed);
+    fs::write(&path, serde_json::to_vec(&changed).unwrap()).unwrap();
+
+    let repaired = knowledge::build_cached(&conn, &ZoomOptions::default(), &directory).unwrap();
+    assert!(!repaired.refresh.topology_reused);
+    assert!(
+        repaired
+            .refresh
+            .fallback_reason
+            .as_deref()
+            .unwrap()
+            .contains("summary coverage manifest mismatch")
+    );
+    assert_matches_fresh(&repaired.graph, &conn);
+}
+
+#[test]
 fn an_incremental_cache_cannot_mask_corrupted_authoritative_evidence() {
     let conn = database();
     let original = record(
@@ -1918,6 +1959,33 @@ fn compact_disagreement_preserves_both_endpoints_witness_and_exact_resolution() 
             "resolver accepted mutation {mutation}"
         );
     }
+}
+
+#[test]
+fn compact_resolver_rejects_overflowing_coverage_without_panicking() {
+    let conn = database();
+    record(
+        &conn,
+        "capacity.md",
+        "dispatch",
+        "dispatch",
+        "decision",
+        "QUEUE_CAPACITY is 128 jobs.",
+    );
+    let graph = build(&conn);
+    let mut compact = knowledge::select_compact(
+        &graph,
+        &ExploreOptions {
+            query: "QUEUE_CAPACITY".into(),
+            ..ExploreOptions::default()
+        },
+    )
+    .unwrap();
+    assert_compact_originals(&conn, &compact);
+    assert_eq!(compact.coverage.included_units, 1);
+    compact.coverage.eligible_units = 0;
+    compact.coverage.omitted_units = usize::MAX;
+    assert!(compact.resolve().is_err());
 }
 
 #[test]
