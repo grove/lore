@@ -1,0 +1,45 @@
+{
+  "alert_precision": null,
+  "alert_recall": null,
+  "archive": "focused-local-captures.zip",
+  "archive_bytes": 160297,
+  "archive_sha256": "8c6240dee57f93ff2479d22830ee0cbb97d3a913b9f715b1af6e064741cb863d",
+  "baseline_revision": "0ba8b17f7e63726a8d81def2b60af18573d4640c",
+  "binary_sha256": "5eccce5338fa7acd1c99ee03a7ded6bc292bb8f54046ca31ae37bd1ec0a11efa",
+  "collector_source_sha256": {
+    "coding_tasks.py": "a1c9071922c87eafc295004f2fd42b36dc11236b7deb6aad35be646de540c05a",
+    "cross_source.py": "dfede36c53f6653318f398df88de3acc86e58804314580191305fd1f360fd52e",
+    "guardian_integrity.py": "f79d130d1e4f0cfe25d46ddd84cdb02138e94c36b628c56658c29b039e82966c",
+    "guardian_longitudinal.py": "7a050c7272ac8a94b4b15635f1aa0f130e175ecabc684c073015b05c3fc18e72",
+    "shared_intelligence.py": "ae4d92df85591bd2153689d00a6c50b8543ebeb1321d5099d4122b66f07d05d0"
+  },
+  "command_integrity": {
+    "captured": 71,
+    "filesystem_observer_captured": 71,
+    "filesystem_observer_complete": 69,
+    "filesystem_source_observer_complete": 70,
+    "preserved": 69,
+    "total": 71
+  },
+  "date": "2026-10-10",
+  "elapsed_seconds": 10.430166,
+  "engineering_capture_pass": false,
+  "event_corpus_sha256": "462a2e5b6d95fd4dbac8f1640274e74977c4d80dd0a3be2341c05a3cb1a82461",
+  "events": 10,
+  "failed_checks": {
+    "per_command_source_integrity": 3,
+    "source_hashes": 5
+  },
+  "independent_runtime_audit_complete": false,
+  "limitations": [
+    "This managed-workspace run remains failed; no source condition was ignored.",
+    "The development collector source hashes are captured; the subsequent per-command metadata validator was hardened further before commit.",
+    "A separate zero-Lore control reproduces source restoration outside Lore, but no writer PID was available.",
+    "The dedicated Ubuntu job must actually pass before claiming an isolated full-cohort integrity result."
+  ],
+  "prepared_sha256": "50c2a69bf9d8bc7ac26c799f99b4a0231ed8b905c73cf9c888eedbab15f91e89",
+  "privacy_scope": "Authored synthetic fixture source responses, source hashes, path/identity metadata only; no database, executable or environment values.",
+  "purpose": "actual instrumented CLI reproduction; failed source integrity retained",
+  "schema_version": 1,
+  "total_model_calls": 0
+}
