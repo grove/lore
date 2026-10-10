@@ -105,7 +105,7 @@ def segment_fixture(prepared_directory, project, directory):
 class GuardianSegmentTests(unittest.TestCase):
     def test_merge_requires_all_original_events_same_binary_and_no_duplicates(self):
         with tempfile.TemporaryDirectory() as temporary:
-            root = Path(temporary)
+            root = Path(temporary).resolve()
             prepared_directory = root / "prepared"
             prepared = guardian.prepare(prepared_directory)
             segments = []
@@ -129,7 +129,7 @@ class GuardianSegmentTests(unittest.TestCase):
 
     def test_assessment_rejects_rehashed_capture_with_wrong_successive_endpoint(self):
         with tempfile.TemporaryDirectory() as temporary:
-            directory = Path(temporary)
+            directory = Path(temporary).resolve()
             record = record_fixture()
             run = write_run(directory, record)
             record["before_revision"] = "unrelated-history"
@@ -156,7 +156,7 @@ class GuardianLongitudinalTests(unittest.TestCase):
 
     def test_corpus_rejects_disconnected_parent_and_fabricated_quote(self):
         with tempfile.TemporaryDirectory() as temporary:
-            path = Path(temporary) / "events.json"
+            path = Path(temporary).resolve() / "events.json"
             original = guardian.load_events(guardian.DEFAULT_EVENTS)
             for mutation in ("parent", "quote", "external"):
                 value = copy.deepcopy(original)
@@ -172,7 +172,7 @@ class GuardianLongitudinalTests(unittest.TestCase):
 
     def test_preparation_pins_every_snapshot_and_detects_mutated_source(self):
         with tempfile.TemporaryDirectory() as temporary:
-            directory = Path(temporary) / "prepared"
+            directory = Path(temporary).resolve() / "prepared"
             prepared = guardian.prepare(directory)
             self.assertTrue(prepared["full_size"])
             self.assertEqual(sum(len(project["states"]) for project in prepared["projects"]), 63)
@@ -185,7 +185,7 @@ class GuardianLongitudinalTests(unittest.TestCase):
 
     def test_prepared_identities_cannot_redirect_run_writes_or_reorder_history(self):
         with tempfile.TemporaryDirectory() as temporary:
-            directory = Path(temporary) / "prepared"
+            directory = Path(temporary).resolve() / "prepared"
             original = guardian.prepare(directory)
             for mutation in ("project", "event", "parent", "revision_path"):
                 prepared = copy.deepcopy(original)
@@ -204,7 +204,7 @@ class GuardianLongitudinalTests(unittest.TestCase):
 
     def test_source_integrity_includes_unexpected_new_files_and_deletions(self):
         with tempfile.TemporaryDirectory() as temporary:
-            directory = Path(temporary)
+            directory = Path(temporary).resolve()
             (directory / "docs").mkdir()
             source = directory / "docs" / "rule.md"
             source.write_text("Original quotation")
@@ -218,7 +218,7 @@ class GuardianLongitudinalTests(unittest.TestCase):
 
     def test_source_symlinks_fail_closed(self):
         with tempfile.TemporaryDirectory() as temporary:
-            directory = Path(temporary)
+            directory = Path(temporary).resolve()
             (directory / "source.md").write_text("Source")
             (directory / "alias.md").symlink_to(directory / "source.md")
             with self.assertRaises(ValueError):
@@ -311,7 +311,7 @@ class GuardianLongitudinalTests(unittest.TestCase):
 
     def test_unavailable_assessment_stays_in_denominator_and_efficacy_unmeasured(self):
         with tempfile.TemporaryDirectory() as temporary:
-            directory = Path(temporary)
+            directory = Path(temporary).resolve()
             write_run(directory, record_fixture(status="partial_static_guidance", required=True))
             result = guardian.assess(directory)
             self.assertTrue(result["engineering_capture_pass"])
@@ -325,7 +325,7 @@ class GuardianLongitudinalTests(unittest.TestCase):
 
     def test_missing_or_modified_capture_cannot_disappear_from_assessment(self):
         with tempfile.TemporaryDirectory() as temporary:
-            directory = Path(temporary)
+            directory = Path(temporary).resolve()
             run = write_run(directory, record_fixture())
             run["records"] = []
             cross.write_json(directory / "run.json", run)
@@ -338,7 +338,7 @@ class GuardianLongitudinalTests(unittest.TestCase):
 
     def test_source_hash_failure_fails_overall_capture_even_with_valid_cli_contracts(self):
         with tempfile.TemporaryDirectory() as temporary:
-            directory = Path(temporary)
+            directory = Path(temporary).resolve()
             record = record_fixture()
             record["sources_after_queries"]["files_sha256"]["docs/restored.md"] = "unexpected-restored-source"
             write_run(directory, record)
@@ -349,7 +349,7 @@ class GuardianLongitudinalTests(unittest.TestCase):
 
     def test_failed_guardian_does_not_fabricate_zero_provider_cost(self):
         with tempfile.TemporaryDirectory() as temporary:
-            directory = Path(temporary)
+            directory = Path(temporary).resolve()
             record = record_fixture()
             record["guard"] = {"response": None, "response_sha256": None, "error": "exit_1"}
             write_run(directory, record)
@@ -360,7 +360,7 @@ class GuardianLongitudinalTests(unittest.TestCase):
 
     def test_review_template_never_counts_as_completed_independent_review(self):
         with tempfile.TemporaryDirectory() as temporary:
-            directory = Path(temporary)
+            directory = Path(temporary).resolve()
             write_run(directory, record_fixture())
             path = directory / "blank-review.json"
             cross.write_json(path, guardian.review_template(directory))
@@ -369,7 +369,7 @@ class GuardianLongitudinalTests(unittest.TestCase):
 
     def test_two_reviewers_score_actual_alerts_but_debug_result_is_not_efficacy(self):
         with tempfile.TemporaryDirectory() as temporary:
-            directory = Path(temporary)
+            directory = Path(temporary).resolve()
             record = record_fixture(status="source_reviewed_advisory", required=True)
             record["guard"]["response"]["advisories"] = [{"severity": "high", "evidence_ids": [], "observation_ids": []}]
             record["guard"] = invocation(record["guard"]["response"])
@@ -389,7 +389,7 @@ class GuardianLongitudinalTests(unittest.TestCase):
 
     def test_one_reviewer_or_duplicate_identity_cannot_establish_precision(self):
         with tempfile.TemporaryDirectory() as temporary:
-            directory = Path(temporary)
+            directory = Path(temporary).resolve()
             record = record_fixture(status="source_reviewed_advisory", required=True)
             write_run(directory, record)
             path = reviewed_file(directory, record, "fixture-reviewer")
@@ -399,7 +399,7 @@ class GuardianLongitudinalTests(unittest.TestCase):
 
     def test_compilation_and_adaptive_model_calls_are_all_charged(self):
         with tempfile.TemporaryDirectory() as temporary:
-            directory = Path(temporary)
+            directory = Path(temporary).resolve()
             record = record_fixture(status="source_reviewed_advisory", required=True)
             record["materialization"] = invocation({"model_calls": 3, "decision_calls": 2})
             record["guard"]["response"]["intelligence"]["intelligence"]["model_calls"] = 4
@@ -416,7 +416,7 @@ class GuardianLongitudinalTests(unittest.TestCase):
 
     def test_budget_omissions_and_hidden_advisories_do_not_become_false_negatives(self):
         with tempfile.TemporaryDirectory() as temporary:
-            directory = Path(temporary)
+            directory = Path(temporary).resolve()
             record = record_fixture(status="source_reviewed_advisory", required=True)
             record["guard"]["response"]["advisories_in_shared_guidance"] = 1
             record["guard"] = invocation(record["guard"]["response"])
