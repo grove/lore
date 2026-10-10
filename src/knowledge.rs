@@ -4,12 +4,20 @@
 //! evidence remain independently retrievable; neither a group nor its summary
 //! creates a new authority. All default operations are deterministic and local.
 mod cache;
+mod compact;
 mod graph;
 mod selection;
 
 pub use cache::{CacheUpdate, RefreshWork, build_cached, purge_cache};
+pub use compact::{
+    COMPACT_ZOOM_SCHEMA_VERSION, CompactEvidence, CompactExploreResult, CompactKnowledge,
+    CompactRelation, CompactSourceRevision, render_compact_markdown,
+};
 pub use graph::validate;
-pub use selection::{render_markdown, select};
+pub use selection::{
+    BundleDependency, EvidenceBundle, SelectionMode, inspect_bundles, render_markdown, select,
+    select_compact, select_compact_controlled, select_controlled,
+};
 
 use crate::{domain::KnowledgeView, storage, util};
 use anyhow::{Result, ensure};
@@ -342,7 +350,9 @@ fn load_inputs(conn: &Connection, options: &ZoomOptions) -> Result<KnowledgeGrap
 }
 
 pub fn explore(conn: &Connection, options: &ExploreOptions) -> Result<ExploreResult> {
-    explore_inner(conn, options, None)
+    with_exploration(conn, options, None, |graph, candidates| {
+        selection::select_with_candidates(graph, options, candidates)
+    })
 }
 
 /// Revalidate a disposable graph publication and combine its navigation with
@@ -352,14 +362,37 @@ pub fn explore_cached(
     options: &ExploreOptions,
     directory: &std::path::Path,
 ) -> Result<ExploreResult> {
-    explore_inner(conn, options, Some(directory))
+    with_exploration(conn, options, Some(directory), |graph, candidates| {
+        selection::select_with_candidates(graph, options, candidates)
+    })
 }
 
-fn explore_inner(
+/// Explicit opt-in to normalized schema 2; schema-1 callers remain unchanged.
+pub fn explore_compact(
+    conn: &Connection,
+    options: &ExploreOptions,
+) -> Result<CompactExploreResult> {
+    with_exploration(conn, options, None, |graph, candidates| {
+        selection::select_compact_with_candidates(graph, options, candidates)
+    })
+}
+
+pub fn explore_compact_cached(
+    conn: &Connection,
+    options: &ExploreOptions,
+    directory: &std::path::Path,
+) -> Result<CompactExploreResult> {
+    with_exploration(conn, options, Some(directory), |graph, candidates| {
+        selection::select_compact_with_candidates(graph, options, candidates)
+    })
+}
+
+fn with_exploration<T>(
     conn: &Connection,
     options: &ExploreOptions,
     directory: Option<&std::path::Path>,
-) -> Result<ExploreResult> {
+    select: impl FnOnce(&KnowledgeGraph, &[String]) -> Result<T>,
+) -> Result<T> {
     conn.execute_batch("SAVEPOINT lore_exploration")?;
     let result = (|| {
         let graph = if let Some(directory) = directory {
@@ -376,7 +409,7 @@ fn explore_inner(
                 .map(|hit| hit.knowledge.id)
                 .collect()
         };
-        selection::select_with_candidates(&graph, options, &candidates)
+        select(&graph, &candidates)
     })();
     let released = conn.execute_batch("RELEASE lore_exploration");
     let result = result?;

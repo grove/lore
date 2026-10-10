@@ -160,3 +160,66 @@ async fn unmanaged_cache_does_not_block_navigation_or_overwrite_user_files() {
     assert_eq!(fs::read_to_string(note).unwrap(), "retained user note");
     assert!(!directory.join("snapshot.json").exists());
 }
+
+#[tokio::test]
+async fn compact_is_explicit_reversible_and_identical_with_and_without_cache() {
+    let (_dir, config, _model) = fixture().await;
+    let before = fs::read(config.state.join("state.db")).unwrap();
+    let (legacy, _) = success(invoke(
+        &config,
+        &["--json", "explore", "QUEUE_CAPACITY", "--no-cache"],
+    ));
+    assert_eq!(legacy["schema_version"], 1);
+    let (compact, text) = success(invoke(
+        &config,
+        &[
+            "--json",
+            "explore",
+            "QUEUE_CAPACITY",
+            "--compact",
+            "--max-tokens",
+            "1500",
+        ],
+    ));
+    assert_eq!(compact["schema_version"], 2);
+    let typed: lore::knowledge::CompactExploreResult =
+        serde_json::from_value(compact.clone()).unwrap();
+    let resolved = serde_json::to_value(typed.resolve().unwrap()).unwrap();
+    for field in ["knowledge", "evidence", "relations", "source_revisions"] {
+        assert_eq!(resolved[field], legacy[field], "resolver changed {field}");
+    }
+    assert!(context::count_tokens(&text) <= 1500);
+    assert!(typed.used_tokens >= context::count_tokens(&text));
+    let (uncached, _) = success(invoke(
+        &config,
+        &[
+            "--json",
+            "explore",
+            "QUEUE_CAPACITY",
+            "--compact",
+            "--max-tokens",
+            "1500",
+            "--no-cache",
+        ],
+    ));
+    assert_eq!(compact, uncached);
+    let markdown = invoke(
+        &config,
+        &[
+            "explore",
+            "QUEUE_CAPACITY",
+            "--compact",
+            "--max-tokens",
+            "1500",
+            "--no-cache",
+        ],
+    );
+    assert!(markdown.status.success());
+    let markdown = String::from_utf8(markdown.stdout).unwrap();
+    assert!(markdown.contains("emergency drains"));
+    assert!(context::count_tokens(&markdown) <= 1500);
+    let evidence_id = resolved["evidence"][0]["id"].as_str().unwrap();
+    let (exact, _) = success(invoke(&config, &["--json", "evidence", evidence_id]));
+    assert_eq!(exact["excerpt"], resolved["evidence"][0]["excerpt"]);
+    assert_eq!(before, fs::read(config.state.join("state.db")).unwrap());
+}

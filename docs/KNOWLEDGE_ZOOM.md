@@ -8,6 +8,8 @@ lore explore "payment retries"
 lore explore "MAX_RETRIES"
 lore explore --node RETURNED_VIEW_ID
 lore --json explore "payment retries" --max-tokens 8000 --max-nodes 24
+lore --json explore "payment retries" --compact --max-tokens 1500
+lore explore "payment retries" --compact --max-tokens 1500
 lore explore "payment retries" --no-cache
 ```
 
@@ -49,28 +51,36 @@ Every selected record retains its knowledge and revision IDs, statement, kind, l
 
 “Current” refers to the captured registry's source status. A documented design, a proposal, a report and a historically superseded decision retain their own meanings. None of these fields proves that a deployment currently behaves as described.
 
-## Summaries preserve the conditions of the answer
+## Complete evidence comes before navigation
 
 Concept summaries quote original records with their source status and scope. They are extractive views, not new independently verified claims. Each summary lists the original knowledge IDs it uses and reports representative coverage.
 
-Before selecting an answer, Lore expands a candidate into a group containing the recognized critical records in its topic or subject and both endpoints of attached documentary relationships. This includes decisions, constraints, risks, explicit exceptions and historical transitions identified in the registry. The expansion can cross topic boundaries through the recorded relationships.
+Before selecting an answer, Lore builds an inspectable evidence bundle for each eligible original record. A bundle contains that record and its recognized mandatory conditions, exceptions and documentary relationship dependencies. A shared topic or an incidental word such as “file” or “input” establishes relevance without making every rule in the topic inseparable.
 
-The complete group is the unit of output packing. If it cannot fit, the group is omitted and the response reports that limitation. A short navigation summary is shown as factual prose only when the selected answer also carries its original support and attached critical records. Otherwise the node shows a structural description such as its record count and a way to open it.
+Condition applicability uses the recorded subject, explicit symbols or original-record references, and qualifications that name the requested multiword subject. Typed constraints and risks, and explicit language such as “must,” “unless,” “except,” “only if” and “cannot,” identify potential obligations. Numeric values alone do not establish a dependency. An explanatory consequence in a purpose statement remains optional unless it qualifies the requested object; explicit requirements and typed constraints retain their force even when followed by an explanation.
 
-This conservative grouping may bring several related conditions into an exact lookup. A broad topic with many constraints can require a larger output budget. The response does not claim that unselected or unsupported records are absent from the project.
+Both endpoints of a recorded documentary relationship and its exact evidence witness stay together, including contradictions and historical transitions across topic or node boundaries. Documentary relationships and explicit record qualifications close transitively. Lexically attached conditions do not recursively pull in further records merely through incidental shared words. A proposal can require the accepted decision it qualifies, while retaining its proposed lifecycle. A proposed change is not promoted into an authoritative exception to accepted guidance.
+
+The selector recognizes production, staging, development and sandbox mentions when checking whether an environment-specific condition applies to a scoped query. This is deterministic matching over captured text, not a general policy reasoner. Original scope, lifecycle, effective time and historical source qualifications remain intact. These rules can preserve only conditions present in the captured registry and recognized by the selector.
+
+The complete bundle is the unit of output packing. Lore ranks requested originals, measures their full records, all original support, source revisions and relationship witnesses together with final omission metadata, and packs complete bundles first. Overlapping bundles share their already selected originals. Optional navigation and summaries are added only after this evidence has been budgeted. If a complete bundle cannot fit, it is omitted and the response reports that limitation. A short navigation summary is shown as factual prose only when the selected answer also carries its original support and attached critical records. Otherwise the node shows a structural description such as its record count and a way to open it.
+
+The response does not claim that unselected or unsupported records are absent from the project. Even one original record can exceed the available budget; related context being optional never permits clipping a required exception, source excerpt or historical qualification.
 
 ## Budgets and omissions
 
-The default output limit is 8,000 tokens; the accepted range is 512 through 100,000. Accounting covers the complete JSON and portable Markdown response, including evidence and reporting fields. Navigation is reduced before source groups when space is limited.
+The default output limit is 8,000 tokens; the accepted range is 512 through 100,000. Accounting uses the embedded `cl100k_base` tokenizer without a model or network request. It covers the complete JSON and portable Markdown response, including evidence, final omission metadata and the `used_tokens` field itself.
+
+The default schema-1 format preserves its existing conservative contract: `used_tokens` covers the larger of pretty JSON with a trailing newline and portable Markdown. Explicit `--compact` uses the larger of its actual compact schema-2 JSON with a trailing newline and the same complete Markdown rendering. Serializing an expanded schema-2 result or adding JSON indentation outside the CLI can make a larger document; that transformed output is not the compact wire budget.
 
 | Status | Meaning |
 | --- | --- |
-| `complete` | All eligible selected groups fit this response |
-| `partial` | Some complete groups fit and others are explicitly omitted |
-| `budget_limited` | The requested complete group cannot fit within the available output budget |
+| `complete` | All eligible requested originals and their required bundles fit this response |
+| `partial` | Some complete bundles fit and other eligible coverage is explicitly omitted |
+| `budget_limited` | No complete eligible bundle was selected within the output or bounded selection-work limits |
 | `no_matches` | No eligible source-bound record matched the current request |
 
-Read `coverage`, `critical_groups_omitted`, `navigation_truncated` and `warnings` together. Navigation can be bounded even when the factual result is complete. An empty result or an omitted group makes no recommendation about the missing material.
+Read `coverage`, `critical_groups_omitted`, `navigation_truncated` and `warnings` together. Navigation can be bounded even when the factual result is complete. Exhausting selection work reports unknown remaining critical coverage and never reports `complete`. An empty result or an omitted bundle makes no recommendation about the missing material. If even the request and minimum reporting envelope cannot fit, the request returns an explicit budget error.
 
 The default graph build allows 2,048 navigation nodes, 8,192 containment edges and 500,000 charged grouping operations. It reserves capacity for semantic groups while keeping original records independently retrievable. When grouping work is exhausted, the graph can fall back to a connected flatter index with an explicit warning.
 
@@ -110,13 +120,13 @@ Cache snapshots are published atomically, limited to 128 MiB, and read through a
 
 `--no-cache` bypasses derived-view cache reads and writes. The graph and selected result still come from the compiled registry. No learner answers, user profile, background observation or new accepted project fact is stored by Knowledge Zoom.
 
-## JSON and embedding APIs
+## Versioned JSON and embedding APIs
 
-The version-1 selected response has these principal fields:
+Without `--compact`, the selected response remains schema 1 with its existing field shapes. Its principal fields are:
 
 | Field | Meaning |
 | --- | --- |
-| `schema_version` | Selected-view contract version, currently `1` |
+| `schema_version` | Selected-view contract version: `1` by default, `2` only with explicit compact selection |
 | `snapshot_revision` | Revision of this derived documentary graph and its inputs |
 | `selected_node_id` / `nodes` / `edges` | Bounded navigation and containment relationships |
 | `retrieval` / `status` | Direct-reference or cross-level route and result completeness |
@@ -124,18 +134,56 @@ The version-1 selected response has these principal fields:
 | `evidence` | Exact retained source excerpts, context, provenance and digests |
 | `relations` | Source-backed relationships with both selected endpoints |
 | `source_revisions` | Captured source identity and current/historical status |
-| `coverage` / `critical_groups_omitted` | Explicit record and complete-group omissions |
+| `coverage` / `critical_groups_omitted` | Explicit record and complete-bundle omissions |
 | `max_tokens` / `used_tokens` | Complete output accounting |
 | `model_calls` | Always zero for this deterministic feature |
 
 The graph's `snapshot_revision` identifies the derived view and its grouping settings. It is distinct from adaptive context's whole-registry `snapshot.registry_revision`; original knowledge and evidence identities remain shared.
 
-Embedders can use `knowledge::build`, `build_cached`, `select`, `explore`, `explore_cached` and `render_markdown`. The exploration entry points combine the existing direct retrieval candidates with navigation within one read snapshot. `ZoomOptions` controls graph-building limits; `ExploreOptions` controls a request's query, selected node and output budget. The graph validator checks source references, source manifests, dependency fingerprints, critical memberships and containment independently of the portable renderer.
+### Explicit compact schema 2
+
+Use `--compact` when repeated JSON field names and duplicated citation metadata prevent a complete bundle from fitting. Schema 2 stores original text once in `strings` and uses versioned tuple rows for knowledge, evidence, source revisions and relationships. It retains every original field, including inactive support, historical source status, full excerpts and surrounding context. It has no database, cache or external reference-service dependency for resolution.
+
+All indexes are zero-based. Unless a column below names another table or a literal type, its value is an index into `strings`. Nullable indexes and line numbers use JSON `null` for an absent value.
+
+| Table | Ordered row columns |
+| --- | --- |
+| `knowledge` | `id`, `revision_id`, `statement`, `topic`, `topic_title`, `subject`, `kind`, `lifecycle`, `base_lifecycle`, `scope`, `effective_at`, `support_state`, evidence links, original relation strings |
+| `evidence` | `id`, source-revision row index, optional `root_path`, `material`, optional `origin`, `excerpt`, `context_before`, `context_after`, `digest`, optional integer `line_start`, optional integer `line_end`, `captured_at` |
+| `source_revisions` | `id`, `source_id`, `root_id`, `observed_path`, `content_digest`, boolean `current` |
+| `relations` | `id`, from-knowledge row index, to-knowledge row index, `kind`, evidence row index, `assertion_revision_id`, `source_locator`, boolean `active` |
+
+Each knowledge evidence link is `[evidence_row_index, assertion_id_string_index, active_boolean]`. Its final original-relation column is an array of string indexes; these preserve the record's original relation text separately from the source-backed `relations` table. Evidence source identity, path and revision resolve through the referenced source-revision row. A relationship's original source identity, revision and exact excerpt resolve through its witness evidence. Encoding checks that these references reproduce the original metadata exactly before using the compact format.
+
+The remaining response fields, including navigation, status, coverage, warnings and budget accounting, keep their ordinary named-object shapes. The graph and disposable cache remain at schema 1 because their storage format has not changed. Both response formats use the same graph snapshot and view identities; a returned node ID can be opened with either format.
+
+`CompactExploreResult::resolve()` reconstructs an `ExploreResult` with every original knowledge, citation, evidence, source-revision and relationship field. The resolved value retains `schema_version: 2`: its `used_tokens` measures the compact response and complete Markdown, not a fresh expanded JSON serialization. The resolver rejects unsupported versions, dangling table indexes, duplicate identities, invalid excerpt digests, inconsistent coverage and incomplete or extra source/evidence manifests. These checks establish structural consistency; validating the authenticity of supplied response bytes still requires comparison with authoritative source records.
+
+### Rust entry points
+
+Embedders can use the following APIs under `lore::knowledge`:
+
+| Purpose | APIs |
+| --- | --- |
+| Build and validate documentary navigation | `build`, `build_cached`, `validate` |
+| Existing schema-1 selection and exploration | `select`, `explore`, `explore_cached`, `render_markdown` |
+| Explicit schema-2 selection and exploration | `select_compact`, `explore_compact`, `explore_compact_cached` |
+| Resolve and render compact responses | `CompactExploreResult::resolve`, `render_compact_markdown` |
+| Inspect original-record obligations before packing | `inspect_bundles`, `EvidenceBundle`, `BundleDependency` |
+| Compare graph ordering under fixed input candidates | `select_controlled`, `select_compact_controlled`, `SelectionMode` |
+
+The exploration entry points combine the existing direct retrieval candidates with navigation within one read snapshot. `ZoomOptions` controls graph-building limits; the unchanged `ExploreOptions` controls a request's query, selected node and output budget. Both compact resolution and compact Markdown rendering return `Result` because malformed references are rejected. The graph validator checks source references, source manifests, dependency fingerprints, critical memberships and containment independently of the portable renderer.
+
+`inspect_bundles(graph, seeds)` returns each seed's complete knowledge-ID set and directed dependencies with a reason and, for documentary relationships, its original relation and evidence IDs. This diagnostic uses an empty query, so its inspection covers all recognized environment scopes rather than a particular query's scope filter. It is bounded by the graph's record and work limits and creates no new authoritative assertion.
+
+The controlled selectors take the same externally supplied original candidate IDs in `GraphGuided` and `DirectOnly` modes. They use identical applicability rules, complete evidence closure, formats and budget accounting; only graph-derived ordering and navigation change. Both modes still validate the same source graph. This is an ordering/navigation ablation, not a separate graph-free ingestion implementation. Use an independently specified answer set to score either mode; the selector's own bundles are not evaluation gold.
 
 ## What the checks establish
 
 The [Knowledge Zoom tests](../tests/knowledge_zoom.rs) use a real SQLite registry and retained sources. They cover depth beyond five levels, multiple semantic parents, direct lookup despite a tiny navigation budget, rare exceptions, conflict endpoints, complete-group omission, source and relationship invalidation, extractive summaries, unchanged-cache behavior and poisoned-cache rejection. Incremental regressions assert zero summary/revision generation while counting canonical topology validation on no-op reads, affected-node updates through both relationship endpoints, complete fallback for changed labels/critical priority/options, source-inventory-only changes, and honest accounting for rejected partial reuse. They compare updated cached graphs with a fresh full build and verify that even a recomputed cache checksum cannot authorize forged source-derived prose.
 
-The actual [CLI checks](../tests/knowledge_zoom_cli.rs) verify original evidence, complete output budgets, provider-independent operation, exact node drill-down, unchanged-cache bytes and modification time, explicit cache bypass and an unmanaged-cache fallback that preserves user files. The [retrieval comparison](../evaluation/KNOWLEDGE_ZOOM.md) records fixture measurements against the existing flat entry point.
+The 0.7 regressions add dense shared-topic constraints, unrelated rules sharing ordinary words and numeric values, real permissions with explanatory clauses, required exceptions outside a selected node, proposal/current-decision qualification, historical evidence and reversible schema-2 references. They check the documented capacity/rare-exception, future-scope and disagreement failure patterns at 1,500 tokens. Both formats are checked across constrained budgets, including explicit disclosure when a complete original cannot fit. Controlled selection tests hold input candidates and required obligations fixed across modes.
+
+The actual [CLI checks](../tests/knowledge_zoom_cli.rs) verify original evidence, complete output budgets, provider-independent operation, exact node drill-down, unchanged-cache bytes and modification time, explicit cache bypass and an unmanaged-cache fallback that preserves user files. They also check the default schema-1 contract, opt-in schema-2 round trips, cache/no-cache equality, exact evidence lookup and compiled-registry byte immutability. The [retrieval comparison](../evaluation/KNOWLEDGE_ZOOM.md) records fixture measurements against the existing flat entry point and states their evaluation scope.
 
 These checks establish structural and provenance contracts for the implementation. They do not establish that these deterministic groups are always the best conceptual model, that every important condition was correctly captured upstream, or that the feature improves human learning or coding outcomes. Those outcomes belong to the separate human and agent evaluations.
