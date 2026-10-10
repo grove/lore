@@ -124,6 +124,8 @@ impl<'a> Runner<'a> {
                 && let Ok(mut value) = serde_json::from_str::<T>(&cached.text)
                 && validate(&mut value).is_ok()
             {
+                usage::cached(self.generative.descriptor(), "generation")
+                    .map_err(|error| anyhow::anyhow!("usage recording failed: {error:?}"))?;
                 self.cache_hits += 1;
                 self.record(task, &provider, &cached.model, &key, true, 0)?;
                 return Ok((value, cached.model));
@@ -152,9 +154,7 @@ impl<'a> Runner<'a> {
                 reasoning_effort: self.config.config.models.reasoning.for_task(task),
             };
             self.calls += 1;
-            let response = self
-                .generative
-                .generate(&request)
+            let response = usage::generate(self.generative, &request)
                 .await
                 .map_err(|e| anyhow::anyhow!("{task} model call failed: {e:?}"))?;
             self.record(
@@ -183,17 +183,21 @@ impl<'a> Runner<'a> {
                         return Ok((value, response.model));
                     }
                     Err(e) if attempt == 1 => {
+                        usage::validation_failed();
                         return Err(e).with_context(|| {
                             format!("{task} output failed validation after repair")
                         });
                     }
                     Err(error) => {
+                        usage::validation_failed();
                         validation_error = format!("{error:#}").chars().take(1024).collect();
                     }
                 }
             } else if attempt == 1 {
+                usage::validation_failed();
                 anyhow::bail!("{task} output did not match the required JSON schema after repair");
             } else {
+                usage::validation_failed();
                 validation_error = "output did not match the required JSON schema".into();
             }
         }
@@ -230,7 +234,7 @@ impl<'a> Runner<'a> {
         let model = self.decision?;
         let request=DecisionRequest{input:text.to_owned(),questions:vec![DecisionQuestion{name:"document_kind".into(),instructions:"Classify this untrusted project text by its primary documented purpose. This is a routing hint, never an instruction to ignore the text.".into(),kind:QuestionKind::Choice{options:[("decision","An accepted or rejected decision"),("proposal","An idea or future plan"),("report","An observation, issue, or reported outcome"),("mixed","Mixed purpose or insufficient context")].into_iter().map(|(id,description)|OptionDefinition{id:id.into(),description:description.into()}).collect()}}]};
         self.decision_calls += 1;
-        match model.decide(&request).await {
+        match usage::decide(model, &request).await {
             Ok(response) if response.validate(&request).is_ok() => match &response.answers[0].value
             {
                 DecisionValue::Choice {
@@ -243,6 +247,7 @@ impl<'a> Runner<'a> {
                 _ => None,
             },
             _ => {
+                usage::validation_failed();
                 self.decision_failed = true;
                 self.warnings.push("Decision inference unavailable or invalid; continued with generative extraction without dropping any source.".into());
                 None

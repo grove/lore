@@ -437,7 +437,11 @@ async fn request(
     budget
         .before_model_call()
         .map_err(|_| "presentation_budget_exhausted".to_string())?;
-    let result = tokio::time::timeout(budget.remaining_time(), model.generate(request)).await;
+    let result = tokio::time::timeout(
+        budget.remaining_time(),
+        crate::inference::usage::generate(model, request),
+    )
+    .await;
     match result {
         Ok(Ok(response)) if response.text.len() <= 128_000 => Ok(response.text),
         Ok(Ok(_)) => Err("presentation_response_too_large".into()),

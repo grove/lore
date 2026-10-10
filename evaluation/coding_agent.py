@@ -12,6 +12,9 @@ import ipaddress
 import json
 import os
 import sys
+import time
+import uuid
+import provider_usage as metering
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_opener
@@ -70,26 +73,42 @@ def decode(provider: str, result: dict) -> dict:
             raise ValueError("Provider did not complete the coding response")
         text = "\n".join(content.get("text", "") for item in result.get("output", [])
                          for content in item.get("content", []) if content.get("type") == "output_text")
-        provider_usage = result.get("usage") or {}
-        tokens = (provider_usage.get("input_tokens"), provider_usage.get("output_tokens"))
+
     else:
         if result.get("done") is not True or result.get("done_reason") == "length":
             raise ValueError("Provider did not complete the coding response")
         text = result.get("message", {}).get("content", "")
-        tokens = (result.get("prompt_eval_count"), result.get("eval_count"))
+
     proposal = json.loads(text)
     if not isinstance(proposal, dict):
         raise ValueError("Coding response must be a JSON object")
+    # Only the implementation contract comes from generated text. Accounting
+    # and provider identity are attached from the actual response separately.
+    proposal = {key: proposal.get(key) for key in ("schema_version", "files", "summary")}
     proposal["provider_model"] = result["model"]
-    proposal["usage"] = {"model_calls": 1, "input_tokens": tokens[0], "output_tokens": tokens[1],
-                         "billed_cost_usd": None, "billing_source": None}
+    proposal["usage"] = metering.normalized({"model_calls": 1, "cache_hits": 0, "event_count": 1,
+                                             **metering.tokens(provider, result)})
     return proposal
 
 
 def generate(args: argparse.Namespace, task: dict) -> dict:
+    recorder = metering.Recorder(getattr(args, "usage_ledger", None) or os.environ.get("LORE_USAGE_LEDGER"))
+    try:
+        return generate_recorded(args, task, recorder)
+    except BaseException:
+        recorder.save("failed")
+        raise
+
+
+def generate_recorded(args: argparse.Namespace, task: dict, recorder: metering.Recorder) -> dict:
     url = endpoint(args.provider, args.base_url, args.allow_hosted)
+    if not isinstance(args.model, str) or not args.model or len(args.model) > 512 or any(character.isspace() or ord(character) < 32 for character in args.model):
+        raise ValueError("A bounded model identifier is required")
     if not args.allow_hosted and (":cloud" in args.model.lower() or args.model.lower().endswith("-cloud")):
         raise ValueError("Cloud model tags require --allow-hosted even on a loopback endpoint")
+    retries = getattr(args, "retries", 0)
+    if type(retries) is not int or not 0 <= retries <= 5:
+        raise ValueError("Transport retries must be 0..5")
     headers = {"Content-Type": "application/json"}
     if args.provider == "openai":
         key = os.environ.get(args.api_key_env)
@@ -105,14 +124,71 @@ def generate(args: argparse.Namespace, task: dict) -> dict:
                 "messages": [{"role": "system", "content": INSTRUCTIONS},
                              {"role": "user", "content": json.dumps(task)}]}
     request = Request(url, json.dumps(body).encode("utf-8"), headers, method="POST")
-    # A local endpoint cannot redirect source text elsewhere or use an ambient
-    # HTTP proxy. Hosted opt-in also authorizes only the selected endpoint here.
     opener = build_opener(ProxyHandler({}), NoRedirects())
-    with opener.open(request, timeout=args.timeout) as response:
-        data = response.read(2_000_001)
-    if len(data) > 2_000_000:
-        raise ValueError("Provider response exceeds 2 MB")
-    return decode(args.provider, json.loads(data))
+    call_id = "coding-call-" + uuid.uuid4().hex
+    deadline = time.monotonic() + args.timeout
+    for number in range(1, retries + 2):
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise TimeoutError("Coding provider wall-time budget exhausted")
+        started = time.monotonic()
+        event = {"id": "coding-usage-" + uuid.uuid4().hex, "call_id": call_id,
+                 "operation": "generation", "provider": args.provider, "model": args.model,
+                 "attempt": number, "elapsed_ms": 0, "http_status": None,
+                 **metering.tokens(args.provider, {}), "status": "started", "cache_hit": False}
+        recorder.events.append(event)
+        recorder.save()
+        raw = None
+        try:
+            with opener.open(request, timeout=remaining) as response:
+                data = response.read(2_000_001)
+                status = response.getcode()
+                event["http_status"] = status if type(status) is int else 200
+            if len(data) > 2_000_000:
+                raise ValueError("Provider response exceeds 2 MB")
+            raw = json.loads(data)
+            event.update(metering.tokens(args.provider, raw))
+            proposal = decode(args.provider, raw)
+        except HTTPError as error:
+            event["http_status"] = error.code
+            try:
+                raw = error.read(2_000_001)
+                if len(raw) <= 2_000_000:
+                    event.update(metering.tokens(args.provider, json.loads(raw)))
+            except (ValueError, OSError):
+                pass
+            event["status"] = "http_error"
+            if error.code not in (429, 500, 502, 503, 504) or number > retries:
+                raise
+        except (TimeoutError, URLError, OSError) as error:
+            event["status"] = "timed_out" if isinstance(error, TimeoutError) or isinstance(getattr(error, "reason", None), TimeoutError) else "transport_error"
+            if number > retries:
+                raise
+        except BaseException as error:
+            event["status"] = "cancelled" if isinstance(error, (KeyboardInterrupt, SystemExit)) else "validation_failed"
+            if isinstance(raw, dict):
+                if refused_or_tool_call(raw):
+                    event["status"] = "refused"
+                elif raw.get("status") == "incomplete" or raw.get("done") is False or raw.get("done_reason") == "length":
+                    event["status"] = "incomplete"
+            raise
+        else:
+            event["status"] = "completed"
+            event["elapsed_ms"] = max(0, int((time.monotonic() - started) * 1000))
+            retained = recorder.save("completed")
+            proposal["usage"] = metering.normalized(retained["summary"])
+            proposal["usage_ledger"] = retained
+            return proposal
+        finally:
+            if event["status"] != "completed":
+                event["elapsed_ms"] = max(0, int((time.monotonic() - started) * 1000))
+                recorder.save()
+        # Retry waiting is visible in the harness's invocation wall time; each
+        # new attempt has its own charged ledger row.
+        delay = min(0.2 * 2 ** (number - 1), max(0.0, deadline - time.monotonic()))
+        if delay:
+            time.sleep(delay)
+    raise ValueError("Provider retry budget exhausted")
 
 
 def main(argv=None) -> int:
@@ -124,6 +200,8 @@ def main(argv=None) -> int:
     parser.add_argument("--allow-hosted", action="store_true")
     parser.add_argument("--reasoning-effort", choices=("none", "low", "medium", "high", "xhigh", "max"))
     parser.add_argument("--timeout", type=int, default=600)
+    parser.add_argument("--retries", type=int, default=0, help="Bounded transport retries; every attempt is metered")
+    parser.add_argument("--usage-ledger", help="Explicit new absolute file for safe per-attempt accounting")
     args = parser.parse_args(argv)
     try:
         if not 1 <= args.timeout <= 86400:

@@ -634,6 +634,7 @@ mod tests {
                     json!({"supported":true,"issues":[],"findings":[]})
                 };
                 Ok(crate::inference::GenerationResponse {
+                    usage: None,
                     model: self.descriptor.model.clone(),
                     text: answer.to_string(),
                 })

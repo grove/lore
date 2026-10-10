@@ -324,7 +324,11 @@ async fn main() {
         }
     };
     let json = cli.json;
-    let result = tokio::select! {result=run(cli)=>result,_=tokio::signal::ctrl_c()=>Err(anyhow::anyhow!("cancelled; run update to recover any pending publication"))};
+    let result = async {
+        let meter = lore::inference::usage::UsageSession::from_environment()?;
+        run_metered(cli, meter).await
+    }
+    .await;
     match result {
         Ok(code) => std::process::exit(code),
         Err(e) => {
@@ -343,6 +347,21 @@ async fn main() {
         }
     }
 }
+
+async fn run_metered(cli: Cli, meter: lore::inference::usage::UsageSession) -> Result<i32> {
+    // Command dispatch includes every async CLI branch. Keep that future on
+    // the heap before the cancellation and task-local scopes embed it; their
+    // combined stack frame otherwise also crowds argument parsing on Windows.
+    let operation = Box::pin(run(cli));
+    let result = meter
+        .scope(async move {
+            tokio::select! {result=operation=>result,_=tokio::signal::ctrl_c()=>Err(anyhow::anyhow!("cancelled; run update to recover any pending publication"))}
+        })
+        .await;
+    meter.finish(result.is_ok())?;
+    result
+}
+
 async fn run(cli: Cli) -> Result<i32> {
     if let Command::Init {
         source,
@@ -1266,5 +1285,68 @@ fn context_budget(value: &str) -> std::result::Result<usize, String> {
         ))
     } else {
         Ok(budget)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn metered_dispatch_future_stays_small() {
+        let cli = Cli {
+            config: PathBuf::from("missing-stack-test-config.yml"),
+            json: true,
+            command: Command::Status,
+        };
+        let future = run_metered(cli, lore::inference::usage::UsageSession::memory());
+        let bytes = std::mem::size_of_val(&future);
+        println!("metered dispatch future: {bytes} bytes");
+        assert!(
+            bytes <= 16 * 1024,
+            "metered dispatch future uses {bytes} stack bytes"
+        );
+    }
+
+    #[test]
+    fn metered_cli_parses_and_flushes_failure_on_a_bounded_stack() {
+        let temp = tempfile::tempdir().unwrap();
+        // macOS system temporary paths may begin with the /var symlink. Select
+        // this newly owned directory's real path without relaxing ledger guards.
+        let base = temp.path().canonicalize().unwrap();
+        let missing_config = base.join("missing.yml");
+        let ledger_path = base.join("usage.json");
+        let selected_path = ledger_path.clone();
+        std::thread::Builder::new()
+            .name("bounded-cli-stack".into())
+            .stack_size(1024 * 1024)
+            .spawn(move || {
+                // Both Clap's error path and a polled dispatch must have room
+                // without changing the application's process stack limit.
+                assert!(Cli::try_parse_from(["lore", "--json", "context", "--fast"]).is_err());
+                let cli = Cli::try_parse_from([
+                    std::ffi::OsStr::new("lore"),
+                    std::ffi::OsStr::new("--json"),
+                    std::ffi::OsStr::new("--config"),
+                    missing_config.as_os_str(),
+                    std::ffi::OsStr::new("status"),
+                ])
+                .unwrap();
+                let meter = lore::inference::usage::UsageSession::at_path(selected_path).unwrap();
+                let runtime = tokio::runtime::Builder::new_current_thread()
+                    .enable_all()
+                    .build()
+                    .unwrap();
+                let error = runtime.block_on(run_metered(cli, meter)).unwrap_err();
+                assert!(format!("{error:#}").contains("load configuration"));
+            })
+            .unwrap()
+            .join()
+            .unwrap();
+        let ledger: lore::inference::usage::UsageLedger =
+            serde_json::from_slice(&fs::read(ledger_path).unwrap()).unwrap();
+        assert_eq!(ledger.invocation_status, "failed");
+        assert!(ledger.events.is_empty());
+        assert_eq!(ledger.summary.provider_request_count, Some(0));
     }
 }

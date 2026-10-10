@@ -104,6 +104,7 @@ impl GenerativeModel for LocatedModel {
                         json!([to["id"], from["id"]])
                     };
                     return Ok(GenerationResponse {
+                        usage: None,
                         model: "fixture".into(),
                         text: json!({"repairs":[{
                             "section":0, "paragraph":paragraph, "text":GOOD, "knowledge_ids":ids
@@ -112,6 +113,7 @@ impl GenerativeModel for LocatedModel {
                     });
                 }
                 return Ok(GenerationResponse {
+                    usage: None,
                     model: "fixture".into(),
                     text: json!({"sections":[{
                         "heading":"Documented policy", "paragraphs":[
@@ -138,7 +140,7 @@ impl GenerativeModel for LocatedModel {
                     } else {
                         "This proves enforcement."
                     };
-                    return Ok(GenerationResponse { model:"fixture".into(), text:json!({
+                    return Ok(GenerationResponse { usage: None, model:"fixture".into(), text:json!({
                         "supported":false,
                         "issues":["Cite the successor as well as the predecessor.", "Do not promote a policy decision to proven enforcement."],
                         "findings":[

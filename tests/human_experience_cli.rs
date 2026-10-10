@@ -300,6 +300,88 @@ async fn optional_answer_has_ungraded_fallback_without_a_stored_profile_or_answe
     assert_eq!(files(&config.base), before);
 }
 
+#[tokio::test]
+async fn initialized_onboard_flushes_usage_on_native_stacks_and_linux_one_mib_stack() {
+    let (_temp, config) = fixture().await;
+    let before = files(&config.base);
+    let ledger_directory = tempfile::tempdir().unwrap();
+    let ledger_base = ledger_directory.path().canonicalize().unwrap();
+    let cases: &[(&str, bool, &[&str])] = &[
+        ("initial-json", true, &[]),
+        ("initial-markdown", false, &[]),
+        (
+            "optional-answer",
+            true,
+            &[
+                "--topic",
+                "Teach me dispatch queues",
+                "--mode",
+                "tutorial",
+                "--answer",
+                "Production capacity is 128 jobs",
+            ],
+        ),
+        (
+            "supplied-task",
+            true,
+            &[
+                "--task",
+                "Refactor dispatch without changing tenant ordering",
+            ],
+        ),
+    ];
+    for (name, json, extra) in cases {
+        let ledger_path = ledger_base.join(format!("{name}.json"));
+        let mut child = command(&config.config_path);
+        if *json {
+            child.arg("--json");
+        }
+        child
+            .args(["onboard", "--no-inspect", "--no-cache"])
+            .args(*extra)
+            .env("LORE_USAGE_LEDGER", &ledger_path);
+        // Every platform exercises the actual executable and native stack.
+        // Linux additionally matches the Windows 1 MiB stack reserve; Darwin
+        // rejects this stack-limit change in the test worker's fork context.
+        #[cfg(target_os = "linux")]
+        {
+            use std::os::unix::process::CommandExt;
+
+            // SAFETY: the child hook calls only the async-signal-safe setrlimit;
+            // no runtime, locks, allocation, or shared state is used after fork.
+            unsafe {
+                child.pre_exec(|| {
+                    let limit = libc::rlimit {
+                        rlim_cur: 1024 * 1024,
+                        rlim_max: 1024 * 1024,
+                    };
+                    if libc::setrlimit(libc::RLIMIT_STACK, &limit) == 0 {
+                        Ok(())
+                    } else {
+                        Err(std::io::Error::last_os_error())
+                    }
+                });
+            }
+        }
+        let text = successful(child.output().unwrap());
+        assert!(text.contains(CONDITION), "case: {name}");
+        if *json {
+            let result: Value = serde_json::from_str(&text).unwrap();
+            assert_eq!(result["model_calls"], 0, "case: {name}");
+        }
+        let ledger: lore::inference::usage::UsageLedger =
+            serde_json::from_slice(&fs::read(&ledger_path).unwrap()).unwrap();
+        assert_eq!(ledger.invocation_status, "completed", "case: {name}");
+        assert!(ledger.events.is_empty(), "case: {name}");
+        assert_eq!(
+            ledger.summary.provider_request_count,
+            Some(0),
+            "case: {name}"
+        );
+    }
+    assert_eq!(files(&config.base), before);
+}
+
 #[test]
 fn invalid_onboard_cli_inputs_are_rejected_before_configuration_is_opened() {
     let temp = tempfile::tempdir().unwrap();

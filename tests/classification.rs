@@ -31,6 +31,7 @@ impl GenerativeModel for MixedDocumentModel {
      Some(json!({"topic":topic,"topic_title":topic,"subject":"service","statement":line,"kind":kind,"lifecycle":lifecycle,"scope":"production","effective_at":"","quote":line}))
     }).collect::<Vec<_>>();
                 return Ok(GenerationResponse {
+                    usage: None,
                     model: "mixed-fixture".into(),
                     text: json!({"assertions":assertions}).to_string(),
                 });

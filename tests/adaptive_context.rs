@@ -56,6 +56,10 @@ async fn exact_retained_constant_bypasses_model_checkout_and_cache() {
         .max(context::count_tokens(&adaptive::render(&result)));
     assert!(actual <= result.budget.used_tokens);
     assert!(result.budget.used_tokens <= options.max_tokens);
+    assert_eq!(result.usage.provider_request_count, Some(0));
+    assert_eq!(result.usage.total_tokens, Some(0));
+    assert_eq!(result.usage.billed_cost_usd, Some(0.0));
+    assert!(result.usage.ledger.is_none());
     let DecisionContextResult::FastFallback(reference) = result.intelligence else {
         panic!("exact reference should bypass decision generation")
     };

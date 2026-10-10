@@ -8,7 +8,7 @@ use crate::{
     domain::KnowledgeView,
     imports,
     inference::{
-        EgressPolicy, EmbeddingModel, EmbeddingRequest, MAX_EMBEDDING_INPUTS, Provider,
+        EgressPolicy, EmbeddingModel, EmbeddingRequest, MAX_EMBEDDING_INPUTS, Provider, usage,
         valid_embedding,
     },
     storage, util,
@@ -314,12 +314,12 @@ pub async fn search(
             anyhow::anyhow!("semantic retrieval is disabled by the configured local-only policy")
         })?;
         report.model_calls += 1;
-        let response = model
-            .embed(&request)
+        let response = usage::embed(model, &request)
             .await
             .map_err(|error| anyhow::anyhow!("embedding inference failed: {error:?}"))?;
         let returned_dimensions = response
             .validate(&request, model.descriptor())
+            .inspect_err(|_| usage::validation_failed())
             .map_err(|error| anyhow::anyhow!("{error:?}"))?;
         if let Some(expected) = dimensions {
             if expected != returned_dimensions {
@@ -360,6 +360,11 @@ pub async fn search(
             vectors[*index] = Some(vector);
         }
         transaction.commit()?;
+    }
+    if report.cache_hits > 0 {
+        // One aggregate reuse event; no historical embedding tokens are charged.
+        usage::cached(model.descriptor(), "embedding_cache")
+            .map_err(|error| anyhow::anyhow!("usage recording failed: {error:?}"))?;
     }
     let query = vectors[0].as_ref().context("query embedding unavailable")?;
     for (record, vector) in records.iter().zip(&vectors).skip(1) {

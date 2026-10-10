@@ -16,6 +16,7 @@ use crate::{
     inference::{
         EgressPolicy, EmbeddingModel, EmbeddingRequest, EmbeddingResponse, ExecutionLocation,
         GenerationRequest, GenerativeModel, ModelDescriptor, ModelError, ModelFuture, Provider,
+        usage,
     },
     util,
 };
@@ -563,7 +564,7 @@ async fn generate(
     );
     budget.before_model_call()?;
     egress.model_received_checkout |= has_checkout;
-    let response = tokio::time::timeout(budget.remaining_time(), model.generate(&request))
+    let response = tokio::time::timeout(budget.remaining_time(), usage::generate(model, &request))
         .await
         .map_err(|_| anyhow::anyhow!("decision deadline exhausted"))?
         .map_err(|_| anyhow::anyhow!("decision model unavailable or invalid"))?;
@@ -635,8 +636,12 @@ async fn synthesize(
         !observations.is_empty(),
     )
     .await?;
-    let draft = parse_draft(&raw)?;
-    validate_draft(&catalog, &draft)?;
+    let draft = parse_draft(&raw)
+        .and_then(|draft| {
+            validate_draft(&catalog, &draft)?;
+            Ok(draft)
+        })
+        .inspect_err(|_| usage::validation_failed())?;
     let brief = finish_brief(&catalog, &draft, &revision_key(key, observations)?);
     Ok((draft, brief))
 }
@@ -758,6 +763,8 @@ async fn build(
                 if let Some(result) = fit(result)?
                     && budget.ensure_time().is_ok()
                 {
+                    usage::cached(model.descriptor(), "decision_context")
+                        .map_err(|error| anyhow::anyhow!("usage recording failed: {error:?}"))?;
                     return Ok(DecisionContextResult::Brief(result));
                 }
             }
@@ -977,6 +984,7 @@ async fn build(
                 let revision = match validate_revision(&brief, &next_brief) {
                     Ok(revision) => revision,
                     Err(_) => {
+                        usage::validation_failed();
                         investigation.finish("counterevidence_not_addressed", &budget);
                         return fallback(
                             conn,
@@ -1040,6 +1048,7 @@ async fn build(
     }) {
         Ok(verification) => verification,
         Err(_) => {
+            usage::validation_failed();
             investigation.finish("support_check_failed", &budget);
             return fallback(
                 conn,

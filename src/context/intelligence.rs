@@ -980,7 +980,7 @@ async fn generate(
 ) -> std::result::Result<String, ModelError> {
     let response = tokio::time::timeout(
         Duration::from_secs(config.config.processing.timeout_seconds.clamp(1, 600)),
-        model.generate(request),
+        crate::inference::usage::generate(model, request),
     )
     .await
     .map_err(|_| ModelError::Unavailable("context inference timed out".into()))??;
@@ -1289,6 +1289,8 @@ pub async fn build_intelligent_context(
         });
     let cache_hit = cached.is_some();
     let (draft, verification) = if let Some(entry) = cached {
+        crate::inference::usage::cached(model.descriptor(), "intelligent_context")
+            .map_err(|error| anyhow::anyhow!("usage recording failed: {error:?}"))?;
         (entry.draft, entry.verification)
     } else {
         let request = GenerationRequest {
@@ -1313,6 +1315,7 @@ pub async fn build_intelligent_context(
         let draft: DraftBrief = match serde_json::from_str(&raw) {
             Ok(draft) => draft,
             Err(_) => {
+                crate::inference::usage::validation_failed();
                 return fallback(
                     conn,
                     options,
@@ -1323,6 +1326,7 @@ pub async fn build_intelligent_context(
             }
         };
         if catalog.draft(&draft).is_err() {
+            crate::inference::usage::validation_failed();
             return fallback(
                 conn,
                 options,
@@ -1369,6 +1373,7 @@ pub async fn build_intelligent_context(
             }) {
                 Some(verification) => Some(verification),
                 None => {
+                    crate::inference::usage::validation_failed();
                     return fallback(
                         conn,
                         options,

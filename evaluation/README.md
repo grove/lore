@@ -80,7 +80,7 @@ semantic recall. The separate 24-case 0.7 source-gold review covers its pinned
 documentary queries and conditions only, and does not establish these wider
 synthesis or human outcomes.
 
-The current Lore database logs model calls, cached calls, provider/model identifiers, task types and durations but **does not persist provider input/output tokens or actual currency charges**. The report therefore leaves billing cost as null unless you explicitly supply a measured billed amount using the --billed-cost-usd argument. Do not infer actual USD expense from the number of requests. Provider usage instrumentation should be added before drawing conclusions about relative pricing.
+Lore 0.8 records non-sensitive per-attempt provider usage, including retries and unsuccessful calls, and persists successful compiler-run ledgers in SQLite schema 8. The coding and adaptive evaluators capture explicit invocation ledgers and independently recompute their totals. Historical usage and missing token counts remain unknown. Direct provider APIs do not supply an invoice, so billed USD remains null; the original single-project benchmark also permits an operator-supplied measured amount using `--billed-cost-usd`. Never infer actual USD from request counts or offline envelope tokens. See [provider usage and cost accounting](../docs/PROVIDER_USAGE.md) for the optional output contract and failure retention.
 
 ## What is needed
 

@@ -177,6 +177,7 @@ impl GenerativeModel for FakeModel {
                 _ => panic!("unexpected task {task}"),
             };
             Ok(GenerationResponse {
+                usage: None,
                 model: self.descriptor.model.clone(),
                 text: output.to_string(),
             })

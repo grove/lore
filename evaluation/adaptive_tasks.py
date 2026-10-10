@@ -163,7 +163,10 @@ def core(response: dict, setup: str) -> dict:
     return shared.intelligence(response, experience(setup))
 
 
-def measured_usage(response: dict, setup: str) -> dict:
+def measured_usage(response: dict, setup: str, ledger: dict | None = None) -> dict:
+    measured = coding.metering.bind_summary(response.get("usage"), ledger)
+    if measured is not None:
+        return measured
     nested = core(response, setup)
     return coding.usage(response.get("usage", nested.get("usage")), calls=cross.model_calls(nested))
 
@@ -187,19 +190,20 @@ def collect_context(binary: str, project: Path, source: Path, task: str, setup: 
     cache_before = cache_state(project)
     # Both requests precede every coding attempt. Neither sees an answer,
     # candidate implementation, checker program or checker result.
-    warmup, warmup_seconds = bench.subprocess_json(binary, project, *argv, timeout=policy["timeout"], env=env)
+    warmup, warmup_seconds, warmup_ledger = coding.metered_lore(binary, project, *argv, timeout=policy["timeout"], env=env)
     cache_warm = cache_state(project)
-    response, served_seconds = bench.subprocess_json(binary, project, *argv, timeout=policy["timeout"], env=env)
+    response, served_seconds, served_ledger = coding.metered_lore(binary, project, *argv, timeout=policy["timeout"], env=env)
     ids = shared.response_citations(warmup) | shared.response_citations(response)
     citations = cross.resolve_citations(binary, project, ids, policy["timeout"],
                                         env=environment(project, "evidence"))
-    warmup_usage, served_usage = measured_usage(warmup, setup), measured_usage(response, setup)
+    warmup_usage, served_usage = measured_usage(warmup, setup, warmup_ledger), measured_usage(response, setup, served_ledger)
     record = {"arguments": argv, "host_grants": grant_record(project, policy),
         "response": response, "response_sha256": cross.digest(response),
         "warmup_response": warmup, "warmup_response_sha256": cross.digest(warmup),
         "served_elapsed_seconds": served_seconds, "warmup_elapsed_seconds": warmup_seconds,
         "isolation_seconds": 0.0, "elapsed_seconds": warmup_seconds + served_seconds,
         "served_usage": served_usage, "warmup_usage": warmup_usage,
+        "served_usage_ledger": served_ledger, "warmup_usage_ledger": warmup_ledger,
         "usage": combined_usage([warmup_usage, served_usage]),
         "response_json_bytes": len(json.dumps(response).encode("utf-8")),
         "warmup_json_bytes": len(json.dumps(warmup).encode("utf-8")),
@@ -285,8 +289,8 @@ def context_checks(record: dict, task: str, setup: str, source: Path, checkout: 
         "original_sources_bound": {path: value["sha256"] for path, value in record["checkout_before"].items()} == expected_files,
         "citations_resolve": coding.resolver_complete(record["citation_integrity"],
             shared.response_citations(answers[0]) | shared.response_citations(answers[1])),
-        "served_usage_bound": record["served_usage"] == measured_usage(answers[1], setup),
-        "warmup_usage_bound": record["warmup_usage"] == measured_usage(answers[0], setup),
+        "served_usage_bound": record["served_usage"] == measured_usage(answers[1], setup, record.get("served_usage_ledger")),
+        "warmup_usage_bound": record["warmup_usage"] == measured_usage(answers[0], setup, record.get("warmup_usage_ledger")),
         "full_context_usage": record["usage"] == combined_usage([record["warmup_usage"], record["served_usage"]]),
         "full_context_time": all(nonnegative(record[key]) for key in
             ("elapsed_seconds", "served_elapsed_seconds", "warmup_elapsed_seconds", "isolation_seconds"))
@@ -422,6 +426,9 @@ def validate_costs(sample: dict, context: dict | None) -> None:
         raise ValueError("Invalid measured iteration overhead")
     for field in ("preparation_usage", "context_usage", "coding_usage"):
         coding.usage(costs[field])
+    preparation = coding.metering.summary_from_record(costs.get("preparation_usage_ledger"))
+    if preparation is not None and costs["preparation_usage"] != preparation:
+        raise ValueError("Preparation usage differs from its captured provider ledger")
     if costs["total_usage"] != coding.add_usage([costs[field] for field in
                                                ("preparation_usage", "context_usage", "coding_usage")]):
         raise ValueError("Task usage omits a warm-up or another component")

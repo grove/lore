@@ -12,7 +12,7 @@ mod timeline;
 use crate::{
     config::ResolvedConfig,
     domain::{self, Extraction},
-    inference::{DecisionModel, GenerativeModel},
+    inference::{DecisionModel, GenerativeModel, usage},
     publish,
     sources::{self, Inventory},
     storage::{self, SourceHead},
@@ -70,6 +70,8 @@ pub struct Report {
     #[serde(default)]
     pub degraded_overview: bool,
     pub generation: Option<String>,
+    #[serde(default)]
+    pub usage: usage::UsageSummary,
 }
 #[derive(Debug, Clone, Serialize)]
 pub struct Status {
@@ -248,6 +250,15 @@ pub fn status(config: &ResolvedConfig) -> Result<Status> {
 }
 
 pub async fn update(
+    config: &ResolvedConfig,
+    generative: &dyn GenerativeModel,
+    decision: Option<&dyn DecisionModel>,
+    options: UpdateOptions,
+) -> Result<Report> {
+    usage::scoped(update_metered(config, generative, decision, options)).await
+}
+
+async fn update_metered(
     config: &ResolvedConfig,
     generative: &dyn GenerativeModel,
     decision: Option<&dyn DecisionModel>,
@@ -584,6 +595,8 @@ pub async fn update(
         .get("index.md")
         .is_some_and(|page| page.content.contains(overview::DEGRADED_MARKER));
     report.pending_reviews = pending_reviews(&conn)?;
+    report.usage = usage::summary();
+    storage::save_provider_usage(&conn, &generation, &usage::events())?;
     drop(runner);
     conn.execute_batch("COMMIT")?;
     conn.close().map_err(|(_, e)| e)?;

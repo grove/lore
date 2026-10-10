@@ -110,6 +110,7 @@ async fn reviewed_upstream_queries_retain_their_complete_original_at_1500_tokens
                     })
                     .collect();
                 Ok(GenerationResponse {
+                    usage: None,
                     model: self.descriptor().model.clone(),
                     text: json!({"assertions":assertions}).to_string(),
                 })

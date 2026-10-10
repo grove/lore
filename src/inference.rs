@@ -1,6 +1,8 @@
 //! Provider-neutral, object-safe asynchronous model contracts.
+pub mod usage;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+pub use usage::ProviderUsage;
 
 /// A typed Responses API reasoning effort. Model support varies; GPT-6 Luna
 /// supports every level represented here. This is not a Decisions API setting.
@@ -78,6 +80,9 @@ pub struct GenerationRequest {
 pub struct GenerationResponse {
     pub model: String,
     pub text: String,
+    /// Provider accounting for this response, never an offline token estimate.
+    /// Transport retries and unsuccessful attempts belong to the event ledger.
+    pub usage: Option<ProviderUsage>,
 }
 pub trait GenerativeModel: Send + Sync {
     fn descriptor(&self) -> &ModelDescriptor;
@@ -130,6 +135,7 @@ pub struct EmbeddingResponse {
     pub model: String,
     /// Position corresponds exactly to the original request input position.
     pub embeddings: Vec<Vec<f32>>,
+    pub usage: Option<ProviderUsage>,
 }
 
 impl EmbeddingResponse {
@@ -287,6 +293,7 @@ pub struct DecisionAnswer {
 pub struct DecisionResponse {
     pub model: String,
     pub answers: Vec<DecisionAnswer>,
+    pub usage: Option<ProviderUsage>,
 }
 impl DecisionResponse {
     pub fn validate(&self, request: &DecisionRequest) -> Result<(), ModelError> {
