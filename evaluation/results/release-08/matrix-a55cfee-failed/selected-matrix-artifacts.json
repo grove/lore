@@ -1,0 +1,30 @@
+{
+  "copy_rule": "Copy only these exact relative filenames after checking their SHA-256; this manifest may accompany them.",
+  "files": {
+    "MATRIX.md": {
+      "bytes": 3693,
+      "role": "verified matrix findings and limits",
+      "sha256": "f3be57b41ae997bb16dae49302e84df5e4bce94cb2710fa16b0fe262a69e97e5"
+    },
+    "matrix-metadata.json": {
+      "bytes": 9117,
+      "role": "bounded workflow, checkout, steps and expected source targets",
+      "sha256": "d4b8b8a29f18ac52cf8f91b851a4a1dfdbe9fc2b3b87fa179d7a502d1432637b"
+    },
+    "matrix-verification.json": {
+      "bytes": 10502,
+      "role": "retained failed matrix receipt",
+      "sha256": "745704e12fb1c790925b7daea9c9b7df552fc0ab125e768cc9545c6ebb37731d"
+    },
+    "verify_release_matrix.py": {
+      "bytes": 14125,
+      "role": "read-only matrix reproduction verifier",
+      "sha256": "b3a741e066c1d5c90c66a43db0c9455fa3e1f292137aab2ba834b3671303ee12"
+    }
+  },
+  "head_sha": "a55cfeead56775af4e0ae9d171cbdcf191af2007",
+  "raw_ci_logs_included": false,
+  "schema_version": 1,
+  "signed_download_urls_included": false,
+  "source_tree_sha": "a0ebeecb3970a14abd10a4bcf15ea96d4bbc2049"
+}

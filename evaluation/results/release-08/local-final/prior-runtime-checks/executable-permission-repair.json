@@ -1,0 +1,19 @@
+{
+  "action": "Restored execute bits on one generated Cargo ELF test binary after Permission denied prevented any test launch. No source or executable bytes changed.",
+  "after": {
+    "bytes": 21313472,
+    "mode": "0o755",
+    "sha256": "a3aabeb6e504ab55903095a12d1397e9fa26a4403f7bd81a2139aba183c4dcdd"
+  },
+  "before": {
+    "bytes": 21313472,
+    "mode": "0o644",
+    "sha256": "a3aabeb6e504ab55903095a12d1397e9fa26a4403f7bd81a2139aba183c4dcdd"
+  },
+  "captured_utc": "2026-10-10T22:45:37.918815+00:00",
+  "classification": "generated_executable_permission_repair",
+  "failed_receipt_sha256": "54470bf886f2c44bd17896a35212664d776125ab5414d81c2010e65d701196a6",
+  "generated_path": "target/debug/deps/provider_usage-b86a87831213630d",
+  "schema_version": 1,
+  "source_revision": "ab9411885f0e049719c74c6b346bda981a15ea33"
+}

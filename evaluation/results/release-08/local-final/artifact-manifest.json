@@ -1,0 +1,183 @@
+{
+  "binaries_included": false,
+  "classification": "selected_condensed_and_synthetic_release_artifacts",
+  "files": [
+    {
+      "bytes": 583,
+      "classification": "condensed_engineering_receipt",
+      "path": "baseline-binding.json",
+      "sha256": "1f1885e1f6464dfbd375e7370df1120abe2ea142b32ac90ba94b6c450c0a4850"
+    },
+    {
+      "bytes": 4760,
+      "classification": "synthetic_public_fixture_contract",
+      "path": "baseline-contracts/contracts.json",
+      "sha256": "65f5101381b708e25e5c96343677e7f4c4d98894836ed4662181eb58ab7e4729"
+    },
+    {
+      "bytes": 9107,
+      "classification": "synthetic_public_fixture_contract",
+      "path": "baseline-contracts/default.json",
+      "sha256": "84bc6cc7a52dd361fb123762fd8fcd9ddbb4135718a4a34c72b7712a9bf97fe8"
+    },
+    {
+      "bytes": 7233,
+      "classification": "synthetic_public_fixture_contract",
+      "path": "baseline-contracts/schema_2.json",
+      "sha256": "eeee6ff4c074469b03c226d8b5c5b7499ce4c2f006b645dd0a818a4e182ab268"
+    },
+    {
+      "bytes": 7397,
+      "classification": "synthetic_public_fixture_contract",
+      "path": "baseline-contracts/schema_3.json",
+      "sha256": "b22031f40eff90b125c0e6a91029724ebc1c5cdfea99a636eb9c712d51f54f16"
+    },
+    {
+      "bytes": 9107,
+      "classification": "synthetic_public_fixture_contract",
+      "path": "baseline-contracts/schema_4.json",
+      "sha256": "e43859cad19bcb792c042ea5bdd32f8e295403d056abc805a6e4c75a617ef20c"
+    },
+    {
+      "bytes": 9508,
+      "classification": "synthetic_public_fixture_contract",
+      "path": "baseline-contracts/schema_5.json",
+      "sha256": "c8fe8d9852dff4860ec4b2e63b8cfa375fd2736c54d14dd88e33b41bf34ab186"
+    },
+    {
+      "bytes": 1829,
+      "classification": "condensed_engineering_receipt",
+      "path": "contract-comparison.json",
+      "sha256": "93f609a7e24eff9d8904d863bd77b9fcf8944278316d4a8f4047e4fae73939dc"
+    },
+    {
+      "bytes": 4763,
+      "classification": "synthetic_public_fixture_contract",
+      "path": "contracts/contracts.json",
+      "sha256": "20c972f1f23581b3af6a253e0ab26297a77c404360ec2d0f9c4d147e0cd434c7"
+    },
+    {
+      "bytes": 9724,
+      "classification": "synthetic_public_fixture_contract",
+      "path": "contracts/default.json",
+      "sha256": "5092567e7bd749e9aaa08b2ae3ecc7f7a68d39d6c8a3fe554da4a65ed044a224"
+    },
+    {
+      "bytes": 7233,
+      "classification": "synthetic_public_fixture_contract",
+      "path": "contracts/schema_2.json",
+      "sha256": "eeee6ff4c074469b03c226d8b5c5b7499ce4c2f006b645dd0a818a4e182ab268"
+    },
+    {
+      "bytes": 7397,
+      "classification": "synthetic_public_fixture_contract",
+      "path": "contracts/schema_3.json",
+      "sha256": "b22031f40eff90b125c0e6a91029724ebc1c5cdfea99a636eb9c712d51f54f16"
+    },
+    {
+      "bytes": 9106,
+      "classification": "synthetic_public_fixture_contract",
+      "path": "contracts/schema_4.json",
+      "sha256": "2224e5d27bd586300ac387242b0bb5f3eec05fee87884c43ab4266cca52d3727"
+    },
+    {
+      "bytes": 9724,
+      "classification": "synthetic_public_fixture_contract",
+      "path": "contracts/schema_5.json",
+      "sha256": "25bd031eedf04dfa934693e406610519f0339ebab8866bb962e7d4437e20c2e1"
+    },
+    {
+      "bytes": 5936,
+      "classification": "condensed_engineering_receipt",
+      "path": "prior-runtime-checks/cli-smoke.json",
+      "sha256": "f708278bab431882b5e9411b265224580d2d1885244c85722a93350db0941118"
+    },
+    {
+      "bytes": 828,
+      "classification": "condensed_engineering_receipt",
+      "path": "prior-runtime-checks/executable-permission-repair.json",
+      "sha256": "74d6353b252e90ea4afde08c1f28511c9827ba60ddf9e7d8ba240a578c00e04f"
+    },
+    {
+      "bytes": 1644,
+      "classification": "condensed_engineering_receipt",
+      "path": "prior-runtime-checks/fmt.json",
+      "sha256": "018b33dd15c0899f4e05801151928f2233fc7609a3ebde907281aa8575241bb7"
+    },
+    {
+      "bytes": 2363,
+      "classification": "condensed_engineering_receipt",
+      "path": "prior-runtime-checks/focused-cli-provider-tests.json",
+      "sha256": "54470bf886f2c44bd17896a35212664d776125ab5414d81c2010e65d701196a6"
+    },
+    {
+      "bytes": 1849,
+      "classification": "condensed_engineering_receipt",
+      "path": "prior-runtime-checks/provider-usage-rerun.json",
+      "sha256": "0a0691f6aa927538e56bf4a1c4d49c31d94e496d59863ca8984f80d4cd9850ab"
+    },
+    {
+      "bytes": 1874,
+      "classification": "condensed_engineering_receipt",
+      "path": "prior-runtime-checks/strict-clippy.json",
+      "sha256": "f7f6e43ba07c36f59e2aacb426851fb027447cc9cac2595e60129f65a9dba0a7"
+    },
+    {
+      "bytes": 792,
+      "classification": "condensed_engineering_receipt",
+      "path": "prior-runtime-checks/toolchain.json",
+      "sha256": "a0636deb087e7a390937df948add5e5a0938114d48401901c6839593b4025567"
+    },
+    {
+      "bytes": 1949,
+      "classification": "condensed_engineering_receipt",
+      "path": "receipts/contract-capture.json",
+      "sha256": "32c391a56c0790633da2d49903e435d368a47905f4c2c14a82381ceee85a8b26"
+    },
+    {
+      "bytes": 1755,
+      "classification": "condensed_engineering_receipt",
+      "path": "receipts/contract-verify.json",
+      "sha256": "9d6af783e200bd42937c1db1469f7b22cc6b0ae404673e477518c976c96650fb"
+    },
+    {
+      "bytes": 1730,
+      "classification": "condensed_engineering_receipt",
+      "path": "receipts/release-build.json",
+      "sha256": "b151516f844afe1d01773ab51542ec3f23201b073177fc68e283b00322fc42c1"
+    },
+    {
+      "bytes": 1725,
+      "classification": "condensed_engineering_receipt",
+      "path": "receipts/release-version.json",
+      "sha256": "8604375f7c3346d83175e02504807a9a88cf05cffac454952461f72d933b4317"
+    },
+    {
+      "bytes": 1241,
+      "classification": "condensed_engineering_receipt",
+      "path": "release-binary.json",
+      "sha256": "f516b97fbb351e4dc8234bc997f813cdd58dfc81df1027231d344b2e3cabb2e1"
+    },
+    {
+      "bytes": 11280,
+      "classification": "condensed_engineering_receipt",
+      "path": "runtime-source-manifest.json",
+      "sha256": "d5d23c487b281f2f775e159d644f6dce41a3cd1757031f418fdf0555d0d13a87"
+    },
+    {
+      "bytes": 1668,
+      "classification": "condensed_engineering_receipt",
+      "path": "source-equivalence.json",
+      "sha256": "3560cbfaf3bd665f08267128a82602e183c07300e11f8bb06efd5a5442a81c5b"
+    },
+    {
+      "bytes": 4564,
+      "classification": "condensed_engineering_receipt",
+      "path": "summary.json",
+      "sha256": "bd74d42d75d0adab7748a410539b25814143811660a5add2d740cb7a2f01a89d"
+    }
+  ],
+  "raw_logs_included": false,
+  "schema_version": 1,
+  "source_revision": "a55cfeead56775af4e0ae9d171cbdcf191af2007"
+}

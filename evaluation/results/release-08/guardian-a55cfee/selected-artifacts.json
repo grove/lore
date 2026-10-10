@@ -1,0 +1,45 @@
+{
+  "copy_rule": "Copy only these exact relative filenames after checking their SHA-256; this manifest may accompany them.",
+  "files": {
+    "README.md": {
+      "bytes": 6594,
+      "role": "verified Guardian findings and limits",
+      "sha256": "495b432b64038e34c179927a6c2ab87ce581eabc48c6662c85d751b5e2bcf546"
+    },
+    "github-metadata.json": {
+      "bytes": 2159,
+      "role": "bounded official metadata and retained member bindings",
+      "sha256": "61d1d5cf1a03a745231f4c50532992f697b7f59ba47f8db1d411a531b7b14d07"
+    },
+    "guardian-integrity-evidence.zip": {
+      "bytes": 4803212,
+      "role": "original synthetic replay archive",
+      "sha256": "7435a529a96d68c3ad432ef4a13c4a47877a97cfdb96750edd2be6563310ef40"
+    },
+    "guardian-verification.json": {
+      "bytes": 12203,
+      "role": "official-origin verification receipt",
+      "sha256": "dde6ae997a303789e2b5c5a6313ce3a1bb19ab3832705bdddf9052daa8b517ee"
+    },
+    "receipt.json": {
+      "bytes": 49384,
+      "role": "original gate receipt",
+      "sha256": "d1defb19308392294679798c6f6debd35a807055a89f701e904e8fe34a6a0706"
+    },
+    "retained-inner-verification.json": {
+      "bytes": 12220,
+      "role": "successful permanent retained-inner verification",
+      "sha256": "8130b8a877318fd0f3d86e6606e2df972f2486a83de45e50a36d544c987d2a85"
+    },
+    "verify_guardian_release.py": {
+      "bytes": 18823,
+      "role": "read-only reproduction verifier",
+      "sha256": "f24cbb69007c8895855898252e61d86db79c56c4a90efd629d6705305471ffc8"
+    }
+  },
+  "head_sha": "a55cfeead56775af4e0ae9d171cbdcf191af2007",
+  "raw_ci_logs_included": false,
+  "schema_version": 1,
+  "signed_download_urls_included": false,
+  "source_tree_sha": "a0ebeecb3970a14abd10a4bcf15ea96d4bbc2049"
+}

@@ -18,10 +18,10 @@ bind retained records without rewriting the historical 0.7 failures.
 | --- | --- | --- |
 | 1. Baseline | Exact source/environment pins, frozen 2/3/4/5/default-4 captures and honest acceptance states | [#40](https://github.com/grove/lore/pull/40), merged `e46c8897f38ac03b2dac6d4a24a722532faf7b75`. |
 | 2. Guardian | Per-command byte/identity/event checks, observer gaps, zero-Lore controls and a dedicated full replay gate | [#41](https://github.com/grove/lore/pull/41), merged `75ab314368d2f87e790c95a1991ef33414f5432b`; all three platforms and the full Guardian gate passed. |
-| 3. Metering | Physical provider attempts, nullable tokens/USD, retries/failures/cancellation, explicit invocation ledgers and additive SQLite schema 8 | [#42](https://github.com/grove/lore/pull/42); current platform checks pending. |
-| 4. First contact | Ephemeral local documentary help with exact citations, complete qualified groups, fixed read caps and typed initialization/configuration errors | [#43](https://github.com/grove/lore/pull/43); no implicit model, configuration, source write or grant. |
-| 5. Adaptive default | Unpinned initialized context uses schema 5 with action-first Markdown; explicit 3/4 and fast 2 stay compatible | [#44](https://github.com/grove/lore/pull/44); caller-owned inspection/hosted/checkout grants and full-output budgets remain enforced. |
-| 6. Coding studies | Sealed preflight around six existing arms, complete planned/attempted denominators, independent ledger totals and cleanup after interruption | [#45](https://github.com/grove/lore/pull/45); genuine pilot and holdout outcomes remain unmeasured. |
+| 3. Metering | Physical provider attempts, nullable tokens/USD, retries/failures/cancellation, explicit invocation ledgers and additive SQLite schema 8 | [#42](https://github.com/grove/lore/pull/42), merged `2fef0a7057a1a7edcbb4c4cd7f983af1b78a24f4`; all three platforms and Guardian passed. |
+| 4. First contact | Ephemeral local documentary help with exact citations, complete qualified groups, fixed read caps and typed initialization/configuration errors | [#43](https://github.com/grove/lore/pull/43), merged `7f5edff4f5f93c75e599af5f03dbcc50cd5a61fb`; all three platforms and Guardian passed. |
+| 5. Adaptive default | Unpinned initialized context uses schema 5 with action-first Markdown; explicit 3/4 and fast 2 stay compatible | [#44](https://github.com/grove/lore/pull/44), merged `52f357b005e19ffa103aa501550d8ca90922fc60`; all three platforms and Guardian passed. |
+| 6. Coding studies | Sealed preflight around six existing arms, complete planned/attempted denominators, independent ledger totals and cleanup after interruption | [#45](https://github.com/grove/lore/pull/45), merged `be67e368287e421b4595f3f761bb9408f5b686f6`; all three platforms and Guardian passed. Genuine pilot and holdout outcomes remain unmeasured. |
 | 7. Human workflow | Three-concept initial orientation, preserved tutorials, exact consent/session/submission/checker bindings, withdrawal and read-only readiness | [#46](https://github.com/grove/lore/pull/46); zero actual participants and sessions. |
 | 8. Release | Version 0.8.0, current guides/agent instructions, release builds and CLI checks across Linux/macOS/Windows | [#47](https://github.com/grove/lore/pull/47); final integration gate pending. |
 
@@ -65,7 +65,35 @@ remain retained with their log hashes. A later complete local rerun passed
 470 Rust tests, zero failures and three ignored tests at
 `aa4ad59446d87babbb5564b8ba3fd03686b21601`; its
 [separate receipt](results/release-08/integrated-rust.json) preserves that scope.
-The final usage-scope correction still requires the final platform matrix.
+The final usage-scope correction passed all three native platforms in the
+[metering regression history](results/release-08/pr42-runtime-regression-history.json).
+The failed overflow and macOS fixture revisions remain distinct from the
+corrected passing revision.
+
+The integrated candidate at `a55cfeead56775af4e0ae9d171cbdcf191af2007`
+passed all 57 Rust targets: **472 passed and three ignored** on Linux and macOS,
+and **461 passed and three ignored** on Windows. Release compilation passed
+everywhere. Linux passed all 236 Python tests; macOS passed 235 with one skip.
+Windows failed two subtests because a human-workflow fixture emitted native
+backslashes in an evidence reference that requires a canonical POSIX path.
+The [failed matrix receipt](results/release-08/matrix-a55cfee-failed/matrix-verification.json)
+preserves that failure, with Windows Python passed count left unknown because
+subtest outcomes are not separate discovered test cases. The
+[fixture correction](results/release-08/pr46-pr47-human-fixture-regression.json)
+changes path serialization and adds a rejection assertion for backslash
+references. The production path guard remains enforced. Corrected native CI
+is required before the human and release PRs merge.
+
+The [final local release receipts](results/release-08/local-final/summary.json)
+bind a fresh five-case capture to published source
+`a55cfeead56775af4e0ae9d171cbdcf191af2007`. The frozen release binary reports
+`lore 0.8.0`; all 11 guide/CI help and version commands passed. Schemas 2 and 3
+are byte-identical to the separately frozen baseline; schema 4 differs only
+in elapsed time. Default and explicit schema 5 differ only in elapsed time.
+All captures preserve source and registry bytes, stay within their complete
+response budgets, and make zero provider calls. The local focused run passed
+42 tests with one live-provider test ignored after a separately retained
+generated-executable permission failure and narrow rerun.
 
 Focused tests cover first-run and explicit contracts, complete JSON/Markdown
 budgets, source/configuration race handling, grants and denial, retries and
@@ -85,13 +113,31 @@ for that reproduction; its executable/PID and the writer in the historical 0.7
 captures are not authenticated. The first local collector was a development
 version, and its receipt retains that limitation.
 
-The separate supported GitHub runner passed the baseline, candidate, repeated
+The separate supported GitHub runner for the merged Guardian package passed the baseline, candidate, repeated
 candidate and focused replays: **190 replay events and 1,889 CLI-command
 intervals**, plus **240 no-Lore control intervals**, with no source-integrity
 failure. Source observation was complete for every claimed-clean command and
 control interval. Observation of newly created Lore-owned cache directories
 has separate reported gaps; this is not a claim of complete syscall/process
-attribution. Final 0.8 runtime proof is a separate required candidate gate.
+attribution.
+
+The [integrated 0.8 Guardian proof](results/release-08/guardian-a55cfee/README.md)
+at public candidate `a55cfeead56775af4e0ae9d171cbdcf191af2007` independently
+verified all **259 manifest members, 190 replay events, 1,891 CLI-command
+intervals and 240 no-Lore control intervals**. Every command and control
+interval preserved source bytes with complete source observation. Two additional
+baseline commands resolved cited evidence; they were not retries. All 1,891
+command outcomes explicitly retain successful JSON responses, with no nonzero
+exit, timeout, cancellation or unavailable process. The retained archive also
+binds 200 authorized source-snapshot intervals. The ten broader observer gaps
+concern newly created Lore-owned state directories and do not affect source
+observation. A permanent retained-archive verifier works after the original
+GitHub artifact expires and states which outer-digest check was not repeated.
+
+Recomputed initialization, materialization and Guardian logical model calls
+are zero. Independent physical provider-attempt counts remain unknown because
+this synthetic Guardian archive has no provider sidecar ledgers. The separate
+corrected release head still requires its own current-head Guardian check.
 
 Windows metadata capture compares path observations and file-descriptor
 observations within their respective APIs, retaining both timestamp values and

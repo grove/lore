@@ -18,6 +18,12 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
+      - name: Record source and toolchain versions
+        run: |
+          git rev-parse HEAD
+          rustc --version --verbose
+          cargo --version
+          python --version
       - name: Check formatting
         run: cargo fmt --all -- --check
       - name: Strict Rust lint

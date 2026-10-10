@@ -1,0 +1,79 @@
+{
+  "packages": [
+    {
+      "guardian_result": null,
+      "guardian_run": null,
+      "merge_commit": "e46c8897f38ac03b2dac6d4a24a722532faf7b75",
+      "merged": true,
+      "package": 1,
+      "platform_result": "success",
+      "platform_run": 38085575884,
+      "pull_request": 40,
+      "reviewed_head": "644ac153072ce6fd8696d6f110b0f2da396feeaa",
+      "url": "https://github.com/grove/lore/pull/40"
+    },
+    {
+      "guardian_result": "success",
+      "guardian_run": 38089577138,
+      "merge_commit": "75ab314368d2f87e790c95a1991ef33414f5432b",
+      "merged": true,
+      "package": 2,
+      "platform_result": "success",
+      "platform_run": 38089577159,
+      "pull_request": 41,
+      "reviewed_head": "b1238111d4faa134c941aae8132e351a7e428cee",
+      "url": "https://github.com/grove/lore/pull/41"
+    },
+    {
+      "guardian_result": "success",
+      "guardian_run": 38092521363,
+      "merge_commit": "2fef0a7057a1a7edcbb4c4cd7f983af1b78a24f4",
+      "merged": true,
+      "package": 3,
+      "platform_result": "success",
+      "platform_run": 38092521367,
+      "pull_request": 42,
+      "reviewed_head": "4711c89b336f303b239d371c348e22d7067cc828",
+      "url": "https://github.com/grove/lore/pull/42"
+    },
+    {
+      "guardian_result": "success",
+      "guardian_run": 38092541164,
+      "merge_commit": "7f5edff4f5f93c75e599af5f03dbcc50cd5a61fb",
+      "merged": true,
+      "package": 4,
+      "platform_result": "success",
+      "platform_run": 38092541152,
+      "pull_request": 43,
+      "reviewed_head": "b469a9e76af489527af8b5ad7d595225ef23c274",
+      "url": "https://github.com/grove/lore/pull/43"
+    },
+    {
+      "guardian_result": "success",
+      "guardian_run": 38092563794,
+      "merge_commit": "52f357b005e19ffa103aa501550d8ca90922fc60",
+      "merged": true,
+      "package": 5,
+      "platform_result": "success",
+      "platform_run": 38092563795,
+      "pull_request": 44,
+      "reviewed_head": "f06f85298930b07b456226a46b9f97ceeffb4901",
+      "url": "https://github.com/grove/lore/pull/44"
+    },
+    {
+      "guardian_result": "success",
+      "guardian_run": 38092583755,
+      "merge_commit": "be67e368287e421b4595f3f761bb9408f5b686f6",
+      "merged": true,
+      "package": 6,
+      "platform_result": "success",
+      "platform_run": 38092583799,
+      "pull_request": 45,
+      "reviewed_head": "b69e4ab0c9f213d9969115edd5ce10067e3e1782",
+      "url": "https://github.com/grove/lore/pull/45"
+    }
+  ],
+  "repository": "grove/lore",
+  "schema_version": 1,
+  "scope": "Completed package merges only; later PRs retain their current status in GitHub."
+}

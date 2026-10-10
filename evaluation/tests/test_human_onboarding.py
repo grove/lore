@@ -170,7 +170,7 @@ class HumanOnboardingTests(unittest.TestCase):
                     packet['independent_reviews'].append({'reviewer_id': identity, 'complete': True,
                         'independent': True, 'conflicts_declared': [], 'blind_confirmed': True,
                         'target_sha256': packet['target_sha256'], 'reviewed_at': datetime.now(timezone.utc).isoformat(),
-                        'capture': {'path': str(capture.relative_to(directory)), 'sha256': coding.hash_file(capture)}})
+                        'capture': {'path': capture.relative_to(directory).as_posix(), 'sha256': coding.hash_file(capture)}})
                     packet['scores'].append({'reviewer_id': identity, 'target_sha256': packet['target_sha256'],
                         'factual_explanation_0_to_3': 3, 'missed_exceptions': [], 'patch_correct': True})
                 cross.write_json(packet_path, packet)
@@ -181,6 +181,16 @@ class HumanOnboardingTests(unittest.TestCase):
                     invalid['scores'][0][field] = value
                     cross.write_json(packet_path, invalid)
                     self.assertFalse(transfer_measurement()['independent_transfer_success'])
+
+                # Evidence references use one canonical format on every host;
+                # accepting native backslashes would weaken the path boundary.
+                invalid = copy.deepcopy(packet)
+                reference = invalid['independent_reviews'][0]['capture']
+                reference['path'] = reference['path'].replace('/', '\\')
+                cross.write_json(packet_path, invalid)
+                report = human.assess(directory)
+                self.assertFalse(report['mechanical_contracts_passed'])
+                self.assertTrue(any('relative POSIX paths' in issue for issue in report['issues']))
 
     def test_record_rejects_rebound_wrong_session_before_executing_checker(self):
         with tempfile.TemporaryDirectory() as temporary:

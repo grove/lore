@@ -1,0 +1,61 @@
+{
+  "classification": "local_final_release_engineering_verification",
+  "command": [
+    "cargo",
+    "test",
+    "--locked",
+    "--bin",
+    "lore",
+    "--test",
+    "context_cli",
+    "--test",
+    "human_experience_cli",
+    "--test",
+    "provider_usage",
+    "--test",
+    "http_clients"
+  ],
+  "elapsed_seconds": 34.652248,
+  "exit_code": 101,
+  "finished_utc": "2026-10-10T22:44:35.446341+00:00",
+  "label": "focused-cli-provider-tests",
+  "platform": {
+    "machine": "x86_64",
+    "release": "6.18.44",
+    "system": "Linux"
+  },
+  "qualification": "Local Linux engineering verification; no human or coding productivity outcome is measured.",
+  "raw_log": {
+    "bytes": 4095,
+    "publication": "not_published",
+    "retention": "local_only",
+    "sha256": "91f6827c9fe6c05efe18b909ff1a2c5a54bdd3ade29c5f7203524944a9eca6f7"
+  },
+  "schema_version": 1,
+  "selected_environment": {
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "CARGO_TARGET_DIR": "/workspace/scratch/286e1ddfee82/lore-default/target",
+    "RUSTC": "/workspace/scratch/286e1ddfee82/local-rust/bin/rustc",
+    "RUSTDOC": "/workspace/scratch/286e1ddfee82/local-rust/bin/rustdoc",
+    "RUSTDOCFLAGS": "--sysroot=/workspace/scratch/286e1ddfee82/local-rust",
+    "RUSTFLAGS": "--sysroot=/workspace/scratch/286e1ddfee82/local-rust -C linker=cc -C link-arg=-fuse-ld=bfd"
+  },
+  "source_revision_end": "ab9411885f0e049719c74c6b346bda981a15ea33",
+  "source_revision_start": "ab9411885f0e049719c74c6b346bda981a15ea33",
+  "started_utc": "2026-10-10T22:44:00.787355+00:00",
+  "status": "failed",
+  "summary_lines": [
+    "    Finished `test` profile [unoptimized] target(s) in 28.66s",
+    "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+    "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.28s",
+    "test result: ok. 18 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 1.89s",
+    "test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.78s",
+    "error: test failed, to rerun pass `--test provider_usage`"
+  ],
+  "tracked_worktree_status_end": "",
+  "tracked_worktree_status_start": "",
+  "working_directory": "/workspace/scratch/286e1ddfee82/lore-default"
+}

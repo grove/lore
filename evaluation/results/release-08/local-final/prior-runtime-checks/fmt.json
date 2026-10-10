@@ -1,0 +1,46 @@
+{
+  "classification": "local_final_release_engineering_verification",
+  "command": [
+    "cargo",
+    "fmt",
+    "--all",
+    "--",
+    "--check"
+  ],
+  "elapsed_seconds": 1.402821,
+  "exit_code": 0,
+  "finished_utc": "2026-10-10T22:41:51.452831+00:00",
+  "label": "fmt",
+  "platform": {
+    "machine": "x86_64",
+    "release": "6.18.44",
+    "system": "Linux"
+  },
+  "qualification": "Local Linux engineering verification; no human or coding productivity outcome is measured.",
+  "raw_log": {
+    "bytes": 0,
+    "publication": "not_published",
+    "retention": "local_only",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "schema_version": 1,
+  "selected_environment": {
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "CARGO_TARGET_DIR": "/workspace/scratch/286e1ddfee82/lore-default/target",
+    "RUSTC": "/workspace/scratch/286e1ddfee82/local-rust/bin/rustc",
+    "RUSTDOC": "/workspace/scratch/286e1ddfee82/local-rust/bin/rustdoc",
+    "RUSTDOCFLAGS": "--sysroot=/workspace/scratch/286e1ddfee82/local-rust",
+    "RUSTFLAGS": "--sysroot=/workspace/scratch/286e1ddfee82/local-rust -C linker=cc -C link-arg=-fuse-ld=bfd"
+  },
+  "source_revision_end": "ab9411885f0e049719c74c6b346bda981a15ea33",
+  "source_revision_start": "ab9411885f0e049719c74c6b346bda981a15ea33",
+  "started_utc": "2026-10-10T22:41:50.039466+00:00",
+  "status": "passed",
+  "summary_lines": [],
+  "tracked_worktree_status_end": "",
+  "tracked_worktree_status_start": "",
+  "working_directory": "/workspace/scratch/286e1ddfee82/lore-default"
+}

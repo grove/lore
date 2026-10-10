@@ -8,14 +8,27 @@
   ],
   "artifact_manifest": {
     "path": "release-08/artifact-manifest.json",
-    "sha256": "ffbe75f45f189bc72abbc5eac2e1132905a7e7286c2e74dad61f816c0b533d8a"
+    "sha256": "d2c721e476175bc5439f3bc9da4159677990401872c386a7dda7195ba3bcaae4"
   },
   "baseline_commit": "0ba8b17f7e63726a8d81def2b60af18573d4640c",
   "gates": {
     "adaptive_default": {
-      "artifacts": [],
-      "scope": "Pinned compatibility and permission/budget regression gate",
-      "status": "not_run"
+      "artifacts": [
+        {
+          "path": "release-08/local-final/contract-comparison.json",
+          "sha256": "93f609a7e24eff9d8904d863bd77b9fcf8944278316d4a8f4047e4fae73939dc"
+        },
+        {
+          "path": "release-08/matrix-a55cfee-failed/matrix-verification.json",
+          "sha256": "745704e12fb1c790925b7daea9c9b7df552fc0ab125e768cc9545c6ebb37731d"
+        },
+        {
+          "path": "release-08/merged-packages.json",
+          "sha256": "c9f073657cf88b05e9b071e341100fb293df94e3936a29520337d3581d45ff4b"
+        }
+      ],
+      "scope": "Passed schema 2/3 byte compatibility, schema 4 elapsed-only compatibility, default/explicit 5 parity, complete budgets and permissions; PR44 native matrix and all a55 Rust targets passed.",
+      "status": "passed"
     },
     "baseline": {
       "artifacts": [
@@ -48,9 +61,18 @@
       "status": "passed"
     },
     "bootstrap": {
-      "artifacts": [],
-      "scope": "Read-only model-free first contact and exact evidence",
-      "status": "not_run"
+      "artifacts": [
+        {
+          "path": "release-08/matrix-a55cfee-failed/matrix-verification.json",
+          "sha256": "745704e12fb1c790925b7daea9c9b7df552fc0ab125e768cc9545c6ebb37731d"
+        },
+        {
+          "path": "release-08/merged-packages.json",
+          "sha256": "c9f073657cf88b05e9b071e341100fb293df94e3936a29520337d3581d45ff4b"
+        }
+      ],
+      "scope": "Read-only model-free first contact, bounded enumeration, source/config identity and exact evidence tests passed on all three platforms; PR43 merged.",
+      "status": "passed"
     },
     "coding_harness": {
       "artifacts": [
@@ -75,22 +97,26 @@
     "guardian_source_integrity": {
       "artifacts": [
         {
-          "path": "release-08/guardian-pr41/receipt.json",
-          "sha256": "955cb5cedb5204d412f4c06b0f8ea78bac89245586082cb124ea86e534d6022d"
+          "path": "release-08/guardian-a55cfee/guardian-verification.json",
+          "sha256": "dde6ae997a303789e2b5c5a6313ce3a1bb19ab3832705bdddf9052daa8b517ee"
         },
         {
-          "path": "release-08/guardian-pr41/guardian-integrity-evidence.zip",
-          "sha256": "6905e74de4d32751275e40e7941e5bc8088e53f9fc419c50c692ee624ff3f28a"
+          "path": "release-08/guardian-a55cfee/retained-inner-verification.json",
+          "sha256": "8130b8a877318fd0f3d86e6606e2df972f2486a83de45e50a36d544c987d2a85"
         },
         {
-          "path": "release-08/guardian-pr41/verified-summary.json",
-          "sha256": "8d26c511af7e954641d140d3140c064e4a1400bb9b1ce6a98ef84e4ac0860bbc"
+          "path": "release-08/guardian-a55cfee/receipt.json",
+          "sha256": "d1defb19308392294679798c6f6debd35a807055a89f701e904e8fe34a6a0706"
+        },
+        {
+          "path": "release-08/guardian-a55cfee/guardian-integrity-evidence.zip",
+          "sha256": "7435a529a96d68c3ad432ef4a13c4a47877a97cfdb96750edd2be6563310ef40"
         }
       ],
-      "scope": "Merged PR41 clean runner:190 replay events,1889 preserved and source-observer-complete command intervals;240 no-Lore intervals. Full integrated0.8 release candidate remains a separate required final gate.",
-      "source_revision": "b1238111d4faa134c941aae8132e351a7e428cee",
+      "scope": "Integrated a55 source: 190 replay events, 1891 preserved source-observer-complete CLI intervals, 240 no-Lore intervals, 259 checked manifest members and 200 authorized snapshot intervals. Logical model calls zero; independent physical attempts unknown without sidecars. Later release head requires its own Guardian CI.",
+      "source_revision": "a55cfeead56775af4e0ae9d171cbdcf191af2007",
       "status": "passed",
-      "workflow_run": 38089577138
+      "workflow_run": 38092630241
     },
     "human_contribution": {
       "artifacts": [],
@@ -102,10 +128,16 @@
         {
           "path": "release-08/integrated-python.json",
           "sha256": "c39e67115285a18993c7d3aa747eb45204b5de07de56346de585ac2ba1ed1bcd"
+        },
+        {
+          "path": "release-08/pr46-pr47-human-fixture-regression.json",
+          "sha256": "d30b7e3224d906cb8ac2d03bc13e1e9f70e653e49883f4acf5e45d364ab0a970"
         }
       ],
-      "scope": "Actual session/consent and contribution/transfer assessment controls;236 integrated offline Python tests passed; no empirical outcome claim.",
-      "status": "passed"
+      "remaining_gate": "Corrected current-head Linux/macOS/Windows Python suite; no real participant outcome is implied.",
+      "scope": "Prior local full suite passed; latest integrated native matrix had two Windows subtest failures from non-POSIX fixture paths. Production validation correctly rejected them; a fixture-only correction with a negative boundary assertion is committed.",
+      "source_revision": "a55cfeead56775af4e0ae9d171cbdcf191af2007",
+      "status": "failed"
     },
     "human_transfer": {
       "artifacts": [],
@@ -113,19 +145,44 @@
       "status": "unmeasured"
     },
     "platform_matrix": {
-      "artifacts": [],
-      "remaining_gate": "Full final 0.8 code matrix, including native Windows initialized onboarding after the usage scope allocation fix.",
-      "scope": "Integrated Linux/macOS/Windows CI",
-      "status": "not_run"
+      "artifacts": [
+        {
+          "path": "release-08/matrix-a55cfee-failed/matrix-verification.json",
+          "sha256": "745704e12fb1c790925b7daea9c9b7df552fc0ab125e768cc9545c6ebb37731d"
+        }
+      ],
+      "remaining_gate": "Corrected head 76826b68a6054af10cedc7fe45386e96bf20f55f in PR46 and the corresponding integrated PR47 head require complete success.",
+      "scope": "Integrated native matrix: all 57 Rust targets and release builds passed on all platforms; Linux/macOS complete success, Windows failed two human test fixture subtests.",
+      "source_revision": "a55cfeead56775af4e0ae9d171cbdcf191af2007",
+      "status": "failed",
+      "workflow_run": 38092630287
     },
     "provider_usage": {
-      "artifacts": [],
-      "scope": "Per-attempt optional tokens and nullable billed USD",
-      "status": "not_run"
+      "artifacts": [
+        {
+          "path": "release-08/pr42-runtime-regression-history.json",
+          "sha256": "c423853954567c38e2eb78775dd553d0888028f8a31253a9cd378f47e6cc597f"
+        },
+        {
+          "path": "release-08/merged-packages.json",
+          "sha256": "c9f073657cf88b05e9b071e341100fb293df94e3936a29520337d3581d45ff4b"
+        }
+      ],
+      "scope": "Per-attempt nullable tokens/USD, failure/retry/cancellation and additive migration tests; final native PR42 matrix passed after retained runtime/fixture corrections.",
+      "status": "passed"
     },
     "release": {
-      "artifacts": [],
-      "remaining_gate": "Final platform/Guardian gates, release smoke captures and exact evidence receipt.",
+      "artifacts": [
+        {
+          "path": "release-08/local-final/summary.json",
+          "sha256": "bd74d42d75d0adab7748a410539b25814143811660a5add2d740cb7a2f01a89d"
+        },
+        {
+          "path": "release-08/merged-packages.json",
+          "sha256": "c9f073657cf88b05e9b071e341100fb293df94e3936a29520337d3581d45ff4b"
+        }
+      ],
+      "remaining_gate": "Complete corrected native platform matrix, current-head Guardian, all 11 release smoke commands on every platform and exact final CI receipts; six of eight PRs merged.",
       "scope": "All engineering ship gates",
       "status": "not_run"
     }

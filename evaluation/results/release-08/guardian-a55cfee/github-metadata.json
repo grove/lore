@@ -1,0 +1,58 @@
+{
+  "artifact": {
+    "id": 11684548775,
+    "name": "guardian-source-integrity-a55cfeead56775af4e0ae9d171cbdcf191af2007",
+    "size_in_bytes": 4552486,
+    "url": "https://api.github.com/repos/grove/lore/actions/artifacts/11684548775",
+    "archive_download_url": "https://api.github.com/repos/grove/lore/actions/artifacts/11684548775/zip",
+    "expired": false,
+    "created_at": "2026-10-10T22:53:56Z",
+    "expires_at": "2026-11-09T22:53:55Z",
+    "updated_at": "2026-10-10T22:53:56Z",
+    "digest": "sha256:269fd529f7d78aa8f28498c85a44d40edd9e05cf9907a6569b301532375d1822",
+    "workflow_run": {
+      "id": 38092630241,
+      "repository_id": 1410550244,
+      "head_repository_id": 1410550244,
+      "head_branch": "release/0.8.0",
+      "head_sha": "a55cfeead56775af4e0ae9d171cbdcf191af2007"
+    }
+  },
+  "workflow": {
+    "id": 38092630241,
+    "name": "Guardian source integrity",
+    "head_sha": "a55cfeead56775af4e0ae9d171cbdcf191af2007",
+    "head_tree_sha": "a0ebeecb3970a14abd10a4bcf15ea96d4bbc2049",
+    "status": "completed",
+    "conclusion": "success",
+    "event": "pull_request",
+    "created_at": "2026-10-10T22:45:50Z",
+    "updated_at": "2026-10-10T22:54:00Z",
+    "run_started_at": "2026-10-10T22:45:50Z",
+    "html_url": "https://github.com/grove/lore/actions/runs/38092630241"
+  },
+  "runner_environment": {
+    "image": "ubuntu-24.04",
+    "image_version": "20261004.327.1",
+    "runner_version": "2.337.0",
+    "rustc_version": null,
+    "cargo_version": null,
+    "python_version": null,
+    "exact_toolchain_versions_observed": false
+  },
+  "retained_member_bindings": {
+    "receipt.json": {
+      "bytes": 49384,
+      "sha256": "d1defb19308392294679798c6f6debd35a807055a89f701e904e8fe34a6a0706"
+    },
+    "guardian-integrity-evidence.zip": {
+      "bytes": 4803212,
+      "sha256": "7435a529a96d68c3ad432ef4a13c4a47877a97cfdb96750edd2be6563310ef40"
+    }
+  },
+  "retained_binding_provenance": {
+    "official_artifact_id": 11684548775,
+    "official_artifact_digest": "sha256:269fd529f7d78aa8f28498c85a44d40edd9e05cf9907a6569b301532375d1822",
+    "origin": "members_extracted_after_official_outer_digest_verification"
+  }
+}
