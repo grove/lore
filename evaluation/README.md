@@ -1,19 +1,21 @@
-# Evaluating Lore 0.7
+# Evaluating Lore 0.8
 
-Lore 0.7 adds source-reviewed retrieval regressions and reproducible protocols
-for coding attempts, human contributions, and longitudinal guardian behavior.
-The [0.7 product guide](../docs/V07.md) explains the implemented commands. The
-[release scorecard](PRODUCT_QUALITY_07.md) records the current gates, captured
-results, and outcomes that remain unmeasured. A prepared corpus, passing checker
-control, or synthetic regression is not a completed real-model or human study.
+Lore 0.8 adds source-only first contact, the adaptive context default, nullable
+per-attempt provider usage, a controlled Guardian integrity gate and stricter
+coding/human study preparation and retention. The [0.8 product guide](../docs/V08.md)
+explains the implemented commands. The [release scorecard](PRODUCT_QUALITY_08.md)
+and [hash-bound evidence](results/README-08.md) record exact revisions, executed
+engineering gates and outcomes that remain unmeasured. A prepared corpus,
+passing checker control or synthetic regression is not a completed real-model
+or human study. The [0.7 scorecard](PRODUCT_QUALITY_07.md) remains historical.
 
-| Evaluation area | Available 0.7 evidence and protocol | Outcome boundary |
+| Evaluation area | Available evidence and protocol | Outcome boundary |
 | --- | --- | --- |
 | Knowledge retrieval | [Knowledge Zoom methods and results](KNOWLEDGE_ZOOM.md), legacy constrained-budget regressions, and 24 pinned ripgrep/fd/jq source cases with a separate AI-agent source-gold review | This checks source bindings, complete conditions, scope, and retrieval regressions. General graph benefit and broad semantic accuracy remain unestablished. |
-| Coding-agent work | [Thirty public fault-repair candidates](REAL_CODING_TASKS.md), [six matched configurations](ADAPTIVE_TASKS.md), independent checker controls, bounded repair attempts, and charged investigation/reuse | Candidate tasks are constructed debugging cases, not held-out productivity evidence. Real-model success, time, and cost gains require completed bound attempts and independent review. |
+| Coding-agent work | [Thirty public fault-repair candidates](REAL_CODING_TASKS.md), [six matched configurations](ADAPTIVE_TASKS.md), [sealed 0.8 preflight](EXPERIMENT_08.md), independent checker controls, complete attempt ledgers and charged investigation/reuse | Six pilot tasks produce 36 planned assignments; the retained preflight has zero study attempts. Real-model success, time and cost require pinned providers, independent review and authenticated external execution/egress evidence. |
 | Intelligence changes | [Failure triage and change validation](FAILURE_TRIAGE.md), including an explicit pilot evidence requirement | An unrun or synthetic study does not justify a claim of an improved adaptive controller. |
-| Human onboarding | [Twelve-participant pilot protocol](HUMAN_ONBOARDING.md), opt-in pseudonymous records, first contribution, and distinct transfer tasks | Prepared exercises do not create participants, consent, competence, or learning-transfer results. |
-| Project guardian | [Sixty successive debug transitions across three projects](GUARDIAN_LONGITUDINAL.md), original baseline/current source captures, current-support regression, and independent review forms | Both full implementation-session captures failed source integrity; targeted reversion checks passed. Independently reviewed model alert precision and burden remain unmeasured. |
+| Human onboarding | [Twelve-position pilot protocol](HUMAN_ONBOARDING.md), source-only orientation, consent and withdrawal, bound submitted work, first contribution and distinct transfer tasks | Prepared exercises do not create participants, consent, competence or learning-transfer results. Actual participants remain zero. |
+| Project guardian | [Sixty successive debug transitions across three projects](GUARDIAN_LONGITUDINAL.md), per-command source observers, baseline/candidate/repeated/focused replays and zero-Lore controls | Original failed captures remain unchanged. Controlled integrity results are recorded separately from independently reviewed model alert precision and burden, which remain unmeasured. |
 
 The [recorded guardian evidence](results/guardian-debug-2026-10-10/README.md)
 retains all failed checks: the baseline and candidate full captures had 32 and
@@ -22,10 +24,12 @@ read-command intervals. One capture includes an intermediate `.rsync-tmp` path;
 the writer was not independently identified. These are failed full integrity
 captures. No unavailable provider is scored as a successful quiet guardian.
 
-The existing default context schema 4, deterministic schema 2, and optional
-schema 3 remain compatibility controls. Shared context schema 5 is explicitly
-selected, and compact exploration schema 2 requires `--compact`. Evaluation
-does not silently promote either experimental interface into the default.
+Initialized projects now use adaptive context schema 5 by default. Explicit
+schema 4, schema 3 and deterministic `--fast` schema 2 remain compatibility
+controls; consuming agents can pin `--schema-version 5`. Uncompiled context and
+onboarding use distinct `lore.bootstrap_context`/`lore.bootstrap_onboard`
+contracts. Compact exploration schema 2 still requires `--compact`. Frozen
+baseline captures are retained rather than rewritten for the new default.
 
 ## Existing shared, coding, and synthesis protocols
 

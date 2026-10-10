@@ -1,15 +1,49 @@
 # Lore implementation tracker
 
-## 0.8 implementation in progress
+## 0.8 implementation and release gate
 
-The [0.8 implementation plan](V08_IMPLEMENTATION_PLAN.md) is the accepted scope.
-Work begins at `0ba8b17f7e63726a8d81def2b60af18573d4640c` (merged 0.7.0).
-The [0.8 acceptance ledger](../evaluation/PRODUCT_QUALITY_08.md) and
-[reproducible evidence](../evaluation/results/README-08.md) distinguish executed
-engineering gates from missing model, human and independent-review outcomes.
-Baseline capture changes no runtime default or permission. The source-integrity
-failures below remain unresolved evidence until the new investigation identifies
-and fixes or positively isolates their cause.
+The [0.8 implementation plan](V08_IMPLEMENTATION_PLAN.md) begins at
+`0ba8b17f7e63726a8d81def2b60af18573d4640c` (merged 0.7.0). The
+[0.8 guide](V08.md) describes the implemented behavior and migration; the
+[0.8 scorecard](../evaluation/PRODUCT_QUALITY_08.md) and
+[reproducible evidence](../evaluation/results/README-08.md) own the final source
+revisions, merge receipts, platform results and artifact hashes. The package
+version is 0.8.0; release readiness requires those engineering gates to pass.
+The sections following this 0.8 record preserve historical 0.7 and 0.6 evidence.
+
+| Package | Implemented behavior | Review/evidence boundary |
+| --- | --- | --- |
+| 1 — Baseline and acceptance evidence | Frozen 0.7 source/binary and schema 2/3/4/5 captures; machine-readable passed/failed/not-run ledger; retained local source-restoration controls | [PR #40](https://github.com/grove/lore/pull/40). Baseline capture itself changes no default or grant. |
+| 2 — Guardian source integrity | Per-command byte/identity/event observations; no-Lore controls; safe snapshot preflight and cancellation retention; dedicated complete-cohort runner | [PR #41](https://github.com/grove/lore/pull/41). External restoration was reproduced with zero subprocesses; original failed archives stay failed. Writer executable/PID and independent alert quality remain unauthenticated/unmeasured. |
+| 3 — Provider usage | Nullable per-attempt generation/decision/embedding accounting, retries and failures, explicit private ledgers, additive schema-5 usage and transactional SQLite schema 8 | [PR #42](https://github.com/grove/lore/pull/42), [usage contract](PROVIDER_USAGE.md). Unknown historical usage and billed USD are not replaced by zero or estimated invoices. |
+| 4 — Source-only first contact | Shared ephemeral context/onboarding over bounded, revalidated local documents, exact quotations and complete qualified groups; typed errors for pinned schemas and invalid/missing selected configurations | [PR #43](https://github.com/grove/lore/pull/43). No provider, implicit initialization, source write or mandatory questionnaire; source documents do not establish runtime behavior. |
+| 5 — Everyday adaptive context | Unpinned initialized context uses the existing schema-5 controller; action-first Markdown; complete envelope budgeting and host-owned grants | [PR #44](https://github.com/grove/lore/pull/44). Explicit schemas 3/4 and fast schema 2 retain their established paths. Promotion of a tested contract does not establish productivity gain. |
+| 6 — Genuine coding-study readiness | Sealed preflight around the existing six arms; immutable launch inputs and process cleanup; every planned assignment and attempted invocation retained; accepted-ADR/deep-change/reduced-grant reuse sequence | [PR #45](https://github.com/grove/lore/pull/45), [actual not-run receipt](../evaluation/results/experiment-08-readiness/README.md). Six public tasks, 36 planned assignments, zero actual coding attempts/provider calls; real models, independent review and authenticated external readiness are missing. |
+| 7 — Human first contribution | Initial compiled orientation limited to three grounded concepts; unchanged targeted explanations/tutorials; exact session/submission/checker bindings and enforceable consent withdrawal | [PR #46](https://github.com/grove/lore/pull/46), [human protocol](../evaluation/HUMAN_ONBOARDING.md) and [actual zero-enrollment receipt](../evaluation/evidence/human-onboarding-08-not-run.json). Twelve planned positions are not participants: zero real people and unmeasured contribution time, transfer and observed human usefulness. |
+| 8 — Release integration | Package version 0.8.0, migration and agent guidance, release-mode builds and CLI smoke checks in the three-platform matrix | Final required gates and exact-head evidence are maintained in the [scorecard](../evaluation/PRODUCT_QUALITY_08.md); no outcome is inferred from a version bump. |
+
+### Current engineering and empirical boundaries
+
+The original Guardian source-hash oracle is unchanged. A managed-workspace
+control reproduced deleted-file restoration without starting Lore or another
+child process. This positively isolates that reproduction outside Lore; it
+does not identify the historical writer. The supported clean runner must pass
+both 60-event cohorts, the repeated candidate, the focused segment and every
+no-Lore interval with complete source observation. The final gate result is
+recorded with its artifacts in the scorecard, separately from alert quality.
+
+The Windows inventory compares path and file-descriptor timestamp observations
+within each API, retaining both values and all original byte/identity checks.
+This addresses the documented CPython ctime API distinction without treating a
+missing filesystem observer or unexplained write as success.
+
+The coding wrapper's passing offline controls establish its launch, tamper,
+cost and failure-retention mechanics. Real-model success rates, paired time/cost
+benefits and independent holdout results remain unmeasured. Human outcomes
+require actual consent, bound work, assistance/time records and independent
+checks. Neither simulated agents nor a prepared twelve-position study satisfy
+that gate. No empirical retrieval/controller tuning is claimed from an unrun
+pilot, and provider token counts are distinct from response-budget tokens.
 
 ## 0.7 historical implementation
 

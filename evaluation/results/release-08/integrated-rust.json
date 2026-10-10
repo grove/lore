@@ -1,0 +1,28 @@
+{
+  "argv": [
+    "cargo",
+    "test",
+    "--all-targets",
+    "--locked"
+  ],
+  "classification": "offline_rust_engineering",
+  "elapsed_seconds": 323.2592,
+  "exit_code": 0,
+  "log": {
+    "bytes": 51216,
+    "published_in_repository": false,
+    "sha256": "0e73ad821a10f2a31024d0c1dc68724eb9487cba84d4fff1fb044ebcede9d527"
+  },
+  "qualification": "Completed after inspecting/restoring generated executable permissions only. The earlier failed invocation remains a separate receipt. This source predates the final usage::scoped allocation fix; final platform CI must cover that revision. No full worktree manifest or per-test executable hashes were recorded.",
+  "real_provider_calls": 0,
+  "schema_version": 1,
+  "source_revision": "aa4ad59446d87babbb5564b8ba3fd03686b21601",
+  "source_revision_after": "aa4ad59446d87babbb5564b8ba3fd03686b21601",
+  "status": "passed",
+  "tests": {
+    "failed": 0,
+    "ignored": 3,
+    "passed": 470,
+    "targets": 57
+  }
+}

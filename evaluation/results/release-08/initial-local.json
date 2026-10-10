@@ -1,0 +1,99 @@
+{
+  "cargo": "cargo 1.90.0 (840b83a10 2025-07-30)",
+  "classification": "local_engineering_gates",
+  "commands": [
+    {
+      "argv": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "elapsed_seconds": 1.3670177590029198,
+      "environment_overrides": {},
+      "exit_code": 0,
+      "id": "format",
+      "local_log_filename": "format.log",
+      "log_bytes": 0,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_revision_after": "80469e725f4a1369deb2dd5344c9dd904fc7a406",
+      "started_at": "2026-10-10T22:12:58.517381+00:00",
+      "status": "passed"
+    },
+    {
+      "argv": [
+        "cargo",
+        "check",
+        "--all-targets",
+        "--locked"
+      ],
+      "elapsed_seconds": 18.019704677994014,
+      "environment_overrides": {
+        "CLIPPY_ARGS": "-D__CLIPPY_HACKERY__warnings",
+        "RUSTC_WORKSPACE_WRAPPER": "/workspace/scratch/286e1ddfee82/local-rust/bin/clippy-driver"
+      },
+      "exit_code": 0,
+      "id": "strict-clippy-driver",
+      "local_log_filename": "strict-clippy-driver.log",
+      "log_bytes": 133,
+      "log_sha256": "ad647541f61b071d768cf5f88659946d98bd0df82094420b49f1e27e52aa119e",
+      "source_revision_after": "80469e725f4a1369deb2dd5344c9dd904fc7a406",
+      "started_at": "2026-10-10T22:12:59.887588+00:00",
+      "status": "passed"
+    },
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--all-targets",
+        "--locked"
+      ],
+      "elapsed_seconds": 128.53320330199494,
+      "environment_overrides": {},
+      "exit_code": 101,
+      "id": "rust-all-targets",
+      "local_log_filename": "rust-all-targets.log",
+      "log_bytes": 23959,
+      "log_sha256": "6486ce25bc0682283010dddefa7ff321d7953620875a4a98866e6fe9572e57a1",
+      "source_revision_after": "80469e725f4a1369deb2dd5344c9dd904fc7a406",
+      "started_at": "2026-10-10T22:13:17.910673+00:00",
+      "status": "failed"
+    },
+    {
+      "argv": [
+        "cargo",
+        "build",
+        "--release",
+        "--locked"
+      ],
+      "elapsed_seconds": 189.5346078690054,
+      "environment_overrides": {},
+      "exit_code": 0,
+      "id": "release-build",
+      "local_log_filename": "release-build.log",
+      "log_bytes": 5238,
+      "log_sha256": "a73d7ba1f0844e666a94af37f233fdc001790283d7b27298770b4fbbdf0f8b06",
+      "source_revision_after": "80469e725f4a1369deb2dd5344c9dd904fc7a406",
+      "started_at": "2026-10-10T22:15:26.448743+00:00",
+      "status": "passed"
+    }
+  ],
+  "local_log_archive": {
+    "bytes": 9419,
+    "local_filename": "initial-local-logs.zip",
+    "published_in_repository": false,
+    "sha256": "5d0f10b4b7618a5b8e495796b475f398866d9b8a050b6270a7aadb41bd897a77"
+  },
+  "offline_scope": "Tests may exercise fake models and loopback mock HTTP servers; no configured real provider or empirical study was run.",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "python": "3.12.14",
+  "qualification": "The standalone Clippy driver enforces the same -D warnings checks because rustup cannot read /proc/self/exe here. Standard cargo clippy remains mandatory in the separate CI matrix. No environment credentials are recorded.",
+  "raw_logs_published_in_repository": false,
+  "real_provider_calls": 0,
+  "rustc": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+  "schema_version": 1,
+  "source_revision": "80469e725f4a1369deb2dd5344c9dd904fc7a406",
+  "status": "failed",
+  "tree": "5292df2fe5c64470e2b8c3810c12b55f6b77cc61"
+}

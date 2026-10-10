@@ -26,6 +26,8 @@ jobs:
           cargo clippy --all-targets --locked -- -D warnings
       - name: Build and run offline Rust tests
         run: cargo test --all-targets --locked
+      - name: Build release CLI
+        run: cargo build --release --locked
       - name: Benchmark and assessment tests (no inference)
         run: python -m unittest discover -s evaluation/tests -v
       - name: Prepare validation corpora (no inference)
@@ -41,6 +43,8 @@ jobs:
           python evaluation/real_coding_corpus.py prepare --pilot --output /tmp/lore-v07-pilot
           python evaluation/real_coding_corpus.py validate --output /tmp/lore-v07-coding-controls
           python evaluation/adaptive_sequences.py prepare --output /tmp/lore-v07-sequences
+          python evaluation/adaptive_sequences.py prepare --cases evaluation/corpora/adaptive-sequences-08/cases.json --output /tmp/lore-v08-sequences
+          python evaluation/experiment_08.py prepare --cases /tmp/lore-v07-pilot/cases.json --output /tmp/lore-v08-study
           python evaluation/human_onboarding.py prepare --output /tmp/lore-v07-human-pilot
           python evaluation/guardian_longitudinal.py prepare --output /tmp/lore-v07-guardian
           python evaluation/restore_zoom_fixture.py --output /tmp/lore-v07-frozen
@@ -53,22 +57,22 @@ jobs:
         run: cargo test --locked --test knowledge_zoom_comparison measured_existing_compiled_project -- --ignored --exact
       - name: Decision and case CLI help
         run: |
-          cargo run --locked -- decisions --help
-          cargo run --locked -- cases --help
+          cargo run --release --locked -- decisions --help
+          cargo run --release --locked -- cases --help
       - name: Project companion CLI help
         run: |
-          cargo run --locked -- baseline --help
-          cargo run --locked -- changes --help
-          cargo run --locked -- guard --help
+          cargo run --release --locked -- baseline --help
+          cargo run --release --locked -- changes --help
+          cargo run --release --locked -- guard --help
       - name: CLI help
-        run: cargo run --locked -- --help
+        run: cargo run --release --locked -- --help
       - name: Review CLI help
-        run: cargo run --locked -- review --help
+        run: cargo run --release --locked -- review --help
       - name: Context CLI help
-        run: cargo run --locked -- context --help
+        run: cargo run --release --locked -- context --help
       - name: Onboarding CLI help
-        run: cargo run --locked -- onboard --help
+        run: cargo run --release --locked -- onboard --help
       - name: Exploration CLI help
-        run: cargo run --locked -- explore --help
+        run: cargo run --release --locked -- explore --help
       - name: CLI version
-        run: cargo run --locked -- --version
+        run: cargo run --release --locked -- --version

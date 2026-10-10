@@ -1,0 +1,676 @@
+{
+  "binary_sha256": {
+    "baseline": "f03f54e0affacf3ac623634cfbb2fc8c992b78e9e881f8b16af8e8f5de98b127",
+    "candidate": "f03f54e0affacf3ac623634cfbb2fc8c992b78e9e881f8b16af8e8f5de98b127"
+  },
+  "cohorts": {
+    "baseline": {
+      "commands": {
+        "captured": 606,
+        "filesystem_observer_captured": 606,
+        "filesystem_observer_complete": 603,
+        "filesystem_source_observer_complete": 606,
+        "preserved": 606,
+        "total": 606
+      },
+      "event_checks_recomputed": {
+        "exact_checkpoint_states": 60,
+        "explicit_baseline": 60,
+        "no_execution_claims": 60,
+        "original_evidence_and_endpoints": 60,
+        "per_command_source_integrity": 60,
+        "read_only_registry": 60,
+        "references_resolve": 60,
+        "requested_budget": 60,
+        "response_hashes": 60,
+        "retained_history": 60,
+        "source_hashes": 60,
+        "versioned_contracts": 60
+      },
+      "events": 60,
+      "failed_checks": {},
+      "model_calls": 0,
+      "observer_gaps": {
+        "new_directory_watch_gap:lore_state": 3
+      }
+    },
+    "candidate": {
+      "commands": {
+        "captured": 606,
+        "filesystem_observer_captured": 606,
+        "filesystem_observer_complete": 603,
+        "filesystem_source_observer_complete": 606,
+        "preserved": 606,
+        "total": 606
+      },
+      "event_checks_recomputed": {
+        "exact_checkpoint_states": 60,
+        "explicit_baseline": 60,
+        "no_execution_claims": 60,
+        "original_evidence_and_endpoints": 60,
+        "per_command_source_integrity": 60,
+        "read_only_registry": 60,
+        "references_resolve": 60,
+        "requested_budget": 60,
+        "response_hashes": 60,
+        "retained_history": 60,
+        "source_hashes": 60,
+        "versioned_contracts": 60
+      },
+      "events": 60,
+      "failed_checks": {},
+      "model_calls": 0,
+      "observer_gaps": {
+        "new_directory_watch_gap:lore_state": 3
+      }
+    },
+    "candidate-repeat": {
+      "commands": {
+        "captured": 606,
+        "filesystem_observer_captured": 606,
+        "filesystem_observer_complete": 603,
+        "filesystem_source_observer_complete": 606,
+        "preserved": 606,
+        "total": 606
+      },
+      "event_checks_recomputed": {
+        "exact_checkpoint_states": 60,
+        "explicit_baseline": 60,
+        "no_execution_claims": 60,
+        "original_evidence_and_endpoints": 60,
+        "per_command_source_integrity": 60,
+        "read_only_registry": 60,
+        "references_resolve": 60,
+        "requested_budget": 60,
+        "response_hashes": 60,
+        "retained_history": 60,
+        "source_hashes": 60,
+        "versioned_contracts": 60
+      },
+      "events": 60,
+      "failed_checks": {},
+      "model_calls": 0,
+      "observer_gaps": {
+        "new_directory_watch_gap:lore_state": 3
+      }
+    },
+    "focused-payments": {
+      "commands": {
+        "captured": 71,
+        "filesystem_observer_captured": 71,
+        "filesystem_observer_complete": 70,
+        "filesystem_source_observer_complete": 71,
+        "preserved": 71,
+        "total": 71
+      },
+      "event_checks_recomputed": {
+        "exact_checkpoint_states": 10,
+        "explicit_baseline": 10,
+        "no_execution_claims": 10,
+        "original_evidence_and_endpoints": 10,
+        "per_command_source_integrity": 10,
+        "read_only_registry": 10,
+        "references_resolve": 10,
+        "requested_budget": 10,
+        "response_hashes": 10,
+        "retained_history": 10,
+        "source_hashes": 10,
+        "versioned_contracts": 10
+      },
+      "events": 10,
+      "failed_checks": {},
+      "model_calls": 0,
+      "observer_gaps": {
+        "new_directory_watch_gap:lore_state": 1
+      }
+    }
+  },
+  "guardian_evidence": {
+    "bytes": 4804368,
+    "path": "guardian-integrity-evidence.zip",
+    "sha256": "6905e74de4d32751275e40e7941e5bc8088e53f9fc419c50c692ee624ff3f28a"
+  },
+  "guardian_receipt": {
+    "bytes": 49383,
+    "path": "receipt.json",
+    "sha256": "955cb5cedb5204d412f4c06b0f8ea78bac89245586082cb124ea86e534d6022d"
+  },
+  "guardian_run_id": 38089577138,
+  "guardian_url": "https://github.com/grove/lore/actions/runs/38089577138",
+  "head_sha": "b1238111d4faa134c941aae8132e351a7e428cee",
+  "inner_archive_members": 260,
+  "inner_manifest_members_verified": 259,
+  "limits": [
+    "This is merged package-2 proof, not final integrated Lore 0.8 proof.",
+    "The matrix tested the GitHub merge ref; its tree equals the package head tree.",
+    "All source observations are complete; recorded new-directory watcher gaps affect only permitted Lore-owned state.",
+    "Guardian alert quality remains unmeasured; execution/egress syscall audit was not run.",
+    "No provider calls, subprocess replay, source change, GitHub mutation or new engineering test was performed during collection.",
+    "Job log bytes are the connector's decoded UTF-8 text, preserving line endings and BOM; original transport ZIP bytes were not supplied.",
+    "The package-2 matrix predates the 0.8 release-mode build step."
+  ],
+  "local_matrix_log_archive": {
+    "bytes": 169812,
+    "local_filename": "public-ci-job-logs.zip",
+    "published_in_repository": false,
+    "sha256": "4a84612d5fa64ed127a5e332111a4a5876d1306094da2ecd20feedb408016bdb"
+  },
+  "local_metadata_files": {
+    "github-merge-bindings.json": {
+      "bytes": 639,
+      "local_filename": "github-merge-bindings.json",
+      "published_in_repository": false,
+      "sha256": "c87a2c8cb63ed749cc278c66c08fe5c577f7cd02eee3553d9ea3780fcea21abd"
+    },
+    "github-metadata.json": {
+      "bytes": 7994,
+      "local_filename": "github-metadata.json",
+      "published_in_repository": false,
+      "sha256": "97e374eee85ff96bc25dc81602d8f415d2a8ac0f9b50fad14ef53d91e227d965"
+    }
+  },
+  "local_verification_script": {
+    "bytes": 13832,
+    "local_filename": "verify-evidence.py",
+    "published_in_repository": false,
+    "sha256": "8310d7397e6930b3da48a1df513b6429b49674ceac2fccbc508c5750806e3dd2"
+  },
+  "matrix": {
+    "linux": {
+      "conclusion": "success",
+      "job_id": 114323073708,
+      "job_url": "https://github.com/grove/lore/actions/runs/38089577159/jobs/114323073708",
+      "log": {
+        "bytes": 483637,
+        "job_id": 114323073708,
+        "published_in_repository": false,
+        "sha256": "c44962f5152f29d14b7d457567437a7e07998ca62ff4e27cfc236c06080cb0fe"
+      },
+      "omitted_test_reasons": [
+        "test local_ollama_extracts_selected_source_section ... ignored, requires local Ollama and LORE_LIVE_CONFIG/LORE_LIVE_SECTION",
+        "test openai_live_preserves_multiline_quote_constraints ... ignored, requires LORE_OPENAI_LIVE_CONFIG and its configured credential environment variable",
+        "test measured_existing_compiled_project ... ignored, requires an explicitly selected compiled project, independent gold cases and a new report path"
+      ],
+      "python": {
+        "discovered": 192,
+        "passed": 192,
+        "result": "OK",
+        "seconds": 66.344,
+        "skipped": 0
+      },
+      "rust_all_targets": {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 3,
+        "measured": 0,
+        "passed": 429,
+        "suites": 55
+      },
+      "separate_frozen_zoom_test": {
+        "failed": 0,
+        "filtered_out": 3,
+        "ignored": 0,
+        "measured": 0,
+        "passed": 1,
+        "suites": 1
+      },
+      "steps": [
+        {
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "number": 2,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Check formatting",
+          "number": 3,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Strict Rust lint",
+          "number": 4,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Build and run offline Rust tests",
+          "number": 5,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Benchmark and assessment tests (no inference)",
+          "number": 6,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Prepare validation corpora (no inference)",
+          "number": 7,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Compare the exact frozen Zoom registry (no inference)",
+          "number": 8,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Decision and case CLI help",
+          "number": 9,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Project companion CLI help",
+          "number": 10,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "CLI help",
+          "number": 11,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Review CLI help",
+          "number": 12,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Context CLI help",
+          "number": 13,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Onboarding CLI help",
+          "number": 14,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Exploration CLI help",
+          "number": 15,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "CLI version",
+          "number": 16,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "number": 32,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 33,
+          "status": "completed"
+        }
+      ],
+      "tested_checkout_sha": "ad39a4cee3c7c2c4ca99e37ead99834f79b1f3ca"
+    },
+    "macos": {
+      "conclusion": "success",
+      "job_id": 114323073743,
+      "job_url": "https://github.com/grove/lore/actions/runs/38089577159/jobs/114323073743",
+      "log": {
+        "bytes": 174092,
+        "job_id": 114323073743,
+        "published_in_repository": false,
+        "sha256": "78f2beaee9226fffc29ccd4d809af5ecb1118dbea3ad818838d59f70d1cac3c0"
+      },
+      "omitted_test_reasons": [
+        "test local_ollama_extracts_selected_source_section ... ignored, requires local Ollama and LORE_LIVE_CONFIG/LORE_LIVE_SECTION",
+        "test openai_live_preserves_multiline_quote_constraints ... ignored, requires LORE_OPENAI_LIVE_CONFIG and its configured credential environment variable",
+        "test measured_existing_compiled_project ... ignored, requires an explicitly selected compiled project, independent gold cases and a new report path",
+        "test_kernel_observer_captures_transient_create_delete_and_mode_changes (test_guardian_integrity.GuardianIntegrityTests.test_kernel_observer_captures_transient_create_delete_and_mode_changes) ... skipped 'Linux kernel observer'"
+      ],
+      "python": {
+        "discovered": 192,
+        "passed": 191,
+        "result": "OK (skipped=1)",
+        "seconds": 36.591,
+        "skipped": 1
+      },
+      "rust_all_targets": {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 3,
+        "measured": 0,
+        "passed": 429,
+        "suites": 55
+      },
+      "separate_frozen_zoom_test": {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "passed": 0,
+        "suites": 0
+      },
+      "steps": [
+        {
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "number": 2,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Check formatting",
+          "number": 3,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Strict Rust lint",
+          "number": 4,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Build and run offline Rust tests",
+          "number": 5,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Benchmark and assessment tests (no inference)",
+          "number": 6,
+          "status": "completed"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Prepare validation corpora (no inference)",
+          "number": 7,
+          "status": "completed"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Compare the exact frozen Zoom registry (no inference)",
+          "number": 8,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Decision and case CLI help",
+          "number": 9,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Project companion CLI help",
+          "number": 10,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "CLI help",
+          "number": 11,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Review CLI help",
+          "number": 12,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Context CLI help",
+          "number": 13,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Onboarding CLI help",
+          "number": 14,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Exploration CLI help",
+          "number": 15,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "CLI version",
+          "number": 16,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "number": 32,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 33,
+          "status": "completed"
+        }
+      ],
+      "tested_checkout_sha": "ad39a4cee3c7c2c4ca99e37ead99834f79b1f3ca"
+    },
+    "windows": {
+      "conclusion": "success",
+      "job_id": 114323073577,
+      "job_url": "https://github.com/grove/lore/actions/runs/38089577159/jobs/114323073577",
+      "log": {
+        "bytes": 176254,
+        "job_id": 114323073577,
+        "published_in_repository": false,
+        "sha256": "513d2a2c49c07b8c76769b4aaa1aa8a32d41e3c7836498ea2f3a9a133d1e5596"
+      },
+      "omitted_test_reasons": [
+        "test local_ollama_extracts_selected_source_section ... ignored, requires local Ollama and LORE_LIVE_CONFIG/LORE_LIVE_SECTION",
+        "test openai_live_preserves_multiline_quote_constraints ... ignored, requires LORE_OPENAI_LIVE_CONFIG and its configured credential environment variable",
+        "test measured_existing_compiled_project ... ignored, requires an explicitly selected compiled project, independent gold cases and a new report path",
+        "test_kernel_observer_captures_transient_create_delete_and_mode_changes (test_guardian_integrity.GuardianIntegrityTests.test_kernel_observer_captures_transient_create_delete_and_mode_changes) ... skipped 'Linux kernel observer'"
+      ],
+      "python": {
+        "discovered": 192,
+        "passed": 191,
+        "result": "OK (skipped=1)",
+        "seconds": 114.966,
+        "skipped": 1
+      },
+      "rust_all_targets": {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 3,
+        "measured": 0,
+        "passed": 421,
+        "suites": 55
+      },
+      "separate_frozen_zoom_test": {
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "passed": 0,
+        "suites": 0
+      },
+      "steps": [
+        {
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "number": 2,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Check formatting",
+          "number": 3,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Strict Rust lint",
+          "number": 4,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Build and run offline Rust tests",
+          "number": 5,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Benchmark and assessment tests (no inference)",
+          "number": 6,
+          "status": "completed"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Prepare validation corpora (no inference)",
+          "number": 7,
+          "status": "completed"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Compare the exact frozen Zoom registry (no inference)",
+          "number": 8,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Decision and case CLI help",
+          "number": 9,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Project companion CLI help",
+          "number": 10,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "CLI help",
+          "number": 11,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Review CLI help",
+          "number": 12,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Context CLI help",
+          "number": 13,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Onboarding CLI help",
+          "number": 14,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Exploration CLI help",
+          "number": 15,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "CLI version",
+          "number": 16,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "number": 32,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 33,
+          "status": "completed"
+        }
+      ],
+      "tested_checkout_sha": "ad39a4cee3c7c2c4ca99e37ead99834f79b1f3ca"
+    }
+  },
+  "matrix_run_id": 38089577159,
+  "matrix_url": "https://github.com/grove/lore/actions/runs/38089577159",
+  "merge": {
+    "matrix_checkout": {
+      "message": "Merge b1238111d4faa134c941aae8132e351a7e428cee into e46c8897f38ac03b2dac6d4a24a722532faf7b75",
+      "parents": [
+        "e46c8897f38ac03b2dac6d4a24a722532faf7b75",
+        "b1238111d4faa134c941aae8132e351a7e428cee"
+      ],
+      "sha": "ad39a4cee3c7c2c4ca99e37ead99834f79b1f3ca",
+      "tree_sha": "316f08761bcec6d63ccc11fb6e33f368bb8a7cf3"
+    },
+    "pull_request": {
+      "base_sha": "e46c8897f38ac03b2dac6d4a24a722532faf7b75",
+      "head_sha": "b1238111d4faa134c941aae8132e351a7e428cee",
+      "merge_commit_sha": "75ab314368d2f87e790c95a1991ef33414f5432b",
+      "merged": true,
+      "merged_at": "2026-10-10T22:14:49Z",
+      "number": 41,
+      "state": "closed",
+      "url": "https://github.com/grove/lore/pull/41"
+    }
+  },
+  "no_lore_control": {
+    "events": 60,
+    "failed_events": [],
+    "intervals": 240,
+    "model_calls": 0,
+    "processes_started": 0,
+    "source_observer_complete": 240,
+    "source_preserved": 240
+  },
+  "pull_request": 41,
+  "repository": "grove/lore",
+  "schema_version": 1,
+  "status": "verified",
+  "upstream_artifact": {
+    "artifact_id": 11683397509,
+    "bytes": 4551721,
+    "local_filename": "github-artifact-11683397509.zip",
+    "published_in_repository": false,
+    "sha256": "02755ee53f22cf0c77c6c4e0f0bcd83be183cf41f37fc4dad23e10ac786970f1",
+    "workflow_url": "https://github.com/grove/lore/actions/runs/38089577138"
+  }
+}

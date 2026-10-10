@@ -1,17 +1,23 @@
 {
-  "schema_version": 1,
-  "release": "0.8.0",
-  "baseline_commit": "0ba8b17f7e63726a8d81def2b60af18573d4640c",
-  "release_decision": "in_progress",
+  "actual_human_participants": 0,
   "allowed_statuses": [
     "passed",
     "failed",
     "not_run",
     "unmeasured"
   ],
+  "artifact_manifest": {
+    "path": "release-08/artifact-manifest.json",
+    "sha256": "ffbe75f45f189bc72abbc5eac2e1132905a7e7286c2e74dad61f816c0b533d8a"
+  },
+  "baseline_commit": "0ba8b17f7e63726a8d81def2b60af18573d4640c",
   "gates": {
+    "adaptive_default": {
+      "artifacts": [],
+      "scope": "Pinned compatibility and permission/budget regression gate",
+      "status": "not_run"
+    },
     "baseline": {
-      "status": "passed",
       "artifacts": [
         {
           "path": "baseline-08/engineering.json",
@@ -32,71 +38,109 @@
         {
           "path": "baseline-08/guardian-08-no-lore-control.zip",
           "sha256": "a0575bba6f55dbe3b70e451f423683b6ee6d10c4a336e88ff4e0fc3d5e529f84"
+        },
+        {
+          "path": "release-08/baseline-ci.json",
+          "sha256": "51547fe45f1db5397926ab7251f447e4a3e218256b481f6a8880d1f27d7bd084"
         }
       ],
-      "scope": "Baseline captured reproducibly, including failed local Rust launch and failed no-Lore source integrity; capture success does not relabel either gate."
-    },
-    "guardian_source_integrity": {
-      "status": "not_run",
-      "artifacts": [],
-      "scope": "Full 60-event cohorts, focused segment and repeated candidate; writer attribution/isolation"
-    },
-    "provider_usage": {
-      "status": "not_run",
-      "artifacts": [],
-      "scope": "Per-attempt optional tokens and nullable billed USD"
+      "scope": "Baseline captured reproducibly, including failed local Rust launch and failed no-Lore source integrity; capture success does not relabel either gate.",
+      "status": "passed"
     },
     "bootstrap": {
-      "status": "not_run",
       "artifacts": [],
-      "scope": "Read-only model-free first contact and exact evidence"
-    },
-    "adaptive_default": {
-      "status": "not_run",
-      "artifacts": [],
-      "scope": "Pinned compatibility and permission/budget regression gate"
+      "scope": "Read-only model-free first contact and exact evidence",
+      "status": "not_run"
     },
     "coding_harness": {
-      "status": "not_run",
-      "artifacts": [],
-      "scope": "Preflight, provenance, isolation/audit and attempt-ledger controls"
-    },
-    "human_harness": {
-      "status": "not_run",
-      "artifacts": [],
-      "scope": "Actual session/consent and contribution/transfer assessment controls"
-    },
-    "platform_matrix": {
-      "status": "not_run",
-      "artifacts": [],
-      "scope": "Integrated Linux/macOS/Windows CI"
-    },
-    "release": {
-      "status": "not_run",
-      "artifacts": [],
-      "scope": "All engineering ship gates"
+      "artifacts": [
+        {
+          "path": "release-08/integrated-python.json",
+          "sha256": "c39e67115285a18993c7d3aa747eb45204b5de07de56346de585ac2ba1ed1bcd"
+        }
+      ],
+      "scope": "Preflight, provenance, isolation/audit and attempt-ledger controls;236 integrated offline Python tests passed; no empirical outcome claim.",
+      "status": "passed"
     },
     "coding_productivity": {
-      "status": "unmeasured",
       "artifacts": [],
-      "scope": "Actual independent outcome study required"
-    },
-    "human_contribution": {
-      "status": "unmeasured",
-      "artifacts": [],
-      "scope": "Actual independent outcome study required"
-    },
-    "human_transfer": {
-      "status": "unmeasured",
-      "artifacts": [],
-      "scope": "Actual independent outcome study required"
+      "scope": "Actual independent outcome study required",
+      "status": "unmeasured"
     },
     "guardian_alert_quality": {
-      "status": "unmeasured",
       "artifacts": [],
-      "scope": "Actual independent outcome study required"
+      "scope": "Actual independent outcome study required",
+      "status": "unmeasured"
+    },
+    "guardian_source_integrity": {
+      "artifacts": [
+        {
+          "path": "release-08/guardian-pr41/receipt.json",
+          "sha256": "955cb5cedb5204d412f4c06b0f8ea78bac89245586082cb124ea86e534d6022d"
+        },
+        {
+          "path": "release-08/guardian-pr41/guardian-integrity-evidence.zip",
+          "sha256": "6905e74de4d32751275e40e7941e5bc8088e53f9fc419c50c692ee624ff3f28a"
+        },
+        {
+          "path": "release-08/guardian-pr41/verified-summary.json",
+          "sha256": "8d26c511af7e954641d140d3140c064e4a1400bb9b1ce6a98ef84e4ac0860bbc"
+        }
+      ],
+      "scope": "Merged PR41 clean runner:190 replay events,1889 preserved and source-observer-complete command intervals;240 no-Lore intervals. Full integrated0.8 release candidate remains a separate required final gate.",
+      "source_revision": "b1238111d4faa134c941aae8132e351a7e428cee",
+      "status": "passed",
+      "workflow_run": 38089577138
+    },
+    "human_contribution": {
+      "artifacts": [],
+      "scope": "Actual independent outcome study required",
+      "status": "unmeasured"
+    },
+    "human_harness": {
+      "artifacts": [
+        {
+          "path": "release-08/integrated-python.json",
+          "sha256": "c39e67115285a18993c7d3aa747eb45204b5de07de56346de585ac2ba1ed1bcd"
+        }
+      ],
+      "scope": "Actual session/consent and contribution/transfer assessment controls;236 integrated offline Python tests passed; no empirical outcome claim.",
+      "status": "passed"
+    },
+    "human_transfer": {
+      "artifacts": [],
+      "scope": "Actual independent outcome study required",
+      "status": "unmeasured"
+    },
+    "platform_matrix": {
+      "artifacts": [],
+      "remaining_gate": "Full final 0.8 code matrix, including native Windows initialized onboarding after the usage scope allocation fix.",
+      "scope": "Integrated Linux/macOS/Windows CI",
+      "status": "not_run"
+    },
+    "provider_usage": {
+      "artifacts": [],
+      "scope": "Per-attempt optional tokens and nullable billed USD",
+      "status": "not_run"
+    },
+    "release": {
+      "artifacts": [],
+      "remaining_gate": "Final platform/Guardian gates, release smoke captures and exact evidence receipt.",
+      "scope": "All engineering ship gates",
+      "status": "not_run"
     }
   },
-  "actual_human_participants": 0,
-  "real_model_study_attempts": 0
+  "publication_review": {
+    "actual_participant_data": false,
+    "classification": "engineering_review_of_controlled_fixtures_and_condensed_receipts",
+    "credentials": false,
+    "independent_task_or_outcome_review": "not_run",
+    "new_raw_logs_published": false,
+    "raw_log_handling": "Automatic approval review rejected publication of a raw CI-log archive. New raw logs are omitted; condensed receipts retain counts, source revisions, hashes and available GitHub run/job links.",
+    "real_provider_response_bodies": false
+  },
+  "real_model_study_attempts": 0,
+  "release": "0.8.0",
+  "release_decision": "in_progress",
+  "schema_version": 1
 }
