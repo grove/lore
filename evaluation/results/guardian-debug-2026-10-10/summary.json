@@ -1,0 +1,265 @@
+{
+  "candidate_engineering_tests": {
+    "python_guardian_protocol_passed": 28,
+    "rust_advisory_grouping_unit_passed": 3,
+    "rust_cli_integration_passed": 2,
+    "rust_companion_integration_passed": 18,
+    "rust_explicit_corpus_export_passed": 2
+  },
+  "capture_archive": {
+    "binary_and_database_snapshots_included": false,
+    "bytes": 2391218,
+    "complete_successful_json_responses_and_failures": true,
+    "path": "captures.zip",
+    "sha256": "79abc6eb8809010d46b2dc4ed9d3e00320b4adff3a804f896515f5d10cac06cf"
+  },
+  "classification": "actual_cli_capture_on_synthetic_debug_sources_with_integrity_failures",
+  "compiled_sha256": "696a71e45afeeb58d97840a6262325137910a634c17d0f61e3b99256ffcd7a99",
+  "date_utc": "2026-10-10",
+  "events_manifest_sha256": "462a2e5b6d95fd4dbac8f1640274e74977c4d80dd0a3be2341c05a3cb1a82461",
+  "fixture_only": true,
+  "held_out": false,
+  "independent_human_review": false,
+  "outcome_limits": {
+    "alert_precision": "unmeasured: no real model assessments or independent alert ratings",
+    "consequential_alert_recall": "unmeasured: zero required events with reviewed available assessments",
+    "developer_or_human_usefulness": "unmeasured",
+    "performance_improvement": "not estimated; replay timing includes fixture materialization and concurrent captures, with source-integrity failures",
+    "release_quality_gate": "not passed",
+    "runtime_syscall_audit": "unavailable: environment denied ptrace; no permission escalation or trace fabrication"
+  },
+  "prepared_sha256": "50c2a69bf9d8bc7ac26c799f99b4a0231ed8b905c73cf9c888eedbab15f91e89",
+  "protocol": "guardian-longitudinal-v1",
+  "reproduction": "GUARDIAN_LONGITUDINAL.md gives full and segmented actual CLI collection and assessment commands. Extract captures.zip and run guardian_longitudinal.py assess on each enclosed run directory.",
+  "runs": {
+    "baseline": {
+      "assessment_statuses": {
+        "no_documented_change": 20,
+        "partial_static_guidance": 40
+      },
+      "binary_sha256": "fbfc52db67252f50952248a0b60ac0dbe77756f48c363d01433bee7520d40f3b",
+      "consequential_alert_recall": null,
+      "counts": {
+        "ambiguous": 20,
+        "benign": 20,
+        "consequential": 20
+      },
+      "engineering_capture_pass": false,
+      "events": 60,
+      "failed_checks": {
+        "source_hashes": 32
+      },
+      "high_severity_precision": null,
+      "independent_runtime_audit_complete": false,
+      "product_efficacy_measured": false,
+      "product_quality_gate_pass": false,
+      "projects": 3,
+      "required_event_assessment_coverage": 0.0,
+      "run_sha256": "6d5739a647a73387c609d183b72fc63061e2f3e7ff4ed6cb7f7296a3739a9fe3",
+      "total_model_calls": 0
+    },
+    "candidate": {
+      "assessment_statuses": {
+        "no_documented_change": 17,
+        "partial_static_guidance": 43
+      },
+      "binary_sha256": "5022a2efb31662d639c703870c783e7d4b633d1757d4b6c940da733c84a5b90b",
+      "consequential_alert_recall": null,
+      "counts": {
+        "ambiguous": 20,
+        "benign": 20,
+        "consequential": 20
+      },
+      "engineering_capture_pass": false,
+      "events": 60,
+      "failed_checks": {
+        "source_hashes": 15
+      },
+      "high_severity_precision": null,
+      "independent_runtime_audit_complete": false,
+      "product_efficacy_measured": false,
+      "product_quality_gate_pass": false,
+      "projects": 3,
+      "required_event_assessment_coverage": 0.0,
+      "run_sha256": "8e6a115c35427a70ac6e65193588910e8ace739f8c34565b04d8e2c670ff9709",
+      "total_model_calls": 0
+    },
+    "short-baseline-payments": {
+      "assessment_statuses": {
+        "no_documented_change": 5,
+        "partial_static_guidance": 5
+      },
+      "binary_sha256": "fbfc52db67252f50952248a0b60ac0dbe77756f48c363d01433bee7520d40f3b",
+      "consequential_alert_recall": null,
+      "counts": {
+        "ambiguous": 3,
+        "benign": 4,
+        "consequential": 3
+      },
+      "engineering_capture_pass": false,
+      "events": 10,
+      "failed_checks": {
+        "source_hashes": 2
+      },
+      "high_severity_precision": null,
+      "independent_runtime_audit_complete": false,
+      "product_efficacy_measured": false,
+      "product_quality_gate_pass": false,
+      "projects": 1,
+      "required_event_assessment_coverage": 0.0,
+      "run_sha256": "42f194e92542af8c320328c62d48ac65d3d64c1a02b525959597e5d763d0eb35",
+      "total_model_calls": 0
+    },
+    "short-candidate-payments": {
+      "assessment_statuses": {
+        "no_documented_change": 4,
+        "partial_static_guidance": 6
+      },
+      "binary_sha256": "5022a2efb31662d639c703870c783e7d4b633d1757d4b6c940da733c84a5b90b",
+      "consequential_alert_recall": null,
+      "counts": {
+        "ambiguous": 3,
+        "benign": 4,
+        "consequential": 3
+      },
+      "engineering_capture_pass": true,
+      "events": 10,
+      "failed_checks": {},
+      "high_severity_precision": null,
+      "independent_runtime_audit_complete": false,
+      "product_efficacy_measured": false,
+      "product_quality_gate_pass": false,
+      "projects": 1,
+      "required_event_assessment_coverage": 0.0,
+      "run_sha256": "606ed934274f7787091e568350a2c22fec43f15e31dcae4552a285feb60b92b1",
+      "total_model_calls": 0
+    }
+  },
+  "schema_version": 1,
+  "source_baseline_commit": "6f4898bf1d6e0dc135a24ef792921c3d98af2c24",
+  "source_integrity_diagnostics": {
+    "attribution": "The temporary path is consistent with filesystem synchronization. The writer was not independently identified; no-Lore deletion controls did not reproduce restoration. The captures therefore remain failed integrity checks.",
+    "correction_policy": "No failed source check was ignored, removed, normalized, or relabeled as passing.",
+    "file": "source-integrity-failures.json",
+    "observed": "Deleted source paths reappeared with earlier bytes; one short run captures docs/.rsync-tmp/history.md before docs/history.md was restored. Existing source file contents and all queried registries/configurations remained unchanged."
+  },
+  "source_reversion_raw_observations": [
+    {
+      "baseline": {
+        "assessment_status": "no_documented_change",
+        "checks": {
+          "exact_checkpoint_states": true,
+          "explicit_baseline": true,
+          "no_execution_claims": true,
+          "original_evidence_and_endpoints": true,
+          "read_only_registry": true,
+          "references_resolve": true,
+          "requested_budget": true,
+          "response_hashes": true,
+          "retained_history": true,
+          "source_hashes": false,
+          "versioned_contracts": true
+        },
+        "included_change_groups": 0,
+        "omitted_change_groups": 0
+      },
+      "candidate": {
+        "assessment_status": "partial_static_guidance",
+        "checks": {
+          "exact_checkpoint_states": true,
+          "explicit_baseline": true,
+          "no_execution_claims": true,
+          "original_evidence_and_endpoints": true,
+          "read_only_registry": true,
+          "references_resolve": true,
+          "requested_budget": true,
+          "response_hashes": true,
+          "retained_history": true,
+          "source_hashes": true,
+          "versioned_contracts": true
+        },
+        "included_change_groups": 1,
+        "omitted_change_groups": 0
+      },
+      "event_id": "payments-08"
+    },
+    {
+      "baseline": {
+        "assessment_status": "no_documented_change",
+        "checks": {
+          "exact_checkpoint_states": true,
+          "explicit_baseline": true,
+          "no_execution_claims": true,
+          "original_evidence_and_endpoints": true,
+          "read_only_registry": true,
+          "references_resolve": true,
+          "requested_budget": true,
+          "response_hashes": true,
+          "retained_history": true,
+          "source_hashes": true,
+          "versioned_contracts": true
+        },
+        "included_change_groups": 0,
+        "omitted_change_groups": 0
+      },
+      "candidate": {
+        "assessment_status": "partial_static_guidance",
+        "checks": {
+          "exact_checkpoint_states": true,
+          "explicit_baseline": true,
+          "no_execution_claims": true,
+          "original_evidence_and_endpoints": true,
+          "read_only_registry": true,
+          "references_resolve": true,
+          "requested_budget": true,
+          "response_hashes": true,
+          "retained_history": true,
+          "source_hashes": true,
+          "versioned_contracts": true
+        },
+        "included_change_groups": 1,
+        "omitted_change_groups": 0
+      },
+      "event_id": "ledger-08"
+    },
+    {
+      "baseline": {
+        "assessment_status": "no_documented_change",
+        "checks": {
+          "exact_checkpoint_states": true,
+          "explicit_baseline": true,
+          "no_execution_claims": true,
+          "original_evidence_and_endpoints": true,
+          "read_only_registry": true,
+          "references_resolve": true,
+          "requested_budget": true,
+          "response_hashes": true,
+          "retained_history": true,
+          "source_hashes": false,
+          "versioned_contracts": true
+        },
+        "included_change_groups": 0,
+        "omitted_change_groups": 0
+      },
+      "candidate": {
+        "assessment_status": "partial_static_guidance",
+        "checks": {
+          "exact_checkpoint_states": true,
+          "explicit_baseline": true,
+          "no_execution_claims": true,
+          "original_evidence_and_endpoints": true,
+          "read_only_registry": true,
+          "references_resolve": true,
+          "requested_budget": true,
+          "response_hashes": true,
+          "retained_history": true,
+          "source_hashes": false,
+          "versioned_contracts": true
+        },
+        "included_change_groups": 1,
+        "omitted_change_groups": 0
+      },
+      "event_id": "releases-08"
+    }
+  ]
+}

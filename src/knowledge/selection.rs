@@ -272,6 +272,32 @@ fn select_impl(
             bundles.push(bundle);
         }
     }
+    // Order whole, already complete bundles rather than weakening an
+    // obligation to make a seed fit. Try substantive rules before bundles
+    // containing explanatory context, unless the request explicitly asks for
+    // that explanation. Exact references always retain their first priority;
+    // stable cached keys preserve relevance and graph ordering within a class.
+    if !explanation_requested(&options.query) {
+        let reference_priorities: BTreeMap<_, _> = ranked
+            .iter()
+            .map(|(id, _, exact)| (id.as_str(), *exact))
+            .collect();
+        let explanatory_ids: BTreeSet<_> = graph
+            .knowledge
+            .iter()
+            .filter(|record| explanatory_consequence(record))
+            .map(|record| record.id.as_str())
+            .collect();
+        bundles.sort_by_cached_key(|bundle| {
+            (
+                std::cmp::Reverse(reference_priorities[bundle.seed_id.as_str()]),
+                bundle
+                    .knowledge_ids
+                    .iter()
+                    .any(|id| explanatory_ids.contains(id.as_str())),
+            )
+        });
+    }
     let (navigation, navigation_truncated) = if mode == SelectionMode::GraphGuided {
         navigation(graph, selected_node, options.max_nodes)
     } else {
@@ -352,12 +378,13 @@ fn select_impl(
             &candidate,
             selection_truncated,
         );
-        if measure(&trial)? <= options.max_tokens {
+        if measure_with_navigation_omission(&trial, !navigation.is_empty())? <= options.max_tokens {
             selected = candidate;
             result = trial;
         }
     }
-    for node in navigation {
+    let navigation_count = navigation.len();
+    for (index, node) in navigation.into_iter().enumerate() {
         let mut trial = result.clone();
         trial.nodes.push(node);
         let ids: BTreeSet<_> = trial.nodes.iter().map(|n| n.id.as_str()).collect();
@@ -368,7 +395,9 @@ fn select_impl(
             .cloned()
             .collect();
         fill_payload(&mut trial, graph, &selected);
-        if measure(&trial)? <= options.max_tokens {
+        if measure_with_navigation_omission(&trial, index + 1 < navigation_count)?
+            <= options.max_tokens
+        {
             result = trial;
         } else {
             result.navigation_truncated = true;
@@ -541,6 +570,17 @@ fn explanatory_consequence(record: &KnowledgeView) -> bool {
     let text = record.statement.to_lowercase();
     text.find("cannot ")
         .is_some_and(|position| text[..position].contains(" so "))
+}
+
+fn explanation_requested(query: &str) -> bool {
+    query
+        .split(|character: char| !character.is_alphanumeric())
+        .any(|word| {
+            matches!(
+                word.to_lowercase().as_str(),
+                "why" | "purpose" | "rationale" | "reason" | "reasons" | "explain"
+            )
+        })
 }
 
 fn subject_terms(text: &str) -> BTreeSet<String> {
@@ -1022,6 +1062,23 @@ fn measure(result: &ExploreResult) -> Result<usize> {
     };
     Ok(crate::context::count_tokens(&serialized)
         .max(crate::context::count_tokens(&render_markdown(result))))
+}
+
+// A later navigation rejection adds a Markdown disclosure and changes the
+// JSON flag. Reserve the actual larger wire representation while that final
+// state is still possible, without reporting an omission that has not occurred.
+fn measure_with_navigation_omission(
+    result: &ExploreResult,
+    may_omit_navigation: bool,
+) -> Result<usize> {
+    let measured = measure(result)?;
+    if may_omit_navigation && !result.navigation_truncated {
+        let mut truncated = result.clone();
+        truncated.navigation_truncated = true;
+        Ok(measured.max(measure(&truncated)?))
+    } else {
+        Ok(measured)
+    }
 }
 
 fn md(text: &str) -> String {

@@ -1,0 +1,200 @@
+{
+  "schema_version": 1,
+  "audit": "guardian-retained-artifact-content-and-provenance-v1",
+  "audited_at_utc": "2026-10-10",
+  "reviewer": {
+    "id": "guardian_quality",
+    "role": "Implementation agent; source/content auditor",
+    "human": false,
+    "independent_of_fixture_author": false,
+    "independent_parent_review": "required before publication retry"
+  },
+  "scope": "Read-only audit of captures.zip and the existing README.md, summary.json and source-integrity-failures.json. Raw evidence was not modified, re-encoded, split or republished.",
+  "disposition": {
+    "content_and_provenance_checks_passed": true,
+    "publication_authorization": "For the parent/operator to assess; this receipt does not bypass or override automatic approval review.",
+    "conclusion": "Every retained source passage is bound to the authored synthetic three-project fixture. The inspected bytes contain synthetic evidence, fixed Lore/protocol guidance, generated identifiers/digests/timestamps and task-local paths. No real customer/user repository source passage, provider credential, environment dump, private key, raw stderr or raw stdout payload was found.",
+    "product_quality_gate_passed": false,
+    "runtime_execution_egress_audit_passed": false
+  },
+  "archive": {
+    "path": "captures.zip",
+    "sha256": "79abc6eb8809010d46b2dc4ed9d3e00320b4adff3a804f896515f5d10cac06cf",
+    "bytes": 2391218,
+    "uncompressed_bytes": 16247624,
+    "members": 150,
+    "inventory": {
+      "baseline": 62,
+      "candidate": 62,
+      "short-candidate-payments": 12,
+      "short-baseline-payments": 12,
+      "controls": 2
+    },
+    "member_types": {
+      "event_capture_json": 140,
+      "run_manifest_json": 4,
+      "assessment_json": 4,
+      "control_json": 2
+    },
+    "all_members_utf8_json": true,
+    "all_json_objects_reject_duplicate_keys": true,
+    "all_members_regular_mode": "0100644",
+    "executable_or_database_members": 0,
+    "nested_archives": 0,
+    "symlinks": 0,
+    "absolute_or_traversing_member_paths": 0,
+    "encrypted_members": 0,
+    "archive_or_member_comments": 0,
+    "unexpected_extra_fields_or_hidden_prefix_gap_trailer": false,
+    "all_member_crc_checks_passed": true,
+    "all_member_name_sha256_map_digest": "578f53b011baf702fc1f35b64805313d7a4421b93f9ed444118bd4946b019c15",
+    "inventory_digest_method": "SHA-256 of the UTF-8 compact sorted-key JSON object mapping every member name to its uncompressed-byte SHA-256."
+  },
+  "integrity_bindings": {
+    "whole_archive_sha256_matches_retained_summary": true,
+    "run_manifest_hashes_matched_summary": 4,
+    "event_capture_hashes_matched_run_manifests": 140,
+    "assessment_target_hashes_matched_run_manifests": 4,
+    "response_hashes_matched_canonical_payloads": 1332,
+    "unlisted_members": 0,
+    "precise_limit": "The four assessments and two controls have no additional per-entry digest in the original run manifests. Their exact bytes are covered by the retained whole-archive SHA-256 and verified ZIP CRCs; this audit also computed the complete member-digest map."
+  },
+  "synthetic_provenance": {
+    "fixture": "evaluation/corpora/guardian/events.json",
+    "fixture_sha256": "462a2e5b6d95fd4dbac8f1640274e74977c4d80dd0a3be2341c05a3cb1a82461",
+    "generator": "evaluation/corpora/guardian/generate_fixture.py",
+    "generator_sha256": "791ad222954384a16962826c79af493fb4822ba518a1919a4ff0420e3f35f9c9",
+    "generator_literal_build_reproduced_fixture_bytes": true,
+    "method": "Reviewed the literal-only build() function, then executed only that function's AST in memory. No module-level writer, filesystem input, source repository, model or network was used to reconstruct the fixture. Reapplied all event edits in memory to independently reconstruct the 63 complete source states.",
+    "projects": 3,
+    "distinct_events": 60,
+    "reconstructed_source_states": 63,
+    "embedded_prepared_state_copies_verified": 148,
+    "captured_events_equal_authored_events": 140,
+    "observed_source_hashes_match_synthetic_historical_bytes": 2491,
+    "evidence_objects_verified": 1334,
+    "compact_evidence_objects_bound_to_original_resolver": 126,
+    "unique_complete_evidence_quote_context_bindings": 39,
+    "source_field_occurrences_verified": {
+      "effective_at": 8984,
+      "scope": 9546,
+      "statement": 9546,
+      "subject": 9020,
+      "topic": 9020,
+      "quote": 78,
+      "topic_title": 78
+    },
+    "source_verification": "Compared exact project-specific statements, quotations, subject/topic/scope fields, original line spans and complete before/excerpt/after source windows. Compact relationship evidence must match an original resolver response, including its ID, revision, line span, material and source locator. All evidence roots are the task's generated synthetic docs roots; origin fields are null and native/imported payloads are absent.",
+    "source_integrity_failure_rows_reconstructed": 137
+  },
+  "exposure_review": {
+    "unique_string_values_classified": 2217,
+    "unclassified_string_values": 0,
+    "classifications": [
+      "Exact authored fixture values and source windows",
+      "Fixed prose/enums from Lore or the guardian protocol",
+      "Deterministic templates expanded only with synthetic task names/statements",
+      "Generated evidence/revision identifiers, SHA-256/BLAKE3 digests and timestamps",
+      "Known synthetic relative paths and five task-local absolute paths"
+    ],
+    "structured_sensitive_payload_fields": 0,
+    "secret_pattern_matches": 0,
+    "scanned_patterns": [
+      "Private-key headers",
+      "OpenAI/Anthropic-style provider keys",
+      "GitHub and Slack tokens",
+      "AWS access-key IDs",
+      "JWTs",
+      "Credentials in URLs and credential assignments",
+      "Email addresses"
+    ],
+    "raw_stdout_or_stderr_payload_fields": 0,
+    "environment_or_credential_dump_fields": 0,
+    "external_urls": 0,
+    "absolute_path_values": 5,
+    "absolute_path_scope": "Two frozen executable paths under the task's evidence directory and three generated guardian-compiled-v3/workspaces/{payments,ledger,releases}/docs roots. These are diagnostic path strings, not included executable files.",
+    "disclosed_metadata": "The archive retains this task's opaque workspace identifier, synthetic project/file names, generated IDs, hashes, capture timestamps and local elapsed times."
+  },
+  "commands_and_provider_status": {
+    "recognized_cli_argument_vectors": {
+      "baseline": 140,
+      "changes": 140,
+      "guard": 140,
+      "evidence": 912
+    },
+    "argument_policy": "Only baseline save transition --replace, changes/guard against transition with the recorded 8000-token budget, guard --no-cache --no-inspect, and evidence lookups of retained generated IDs.",
+    "generated_disabled_configuration_hashes_verified": 420,
+    "configuration": "All captured configuration hashes equal the exact generated JSON with generative inference disabled, local_only true, checkout egress false, only the local docs source root and no imports. All four run permission maps disable hosted egress, checkout egress, inspection and repository execution.",
+    "reported_zero_model_or_inference_call_fields": 500,
+    "reported_provider_requests": 0,
+    "precise_limit": "Zero calls are supported by the explicit synthetic compiler mode, disabled configuration hashes and captured CLI/assessment records. No independent syscall or packet trace was available; this content audit does not claim verified network absence."
+  },
+  "deletion_control_limit": {
+    "control_records": 2,
+    "source_text_or_command_output_present": false,
+    "retained_content": "Protocol name, zero Lore invocations, an opaque original SHA-256, elapsed-time/existence observations, restored=false and restored_sha256=null.",
+    "original_source_preimages_retained": false,
+    "original_source_preimages_independently_verified": false,
+    "explanation": "The two original file-hash preimages cannot be reconstructed from the retained archive and are not claimed to belong to the 60-event fixture. No original file content is present in either control. The complete synthetic source-passage verification applies to the 140 event captures."
+  },
+  "unchanged_measurement_limits": {
+    "full_baseline_source_integrity_failed_events": 32,
+    "full_candidate_source_integrity_failed_events": 15,
+    "short_baseline_source_integrity_failed_events": 2,
+    "short_candidate_source_integrity_failed_events": 0,
+    "external_writer_independently_identified": false,
+    "high_severity_alert_precision": "unmeasured",
+    "consequential_alert_recall": "unmeasured",
+    "runtime_execution_egress_audit": "Unavailable: the environment denied ptrace. No escalation, fabricated trace, or substitution of permission flags.",
+    "distinction": "A content/provenance audit of retained publication bytes does not turn any failed source-integrity event, unavailable model assessment or unmeasured execution audit into a passing product result."
+  },
+  "existing_sidecar_hashes": {
+    "README.md": {
+      "sha256": "648f4b050e14bbdfe4c47384ce1addbb8b88563a2ac5570ca1ac3edb0cbe98c4",
+      "bytes": 5511
+    },
+    "summary.json": {
+      "sha256": "d6ba68605d684b69787c0e848533b43945cb6b3799481e89a19b66c4dcf32422",
+      "bytes": 9915
+    },
+    "source-integrity-failures.json": {
+      "sha256": "2ed15700e8ee56a966997f912195c129029c51304859a4deddd053ce221e64b6",
+      "bytes": 45967
+    }
+  },
+  "reproduction": {
+    "audit_script": "evaluation/audit_guardian_publication.py",
+    "audit_script_sha256": "45fa47ad014015ac2fa84c07310d0f4e4cb287f65a4f7829cc0586e06d1ecfa4",
+    "command": "python3 evaluation/audit_guardian_publication.py",
+    "repository_location": "Derived from the audit script's __file__; an absolute script path also works from outside the repository. The historical task-local root is a PurePosixPath used only to compare captured metadata, never to read files.",
+    "required_generator_sha256": "791ad222954384a16962826c79af493fb4822ba518a1919a4ff0420e3f35f9c9",
+    "generator_guard": "Require the reviewed SHA-256 before parsing or executing the literal-only build() AST, using those same checked bytes rather than rereading the generator.",
+    "execution": "Read-only; exits 2 for a mismatched generator pin, any failed check or unclassified string. It does not extract the ZIP, modify raw reports, run Lore/checker binaries, contact a provider, or access the network.",
+    "actual_exit_code": 0,
+    "failed_checks": 0,
+    "unclassified_string_values": 0,
+    "invocation_outside_repository_verified": true,
+    "wrong_generator_pin_rejected_in_memory": true,
+    "portable_rerun_reviewer": "guardian_quality implementation agent"
+  },
+  "independent_parent_rerun": {
+    "reviewed_at_utc": "2026-10-10",
+    "reviewer_id": "/root",
+    "reviewer_type": "Independent AI engineering reviewer of the fixture and content audit",
+    "human": false,
+    "independent_of_fixture_author": true,
+    "evidence_source": "The parent independently inspected and executed both audit scripts. The retained tool results record exit 0, zero failed checks, no unclassified strings and the same archive hash and counts.",
+    "reviewed_script_sha256": "24b44939ef5affc02554c11f34f312aadb8913743630ce2c7938d965b40e314b",
+    "archive_sha256": "79abc6eb8809010d46b2dc4ed9d3e00320b4adff3a804f896515f5d10cac06cf",
+    "exit_code": 0,
+    "failed_checks": 0,
+    "unclassified_string_values": 0,
+    "same_artifact_hash_and_counts": true,
+    "scope": "Independent content/provenance verification of the unchanged raw evidence through both the original auditor and the reviewed portable adaptation. Both actual parent executions returned exit 0 with identical artifact hashes and counts.",
+    "outcome_limit": "AI engineering review only; no human study, guardian-quality result, source-writer attribution or independent execution/egress audit is established.",
+    "portable_script_sha256": "45fa47ad014015ac2fa84c07310d0f4e4cb287f65a4f7829cc0586e06d1ecfa4",
+    "portable_exit_code": 0,
+    "portable_failed_checks": 0,
+    "portable_unclassified_string_values": 0
+  }
+}

@@ -58,6 +58,18 @@ fn capture(
     kind: &str,
     text: &str,
 ) -> (AssertionProposal, String, String, String) {
+    capture_with_excerpt(conn, path, topic, subject, kind, text, text)
+}
+
+fn capture_with_excerpt(
+    conn: &Connection,
+    path: &str,
+    topic: &str,
+    subject: &str,
+    kind: &str,
+    text: &str,
+    excerpt: &str,
+) -> (AssertionProposal, String, String, String) {
     let document = Document {
         root_id: "docs".into(),
         root_path: "/project/docs".into(),
@@ -65,9 +77,9 @@ fn capture(
         physical_path: format!("/project/docs/{path}").into(),
         material: SourceMaterial::Primary,
         origin: None,
-        text: text.into(),
-        digest: util::digest(text),
-        chunks: sources::split_markdown(text, "docs", path, 8_000).unwrap(),
+        text: excerpt.into(),
+        digest: util::digest(excerpt),
+        chunks: sources::split_markdown(excerpt, "docs", path, 8_000).unwrap(),
     };
     let proposal = AssertionProposal {
         topic: topic.into(),
@@ -85,7 +97,7 @@ fn capture(
         .into(),
         scope: "production before settlement".into(),
         effective_at: String::new(),
-        quote: text.into(),
+        quote: excerpt.into(),
     };
     let (source, source_revision) = storage::begin_source(conn, &document, None).unwrap();
     let chunk = &document.chunks[0];
@@ -1895,6 +1907,211 @@ fn compact_conditions_survive_node_focus_and_cannot_be_replaced_by_navigation() 
     let mandatory_originals = serde_json::to_string_pretty(&originals).unwrap();
     let mandatory_evidence = serde_json::to_string_pretty(&evidence).unwrap();
     assert!(lore::context::count_tokens(&(mandatory_originals + &mandatory_evidence)) > 1_500);
+}
+
+#[test]
+fn compact_conceptual_queries_pack_complete_rules_before_explanatory_context() {
+    let conn = database();
+    let original = |path, statement| {
+        let (proposal, source, assertion, evidence) = capture_with_excerpt(
+            &conn,
+            path,
+            "dispatch",
+            "dispatch",
+            "decision",
+            statement,
+            &format!("DECISION dispatch: {statement}"),
+        );
+        let id = storage::create_unit(&conn, "p", &assertion, &proposal).unwrap();
+        Record {
+            id,
+            source,
+            assertion,
+            evidence,
+        }
+    };
+    let capacity = original(
+        "capacity.md",
+        "QUEUE_CAPACITY is 128 jobs in production and 64 jobs in staging.",
+    );
+    let full = original(
+        "full.md",
+        "A full production dispatch queue must return Busy without accepting a job.",
+    );
+    let exception = original(
+        "drain.md",
+        "Except during an emergency drain, production dispatch must preserve tenant order; a drain still refuses new jobs.",
+    );
+    let purpose = original(
+        "purpose.md",
+        "Harbor isolates dispatch admission from worker execution so a slow tenant cannot consume every worker.",
+    );
+    let graph = build(&conn);
+    let options = ExploreOptions {
+        query: "tenant worker dispatch admission".into(),
+        max_tokens: 1_500,
+        ..ExploreOptions::default()
+    };
+    let all = knowledge::select_compact_controlled(
+        &graph,
+        &ExploreOptions {
+            max_tokens: 8_000,
+            ..options.clone()
+        },
+        &[
+            capacity.id.clone(),
+            full.id.clone(),
+            exception.id.clone(),
+            purpose.id.clone(),
+        ],
+        knowledge::SelectionMode::DirectOnly,
+    )
+    .unwrap();
+    assert_eq!(all.knowledge.len(), 4);
+    assert!(
+        lore::context::count_tokens(&(serde_json::to_string(&all).unwrap() + "\n")).max(
+            lore::context::count_tokens(&knowledge::render_compact_markdown(&all).unwrap())
+        ) > options.max_tokens,
+        "fixture must require a choice between complete rules and explanatory context"
+    );
+    let compact = knowledge::select_compact(&graph, &options).unwrap();
+    assert_compact_originals(&conn, &compact);
+    let resolved = compact.resolve().unwrap();
+    let ids: BTreeSet<_> = resolved.knowledge.iter().map(|record| &record.id).collect();
+    for required in [&capacity, &full, &exception] {
+        assert!(
+            ids.contains(&required.id),
+            "feasible complete rule omitted for explanatory context: {compact:#?}"
+        );
+    }
+    // Preserve the existing closure even when a complete alternative seed
+    // bundle can answer the request with less explanatory context.
+    let exception_bundle =
+        knowledge::inspect_bundles(&graph, std::slice::from_ref(&exception.id)).unwrap();
+    assert!(exception_bundle[0].knowledge_ids.contains(&purpose.id));
+
+    // An exact request for the rationale still outranks general rule packing.
+    // Its documentary conditions remain complete at the same tight budget.
+    for query in [
+        purpose.id.clone(),
+        "purpose.md".into(),
+        "Why is dispatch admission isolated from worker execution?".into(),
+    ] {
+        let compact = knowledge::select_compact(
+            &graph,
+            &ExploreOptions {
+                query,
+                ..options.clone()
+            },
+        )
+        .unwrap();
+        assert_compact_originals(&conn, &compact);
+        let resolved = compact.resolve().unwrap();
+        for required in [&purpose, &full, &exception] {
+            assert!(
+                resolved
+                    .knowledge
+                    .iter()
+                    .any(|record| record.id == required.id)
+            );
+        }
+    }
+}
+
+#[test]
+fn compact_navigation_disclosure_is_reserved_at_an_exact_packing_boundary() {
+    let token_count = |result: &knowledge::CompactExploreResult| {
+        lore::context::count_tokens(&(serde_json::to_string(result).unwrap() + "\n")).max(
+            lore::context::count_tokens(&knowledge::render_compact_markdown(result).unwrap()),
+        )
+    };
+    // Paths change the source/evidence identities; generated knowledge IDs also
+    // vary. Derive the exact boundary from each fixture's real serialized text
+    // instead of depending on a lucky UUID or repeating a flaky fixed budget.
+    for path in [
+        "capacity.md",
+        "dispatch/queue-capacity-17.md",
+        "queue-v2026.md",
+    ] {
+        let conn = database();
+        let admission = format!(
+            "QUEUE_CAPACITY is 128 jobs in production and 64 jobs in staging. {}",
+            "The dispatcher records a reservation before worker execution and keeps the tenant's ownership until completion is acknowledged. A restart preserves that original ownership and the environment's pending-job limit. ".repeat(12)
+        );
+        let capacity = record(
+            &conn,
+            path,
+            "dispatch",
+            "queue admission",
+            "decision",
+            &admission,
+        );
+        let exception = record(
+            &conn,
+            "drain.md",
+            "dispatch",
+            "queue admission",
+            "constraint",
+            "An emergency drain is the only exception to normal tenant ordering. Queue admission must still refuse new jobs until the drain is finished; operators cannot bypass the pending-job limit by describing a request as recovery work.",
+        );
+        let graph = build(&conn);
+        let leaf = graph
+            .nodes
+            .iter()
+            .find(|node| node.kind == "evidence" && node.knowledge_ids == [capacity.id.clone()])
+            .unwrap();
+        for node in [None, Some(leaf.id.clone())] {
+            let mut options = ExploreOptions {
+                query: "QUEUE_CAPACITY for production queue admission".into(),
+                node,
+                max_tokens: 30_000,
+                ..ExploreOptions::default()
+            };
+            let complete = knowledge::select_compact(&graph, &options).unwrap();
+            assert_compact_originals(&conn, &complete);
+            assert!(!complete.navigation_truncated);
+            assert!(complete.nodes.len() > 1);
+
+            // One navigation node fits exactly before the omitted-navigation
+            // disclosure is charged. A later node must be rejected at this
+            // budget, which used to grow the already accepted response.
+            let mut prefix = complete.clone();
+            prefix.nodes.truncate(1);
+            let node_ids: BTreeSet<_> = prefix.nodes.iter().map(|node| node.id.as_str()).collect();
+            prefix.edges.retain(|edge| {
+                node_ids.contains(edge.parent.as_str()) && node_ids.contains(edge.child.as_str())
+            });
+            for _ in 0..16 {
+                let count = token_count(&prefix);
+                if prefix.max_tokens == count && prefix.used_tokens == count {
+                    break;
+                }
+                prefix.max_tokens = count;
+                prefix.used_tokens = count;
+            }
+            assert_eq!(token_count(&prefix), prefix.max_tokens);
+            assert!((512..30_000).contains(&prefix.max_tokens));
+            let mut disclosed = prefix.clone();
+            disclosed.navigation_truncated = true;
+            assert!(token_count(&disclosed) > prefix.max_tokens);
+
+            options.max_tokens = prefix.max_tokens;
+            let result = knowledge::select_compact(&graph, &options).unwrap_or_else(|error| {
+                panic!(
+                    "{path}, focus {:?}, exact boundary {}: {error:#}",
+                    options.node, options.max_tokens
+                )
+            });
+            assert_compact_originals(&conn, &result);
+            let resolved = result.resolve().unwrap();
+            let retained: BTreeSet<_> =
+                resolved.knowledge.iter().map(|record| &record.id).collect();
+            assert!(retained.contains(&capacity.id));
+            assert!(retained.contains(&exception.id));
+            assert!(result.navigation_truncated);
+            assert!(result.nodes.len() < complete.nodes.len());
+        }
+    }
 }
 
 #[test]
