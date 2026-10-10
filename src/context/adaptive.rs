@@ -5,6 +5,9 @@
 //! standing grants, automatic initiative within those grants, a whole-registry
 //! snapshot identity and complete-envelope budgeting. It never executes code.
 
+mod relationships;
+pub use relationships::SourceRelationships;
+
 use super::{
     ContextBudget, ContextOptions, ContextResult, count_tokens,
     decision::runtime::{
@@ -105,6 +108,9 @@ pub struct AdaptiveResult {
     /// The same evidence, observations, constraints and decision contract used
     /// by human presentations. Its nested schema remains explicitly versioned.
     pub intelligence: DecisionContextResult,
+    /// Original relationship groups survive optional schema-4 prose packing.
+    #[serde(default, skip_serializing_if = "SourceRelationships::is_empty")]
+    pub source_relationships: SourceRelationships,
     pub budget: ContextBudget,
 }
 
@@ -206,6 +212,19 @@ fn inner_options(
     Ok(inner)
 }
 
+pub(crate) fn prepare_relationships(
+    conn: &Connection,
+    options: &ContextOptions,
+    selected: &ContextResult,
+) -> Result<(ContextOptions, SourceRelationships)> {
+    let relationships = SourceRelationships::capture(conn, selected)?;
+    let mut inner = options.clone();
+    inner.max_tokens = inner.max_tokens.checked_sub(relationships.token_overhead()?)
+        .filter(|remaining| *remaining >= super::MIN_MAX_TOKENS)
+        .ok_or_else(|| failure("invalid_budget", "Complete source relationship groups and their qualifications require more space; increase --max-tokens."))?;
+    Ok((inner, relationships))
+}
+
 // Exact symbolic lookup is deliberately narrow. General "what/why/how" requests
 // still use reasoning; a named constant can bypass it only when retained current
 // evidence supplies that symbol and no selected disagreement needs investigation.
@@ -304,12 +323,17 @@ pub async fn run(
                 ..inner.clone()
             };
             let selected = super::build_context(conn, &reference_options)?;
-            if let Some(reference) = exact_reference(&inner, &selected)? {
-                return finish(options, snapshot, capabilities, reference);
+            let (reference_budget, relationships) = prepare_relationships(conn, &inner, &selected)?;
+            if let Some(reference) = exact_reference(&reference_budget, &selected)? {
+                return finish(options, snapshot, capabilities, reference, relationships);
             }
         }
-        let intelligence = runtime::run(&config, conn, &inner, &run).await?;
-        finish(options, snapshot, capabilities, intelligence)
+        let (intelligence, relationships) =
+            runtime::run_prepared(&config, conn, &inner, &run, |options, selected| {
+                prepare_relationships(conn, options, selected)
+            })
+            .await?;
+        finish(options, snapshot, capabilities, intelligence, relationships)
     }
     .await?;
     snapshot_guard.finish()?;
@@ -344,14 +368,15 @@ pub async fn build(
             "Adaptive preselection no longer matches this registry, task, paths and input budget; rebuild context before requesting shared intelligence.",
         ));
     }
+    let (inner, relationships) = prepare_relationships(conn, &inner, &selected)?;
     if let Some(reference) = exact_reference(&inner, &selected)? {
-        let result = finish(options, snapshot, capabilities, reference)?;
+        let result = finish(options, snapshot, capabilities, reference, relationships)?;
         snapshot_guard.finish()?;
         return Ok(result);
     }
     let intelligence =
         runtime::build_decision_context(conn, &config, &inner, selected, model, &run).await?;
-    let result = finish(options, snapshot, capabilities, intelligence)?;
+    let result = finish(options, snapshot, capabilities, intelligence, relationships)?;
     snapshot_guard.finish()?;
     Ok(result)
 }
@@ -361,12 +386,14 @@ fn finish(
     snapshot: SnapshotManifest,
     capabilities: Capabilities,
     intelligence: DecisionContextResult,
+    source_relationships: SourceRelationships,
 ) -> Result<AdaptiveResult> {
     let mut result = AdaptiveResult {
         schema_version: ADAPTIVE_SCHEMA_VERSION,
         snapshot,
         capabilities,
         intelligence,
+        source_relationships,
         budget: ContextBudget {
             max_tokens: options.max_tokens,
             used_tokens: 0,
@@ -398,6 +425,7 @@ fn finish(
 
 pub fn render(result: &AdaptiveResult) -> String {
     let mut text = runtime::render(&result.intelligence);
+    text.push_str(&result.source_relationships.render());
     text.push_str(&format!(
         "\nShared project snapshot: `{}`\n\nInspection: {}. Execution: unavailable.\n",
         result.snapshot.registry_revision, result.capabilities.inspection,

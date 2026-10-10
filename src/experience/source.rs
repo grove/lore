@@ -41,16 +41,23 @@ pub(super) struct Catalog {
     pub evidence: BTreeMap<String, ExactReference>,
     pub records: Vec<Record>,
     pub observations: BTreeMap<String, CodeObservation>,
+    source_relationships: adaptive::SourceRelationships,
     contexts: BTreeMap<String, (String, String)>,
     paths: BTreeSet<String>,
 }
 
 impl Catalog {
-    pub fn load(conn: &Connection, result: &DecisionContextResult) -> Result<Self> {
+    pub fn load(
+        conn: &Connection,
+        result: &DecisionContextResult,
+        source_relationships: &adaptive::SourceRelationships,
+    ) -> Result<Self> {
+        let relationship_catalog = source_relationships.validate(conn)?;
         let mut catalog = Self {
             evidence: BTreeMap::new(),
             records: Vec::new(),
             observations: BTreeMap::new(),
+            source_relationships: source_relationships.clone(),
             contexts: BTreeMap::new(),
             paths: BTreeSet::new(),
         };
@@ -78,11 +85,23 @@ impl Catalog {
                     .collect()
             }
         };
+        let mut combined = BTreeMap::new();
+        for manifest in manifests
+            .into_iter()
+            .chain(relationship_catalog.evidence.into_values())
+        {
+            if let Some(previous) = combined.insert(manifest.id.clone(), manifest.clone()) {
+                ensure!(
+                    serde_json::to_value(previous)? == serde_json::to_value(&manifest)?,
+                    "shared relationship and decision evidence disagree"
+                );
+            }
+        }
         ensure!(
-            manifests.len() <= 1024,
+            combined.len() <= 1024,
             "too many human-view source references"
         );
-        for manifest in manifests {
+        for manifest in combined.into_values() {
             let reference = if manifest.id.starts_with("ne_") {
                 let archived = imports::evidence(conn, &manifest.id)?;
                 ensure!(
@@ -202,7 +221,63 @@ impl Catalog {
                 },
             });
         }
+        source_relationships.validate_retained(
+            conn,
+            &catalog
+                .records
+                .iter()
+                .map(|record| record.id.clone())
+                .collect(),
+        )?;
         for record in &mut catalog.records {
+            // A simplified endpoint claim keeps the source-owned caveats of
+            // every retained relationship that applies to it. Generated prose
+            // cannot turn an upstream status into a verified outcome.
+            let mut qualifiers = Vec::new();
+            if let Some(endpoint) = source_relationships
+                .knowledge
+                .iter()
+                .find(|k| k.id == record.id)
+            {
+                qualifiers.extend(endpoint.qualifications.clone());
+            }
+            if let Some(endpoint) = source_relationships
+                .observations
+                .iter()
+                .find(|o| o.id == record.id)
+            {
+                qualifiers.extend(endpoint.qualifications.clone());
+            }
+            for relation in source_relationships.relations.iter().filter(|relation| {
+                relation
+                    .endpoints()
+                    .any(|endpoint| endpoint.id == record.id)
+            }) {
+                qualifiers.push(format!(
+                    "Retained {} relationship [{}]: {}",
+                    relation.kind, relation.id, relation.reason
+                ));
+                qualifiers.extend(relation.qualifications.clone());
+                if relation.upstream_kind.is_some()
+                    || relation.upstream_status.is_some()
+                    || relation.upstream_active.is_some()
+                {
+                    qualifiers.push(format!("Source-reported relationship: {}; upstream status: {}; asserted upstream: {}. This does not independently verify implementation or policy adoption.",
+                        relation.upstream_kind.as_deref().unwrap_or("unspecified"),
+                        relation.upstream_status.as_deref().unwrap_or("unspecified"),
+                        relation.upstream_active.map_or_else(|| "unspecified".into(), |active| active.to_string())));
+                }
+            }
+            for discrepancy in source_relationships.discrepancies.iter().filter(|d| {
+                d.knowledge_ids.contains(&record.id) || d.observation_ids.contains(&record.id)
+            }) {
+                qualifiers.extend(discrepancy.qualifications.clone());
+            }
+            for qualification in qualifiers {
+                if !record.claim.qualifications.contains(&qualification) {
+                    record.claim.qualifications.push(qualification);
+                }
+            }
             if record.is_future_intent() {
                 record.claim.qualifications.push("Future or proposed intent; this source does not establish adoption or current implementation.".into());
             }
@@ -328,6 +403,8 @@ impl Catalog {
     pub fn model_input(&self, include_checkout: bool) -> Value {
         json!({
             "records":self.records,
+            "source_relationships":self.source_relationships.relations,
+            "source_discrepancies":self.source_relationships.discrepancies,
             "original_evidence":self.evidence.values().map(|e| {
                 let context = self.contexts.get(&e.evidence_id);
                 json!({"reference": e,

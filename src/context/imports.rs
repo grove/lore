@@ -303,7 +303,7 @@ pub(super) fn retrieve_hybrid(
         if let Some(observation) = report.observations.get(id) {
             add_candidate(
                 &mut candidates,
-                &id,
+                id,
                 5.0 + 3.0 * rank - if historical(observation) { 0.5 } else { 0.0 },
                 "task keyword relevance in native source record (BM25)".into(),
             );
@@ -375,15 +375,15 @@ pub(super) fn retrieve_hybrid(
                 );
             }
         }
-        if let Some(component) = &record.scope.component {
-            if mentions_identifier(task, component) {
-                add_candidate(
-                    &mut candidates,
-                    &observation.id,
-                    9.0 - historical_penalty,
-                    format!("source-reported component: {component}"),
-                );
-            }
+        if let Some(component) = &record.scope.component
+            && mentions_identifier(task, component)
+        {
+            add_candidate(
+                &mut candidates,
+                &observation.id,
+                9.0 - historical_penalty,
+                format!("source-reported component: {component}"),
+            );
         }
         for hint in paths {
             let hint = hint.trim().replace('\\', "/");
@@ -546,6 +546,70 @@ pub(super) fn evidence(observation: &ImportedObservation) -> ContextImportedEvid
     }
 }
 
+pub(super) fn observation(
+    observation: &ImportedObservation,
+    reasons: &[String],
+) -> ContextObservation {
+    let record = &observation.record;
+    ContextObservation {
+        id: observation.id.clone(),
+        import_id: observation.import_id.clone(),
+        origin: observation.origin,
+        native_id: record.native_id.clone(),
+        kind: record.kind,
+        title: record.title.clone(),
+        subject: record.subject.clone(),
+        statement: record.statement.clone(),
+        scope: record.scope.clone(),
+        lifecycle: record.lifecycle.clone(),
+        verification: record.verification,
+        current: observation.current,
+        freshness: if !observation.current {
+            "historical_import"
+        } else if historical(observation) {
+            "upstream_historical_or_withdrawn"
+        } else if record.verification == ObservationVerification::UpstreamVerifiedAtRevision {
+            "upstream_revision_not_checked_against_checkout"
+        } else {
+            "latest_import_not_current_behavior_verification"
+        }
+        .into(),
+        evidence_ids: vec![observation.evidence_id.clone()],
+        qualifications: qualifications(observation),
+        relevance: reasons.to_vec(),
+    }
+}
+
+pub(super) fn discrepancy(
+    relation: &CrossSourceRelation,
+    review: Option<&reviews::ReviewItem>,
+) -> ContextDiscrepancy {
+    let status = review.map_or("unresolved", |review| review.status.as_str());
+    let mut qualifications = relation.qualifications.clone();
+    if let Some(review) = review.filter(|review| review.status != "pending") {
+        qualifications.push(format!("Review was {}; this disposition does not independently verify implementation or establish agreement between the sources.", review.status));
+    }
+    ContextDiscrepancy {
+        id: relation.id.clone(),
+        kind: relation.kind.clone(),
+        status: status.into(),
+        reason: relation.reason.clone(),
+        knowledge_ids: relation
+            .endpoints()
+            .filter(|e| e.kind == "knowledge")
+            .map(|e| e.id.clone())
+            .collect(),
+        observation_ids: relation
+            .endpoints()
+            .filter(|e| e.kind == "observation")
+            .map(|e| e.id.clone())
+            .collect(),
+        evidence_ids: relation.evidence_ids.clone(),
+        qualifications,
+        review_id: relation.review_id.clone(),
+    }
+}
+
 pub(super) fn populate(
     conn: &Connection,
     report: &NativeRetrieval,
@@ -564,33 +628,10 @@ pub(super) fn populate(
             "invalid_registry", format!("A selected native evidence snapshot failed validation: {error}; run lore audit."),
         ))?;
         let record = &observation.record;
-        result.imported_observations.push(ContextObservation {
-            id: observation.id.clone(),
-            import_id: observation.import_id.clone(),
-            origin: observation.origin,
-            native_id: record.native_id.clone(),
-            kind: record.kind,
-            title: record.title.clone(),
-            subject: record.subject.clone(),
-            statement: record.statement.clone(),
-            scope: record.scope.clone(),
-            lifecycle: record.lifecycle.clone(),
-            verification: record.verification,
-            current: observation.current,
-            freshness: if !observation.current {
-                "historical_import"
-            } else if historical(observation) {
-                "upstream_historical_or_withdrawn"
-            } else if record.verification == ObservationVerification::UpstreamVerifiedAtRevision {
-                "upstream_revision_not_checked_against_checkout"
-            } else {
-                "latest_import_not_current_behavior_verification"
-            }
-            .into(),
-            evidence_ids: vec![observation.evidence_id.clone()],
-            qualifications: qualifications(observation),
-            relevance: reasons.get(&observation.id).cloned().unwrap_or_default(),
-        });
+        result.imported_observations.push(self::observation(
+            observation,
+            reasons.get(&observation.id).map_or(&[], Vec::as_slice),
+        ));
         selected_evidence.insert(observation.evidence_id.clone(), evidence(observation));
         for locator in &record.evidence {
             result.suggested_inspection.push(InspectionPath {
@@ -660,47 +701,23 @@ pub(super) fn populate(
                 .review_id
                 .as_ref()
                 .and_then(|id| report.reviews.get(id));
-            let status = review.map_or("unresolved", |review| review.status.as_str());
-            let mut qualifications = relation.qualifications.clone();
-            if let Some(review) = review.filter(|review| review.status != "pending") {
-                qualifications.push(format!("Review was {}; this disposition does not independently verify implementation or establish agreement between the sources.", review.status));
-            }
-            result.discrepancies.push(ContextDiscrepancy {
-                id: relation.id.clone(),
-                kind: relation.kind.clone(),
-                status: status.into(),
-                reason: relation.reason.clone(),
-                knowledge_ids: endpoints
-                    .iter()
-                    .filter(|e| e.kind == "knowledge")
-                    .map(|e| e.id.clone())
-                    .collect(),
-                observation_ids: endpoints
-                    .iter()
-                    .filter(|e| e.kind == "observation")
-                    .map(|e| e.id.clone())
-                    .collect(),
-                evidence_ids: relation.evidence_ids.clone(),
-                qualifications,
-                review_id: relation.review_id.clone(),
-            });
-            if let Some(review) = review.filter(|review| review.status == "pending") {
-                if !result
+            result.discrepancies.push(discrepancy(relation, review));
+            if let Some(review) = review.filter(|review| review.status == "pending")
+                && !result
                     .reviews
                     .iter()
                     .any(|existing| existing.id == review.id)
-                {
-                    result.reviews.push(ContextReview {
-                        id: review.id.clone(),
-                        reason: review.reason.clone(),
-                        knowledge_ids: endpoints
-                            .iter()
-                            .filter(|endpoint| endpoint.kind == "knowledge")
-                            .map(|endpoint| endpoint.id.clone())
-                            .collect(),
-                        evidence_ids: relation.evidence_ids.clone(),
-                    });
-                }
+            {
+                result.reviews.push(ContextReview {
+                    id: review.id.clone(),
+                    reason: review.reason.clone(),
+                    knowledge_ids: endpoints
+                        .iter()
+                        .filter(|endpoint| endpoint.kind == "knowledge")
+                        .map(|endpoint| endpoint.id.clone())
+                        .collect(),
+                    evidence_ids: relation.evidence_ids.clone(),
+                });
             }
             result.recommended_verification.push(ContextVerification {
                 action: if relation.kind == "verification_question" {
