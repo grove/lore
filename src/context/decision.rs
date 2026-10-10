@@ -1164,16 +1164,47 @@ fn advice_line(label: &str, advice: &EvidenceAdvice) -> String {
 }
 
 pub(crate) fn render_brief(brief: &DecisionBrief) -> String {
+    render_brief_ordered(brief, false)
+}
+
+pub(crate) fn render_brief_action_first(brief: &DecisionBrief) -> String {
+    render_brief_ordered(brief, true)
+}
+
+fn render_constraints(brief: &DecisionBrief) -> String {
+    let mut text = String::new();
+    if !brief.constraints.is_empty() {
+        text.push_str("### Constraints to preserve\n\n");
+        for constraint in &brief.constraints {
+            text.push_str(&format!(
+                "- {}: {:?}. {}{}\n",
+                constraint.knowledge_id,
+                constraint.disposition,
+                display_text(&constraint.explanation),
+                refs(&constraint.evidence_ids, &constraint.observation_ids)
+            ));
+        }
+        text.push('\n');
+    }
+    text
+}
+
+fn render_brief_ordered(brief: &DecisionBrief, action_first: bool) -> String {
     let mut text = format!("## {}\n\n", brief.readiness.label());
     text.push_str(&advice_line(
         "Preferred approach",
         &brief.preferred_approach,
     ));
-    text.push_str(&advice_line("Why", &brief.rationale));
-    text.push_str(&advice_line("Main trade-off", &brief.main_tradeoff));
+    if !action_first {
+        text.push_str(&advice_line("Why", &brief.rationale));
+        text.push_str(&advice_line("Main trade-off", &brief.main_tradeoff));
+    }
     text.push_str(&advice_line("Next action", &brief.next_action));
     if brief.generation_basis == GenerationBasis::DeterministicFallback {
         text.push_str("This is deterministic fallback guidance; readiness has not received a model assessment.\n\n");
+    }
+    if action_first {
+        text.push_str(&render_constraints(brief));
     }
     if !brief.material_blockers.is_empty() {
         text.push_str("### Decisions required\n\n");
@@ -1186,6 +1217,10 @@ pub(crate) fn render_brief(brief: &DecisionBrief) -> String {
             ));
         }
         text.push('\n');
+    }
+    if action_first {
+        text.push_str(&advice_line("Why", &brief.rationale));
+        text.push_str(&advice_line("Main trade-off", &brief.main_tradeoff));
     }
     if !brief.facts.is_empty() {
         text.push_str("### Retained project evidence\n\n");
@@ -1209,18 +1244,8 @@ pub(crate) fn render_brief(brief: &DecisionBrief) -> String {
         }
         text.push('\n');
     }
-    if !brief.constraints.is_empty() {
-        text.push_str("### Constraints to preserve\n\n");
-        for constraint in &brief.constraints {
-            text.push_str(&format!(
-                "- {}: {:?}. {}{}\n",
-                constraint.knowledge_id,
-                constraint.disposition,
-                display_text(&constraint.explanation),
-                refs(&constraint.evidence_ids, &constraint.observation_ids)
-            ));
-        }
-        text.push('\n');
+    if !action_first {
+        text.push_str(&render_constraints(brief));
     }
     if !brief.implementation_seams.is_empty() {
         text.push_str("### Inspected implementation seams\n\n");

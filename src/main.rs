@@ -125,7 +125,7 @@ enum Command {
             help = "Explicitly permit checkout content in the configured hosted model for this query")]
         allow_checkout_egress: bool,
         #[arg(long, conflicts_with = "fast", value_parser = clap::value_parser!(u32).range(3..=5),
-            help = "JSON contract: 4 (default), 3 for compatibility, or 5 for adaptive shared intelligence")]
+            help = "JSON contract: 5 (default, adaptive shared intelligence), or explicit 3/4 for compatibility")]
         schema_version: Option<u32>,
     },
     /// Read a generated topic by slug, or index.
@@ -680,7 +680,7 @@ async fn run(cli: Cli) -> Result<i32> {
                 } else {
                     print!("{}", context::render_context(&fast_result));
                 }
-            } else if schema_version == Some(5) {
+            } else if schema_version.is_none() || schema_version == Some(5) {
                 let result = context::adaptive::run(
                     &config,
                     &conn,
