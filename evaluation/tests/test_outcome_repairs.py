@@ -18,10 +18,11 @@ import shared_intelligence as shared
 
 
 class RepairProtocolTests(unittest.TestCase):
-    def repaired_fixture(self, root):
+    def repaired_fixture(self, root, line_ending='\n'):
         snapshot = root / 'snapshot'
         snapshot.mkdir()
-        (snapshot / 'logic.py').write_text('def admit(scope):\n    return True\n')
+        (snapshot / 'logic.py').write_bytes(
+            'def admit(scope):\n    return True\n'.replace('\n', line_ending).encode('utf-8'))
         workspace = root / 'implementations/sample-test'
         cross.copy_snapshot(snapshot, workspace)
         checker = root / 'checker.py'
@@ -41,7 +42,7 @@ if repair:
     assert r['repair']['feedback']['messages']==['Preserve the documented scope condition.']
 print(json.dumps({'schema_version':1,'summary':'Offline protocol test; no model inference', 'files':{'logic.py':'def admit(scope):\\n    return scope == \\"production\\"\\n' if repair else 'def admit(scope):\\n    return True\\n'},'usage':{'model_calls':0,'input_tokens':0,'output_tokens':0}}))
 """
-        source = {'logic.py': (snapshot/'logic.py').read_text()}
+        source = {'logic.py': (snapshot/'logic.py').read_bytes().decode('utf-8')}
         policy = coding.repair_policy(argparse.Namespace(timeout=10,max_attempts=4,attempt_budget_seconds=60))
         result = coding.run_attempts([sys.executable,'-c',program],case,source,None,workspace,root,'sample-test',root,10,policy,lambda *args:{})
         total = result['coding_seconds'] + result['verification_seconds'] + result['iteration_overhead_seconds']
@@ -53,17 +54,24 @@ print(json.dumps({'schema_version':1,'summary':'Offline protocol test; no model 
         return result,sample,entry
 
     def test_failed_attempt_repaired_with_allowlisted_feedback_and_stops_on_first_success(self):
-        with tempfile.TemporaryDirectory() as temporary:
-            root=Path(temporary).resolve()
-            result,sample,entry=self.repaired_fixture(root)
-            self.assertEqual(len(result['attempts']),2)
-            self.assertEqual(result['stop_reason'],'correct')
-            self.assertFalse(result['attempts'][0]['tests']['checks'][0]['passed'])
-            self.assertTrue(all(check['passed'] for check in result['tests']['checks']))
-            self.assertIsNone(result['response']['usage']['billed_cost_usd'])
-            self.assertGreater(result['coding_seconds'],0)
-            coding.validate_attempts(root,sample,entry,None)
-            self.assertFalse((root/'agent-runs/sample-test/3').exists())
+        for line_ending in ('\n', '\r\n'):
+            with self.subTest(line_ending=repr(line_ending)), tempfile.TemporaryDirectory() as temporary:
+                root=Path(temporary).resolve()
+                result,sample,entry=self.repaired_fixture(root,line_ending)
+                self.assertEqual(len(result['attempts']),2)
+                self.assertEqual(result['stop_reason'],'correct')
+                self.assertFalse(result['attempts'][0]['tests']['checks'][0]['passed'])
+                self.assertTrue(all(check['passed'] for check in result['tests']['checks']))
+                self.assertIsNone(result['response']['usage']['billed_cost_usd'])
+                self.assertGreater(result['coding_seconds'],0)
+                original=(root/'snapshot/logic.py').read_bytes().decode('utf-8')
+                request=coding.agent_request(entry['case'],{'logic.py':original},None)
+                self.assertEqual(result['attempts'][0]['request_sha256'],cross.digest(request))
+                if line_ending == '\r\n':
+                    normalized=coding.agent_request(entry['case'],{'logic.py':original.replace('\r\n','\n')},None)
+                    self.assertNotEqual(result['attempts'][0]['request_sha256'],cross.digest(normalized))
+                coding.validate_attempts(root,sample,entry,None)
+                self.assertFalse((root/'agent-runs/sample-test/3').exists())
 
     def test_attempt_feedback_or_cost_tampering_is_rejected(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -198,7 +206,7 @@ print(json.dumps({'schema_version':1,'summary':'Offline protocol test; no model 
                 source=root/case['source_root']
                 self.assertFalse((source/'manifest.json').exists())
                 self.assertFalse((source/'real_coding_checks.py').exists())
-                self.assertIn('Study fault injection', (source/case['editable_files'][0]).read_text())
+                self.assertIn('Study fault injection', (source/case['editable_files'][0]).read_text(encoding='utf-8'))
 
     def test_no_inference_preparation_pins_checker_bytes_before_registration(self):
         with tempfile.TemporaryDirectory() as temporary:
