@@ -1,4 +1,17 @@
-# Lore 0.7 implementation tracker
+# Lore implementation tracker
+
+## 0.8 implementation in progress
+
+The [0.8 implementation plan](V08_IMPLEMENTATION_PLAN.md) is the accepted scope.
+Work begins at `0ba8b17f7e63726a8d81def2b60af18573d4640c` (merged 0.7.0).
+The [0.8 acceptance ledger](../evaluation/PRODUCT_QUALITY_08.md) and
+[reproducible evidence](../evaluation/results/README-08.md) distinguish executed
+engineering gates from missing model, human and independent-review outcomes.
+Baseline capture changes no runtime default or permission. The source-integrity
+failures below remain unresolved evidence until the new investigation identifies
+and fixes or positively isolates their cause.
+
+## 0.7 historical implementation
 
 Current implementation: **Lore 0.7 — evidence-driven usefulness**. The
 [0.7 guide](V07.md) describes the available commands and compatibility boundaries;

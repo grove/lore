@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "source_revision": "0ba8b17f7e63726a8d81def2b60af18573d4640c",
+  "classification": "executed_baseline_engineering",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "python": "3.12.14",
+  "rustc": "1.90.0 (1159e78c4 2025-09-14)",
+  "cargo": "1.90.0 (840b83a10 2025-07-30)",
+  "rust_gate": {
+    "status": "failed",
+    "completed_target_counts": [
+      [
+        39,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        1,
+        0,
+        0
+      ],
+      [
+        11,
+        0,
+        0
+      ],
+      [
+        3,
+        0,
+        0
+      ],
+      [
+        13,
+        0,
+        0
+      ],
+      [
+        3,
+        0,
+        0
+      ],
+      [
+        4,
+        0,
+        0
+      ],
+      [
+        2,
+        0,
+        0
+      ],
+      [
+        14,
+        0,
+        1
+      ],
+      [
+        8,
+        0,
+        0
+      ],
+      [
+        0,
+        8,
+        0
+      ]
+    ],
+    "reason": "Cargo reset the just-built CLI executable to mode 0644. Eight context_cli children failed with EACCES. After chmod, the identical context_cli executable passed all eight tests directly. Full standard command must pass on CI; this local failure is retained."
+  },
+  "python_gate": {
+    "status": "passed",
+    "passed": 174,
+    "failed": 0,
+    "elapsed_seconds": 121.518
+  },
+  "format_gate": "passed",
+  "strict_clippy_gate": "passed",
+  "clippy_scope": "Matching real 1.90 clippy-driver, all targets, -D warnings; frontend cannot resolve unavailable /proc/self/exe. Standard cargo clippy unchanged in CI.",
+  "contract_capture": {
+    "status": "passed",
+    "cases": 5,
+    "provider_calls": 0,
+    "path": "contracts/contracts.json"
+  },
+  "environment": {
+    "local_ollama_executable_available": false,
+    "configured_coding_model": null,
+    "configured_lore_model": null,
+    "hosted_credential_available": false,
+    "explicit_hosted_egress_grant": false,
+    "inspection_grant": false,
+    "strace_executable_available": true,
+    "proc_pid_tree_available": false,
+    "syscall_audit_status": "not_run",
+    "human_participants": 0
+  },
+  "commands": [
+    {
+      "command": "python3 -m unittest discover -s evaluation/tests -v",
+      "log_member": "baseline-python.log",
+      "log_sha256": "eac10a5c1398ced1d484b09a6884fc95a18ba54c7d7e266177c4e07519be3b72",
+      "log_bytes": 33183,
+      "status": "passed",
+      "exit_code": 0
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "log_member": "baseline-fmt.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "log_bytes": 0,
+      "status": "passed",
+      "exit_code": 0
+    },
+    {
+      "command": "cargo test --all-targets --locked",
+      "log_member": "baseline-rust.log",
+      "log_sha256": "f89379637eb9421fa6398ed95ae971307334959c92060721b146379c0b565f29",
+      "log_bytes": 20381,
+      "status": "failed",
+      "exit_code": 101
+    },
+    {
+      "command": "RUSTC_WORKSPACE_WRAPPER=clippy-driver CLIPPY_ARGS=-D__CLIPPY_HACKERY__warnings cargo check --all-targets --locked",
+      "log_member": "baseline-clippy.log",
+      "log_sha256": "60f6133fd2d8f7b6be135d05e34cfea2d921995d85186bbad92ca112706fcc6e",
+      "log_bytes": 179,
+      "status": "passed",
+      "exit_code": 0
+    },
+    {
+      "command": "target/debug/deps/context_cli-cc9540d8500dddf6",
+      "log_member": "baseline-context-direct.log",
+      "log_sha256": "c6d558db3216fcba944b48360a58b6f17742b2c42b2758ecd2ac56b0feedc0ef",
+      "log_bytes": 700,
+      "status": "passed",
+      "exit_code": 0
+    },
+    {
+      "command": "python3 evaluation/audit_guardian_publication.py",
+      "log_member": "baseline-guardian-publication.json",
+      "log_sha256": "9c1abc71425526a48e44be36cd1dc608153f3417b2332949fe9a55f96503d674",
+      "log_bytes": 1924,
+      "status": "passed",
+      "exit_code": 0
+    }
+  ],
+  "archive_sha256": "a18228c4b5b6c8b703811cfef020feac3d19f3d498d30a54f213e7fc56f964f4",
+  "limitations": [
+    "Standard local Rust gate failed for the executable-mode condition; it is not counted as passed.",
+    "Model productivity, human contribution and guardian alert quality remain unmeasured.",
+    "Toolchain install used official checksum-verified standalone components; direct sysroot and system bfd linker required because /proc/self/exe is unavailable.",
+    "First contract collector incorrectly combined --fast with incompatible flags; final captured invocation uses the unmodified legal schema-2 command. No runtime behavior changed."
+  ]
+}
