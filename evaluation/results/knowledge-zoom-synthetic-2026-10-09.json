@@ -1,0 +1,2978 @@
+{
+  "build": {
+    "architecture": "x86_64",
+    "debug_assertions": true,
+    "os": "linux",
+    "source_digests": {
+      "Cargo.lock": "blake3:89c403507832967dfe629b8f7f077942aa94cc61feed035107af003ef66a3201",
+      "src/context.rs": "blake3:2d8c3eaf060ae6b2c1975c4bae16f95846e9cd900128e852f1b6c794f45d6179",
+      "src/context/retrieval.rs": "blake3:50122c4aed554af43311077ac38c2912c98ae406ce7aa3a6f2a707aa0bf2f51b",
+      "src/knowledge.rs": "blake3:6b58db73650c95933b45c30b874487642f74dc050f6af5b4f363e284011649a6",
+      "src/knowledge/graph.rs": "blake3:d8c27b44264824dc704dc38265b00ddc607b129dc26b1f93b0a0527f5b5a720d",
+      "src/knowledge/selection.rs": "blake3:47589a17d00d08afa6e628bd2f2d345f413ba6b3e68d6ca43c8f2fb479f219cb",
+      "src/storage.rs": "blake3:18e8b91f0322462118a0cb578949246e648804f3ed101e34bf110a803f562689",
+      "tests/common/mod.rs": "blake3:e495b30c7415b69a38c7e97053f64cb78d17b049f1c8acdc9cbe4cd4953671c9",
+      "tests/knowledge_zoom_comparison.rs": "blake3:73453326bca4b8b1d44ac163e10056b06ba19bbc8ed87eb5977bf7bc6ebdd89c"
+    }
+  },
+  "derived_cache": "disabled for both arms",
+  "fixture_ingestion": {
+    "calls_excluded_from_retrieval": 39,
+    "model": "common::FakeModel",
+    "provider_requests": 0,
+    "source_documents": 12
+  },
+  "gold_cases": [
+    {
+      "budgets": [
+        1500,
+        8000
+      ],
+      "critical_conditions": [
+        {
+          "kind": "decision",
+          "knowledge_id": "ku_41caca846d194332b744aca45bce5137",
+          "lifecycle": "accepted",
+          "scope": "production",
+          "statement": "MAX_BACKOFF_MS is 750 in src/retry/config.rs for idempotent requests."
+        }
+      ],
+      "expected_evidence_ids": [
+        "ev_cad6b2736d5aba8b22487e09c07388a3591667c7600870e9353a94bb067cca8f"
+      ],
+      "expected_knowledge_ids": [
+        "ku_41caca846d194332b744aca45bce5137"
+      ],
+      "id": "exact_original_id",
+      "query": "ku_41caca846d194332b744aca45bce5137"
+    },
+    {
+      "budgets": [
+        1500,
+        8000
+      ],
+      "critical_conditions": [
+        {
+          "kind": "decision",
+          "knowledge_id": "ku_41caca846d194332b744aca45bce5137",
+          "lifecycle": "accepted",
+          "scope": "production",
+          "statement": "MAX_BACKOFF_MS is 750 in src/retry/config.rs for idempotent requests."
+        }
+      ],
+      "expected_evidence_ids": [
+        "ev_cad6b2736d5aba8b22487e09c07388a3591667c7600870e9353a94bb067cca8f"
+      ],
+      "expected_knowledge_ids": [
+        "ku_41caca846d194332b744aca45bce5137"
+      ],
+      "id": "exact_symbol",
+      "query": "MAX_BACKOFF_MS"
+    },
+    {
+      "budgets": [
+        1500,
+        8000
+      ],
+      "critical_conditions": [
+        {
+          "kind": "decision",
+          "knowledge_id": "ku_41caca846d194332b744aca45bce5137",
+          "lifecycle": "accepted",
+          "scope": "production",
+          "statement": "MAX_BACKOFF_MS is 750 in src/retry/config.rs for idempotent requests."
+        }
+      ],
+      "expected_evidence_ids": [
+        "ev_cad6b2736d5aba8b22487e09c07388a3591667c7600870e9353a94bb067cca8f"
+      ],
+      "expected_knowledge_ids": [
+        "ku_41caca846d194332b744aca45bce5137"
+      ],
+      "id": "exact_source_path",
+      "query": "backoff.md"
+    },
+    {
+      "budgets": [
+        1500,
+        8000
+      ],
+      "critical_conditions": [
+        {
+          "kind": "decision",
+          "knowledge_id": "ku_cf86792564fc4390a05aa808bdd6ec0e",
+          "lifecycle": "accepted",
+          "scope": "production",
+          "statement": "QUEUE_CAPACITY is 128 jobs in production and 64 jobs in staging."
+        },
+        {
+          "kind": "decision",
+          "knowledge_id": "ku_448f90ae67724fd0a74cab04a5c49257",
+          "lifecycle": "accepted",
+          "scope": "production",
+          "statement": "A full production dispatch queue must return Busy without accepting a job."
+        },
+        {
+          "kind": "decision",
+          "knowledge_id": "ku_95759c7722b9428f83ed88af99bea471",
+          "lifecycle": "accepted",
+          "scope": "production",
+          "statement": "Except during an emergency drain, production dispatch must preserve tenant order; a drain still refuses new jobs."
+        }
+      ],
+      "expected_evidence_ids": [
+        "ev_8b220f397fd014878301260458b86f52eba793b3f4cc7a2e2fe6191bdcd53edc",
+        "ev_94bbf80b39a5b46c8ff559337e20685945cbf56ff0a60cf69a7d43a947b1d33b",
+        "ev_ba93ddd6deff00188ffc7688301faeb38ee006d9bfa340ee151ff22804252b27",
+        "ev_cc5e24ae7e0391731fe9cc93058c553e69f51639160905bcd65676e1e4309cdd"
+      ],
+      "expected_knowledge_ids": [
+        "ku_682711e00a344158824a9829bb854a3c",
+        "ku_cf86792564fc4390a05aa808bdd6ec0e",
+        "ku_448f90ae67724fd0a74cab04a5c49257",
+        "ku_95759c7722b9428f83ed88af99bea471"
+      ],
+      "id": "capacity_with_rare_exception",
+      "query": "increase QUEUE_CAPACITY for production dispatch"
+    },
+    {
+      "budgets": [
+        1500,
+        8000
+      ],
+      "critical_conditions": [
+        {
+          "kind": "decision",
+          "knowledge_id": "ku_cf86792564fc4390a05aa808bdd6ec0e",
+          "lifecycle": "accepted",
+          "scope": "production",
+          "statement": "QUEUE_CAPACITY is 128 jobs in production and 64 jobs in staging."
+        },
+        {
+          "kind": "decision",
+          "knowledge_id": "ku_448f90ae67724fd0a74cab04a5c49257",
+          "lifecycle": "accepted",
+          "scope": "production",
+          "statement": "A full production dispatch queue must return Busy without accepting a job."
+        },
+        {
+          "kind": "decision",
+          "knowledge_id": "ku_95759c7722b9428f83ed88af99bea471",
+          "lifecycle": "accepted",
+          "scope": "production",
+          "statement": "Except during an emergency drain, production dispatch must preserve tenant order; a drain still refuses new jobs."
+        }
+      ],
+      "expected_evidence_ids": [
+        "ev_8b220f397fd014878301260458b86f52eba793b3f4cc7a2e2fe6191bdcd53edc",
+        "ev_94bbf80b39a5b46c8ff559337e20685945cbf56ff0a60cf69a7d43a947b1d33b",
+        "ev_ba93ddd6deff00188ffc7688301faeb38ee006d9bfa340ee151ff22804252b27",
+        "ev_cc5e24ae7e0391731fe9cc93058c553e69f51639160905bcd65676e1e4309cdd"
+      ],
+      "expected_knowledge_ids": [
+        "ku_682711e00a344158824a9829bb854a3c",
+        "ku_cf86792564fc4390a05aa808bdd6ec0e",
+        "ku_448f90ae67724fd0a74cab04a5c49257",
+        "ku_95759c7722b9428f83ed88af99bea471"
+      ],
+      "id": "conceptual_dispatch",
+      "query": "tenant worker dispatch admission"
+    },
+    {
+      "budgets": [
+        1500,
+        8000
+      ],
+      "critical_conditions": [
+        {
+          "kind": "decision",
+          "knowledge_id": "ku_cf86792564fc4390a05aa808bdd6ec0e",
+          "lifecycle": "accepted",
+          "scope": "production",
+          "statement": "QUEUE_CAPACITY is 128 jobs in production and 64 jobs in staging."
+        },
+        {
+          "kind": "proposal",
+          "knowledge_id": "ku_459fed0595a441ff81c8c4897455b3ae",
+          "lifecycle": "proposed",
+          "scope": "production",
+          "statement": "Proposed staging queues would hold 256 jobs after the next capacity review."
+        }
+      ],
+      "expected_evidence_ids": [
+        "ev_8b220f397fd014878301260458b86f52eba793b3f4cc7a2e2fe6191bdcd53edc",
+        "ev_99847c8a542cf9dabf0936b3f5cd7edc4e7cb52be09d0867c459bd84a4a89eea"
+      ],
+      "expected_knowledge_ids": [
+        "ku_cf86792564fc4390a05aa808bdd6ec0e",
+        "ku_459fed0595a441ff81c8c4897455b3ae"
+      ],
+      "id": "future_scope",
+      "query": "proposed staging queue capacity"
+    },
+    {
+      "budgets": [
+        1500,
+        8000
+      ],
+      "critical_conditions": [
+        {
+          "kind": "decision",
+          "knowledge_id": "ku_aad072eeb5f64e7fa7acd98c0ff4dfaf",
+          "lifecycle": "accepted",
+          "scope": "production",
+          "statement": "MySQL is the selected database."
+        },
+        {
+          "kind": "decision",
+          "knowledge_id": "ku_38fd1ea3760b44849e5f711d1ff16cf6",
+          "lifecycle": "accepted",
+          "scope": "production",
+          "statement": "PostgreSQL is the selected database."
+        }
+      ],
+      "expected_evidence_ids": [
+        "ev_c74ece194b7114d3fdc33b7291f55f62004788fa1525ab0aa1a95fae39d288a6",
+        "ev_d9565f8a1e834275d10f66347643202b98edcdd3618005a0cfa2d1c84977d5fa"
+      ],
+      "expected_knowledge_ids": [
+        "ku_aad072eeb5f64e7fa7acd98c0ff4dfaf",
+        "ku_38fd1ea3760b44849e5f711d1ff16cf6"
+      ],
+      "id": "documented_disagreement",
+      "query": "selected ledger database"
+    },
+    {
+      "budgets": [
+        1500,
+        8000
+      ],
+      "critical_conditions": [],
+      "expected_evidence_ids": [],
+      "expected_knowledge_ids": [],
+      "id": "unrecorded_identifier",
+      "query": "ORBITAL_SPECTROMETER_UNRECORDED"
+    }
+  ],
+  "interpretation": "synthetic or annotated-registry retrieval diagnostics; no latency threshold, superiority assertion, semantic-accuracy score or measured human learning outcome",
+  "measurement_classification": "synthetic_diagnostic_compiled_fixture",
+  "measurements": [
+    {
+      "case_id": "exact_original_id",
+      "flat_direct": {
+        "elapsed_retrieval_us": [
+          7971,
+          6457,
+          6312
+        ],
+        "identical_outputs_across_repeats": true,
+        "median_elapsed_retrieval_us": 6457,
+        "result": {
+          "model_calls": 0,
+          "omissions": {
+            "critical_groups": 0,
+            "discrepancies": 0,
+            "imported_observations": 0,
+            "knowledge_units": 0,
+            "source_warnings": 0,
+            "unsupported_units": 0
+          },
+          "output": {
+            "cli_json_bytes": 789,
+            "cli_json_digest": "blake3:b3182ffa9d610ed6e5aa82bbd657105e8274464b58eec497171138209e520f93",
+            "cli_json_tokens": 198,
+            "complete_cli_tokens": 198,
+            "markdown_bytes": 475,
+            "markdown_digest": "blake3:1e72846915fc206bb6448c41ddbb3aca67befb9c83bfd585f908105de48bb06c",
+            "markdown_tokens": 111,
+            "max_tokens": 1500,
+            "pretty_json_tokens_diagnostic": 292,
+            "reported_used_tokens": 198
+          },
+          "retrieval": "flat_lexical_and_recorded_relationships",
+          "schema_version": 2,
+          "scores": {
+            "additional_record_count": 0,
+            "altered_original_records": 0,
+            "complete_critical_condition_recall": {
+              "expected": 1,
+              "fraction": 0.0,
+              "missing_ids": [
+                "ku_41caca846d194332b744aca45bce5137"
+              ],
+              "retained": 0
+            },
+            "exact_knowledge_id_recall": {
+              "expected": 1,
+              "fraction": 0.0,
+              "missing_ids": [
+                "ku_41caca846d194332b744aca45bce5137"
+              ],
+              "retained": 0
+            },
+            "invalid_source_references": 0,
+            "manifest_checks": {
+              "documentary_relation_witnesses_checked": 0,
+              "embedded_evidence_records_checked": 0,
+              "source_revisions_checked": 0,
+              "summary_original_references_checked": 0
+            },
+            "original_source_evidence_recall": {
+              "expected": 1,
+              "fraction": 0.0,
+              "missing_ids": [
+                "ev_cad6b2736d5aba8b22487e09c07388a3591667c7600870e9353a94bb067cca8f"
+              ],
+              "retained": 0
+            },
+            "returned_evidence_ids": [],
+            "returned_knowledge_ids": [],
+            "validation_scope": "documentary originals, source evidence, relationship witnesses, source revisions and summary references; native imports and grouping quality are not scored"
+          },
+          "status": "empty",
+          "warnings": [
+            "No relevant stored knowledge found. This does not establish that no constraints exist."
+          ]
+        }
+      },
+      "knowledge_zoom": {
+        "elapsed_retrieval_us": [
+          83174,
+          82560,
+          84303
+        ],
+        "identical_outputs_across_repeats": true,
+        "median_elapsed_retrieval_us": 83174,
+        "result": {
+          "model_calls": 0,
+          "omissions": {
+            "coverage": {
+              "eligible_units": 1,
+              "included_units": 1,
+              "omission_reasons": [],
+              "omitted_units": 0
+            },
+            "critical_groups_omitted": 0
+          },
+          "output": {
+            "cli_json_bytes": 3296,
+            "cli_json_digest": "blake3:c0e5c2aed82e22c55c35bd06e4d4ad5bf0f1a9e7a6e97ae5c174256cbb9b10b2",
+            "cli_json_tokens": 1167,
+            "complete_cli_tokens": 1167,
+            "markdown_bytes": 1815,
+            "markdown_digest": "blake3:adac32589d71ea4f57efb569e015db1c6997b95cb721c501d34ff441d82fa47a",
+            "markdown_tokens": 575,
+            "max_tokens": 1500,
+            "pretty_json_tokens_diagnostic": 1449,
+            "reported_used_tokens": 1449
+          },
+          "retrieval": "direct_reference",
+          "schema_version": 1,
+          "scores": {
+            "additional_record_count": 0,
+            "altered_original_records": 0,
+            "complete_critical_condition_recall": {
+              "expected": 1,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 1
+            },
+            "exact_knowledge_id_recall": {
+              "expected": 1,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 1
+            },
+            "invalid_source_references": 0,
+            "manifest_checks": {
+              "documentary_relation_witnesses_checked": 0,
+              "embedded_evidence_records_checked": 1,
+              "source_revisions_checked": 1,
+              "summary_original_references_checked": 1
+            },
+            "original_source_evidence_recall": {
+              "expected": 1,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 1
+            },
+            "returned_evidence_ids": [
+              "ev_cad6b2736d5aba8b22487e09c07388a3591667c7600870e9353a94bb067cca8f"
+            ],
+            "returned_knowledge_ids": [
+              "ku_41caca846d194332b744aca45bce5137"
+            ],
+            "validation_scope": "documentary originals, source evidence, relationship witnesses, source revisions and summary references; native imports and grouping quality are not scored"
+          },
+          "status": "complete",
+          "warnings": [
+            "Source records retain their documentary status; neither navigation grouping nor static evidence independently proves runtime behavior."
+          ]
+        }
+      },
+      "max_tokens": 1500,
+      "query": "ku_41caca846d194332b744aca45bce5137"
+    },
+    {
+      "case_id": "exact_original_id",
+      "flat_direct": {
+        "elapsed_retrieval_us": [
+          6878,
+          7120,
+          7189
+        ],
+        "identical_outputs_across_repeats": true,
+        "median_elapsed_retrieval_us": 7120,
+        "result": {
+          "model_calls": 0,
+          "omissions": {
+            "critical_groups": 0,
+            "discrepancies": 0,
+            "imported_observations": 0,
+            "knowledge_units": 0,
+            "source_warnings": 0,
+            "unsupported_units": 0
+          },
+          "output": {
+            "cli_json_bytes": 789,
+            "cli_json_digest": "blake3:7af8dcbbaab19744e05d257b469705489ef6763813fd6dc07d26750f69902ccf",
+            "cli_json_tokens": 198,
+            "complete_cli_tokens": 198,
+            "markdown_bytes": 475,
+            "markdown_digest": "blake3:3abd282793562b6a2b03f86b0e8ef1c73e025e2b9e1ede36755c427f36998854",
+            "markdown_tokens": 111,
+            "max_tokens": 8000,
+            "pretty_json_tokens_diagnostic": 292,
+            "reported_used_tokens": 198
+          },
+          "retrieval": "flat_lexical_and_recorded_relationships",
+          "schema_version": 2,
+          "scores": {
+            "additional_record_count": 0,
+            "altered_original_records": 0,
+            "complete_critical_condition_recall": {
+              "expected": 1,
+              "fraction": 0.0,
+              "missing_ids": [
+                "ku_41caca846d194332b744aca45bce5137"
+              ],
+              "retained": 0
+            },
+            "exact_knowledge_id_recall": {
+              "expected": 1,
+              "fraction": 0.0,
+              "missing_ids": [
+                "ku_41caca846d194332b744aca45bce5137"
+              ],
+              "retained": 0
+            },
+            "invalid_source_references": 0,
+            "manifest_checks": {
+              "documentary_relation_witnesses_checked": 0,
+              "embedded_evidence_records_checked": 0,
+              "source_revisions_checked": 0,
+              "summary_original_references_checked": 0
+            },
+            "original_source_evidence_recall": {
+              "expected": 1,
+              "fraction": 0.0,
+              "missing_ids": [
+                "ev_cad6b2736d5aba8b22487e09c07388a3591667c7600870e9353a94bb067cca8f"
+              ],
+              "retained": 0
+            },
+            "returned_evidence_ids": [],
+            "returned_knowledge_ids": [],
+            "validation_scope": "documentary originals, source evidence, relationship witnesses, source revisions and summary references; native imports and grouping quality are not scored"
+          },
+          "status": "empty",
+          "warnings": [
+            "No relevant stored knowledge found. This does not establish that no constraints exist."
+          ]
+        }
+      },
+      "knowledge_zoom": {
+        "elapsed_retrieval_us": [
+          100386,
+          96198,
+          99425
+        ],
+        "identical_outputs_across_repeats": true,
+        "median_elapsed_retrieval_us": 99425,
+        "result": {
+          "model_calls": 0,
+          "omissions": {
+            "coverage": {
+              "eligible_units": 1,
+              "included_units": 1,
+              "omission_reasons": [],
+              "omitted_units": 0
+            },
+            "critical_groups_omitted": 0
+          },
+          "output": {
+            "cli_json_bytes": 4501,
+            "cli_json_digest": "blake3:bb6b405e3f83505b97391c9261e9153e59dc37646dc2ba645f2df86b884c93d3",
+            "cli_json_tokens": 1710,
+            "complete_cli_tokens": 1710,
+            "markdown_bytes": 2008,
+            "markdown_digest": "blake3:2185319d6e200ebada4a334fa8d762b0a63097b154375b50f82dbaf7e11d1a37",
+            "markdown_tokens": 638,
+            "max_tokens": 8000,
+            "pretty_json_tokens_diagnostic": 2061,
+            "reported_used_tokens": 2061
+          },
+          "retrieval": "direct_reference",
+          "schema_version": 1,
+          "scores": {
+            "additional_record_count": 0,
+            "altered_original_records": 0,
+            "complete_critical_condition_recall": {
+              "expected": 1,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 1
+            },
+            "exact_knowledge_id_recall": {
+              "expected": 1,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 1
+            },
+            "invalid_source_references": 0,
+            "manifest_checks": {
+              "documentary_relation_witnesses_checked": 0,
+              "embedded_evidence_records_checked": 1,
+              "source_revisions_checked": 1,
+              "summary_original_references_checked": 1
+            },
+            "original_source_evidence_recall": {
+              "expected": 1,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 1
+            },
+            "returned_evidence_ids": [
+              "ev_cad6b2736d5aba8b22487e09c07388a3591667c7600870e9353a94bb067cca8f"
+            ],
+            "returned_knowledge_ids": [
+              "ku_41caca846d194332b744aca45bce5137"
+            ],
+            "validation_scope": "documentary originals, source evidence, relationship witnesses, source revisions and summary references; native imports and grouping quality are not scored"
+          },
+          "status": "complete",
+          "warnings": [
+            "Source records retain their documentary status; neither navigation grouping nor static evidence independently proves runtime behavior."
+          ]
+        }
+      },
+      "max_tokens": 8000,
+      "query": "ku_41caca846d194332b744aca45bce5137"
+    },
+    {
+      "case_id": "exact_symbol",
+      "flat_direct": {
+        "elapsed_retrieval_us": [
+          15007,
+          13640,
+          14284
+        ],
+        "identical_outputs_across_repeats": true,
+        "median_elapsed_retrieval_us": 14284,
+        "result": {
+          "model_calls": 0,
+          "omissions": {
+            "critical_groups": 0,
+            "discrepancies": 0,
+            "imported_observations": 0,
+            "knowledge_units": 0,
+            "source_warnings": 0,
+            "unsupported_units": 0
+          },
+          "output": {
+            "cli_json_bytes": 1875,
+            "cli_json_digest": "blake3:7ddc601229377a96d1787435fdd74d15a21d66bdb4c10e26a788b01eb4e8ee51",
+            "cli_json_tokens": 564,
+            "complete_cli_tokens": 564,
+            "markdown_bytes": 1185,
+            "markdown_digest": "blake3:ad004a8dd22b2a6039be7be7893c4b80ea632d5110a773d1174ee3d02ce86f7c",
+            "markdown_tokens": 385,
+            "max_tokens": 1500,
+            "pretty_json_tokens_diagnostic": 771,
+            "reported_used_tokens": 564
+          },
+          "retrieval": "flat_lexical_and_recorded_relationships",
+          "schema_version": 2,
+          "scores": {
+            "additional_record_count": 0,
+            "altered_original_records": 0,
+            "complete_critical_condition_recall": {
+              "expected": 1,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 1
+            },
+            "exact_knowledge_id_recall": {
+              "expected": 1,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 1
+            },
+            "invalid_source_references": 0,
+            "manifest_checks": {
+              "documentary_relation_witnesses_checked": 0,
+              "embedded_evidence_records_checked": 0,
+              "source_revisions_checked": 0,
+              "summary_original_references_checked": 0
+            },
+            "original_source_evidence_recall": {
+              "expected": 1,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 1
+            },
+            "returned_evidence_ids": [
+              "ev_cad6b2736d5aba8b22487e09c07388a3591667c7600870e9353a94bb067cca8f"
+            ],
+            "returned_knowledge_ids": [
+              "ku_41caca846d194332b744aca45bce5137"
+            ],
+            "validation_scope": "documentary originals, source evidence, relationship witnesses, source revisions and summary references; native imports and grouping quality are not scored"
+          },
+          "status": "complete",
+          "warnings": []
+        }
+      },
+      "knowledge_zoom": {
+        "elapsed_retrieval_us": [
+          83239,
+          83125,
+          85098
+        ],
+        "identical_outputs_across_repeats": true,
+        "median_elapsed_retrieval_us": 83239,
+        "result": {
+          "model_calls": 0,
+          "omissions": {
+            "coverage": {
+              "eligible_units": 1,
+              "included_units": 1,
+              "omission_reasons": [],
+              "omitted_units": 0
+            },
+            "critical_groups_omitted": 0
+          },
+          "output": {
+            "cli_json_bytes": 3275,
+            "cli_json_digest": "blake3:1f609cddcef60d3a917097d77896e05a67a63a7b9d1d460ce4eea008ea80af3a",
+            "cli_json_tokens": 1154,
+            "complete_cli_tokens": 1154,
+            "markdown_bytes": 1794,
+            "markdown_digest": "blake3:fdb7c1e4a8656c3659cd1157d29935e5ce17620400a1bec902cee2dd5b7e63ab",
+            "markdown_tokens": 562,
+            "max_tokens": 1500,
+            "pretty_json_tokens_diagnostic": 1436,
+            "reported_used_tokens": 1436
+          },
+          "retrieval": "direct_reference",
+          "schema_version": 1,
+          "scores": {
+            "additional_record_count": 0,
+            "altered_original_records": 0,
+            "complete_critical_condition_recall": {
+              "expected": 1,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 1
+            },
+            "exact_knowledge_id_recall": {
+              "expected": 1,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 1
+            },
+            "invalid_source_references": 0,
+            "manifest_checks": {
+              "documentary_relation_witnesses_checked": 0,
+              "embedded_evidence_records_checked": 1,
+              "source_revisions_checked": 1,
+              "summary_original_references_checked": 1
+            },
+            "original_source_evidence_recall": {
+              "expected": 1,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 1
+            },
+            "returned_evidence_ids": [
+              "ev_cad6b2736d5aba8b22487e09c07388a3591667c7600870e9353a94bb067cca8f"
+            ],
+            "returned_knowledge_ids": [
+              "ku_41caca846d194332b744aca45bce5137"
+            ],
+            "validation_scope": "documentary originals, source evidence, relationship witnesses, source revisions and summary references; native imports and grouping quality are not scored"
+          },
+          "status": "complete",
+          "warnings": [
+            "Source records retain their documentary status; neither navigation grouping nor static evidence independently proves runtime behavior."
+          ]
+        }
+      },
+      "max_tokens": 1500,
+      "query": "MAX_BACKOFF_MS"
+    },
+    {
+      "case_id": "exact_symbol",
+      "flat_direct": {
+        "elapsed_retrieval_us": [
+          13949,
+          14105,
+          14067
+        ],
+        "identical_outputs_across_repeats": true,
+        "median_elapsed_retrieval_us": 14067,
+        "result": {
+          "model_calls": 0,
+          "omissions": {
+            "critical_groups": 0,
+            "discrepancies": 0,
+            "imported_observations": 0,
+            "knowledge_units": 0,
+            "source_warnings": 0,
+            "unsupported_units": 0
+          },
+          "output": {
+            "cli_json_bytes": 1875,
+            "cli_json_digest": "blake3:9373616bb99973e31604a25cf805c8dafd0b9d20ffda0a37127253dc96b547f2",
+            "cli_json_tokens": 564,
+            "complete_cli_tokens": 564,
+            "markdown_bytes": 1185,
+            "markdown_digest": "blake3:62a60e93796d36f0735e23f5ede352e9496c0ca667aaa380dfbd60bbe03f03b0",
+            "markdown_tokens": 385,
+            "max_tokens": 8000,
+            "pretty_json_tokens_diagnostic": 771,
+            "reported_used_tokens": 564
+          },
+          "retrieval": "flat_lexical_and_recorded_relationships",
+          "schema_version": 2,
+          "scores": {
+            "additional_record_count": 0,
+            "altered_original_records": 0,
+            "complete_critical_condition_recall": {
+              "expected": 1,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 1
+            },
+            "exact_knowledge_id_recall": {
+              "expected": 1,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 1
+            },
+            "invalid_source_references": 0,
+            "manifest_checks": {
+              "documentary_relation_witnesses_checked": 0,
+              "embedded_evidence_records_checked": 0,
+              "source_revisions_checked": 0,
+              "summary_original_references_checked": 0
+            },
+            "original_source_evidence_recall": {
+              "expected": 1,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 1
+            },
+            "returned_evidence_ids": [
+              "ev_cad6b2736d5aba8b22487e09c07388a3591667c7600870e9353a94bb067cca8f"
+            ],
+            "returned_knowledge_ids": [
+              "ku_41caca846d194332b744aca45bce5137"
+            ],
+            "validation_scope": "documentary originals, source evidence, relationship witnesses, source revisions and summary references; native imports and grouping quality are not scored"
+          },
+          "status": "complete",
+          "warnings": []
+        }
+      },
+      "knowledge_zoom": {
+        "elapsed_retrieval_us": [
+          100980,
+          95899,
+          97907
+        ],
+        "identical_outputs_across_repeats": true,
+        "median_elapsed_retrieval_us": 97907,
+        "result": {
+          "model_calls": 0,
+          "omissions": {
+            "coverage": {
+              "eligible_units": 1,
+              "included_units": 1,
+              "omission_reasons": [],
+              "omitted_units": 0
+            },
+            "critical_groups_omitted": 0
+          },
+          "output": {
+            "cli_json_bytes": 4480,
+            "cli_json_digest": "blake3:65b69b3a54a7d81934c187cc7073d4e7f750aef5d0141dded95c6a3337ef17da",
+            "cli_json_tokens": 1697,
+            "complete_cli_tokens": 1697,
+            "markdown_bytes": 1987,
+            "markdown_digest": "blake3:c4fc72eb3f876a5cd5732533bd9b9516cf2f3c73152bb84f11ffed59350d8a5a",
+            "markdown_tokens": 625,
+            "max_tokens": 8000,
+            "pretty_json_tokens_diagnostic": 2048,
+            "reported_used_tokens": 2048
+          },
+          "retrieval": "direct_reference",
+          "schema_version": 1,
+          "scores": {
+            "additional_record_count": 0,
+            "altered_original_records": 0,
+            "complete_critical_condition_recall": {
+              "expected": 1,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 1
+            },
+            "exact_knowledge_id_recall": {
+              "expected": 1,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 1
+            },
+            "invalid_source_references": 0,
+            "manifest_checks": {
+              "documentary_relation_witnesses_checked": 0,
+              "embedded_evidence_records_checked": 1,
+              "source_revisions_checked": 1,
+              "summary_original_references_checked": 1
+            },
+            "original_source_evidence_recall": {
+              "expected": 1,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 1
+            },
+            "returned_evidence_ids": [
+              "ev_cad6b2736d5aba8b22487e09c07388a3591667c7600870e9353a94bb067cca8f"
+            ],
+            "returned_knowledge_ids": [
+              "ku_41caca846d194332b744aca45bce5137"
+            ],
+            "validation_scope": "documentary originals, source evidence, relationship witnesses, source revisions and summary references; native imports and grouping quality are not scored"
+          },
+          "status": "complete",
+          "warnings": [
+            "Source records retain their documentary status; neither navigation grouping nor static evidence independently proves runtime behavior."
+          ]
+        }
+      },
+      "max_tokens": 8000,
+      "query": "MAX_BACKOFF_MS"
+    },
+    {
+      "case_id": "exact_source_path",
+      "flat_direct": {
+        "elapsed_retrieval_us": [
+          13908,
+          13535,
+          13518
+        ],
+        "identical_outputs_across_repeats": true,
+        "median_elapsed_retrieval_us": 13535,
+        "result": {
+          "model_calls": 0,
+          "omissions": {
+            "critical_groups": 0,
+            "discrepancies": 0,
+            "imported_observations": 0,
+            "knowledge_units": 0,
+            "source_warnings": 0,
+            "unsupported_units": 0
+          },
+          "output": {
+            "cli_json_bytes": 1871,
+            "cli_json_digest": "blake3:316c2ecffbaaa4bc186611b2c02974a349a66c919b39d81110dc5ab52111e901",
+            "cli_json_tokens": 563,
+            "complete_cli_tokens": 563,
+            "markdown_bytes": 1179,
+            "markdown_digest": "blake3:9d32ac48c5daf2efdf9b7c24247727c75cf4e53e2f0f207f8528bcb7983d3c38",
+            "markdown_tokens": 382,
+            "max_tokens": 1500,
+            "pretty_json_tokens_diagnostic": 770,
+            "reported_used_tokens": 563
+          },
+          "retrieval": "flat_lexical_and_recorded_relationships",
+          "schema_version": 2,
+          "scores": {
+            "additional_record_count": 0,
+            "altered_original_records": 0,
+            "complete_critical_condition_recall": {
+              "expected": 1,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 1
+            },
+            "exact_knowledge_id_recall": {
+              "expected": 1,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 1
+            },
+            "invalid_source_references": 0,
+            "manifest_checks": {
+              "documentary_relation_witnesses_checked": 0,
+              "embedded_evidence_records_checked": 0,
+              "source_revisions_checked": 0,
+              "summary_original_references_checked": 0
+            },
+            "original_source_evidence_recall": {
+              "expected": 1,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 1
+            },
+            "returned_evidence_ids": [
+              "ev_cad6b2736d5aba8b22487e09c07388a3591667c7600870e9353a94bb067cca8f"
+            ],
+            "returned_knowledge_ids": [
+              "ku_41caca846d194332b744aca45bce5137"
+            ],
+            "validation_scope": "documentary originals, source evidence, relationship witnesses, source revisions and summary references; native imports and grouping quality are not scored"
+          },
+          "status": "complete",
+          "warnings": []
+        }
+      },
+      "knowledge_zoom": {
+        "elapsed_retrieval_us": [
+          82707,
+          81017,
+          81126
+        ],
+        "identical_outputs_across_repeats": true,
+        "median_elapsed_retrieval_us": 81126,
+        "result": {
+          "model_calls": 0,
+          "omissions": {
+            "coverage": {
+              "eligible_units": 1,
+              "included_units": 1,
+              "omission_reasons": [],
+              "omitted_units": 0
+            },
+            "critical_groups_omitted": 0
+          },
+          "output": {
+            "cli_json_bytes": 3271,
+            "cli_json_digest": "blake3:fe01498fbffa92a5fa8c86eda0c8f852d24d7e5467a80cbee2c5dd7727130cb4",
+            "cli_json_tokens": 1153,
+            "complete_cli_tokens": 1153,
+            "markdown_bytes": 1790,
+            "markdown_digest": "blake3:74fcbfbca3a853058a09e83033303078e06bbfc68c20ba1332deba772289136f",
+            "markdown_tokens": 561,
+            "max_tokens": 1500,
+            "pretty_json_tokens_diagnostic": 1435,
+            "reported_used_tokens": 1435
+          },
+          "retrieval": "direct_reference",
+          "schema_version": 1,
+          "scores": {
+            "additional_record_count": 0,
+            "altered_original_records": 0,
+            "complete_critical_condition_recall": {
+              "expected": 1,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 1
+            },
+            "exact_knowledge_id_recall": {
+              "expected": 1,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 1
+            },
+            "invalid_source_references": 0,
+            "manifest_checks": {
+              "documentary_relation_witnesses_checked": 0,
+              "embedded_evidence_records_checked": 1,
+              "source_revisions_checked": 1,
+              "summary_original_references_checked": 1
+            },
+            "original_source_evidence_recall": {
+              "expected": 1,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 1
+            },
+            "returned_evidence_ids": [
+              "ev_cad6b2736d5aba8b22487e09c07388a3591667c7600870e9353a94bb067cca8f"
+            ],
+            "returned_knowledge_ids": [
+              "ku_41caca846d194332b744aca45bce5137"
+            ],
+            "validation_scope": "documentary originals, source evidence, relationship witnesses, source revisions and summary references; native imports and grouping quality are not scored"
+          },
+          "status": "complete",
+          "warnings": [
+            "Source records retain their documentary status; neither navigation grouping nor static evidence independently proves runtime behavior."
+          ]
+        }
+      },
+      "max_tokens": 1500,
+      "query": "backoff.md"
+    },
+    {
+      "case_id": "exact_source_path",
+      "flat_direct": {
+        "elapsed_retrieval_us": [
+          13800,
+          13539,
+          13554
+        ],
+        "identical_outputs_across_repeats": true,
+        "median_elapsed_retrieval_us": 13554,
+        "result": {
+          "model_calls": 0,
+          "omissions": {
+            "critical_groups": 0,
+            "discrepancies": 0,
+            "imported_observations": 0,
+            "knowledge_units": 0,
+            "source_warnings": 0,
+            "unsupported_units": 0
+          },
+          "output": {
+            "cli_json_bytes": 1871,
+            "cli_json_digest": "blake3:1747ab576eccf270a4f60358bc815b36481c84879b27c11f4d6754193433d1cd",
+            "cli_json_tokens": 563,
+            "complete_cli_tokens": 563,
+            "markdown_bytes": 1179,
+            "markdown_digest": "blake3:b2bcc1d418f3dad12c709466ef8441a07f6d7f99d8476de8982928e8c74fa240",
+            "markdown_tokens": 382,
+            "max_tokens": 8000,
+            "pretty_json_tokens_diagnostic": 770,
+            "reported_used_tokens": 563
+          },
+          "retrieval": "flat_lexical_and_recorded_relationships",
+          "schema_version": 2,
+          "scores": {
+            "additional_record_count": 0,
+            "altered_original_records": 0,
+            "complete_critical_condition_recall": {
+              "expected": 1,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 1
+            },
+            "exact_knowledge_id_recall": {
+              "expected": 1,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 1
+            },
+            "invalid_source_references": 0,
+            "manifest_checks": {
+              "documentary_relation_witnesses_checked": 0,
+              "embedded_evidence_records_checked": 0,
+              "source_revisions_checked": 0,
+              "summary_original_references_checked": 0
+            },
+            "original_source_evidence_recall": {
+              "expected": 1,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 1
+            },
+            "returned_evidence_ids": [
+              "ev_cad6b2736d5aba8b22487e09c07388a3591667c7600870e9353a94bb067cca8f"
+            ],
+            "returned_knowledge_ids": [
+              "ku_41caca846d194332b744aca45bce5137"
+            ],
+            "validation_scope": "documentary originals, source evidence, relationship witnesses, source revisions and summary references; native imports and grouping quality are not scored"
+          },
+          "status": "complete",
+          "warnings": []
+        }
+      },
+      "knowledge_zoom": {
+        "elapsed_retrieval_us": [
+          103094,
+          126169,
+          93902
+        ],
+        "identical_outputs_across_repeats": true,
+        "median_elapsed_retrieval_us": 103094,
+        "result": {
+          "model_calls": 0,
+          "omissions": {
+            "coverage": {
+              "eligible_units": 1,
+              "included_units": 1,
+              "omission_reasons": [],
+              "omitted_units": 0
+            },
+            "critical_groups_omitted": 0
+          },
+          "output": {
+            "cli_json_bytes": 4476,
+            "cli_json_digest": "blake3:918285b2c94e0c916671a7606c55b1751fa11de1765cf6c00e801e05dd5c45ff",
+            "cli_json_tokens": 1696,
+            "complete_cli_tokens": 1696,
+            "markdown_bytes": 1983,
+            "markdown_digest": "blake3:279753d64a1812ceace20366239b77e77822a99f13a82cf29f8113f695df72c3",
+            "markdown_tokens": 624,
+            "max_tokens": 8000,
+            "pretty_json_tokens_diagnostic": 2047,
+            "reported_used_tokens": 2047
+          },
+          "retrieval": "direct_reference",
+          "schema_version": 1,
+          "scores": {
+            "additional_record_count": 0,
+            "altered_original_records": 0,
+            "complete_critical_condition_recall": {
+              "expected": 1,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 1
+            },
+            "exact_knowledge_id_recall": {
+              "expected": 1,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 1
+            },
+            "invalid_source_references": 0,
+            "manifest_checks": {
+              "documentary_relation_witnesses_checked": 0,
+              "embedded_evidence_records_checked": 1,
+              "source_revisions_checked": 1,
+              "summary_original_references_checked": 1
+            },
+            "original_source_evidence_recall": {
+              "expected": 1,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 1
+            },
+            "returned_evidence_ids": [
+              "ev_cad6b2736d5aba8b22487e09c07388a3591667c7600870e9353a94bb067cca8f"
+            ],
+            "returned_knowledge_ids": [
+              "ku_41caca846d194332b744aca45bce5137"
+            ],
+            "validation_scope": "documentary originals, source evidence, relationship witnesses, source revisions and summary references; native imports and grouping quality are not scored"
+          },
+          "status": "complete",
+          "warnings": [
+            "Source records retain their documentary status; neither navigation grouping nor static evidence independently proves runtime behavior."
+          ]
+        }
+      },
+      "max_tokens": 8000,
+      "query": "backoff.md"
+    },
+    {
+      "case_id": "capacity_with_rare_exception",
+      "flat_direct": {
+        "elapsed_retrieval_us": [
+          145081,
+          154911,
+          152527
+        ],
+        "identical_outputs_across_repeats": true,
+        "median_elapsed_retrieval_us": 152527,
+        "result": {
+          "model_calls": 0,
+          "omissions": {
+            "critical_groups": 0,
+            "discrepancies": 0,
+            "imported_observations": 0,
+            "knowledge_units": 3,
+            "source_warnings": 0,
+            "unsupported_units": 0
+          },
+          "output": {
+            "cli_json_bytes": 4893,
+            "cli_json_digest": "blake3:32761d73b1470c211baef603119372b357cd2facef03f29fc8f04021a2efed82",
+            "cli_json_tokens": 1483,
+            "complete_cli_tokens": 1483,
+            "markdown_bytes": 2555,
+            "markdown_digest": "blake3:c31f47f449912a789f985e133073387446bc69043e482dfae1719d704c283c37",
+            "markdown_tokens": 775,
+            "max_tokens": 1500,
+            "pretty_json_tokens_diagnostic": 1888,
+            "reported_used_tokens": 1483
+          },
+          "retrieval": "flat_lexical_and_recorded_relationships",
+          "schema_version": 2,
+          "scores": {
+            "additional_record_count": 0,
+            "altered_original_records": 0,
+            "complete_critical_condition_recall": {
+              "expected": 3,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 3
+            },
+            "exact_knowledge_id_recall": {
+              "expected": 4,
+              "fraction": 0.75,
+              "missing_ids": [
+                "ku_682711e00a344158824a9829bb854a3c"
+              ],
+              "retained": 3
+            },
+            "invalid_source_references": 0,
+            "manifest_checks": {
+              "documentary_relation_witnesses_checked": 0,
+              "embedded_evidence_records_checked": 0,
+              "source_revisions_checked": 0,
+              "summary_original_references_checked": 0
+            },
+            "original_source_evidence_recall": {
+              "expected": 4,
+              "fraction": 0.75,
+              "missing_ids": [
+                "ev_94bbf80b39a5b46c8ff559337e20685945cbf56ff0a60cf69a7d43a947b1d33b"
+              ],
+              "retained": 3
+            },
+            "returned_evidence_ids": [
+              "ev_8b220f397fd014878301260458b86f52eba793b3f4cc7a2e2fe6191bdcd53edc",
+              "ev_ba93ddd6deff00188ffc7688301faeb38ee006d9bfa340ee151ff22804252b27",
+              "ev_cc5e24ae7e0391731fe9cc93058c553e69f51639160905bcd65676e1e4309cdd"
+            ],
+            "returned_knowledge_ids": [
+              "ku_448f90ae67724fd0a74cab04a5c49257",
+              "ku_95759c7722b9428f83ed88af99bea471",
+              "ku_cf86792564fc4390a05aa808bdd6ec0e"
+            ],
+            "validation_scope": "documentary originals, source evidence, relationship witnesses, source revisions and summary references; native imports and grouping quality are not scored"
+          },
+          "status": "partial",
+          "warnings": [
+            "Some relevant knowledge was omitted. Increase --max-tokens or narrow the task; complete records and critical relationship groups are kept together."
+          ]
+        }
+      },
+      "knowledge_zoom": {
+        "elapsed_retrieval_us": [
+          64332,
+          66388,
+          66023
+        ],
+        "identical_outputs_across_repeats": true,
+        "median_elapsed_retrieval_us": 66023,
+        "result": {
+          "model_calls": 0,
+          "omissions": {
+            "coverage": {
+              "eligible_units": 4,
+              "included_units": 0,
+              "omission_reasons": [
+                "Complete evidence and attached critical conditions did not fit the output budget; omitted groups make no recommendation."
+              ],
+              "omitted_units": 4
+            },
+            "critical_groups_omitted": 1
+          },
+          "output": {
+            "cli_json_bytes": 1473,
+            "cli_json_digest": "blake3:48935615c101ee07e1d5095d90f1e8cf5ed9f065d75e793419d5a0c859f3a410",
+            "cli_json_tokens": 432,
+            "complete_cli_tokens": 432,
+            "markdown_bytes": 956,
+            "markdown_digest": "blake3:87041139a8e4cbd661af25d3710bf095e764927414a141dc8250bdd759c03837",
+            "markdown_tokens": 225,
+            "max_tokens": 1500,
+            "pretty_json_tokens_diagnostic": 546,
+            "reported_used_tokens": 546
+          },
+          "retrieval": "direct_reference",
+          "schema_version": 1,
+          "scores": {
+            "additional_record_count": 0,
+            "altered_original_records": 0,
+            "complete_critical_condition_recall": {
+              "expected": 3,
+              "fraction": 0.0,
+              "missing_ids": [
+                "ku_cf86792564fc4390a05aa808bdd6ec0e",
+                "ku_448f90ae67724fd0a74cab04a5c49257",
+                "ku_95759c7722b9428f83ed88af99bea471"
+              ],
+              "retained": 0
+            },
+            "exact_knowledge_id_recall": {
+              "expected": 4,
+              "fraction": 0.0,
+              "missing_ids": [
+                "ku_682711e00a344158824a9829bb854a3c",
+                "ku_cf86792564fc4390a05aa808bdd6ec0e",
+                "ku_448f90ae67724fd0a74cab04a5c49257",
+                "ku_95759c7722b9428f83ed88af99bea471"
+              ],
+              "retained": 0
+            },
+            "invalid_source_references": 0,
+            "manifest_checks": {
+              "documentary_relation_witnesses_checked": 0,
+              "embedded_evidence_records_checked": 0,
+              "source_revisions_checked": 0,
+              "summary_original_references_checked": 0
+            },
+            "original_source_evidence_recall": {
+              "expected": 4,
+              "fraction": 0.0,
+              "missing_ids": [
+                "ev_8b220f397fd014878301260458b86f52eba793b3f4cc7a2e2fe6191bdcd53edc",
+                "ev_94bbf80b39a5b46c8ff559337e20685945cbf56ff0a60cf69a7d43a947b1d33b",
+                "ev_ba93ddd6deff00188ffc7688301faeb38ee006d9bfa340ee151ff22804252b27",
+                "ev_cc5e24ae7e0391731fe9cc93058c553e69f51639160905bcd65676e1e4309cdd"
+              ],
+              "retained": 0
+            },
+            "returned_evidence_ids": [],
+            "returned_knowledge_ids": [],
+            "validation_scope": "documentary originals, source evidence, relationship witnesses, source revisions and summary references; native imports and grouping quality are not scored"
+          },
+          "status": "budget_limited",
+          "warnings": [
+            "Source records retain their documentary status; neither navigation grouping nor static evidence independently proves runtime behavior."
+          ]
+        }
+      },
+      "max_tokens": 1500,
+      "query": "increase QUEUE_CAPACITY for production dispatch"
+    },
+    {
+      "case_id": "capacity_with_rare_exception",
+      "flat_direct": {
+        "elapsed_retrieval_us": [
+          172648,
+          172234,
+          179544
+        ],
+        "identical_outputs_across_repeats": true,
+        "median_elapsed_retrieval_us": 172648,
+        "result": {
+          "model_calls": 0,
+          "omissions": {
+            "critical_groups": 0,
+            "discrepancies": 0,
+            "imported_observations": 0,
+            "knowledge_units": 0,
+            "source_warnings": 0,
+            "unsupported_units": 0
+          },
+          "output": {
+            "cli_json_bytes": 8518,
+            "cli_json_digest": "blake3:678c148b63c3ef640b28729dd01ce2b5ac9b8b3d9c4cfa97fc741a956486e0e0",
+            "cli_json_tokens": 2699,
+            "complete_cli_tokens": 2699,
+            "markdown_bytes": 4352,
+            "markdown_digest": "blake3:1ca0d0d9e2978df520ef4e0ff1d6d10c5e5be6cd7706d7527467cf784dcb0980",
+            "markdown_tokens": 1442,
+            "max_tokens": 8000,
+            "pretty_json_tokens_diagnostic": 3403,
+            "reported_used_tokens": 2699
+          },
+          "retrieval": "flat_lexical_and_recorded_relationships",
+          "schema_version": 2,
+          "scores": {
+            "additional_record_count": 2,
+            "altered_original_records": 0,
+            "complete_critical_condition_recall": {
+              "expected": 3,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 3
+            },
+            "exact_knowledge_id_recall": {
+              "expected": 4,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 4
+            },
+            "invalid_source_references": 0,
+            "manifest_checks": {
+              "documentary_relation_witnesses_checked": 0,
+              "embedded_evidence_records_checked": 0,
+              "source_revisions_checked": 0,
+              "summary_original_references_checked": 0
+            },
+            "original_source_evidence_recall": {
+              "expected": 4,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 4
+            },
+            "returned_evidence_ids": [
+              "ev_8b220f397fd014878301260458b86f52eba793b3f4cc7a2e2fe6191bdcd53edc",
+              "ev_94bbf80b39a5b46c8ff559337e20685945cbf56ff0a60cf69a7d43a947b1d33b",
+              "ev_99847c8a542cf9dabf0936b3f5cd7edc4e7cb52be09d0867c459bd84a4a89eea",
+              "ev_ba93ddd6deff00188ffc7688301faeb38ee006d9bfa340ee151ff22804252b27",
+              "ev_cc5e24ae7e0391731fe9cc93058c553e69f51639160905bcd65676e1e4309cdd",
+              "ev_d4ceec3887f95c56adbb6c85e2b8feea1739934b117a11b862e462c7a5335f47"
+            ],
+            "returned_knowledge_ids": [
+              "ku_448f90ae67724fd0a74cab04a5c49257",
+              "ku_459fed0595a441ff81c8c4897455b3ae",
+              "ku_682711e00a344158824a9829bb854a3c",
+              "ku_811d926cdc5f489f83aebaebb7ffde43",
+              "ku_95759c7722b9428f83ed88af99bea471",
+              "ku_cf86792564fc4390a05aa808bdd6ec0e"
+            ],
+            "validation_scope": "documentary originals, source evidence, relationship witnesses, source revisions and summary references; native imports and grouping quality are not scored"
+          },
+          "status": "complete",
+          "warnings": []
+        }
+      },
+      "knowledge_zoom": {
+        "elapsed_retrieval_us": [
+          188295,
+          189714,
+          213296
+        ],
+        "identical_outputs_across_repeats": true,
+        "median_elapsed_retrieval_us": 189714,
+        "result": {
+          "model_calls": 0,
+          "omissions": {
+            "coverage": {
+              "eligible_units": 4,
+              "included_units": 4,
+              "omission_reasons": [],
+              "omitted_units": 0
+            },
+            "critical_groups_omitted": 0
+          },
+          "output": {
+            "cli_json_bytes": 10583,
+            "cli_json_digest": "blake3:d276e6c9c3d35cb1e71133d42407f5c1c9cfccb96f6ea2d30ee1131860e2d5d1",
+            "cli_json_tokens": 3763,
+            "complete_cli_tokens": 3763,
+            "markdown_bytes": 5119,
+            "markdown_digest": "blake3:4801fef801d42efcc0d75a50b82d574934765857b45a2897d114bd4f0405b870",
+            "markdown_tokens": 1654,
+            "max_tokens": 8000,
+            "pretty_json_tokens_diagnostic": 4595,
+            "reported_used_tokens": 4595
+          },
+          "retrieval": "direct_reference",
+          "schema_version": 1,
+          "scores": {
+            "additional_record_count": 0,
+            "altered_original_records": 0,
+            "complete_critical_condition_recall": {
+              "expected": 3,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 3
+            },
+            "exact_knowledge_id_recall": {
+              "expected": 4,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 4
+            },
+            "invalid_source_references": 0,
+            "manifest_checks": {
+              "documentary_relation_witnesses_checked": 0,
+              "embedded_evidence_records_checked": 4,
+              "source_revisions_checked": 4,
+              "summary_original_references_checked": 1
+            },
+            "original_source_evidence_recall": {
+              "expected": 4,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 4
+            },
+            "returned_evidence_ids": [
+              "ev_8b220f397fd014878301260458b86f52eba793b3f4cc7a2e2fe6191bdcd53edc",
+              "ev_94bbf80b39a5b46c8ff559337e20685945cbf56ff0a60cf69a7d43a947b1d33b",
+              "ev_ba93ddd6deff00188ffc7688301faeb38ee006d9bfa340ee151ff22804252b27",
+              "ev_cc5e24ae7e0391731fe9cc93058c553e69f51639160905bcd65676e1e4309cdd"
+            ],
+            "returned_knowledge_ids": [
+              "ku_448f90ae67724fd0a74cab04a5c49257",
+              "ku_682711e00a344158824a9829bb854a3c",
+              "ku_95759c7722b9428f83ed88af99bea471",
+              "ku_cf86792564fc4390a05aa808bdd6ec0e"
+            ],
+            "validation_scope": "documentary originals, source evidence, relationship witnesses, source revisions and summary references; native imports and grouping quality are not scored"
+          },
+          "status": "complete",
+          "warnings": [
+            "Source records retain their documentary status; neither navigation grouping nor static evidence independently proves runtime behavior."
+          ]
+        }
+      },
+      "max_tokens": 8000,
+      "query": "increase QUEUE_CAPACITY for production dispatch"
+    },
+    {
+      "case_id": "conceptual_dispatch",
+      "flat_direct": {
+        "elapsed_retrieval_us": [
+          137863,
+          136918,
+          136061
+        ],
+        "identical_outputs_across_repeats": true,
+        "median_elapsed_retrieval_us": 136918,
+        "result": {
+          "model_calls": 0,
+          "omissions": {
+            "critical_groups": 0,
+            "discrepancies": 0,
+            "imported_observations": 0,
+            "knowledge_units": 3,
+            "source_warnings": 0,
+            "unsupported_units": 0
+          },
+          "output": {
+            "cli_json_bytes": 4590,
+            "cli_json_digest": "blake3:68f4d451b6bd1175243aedf9e5a1e42ffa5e5959fb4fe7ee9804ed262dced557",
+            "cli_json_tokens": 1383,
+            "complete_cli_tokens": 1383,
+            "markdown_bytes": 2561,
+            "markdown_digest": "blake3:64ddedd3a7850d0016dac1878ce58173d7cc5cc547a963b10cc1fd28c3f5e682",
+            "markdown_tokens": 784,
+            "max_tokens": 1500,
+            "pretty_json_tokens_diagnostic": 1778,
+            "reported_used_tokens": 1383
+          },
+          "retrieval": "flat_lexical_and_recorded_relationships",
+          "schema_version": 2,
+          "scores": {
+            "additional_record_count": 1,
+            "altered_original_records": 0,
+            "complete_critical_condition_recall": {
+              "expected": 3,
+              "fraction": 0.3333333333333333,
+              "missing_ids": [
+                "ku_cf86792564fc4390a05aa808bdd6ec0e",
+                "ku_448f90ae67724fd0a74cab04a5c49257"
+              ],
+              "retained": 1
+            },
+            "exact_knowledge_id_recall": {
+              "expected": 4,
+              "fraction": 0.5,
+              "missing_ids": [
+                "ku_cf86792564fc4390a05aa808bdd6ec0e",
+                "ku_448f90ae67724fd0a74cab04a5c49257"
+              ],
+              "retained": 2
+            },
+            "invalid_source_references": 0,
+            "manifest_checks": {
+              "documentary_relation_witnesses_checked": 0,
+              "embedded_evidence_records_checked": 0,
+              "source_revisions_checked": 0,
+              "summary_original_references_checked": 0
+            },
+            "original_source_evidence_recall": {
+              "expected": 4,
+              "fraction": 0.5,
+              "missing_ids": [
+                "ev_8b220f397fd014878301260458b86f52eba793b3f4cc7a2e2fe6191bdcd53edc",
+                "ev_cc5e24ae7e0391731fe9cc93058c553e69f51639160905bcd65676e1e4309cdd"
+              ],
+              "retained": 2
+            },
+            "returned_evidence_ids": [
+              "ev_94bbf80b39a5b46c8ff559337e20685945cbf56ff0a60cf69a7d43a947b1d33b",
+              "ev_ba93ddd6deff00188ffc7688301faeb38ee006d9bfa340ee151ff22804252b27",
+              "ev_d4ceec3887f95c56adbb6c85e2b8feea1739934b117a11b862e462c7a5335f47"
+            ],
+            "returned_knowledge_ids": [
+              "ku_682711e00a344158824a9829bb854a3c",
+              "ku_811d926cdc5f489f83aebaebb7ffde43",
+              "ku_95759c7722b9428f83ed88af99bea471"
+            ],
+            "validation_scope": "documentary originals, source evidence, relationship witnesses, source revisions and summary references; native imports and grouping quality are not scored"
+          },
+          "status": "partial",
+          "warnings": [
+            "Some relevant knowledge was omitted. Increase --max-tokens or narrow the task; complete records and critical relationship groups are kept together."
+          ]
+        }
+      },
+      "knowledge_zoom": {
+        "elapsed_retrieval_us": [
+          162104,
+          160996,
+          160563
+        ],
+        "identical_outputs_across_repeats": true,
+        "median_elapsed_retrieval_us": 160996,
+        "result": {
+          "model_calls": 0,
+          "omissions": {
+            "coverage": {
+              "eligible_units": 6,
+              "included_units": 0,
+              "omission_reasons": [
+                "Complete evidence and attached critical conditions did not fit the output budget; omitted groups make no recommendation."
+              ],
+              "omitted_units": 6
+            },
+            "critical_groups_omitted": 3
+          },
+          "output": {
+            "cli_json_bytes": 1801,
+            "cli_json_digest": "blake3:59b9ce8295530a06e2db838f2ee81bd3c6562c5706525c713ae43627751e8d2d",
+            "cli_json_tokens": 628,
+            "complete_cli_tokens": 628,
+            "markdown_bytes": 936,
+            "markdown_digest": "blake3:9499764632c70c33ea74dafe6339a434b133e43a331a5c54e6a6a7f3f94ec3d3",
+            "markdown_tokens": 222,
+            "max_tokens": 1500,
+            "pretty_json_tokens_diagnostic": 755,
+            "reported_used_tokens": 755
+          },
+          "retrieval": "cross_level",
+          "schema_version": 1,
+          "scores": {
+            "additional_record_count": 0,
+            "altered_original_records": 0,
+            "complete_critical_condition_recall": {
+              "expected": 3,
+              "fraction": 0.0,
+              "missing_ids": [
+                "ku_cf86792564fc4390a05aa808bdd6ec0e",
+                "ku_448f90ae67724fd0a74cab04a5c49257",
+                "ku_95759c7722b9428f83ed88af99bea471"
+              ],
+              "retained": 0
+            },
+            "exact_knowledge_id_recall": {
+              "expected": 4,
+              "fraction": 0.0,
+              "missing_ids": [
+                "ku_682711e00a344158824a9829bb854a3c",
+                "ku_cf86792564fc4390a05aa808bdd6ec0e",
+                "ku_448f90ae67724fd0a74cab04a5c49257",
+                "ku_95759c7722b9428f83ed88af99bea471"
+              ],
+              "retained": 0
+            },
+            "invalid_source_references": 0,
+            "manifest_checks": {
+              "documentary_relation_witnesses_checked": 0,
+              "embedded_evidence_records_checked": 0,
+              "source_revisions_checked": 0,
+              "summary_original_references_checked": 0
+            },
+            "original_source_evidence_recall": {
+              "expected": 4,
+              "fraction": 0.0,
+              "missing_ids": [
+                "ev_8b220f397fd014878301260458b86f52eba793b3f4cc7a2e2fe6191bdcd53edc",
+                "ev_94bbf80b39a5b46c8ff559337e20685945cbf56ff0a60cf69a7d43a947b1d33b",
+                "ev_ba93ddd6deff00188ffc7688301faeb38ee006d9bfa340ee151ff22804252b27",
+                "ev_cc5e24ae7e0391731fe9cc93058c553e69f51639160905bcd65676e1e4309cdd"
+              ],
+              "retained": 0
+            },
+            "returned_evidence_ids": [],
+            "returned_knowledge_ids": [],
+            "validation_scope": "documentary originals, source evidence, relationship witnesses, source revisions and summary references; native imports and grouping quality are not scored"
+          },
+          "status": "budget_limited",
+          "warnings": [
+            "Source records retain their documentary status; neither navigation grouping nor static evidence independently proves runtime behavior."
+          ]
+        }
+      },
+      "max_tokens": 1500,
+      "query": "tenant worker dispatch admission"
+    },
+    {
+      "case_id": "conceptual_dispatch",
+      "flat_direct": {
+        "elapsed_retrieval_us": [
+          168700,
+          168181,
+          167931
+        ],
+        "identical_outputs_across_repeats": true,
+        "median_elapsed_retrieval_us": 168181,
+        "result": {
+          "model_calls": 0,
+          "omissions": {
+            "critical_groups": 0,
+            "discrepancies": 0,
+            "imported_observations": 0,
+            "knowledge_units": 0,
+            "source_warnings": 0,
+            "unsupported_units": 0
+          },
+          "output": {
+            "cli_json_bytes": 8503,
+            "cli_json_digest": "blake3:814371588f12673eb2410af2f4f96bba8bb86e99cc7dbcdd05a4e41fcb9f2d28",
+            "cli_json_tokens": 2701,
+            "complete_cli_tokens": 2701,
+            "markdown_bytes": 4336,
+            "markdown_digest": "blake3:aaff90f7602224d825251744ee1b2c0cbf87bb5f846dc36e810047490f6a209e",
+            "markdown_tokens": 1438,
+            "max_tokens": 8000,
+            "pretty_json_tokens_diagnostic": 3405,
+            "reported_used_tokens": 2701
+          },
+          "retrieval": "flat_lexical_and_recorded_relationships",
+          "schema_version": 2,
+          "scores": {
+            "additional_record_count": 2,
+            "altered_original_records": 0,
+            "complete_critical_condition_recall": {
+              "expected": 3,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 3
+            },
+            "exact_knowledge_id_recall": {
+              "expected": 4,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 4
+            },
+            "invalid_source_references": 0,
+            "manifest_checks": {
+              "documentary_relation_witnesses_checked": 0,
+              "embedded_evidence_records_checked": 0,
+              "source_revisions_checked": 0,
+              "summary_original_references_checked": 0
+            },
+            "original_source_evidence_recall": {
+              "expected": 4,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 4
+            },
+            "returned_evidence_ids": [
+              "ev_8b220f397fd014878301260458b86f52eba793b3f4cc7a2e2fe6191bdcd53edc",
+              "ev_94bbf80b39a5b46c8ff559337e20685945cbf56ff0a60cf69a7d43a947b1d33b",
+              "ev_99847c8a542cf9dabf0936b3f5cd7edc4e7cb52be09d0867c459bd84a4a89eea",
+              "ev_ba93ddd6deff00188ffc7688301faeb38ee006d9bfa340ee151ff22804252b27",
+              "ev_cc5e24ae7e0391731fe9cc93058c553e69f51639160905bcd65676e1e4309cdd",
+              "ev_d4ceec3887f95c56adbb6c85e2b8feea1739934b117a11b862e462c7a5335f47"
+            ],
+            "returned_knowledge_ids": [
+              "ku_448f90ae67724fd0a74cab04a5c49257",
+              "ku_459fed0595a441ff81c8c4897455b3ae",
+              "ku_682711e00a344158824a9829bb854a3c",
+              "ku_811d926cdc5f489f83aebaebb7ffde43",
+              "ku_95759c7722b9428f83ed88af99bea471",
+              "ku_cf86792564fc4390a05aa808bdd6ec0e"
+            ],
+            "validation_scope": "documentary originals, source evidence, relationship witnesses, source revisions and summary references; native imports and grouping quality are not scored"
+          },
+          "status": "complete",
+          "warnings": []
+        }
+      },
+      "knowledge_zoom": {
+        "elapsed_retrieval_us": [
+          358179,
+          355406,
+          362987
+        ],
+        "identical_outputs_across_repeats": true,
+        "median_elapsed_retrieval_us": 358179,
+        "result": {
+          "model_calls": 0,
+          "omissions": {
+            "coverage": {
+              "eligible_units": 6,
+              "included_units": 5,
+              "omission_reasons": [
+                "Complete evidence and attached critical conditions did not fit the output budget; omitted groups make no recommendation."
+              ],
+              "omitted_units": 1
+            },
+            "critical_groups_omitted": 1
+          },
+          "output": {
+            "cli_json_bytes": 17016,
+            "cli_json_digest": "blake3:63971f631091030067670376358b00367447f87bf91456b69ec314a6084c7a99",
+            "cli_json_tokens": 6242,
+            "complete_cli_tokens": 6242,
+            "markdown_bytes": 7579,
+            "markdown_digest": "blake3:90e5643c3ae94665de0fa2ea3aa879d8f9c3c656d775c906ff48b54f65e1fb13",
+            "markdown_tokens": 2404,
+            "max_tokens": 8000,
+            "pretty_json_tokens_diagnostic": 7540,
+            "reported_used_tokens": 7540
+          },
+          "retrieval": "cross_level",
+          "schema_version": 1,
+          "scores": {
+            "additional_record_count": 1,
+            "altered_original_records": 0,
+            "complete_critical_condition_recall": {
+              "expected": 3,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 3
+            },
+            "exact_knowledge_id_recall": {
+              "expected": 4,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 4
+            },
+            "invalid_source_references": 0,
+            "manifest_checks": {
+              "documentary_relation_witnesses_checked": 0,
+              "embedded_evidence_records_checked": 5,
+              "source_revisions_checked": 5,
+              "summary_original_references_checked": 4
+            },
+            "original_source_evidence_recall": {
+              "expected": 4,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 4
+            },
+            "returned_evidence_ids": [
+              "ev_8b220f397fd014878301260458b86f52eba793b3f4cc7a2e2fe6191bdcd53edc",
+              "ev_94bbf80b39a5b46c8ff559337e20685945cbf56ff0a60cf69a7d43a947b1d33b",
+              "ev_ba93ddd6deff00188ffc7688301faeb38ee006d9bfa340ee151ff22804252b27",
+              "ev_cc5e24ae7e0391731fe9cc93058c553e69f51639160905bcd65676e1e4309cdd",
+              "ev_d4ceec3887f95c56adbb6c85e2b8feea1739934b117a11b862e462c7a5335f47"
+            ],
+            "returned_knowledge_ids": [
+              "ku_448f90ae67724fd0a74cab04a5c49257",
+              "ku_682711e00a344158824a9829bb854a3c",
+              "ku_811d926cdc5f489f83aebaebb7ffde43",
+              "ku_95759c7722b9428f83ed88af99bea471",
+              "ku_cf86792564fc4390a05aa808bdd6ec0e"
+            ],
+            "validation_scope": "documentary originals, source evidence, relationship witnesses, source revisions and summary references; native imports and grouping quality are not scored"
+          },
+          "status": "partial",
+          "warnings": [
+            "Source records retain their documentary status; neither navigation grouping nor static evidence independently proves runtime behavior."
+          ]
+        }
+      },
+      "max_tokens": 8000,
+      "query": "tenant worker dispatch admission"
+    },
+    {
+      "case_id": "future_scope",
+      "flat_direct": {
+        "elapsed_retrieval_us": [
+          146915,
+          144649,
+          140344
+        ],
+        "identical_outputs_across_repeats": true,
+        "median_elapsed_retrieval_us": 144649,
+        "result": {
+          "model_calls": 0,
+          "omissions": {
+            "critical_groups": 0,
+            "discrepancies": 0,
+            "imported_observations": 0,
+            "knowledge_units": 3,
+            "source_warnings": 0,
+            "unsupported_units": 0
+          },
+          "output": {
+            "cli_json_bytes": 4471,
+            "cli_json_digest": "blake3:4b2c6920a76f0647fe9193de6d57d0f73332e84991279a27cb6cf0c964856ee5",
+            "cli_json_tokens": 1372,
+            "complete_cli_tokens": 1372,
+            "markdown_bytes": 2553,
+            "markdown_digest": "blake3:dc9d914c57d5c4797a96da5fb0e6614e216473a5abdc3a1cae7c04234358d949",
+            "markdown_tokens": 811,
+            "max_tokens": 1500,
+            "pretty_json_tokens_diagnostic": 1772,
+            "reported_used_tokens": 1372
+          },
+          "retrieval": "flat_lexical_and_recorded_relationships",
+          "schema_version": 2,
+          "scores": {
+            "additional_record_count": 1,
+            "altered_original_records": 0,
+            "complete_critical_condition_recall": {
+              "expected": 2,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 2
+            },
+            "exact_knowledge_id_recall": {
+              "expected": 2,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 2
+            },
+            "invalid_source_references": 0,
+            "manifest_checks": {
+              "documentary_relation_witnesses_checked": 0,
+              "embedded_evidence_records_checked": 0,
+              "source_revisions_checked": 0,
+              "summary_original_references_checked": 0
+            },
+            "original_source_evidence_recall": {
+              "expected": 2,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 2
+            },
+            "returned_evidence_ids": [
+              "ev_8b220f397fd014878301260458b86f52eba793b3f4cc7a2e2fe6191bdcd53edc",
+              "ev_99847c8a542cf9dabf0936b3f5cd7edc4e7cb52be09d0867c459bd84a4a89eea",
+              "ev_cc5e24ae7e0391731fe9cc93058c553e69f51639160905bcd65676e1e4309cdd"
+            ],
+            "returned_knowledge_ids": [
+              "ku_448f90ae67724fd0a74cab04a5c49257",
+              "ku_459fed0595a441ff81c8c4897455b3ae",
+              "ku_cf86792564fc4390a05aa808bdd6ec0e"
+            ],
+            "validation_scope": "documentary originals, source evidence, relationship witnesses, source revisions and summary references; native imports and grouping quality are not scored"
+          },
+          "status": "partial",
+          "warnings": [
+            "Some relevant knowledge was omitted. Increase --max-tokens or narrow the task; complete records and critical relationship groups are kept together."
+          ]
+        }
+      },
+      "knowledge_zoom": {
+        "elapsed_retrieval_us": [
+          126388,
+          135446,
+          134662
+        ],
+        "identical_outputs_across_repeats": true,
+        "median_elapsed_retrieval_us": 134662,
+        "result": {
+          "model_calls": 0,
+          "omissions": {
+            "coverage": {
+              "eligible_units": 6,
+              "included_units": 1,
+              "omission_reasons": [
+                "Complete evidence and attached critical conditions did not fit the output budget; omitted groups make no recommendation."
+              ],
+              "omitted_units": 5
+            },
+            "critical_groups_omitted": 2
+          },
+          "output": {
+            "cli_json_bytes": 3450,
+            "cli_json_digest": "blake3:6d3485a2325023058992a65266821ce8494b0b4abbb1f64b3b8173e1e50b816b",
+            "cli_json_tokens": 1163,
+            "complete_cli_tokens": 1163,
+            "markdown_bytes": 1981,
+            "markdown_digest": "blake3:226973f3fcf26f7d0e0ab5cb121bfb6fce9ed9873b8f1f88e19fade10a86a068",
+            "markdown_tokens": 571,
+            "max_tokens": 1500,
+            "pretty_json_tokens_diagnostic": 1444,
+            "reported_used_tokens": 1444
+          },
+          "retrieval": "cross_level",
+          "schema_version": 1,
+          "scores": {
+            "additional_record_count": 1,
+            "altered_original_records": 0,
+            "complete_critical_condition_recall": {
+              "expected": 2,
+              "fraction": 0.0,
+              "missing_ids": [
+                "ku_cf86792564fc4390a05aa808bdd6ec0e",
+                "ku_459fed0595a441ff81c8c4897455b3ae"
+              ],
+              "retained": 0
+            },
+            "exact_knowledge_id_recall": {
+              "expected": 2,
+              "fraction": 0.0,
+              "missing_ids": [
+                "ku_cf86792564fc4390a05aa808bdd6ec0e",
+                "ku_459fed0595a441ff81c8c4897455b3ae"
+              ],
+              "retained": 0
+            },
+            "invalid_source_references": 0,
+            "manifest_checks": {
+              "documentary_relation_witnesses_checked": 0,
+              "embedded_evidence_records_checked": 1,
+              "source_revisions_checked": 1,
+              "summary_original_references_checked": 0
+            },
+            "original_source_evidence_recall": {
+              "expected": 2,
+              "fraction": 0.0,
+              "missing_ids": [
+                "ev_8b220f397fd014878301260458b86f52eba793b3f4cc7a2e2fe6191bdcd53edc",
+                "ev_99847c8a542cf9dabf0936b3f5cd7edc4e7cb52be09d0867c459bd84a4a89eea"
+              ],
+              "retained": 0
+            },
+            "returned_evidence_ids": [
+              "ev_d102d6ec9b772b544eb011007d0e270fc0b1189f94e971b40ae4123a6ac77f57"
+            ],
+            "returned_knowledge_ids": [
+              "ku_33b0676011a3453086d2898e2116f456"
+            ],
+            "validation_scope": "documentary originals, source evidence, relationship witnesses, source revisions and summary references; native imports and grouping quality are not scored"
+          },
+          "status": "partial",
+          "warnings": [
+            "Source records retain their documentary status; neither navigation grouping nor static evidence independently proves runtime behavior."
+          ]
+        }
+      },
+      "max_tokens": 1500,
+      "query": "proposed staging queue capacity"
+    },
+    {
+      "case_id": "future_scope",
+      "flat_direct": {
+        "elapsed_retrieval_us": [
+          162912,
+          163741,
+          157342
+        ],
+        "identical_outputs_across_repeats": true,
+        "median_elapsed_retrieval_us": 162912,
+        "result": {
+          "model_calls": 0,
+          "omissions": {
+            "critical_groups": 0,
+            "discrepancies": 0,
+            "imported_observations": 0,
+            "knowledge_units": 0,
+            "source_warnings": 0,
+            "unsupported_units": 0
+          },
+          "output": {
+            "cli_json_bytes": 8085,
+            "cli_json_digest": "blake3:4f839a97179b82aba3b84da3f57a96751f4bf00e5b5d29be63866580887039a4",
+            "cli_json_tokens": 2516,
+            "complete_cli_tokens": 2516,
+            "markdown_bytes": 4520,
+            "markdown_digest": "blake3:c463f73c096e7008eafabb458935df2d5ea241bae02befee5a2c1a9905c5096a",
+            "markdown_tokens": 1470,
+            "max_tokens": 8000,
+            "pretty_json_tokens_diagnostic": 3209,
+            "reported_used_tokens": 2516
+          },
+          "retrieval": "flat_lexical_and_recorded_relationships",
+          "schema_version": 2,
+          "scores": {
+            "additional_record_count": 4,
+            "altered_original_records": 0,
+            "complete_critical_condition_recall": {
+              "expected": 2,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 2
+            },
+            "exact_knowledge_id_recall": {
+              "expected": 2,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 2
+            },
+            "invalid_source_references": 0,
+            "manifest_checks": {
+              "documentary_relation_witnesses_checked": 0,
+              "embedded_evidence_records_checked": 0,
+              "source_revisions_checked": 0,
+              "summary_original_references_checked": 0
+            },
+            "original_source_evidence_recall": {
+              "expected": 2,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 2
+            },
+            "returned_evidence_ids": [
+              "ev_8b220f397fd014878301260458b86f52eba793b3f4cc7a2e2fe6191bdcd53edc",
+              "ev_94bbf80b39a5b46c8ff559337e20685945cbf56ff0a60cf69a7d43a947b1d33b",
+              "ev_99847c8a542cf9dabf0936b3f5cd7edc4e7cb52be09d0867c459bd84a4a89eea",
+              "ev_ba93ddd6deff00188ffc7688301faeb38ee006d9bfa340ee151ff22804252b27",
+              "ev_cc5e24ae7e0391731fe9cc93058c553e69f51639160905bcd65676e1e4309cdd",
+              "ev_d102d6ec9b772b544eb011007d0e270fc0b1189f94e971b40ae4123a6ac77f57"
+            ],
+            "returned_knowledge_ids": [
+              "ku_33b0676011a3453086d2898e2116f456",
+              "ku_448f90ae67724fd0a74cab04a5c49257",
+              "ku_459fed0595a441ff81c8c4897455b3ae",
+              "ku_682711e00a344158824a9829bb854a3c",
+              "ku_95759c7722b9428f83ed88af99bea471",
+              "ku_cf86792564fc4390a05aa808bdd6ec0e"
+            ],
+            "validation_scope": "documentary originals, source evidence, relationship witnesses, source revisions and summary references; native imports and grouping quality are not scored"
+          },
+          "status": "complete",
+          "warnings": []
+        }
+      },
+      "knowledge_zoom": {
+        "elapsed_retrieval_us": [
+          339505,
+          354679,
+          327760
+        ],
+        "identical_outputs_across_repeats": true,
+        "median_elapsed_retrieval_us": 339505,
+        "result": {
+          "model_calls": 0,
+          "omissions": {
+            "coverage": {
+              "eligible_units": 6,
+              "included_units": 6,
+              "omission_reasons": [],
+              "omitted_units": 0
+            },
+            "critical_groups_omitted": 0
+          },
+          "output": {
+            "cli_json_bytes": 15964,
+            "cli_json_digest": "blake3:0026cd047650691780bbaaa1698f96f1cf000ae81628576f6b890d0edb7a4b4b",
+            "cli_json_tokens": 5665,
+            "complete_cli_tokens": 5665,
+            "markdown_bytes": 8273,
+            "markdown_digest": "blake3:e25ba989f71d62973132be20635c37b141e73c066e4878a2d9e9e2eb2c3f7033",
+            "markdown_tokens": 2685,
+            "max_tokens": 8000,
+            "pretty_json_tokens_diagnostic": 6830,
+            "reported_used_tokens": 6830
+          },
+          "retrieval": "cross_level",
+          "schema_version": 1,
+          "scores": {
+            "additional_record_count": 4,
+            "altered_original_records": 0,
+            "complete_critical_condition_recall": {
+              "expected": 2,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 2
+            },
+            "exact_knowledge_id_recall": {
+              "expected": 2,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 2
+            },
+            "invalid_source_references": 0,
+            "manifest_checks": {
+              "documentary_relation_witnesses_checked": 0,
+              "embedded_evidence_records_checked": 6,
+              "source_revisions_checked": 6,
+              "summary_original_references_checked": 6
+            },
+            "original_source_evidence_recall": {
+              "expected": 2,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 2
+            },
+            "returned_evidence_ids": [
+              "ev_8b220f397fd014878301260458b86f52eba793b3f4cc7a2e2fe6191bdcd53edc",
+              "ev_94bbf80b39a5b46c8ff559337e20685945cbf56ff0a60cf69a7d43a947b1d33b",
+              "ev_99847c8a542cf9dabf0936b3f5cd7edc4e7cb52be09d0867c459bd84a4a89eea",
+              "ev_ba93ddd6deff00188ffc7688301faeb38ee006d9bfa340ee151ff22804252b27",
+              "ev_cc5e24ae7e0391731fe9cc93058c553e69f51639160905bcd65676e1e4309cdd",
+              "ev_d102d6ec9b772b544eb011007d0e270fc0b1189f94e971b40ae4123a6ac77f57"
+            ],
+            "returned_knowledge_ids": [
+              "ku_33b0676011a3453086d2898e2116f456",
+              "ku_448f90ae67724fd0a74cab04a5c49257",
+              "ku_459fed0595a441ff81c8c4897455b3ae",
+              "ku_682711e00a344158824a9829bb854a3c",
+              "ku_95759c7722b9428f83ed88af99bea471",
+              "ku_cf86792564fc4390a05aa808bdd6ec0e"
+            ],
+            "validation_scope": "documentary originals, source evidence, relationship witnesses, source revisions and summary references; native imports and grouping quality are not scored"
+          },
+          "status": "complete",
+          "warnings": [
+            "Source records retain their documentary status; neither navigation grouping nor static evidence independently proves runtime behavior."
+          ]
+        }
+      },
+      "max_tokens": 8000,
+      "query": "proposed staging queue capacity"
+    },
+    {
+      "case_id": "documented_disagreement",
+      "flat_direct": {
+        "elapsed_retrieval_us": [
+          58226,
+          60908,
+          59160
+        ],
+        "identical_outputs_across_repeats": true,
+        "median_elapsed_retrieval_us": 59160,
+        "result": {
+          "model_calls": 0,
+          "omissions": {
+            "critical_groups": 0,
+            "discrepancies": 0,
+            "imported_observations": 0,
+            "knowledge_units": 1,
+            "source_warnings": 0,
+            "unsupported_units": 0
+          },
+          "output": {
+            "cli_json_bytes": 4265,
+            "cli_json_digest": "blake3:b9e9f219e4e934c1e4aa84c26c2cd5299cdc7aaf68677027561bdb941d5c2a34",
+            "cli_json_tokens": 1394,
+            "complete_cli_tokens": 1394,
+            "markdown_bytes": 2695,
+            "markdown_digest": "blake3:8593b6738bbd20949efab40c76aad810ac3f2d0f2ac4e8b58f7dad2dea60c9f9",
+            "markdown_tokens": 882,
+            "max_tokens": 1500,
+            "pretty_json_tokens_diagnostic": 1757,
+            "reported_used_tokens": 1394
+          },
+          "retrieval": "flat_lexical_and_recorded_relationships",
+          "schema_version": 2,
+          "scores": {
+            "additional_record_count": 0,
+            "altered_original_records": 0,
+            "complete_critical_condition_recall": {
+              "expected": 2,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 2
+            },
+            "exact_knowledge_id_recall": {
+              "expected": 2,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 2
+            },
+            "invalid_source_references": 0,
+            "manifest_checks": {
+              "documentary_relation_witnesses_checked": 1,
+              "embedded_evidence_records_checked": 0,
+              "source_revisions_checked": 0,
+              "summary_original_references_checked": 0
+            },
+            "original_source_evidence_recall": {
+              "expected": 2,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 2
+            },
+            "returned_evidence_ids": [
+              "ev_c74ece194b7114d3fdc33b7291f55f62004788fa1525ab0aa1a95fae39d288a6",
+              "ev_d9565f8a1e834275d10f66347643202b98edcdd3618005a0cfa2d1c84977d5fa"
+            ],
+            "returned_knowledge_ids": [
+              "ku_38fd1ea3760b44849e5f711d1ff16cf6",
+              "ku_aad072eeb5f64e7fa7acd98c0ff4dfaf"
+            ],
+            "validation_scope": "documentary originals, source evidence, relationship witnesses, source revisions and summary references; native imports and grouping quality are not scored"
+          },
+          "status": "partial",
+          "warnings": [
+            "Some relevant knowledge was omitted. Increase --max-tokens or narrow the task; complete records and critical relationship groups are kept together."
+          ]
+        }
+      },
+      "knowledge_zoom": {
+        "elapsed_retrieval_us": [
+          113362,
+          114275,
+          121279
+        ],
+        "identical_outputs_across_repeats": true,
+        "median_elapsed_retrieval_us": 114275,
+        "result": {
+          "model_calls": 0,
+          "omissions": {
+            "coverage": {
+              "eligible_units": 3,
+              "included_units": 1,
+              "omission_reasons": [
+                "Complete evidence and attached critical conditions did not fit the output budget; omitted groups make no recommendation."
+              ],
+              "omitted_units": 2
+            },
+            "critical_groups_omitted": 1
+          },
+          "output": {
+            "cli_json_bytes": 3493,
+            "cli_json_digest": "blake3:f2b08c1ae158a5dafb5afb883a95b74fae26596b11481b0f5e0fc7973ac30d6c",
+            "cli_json_tokens": 1204,
+            "complete_cli_tokens": 1204,
+            "markdown_bytes": 1923,
+            "markdown_digest": "blake3:ad2edbb83dfb2bef65eaee77d43fd497a93d387f797bd78ff778f1b5cfa5c0e6",
+            "markdown_tokens": 552,
+            "max_tokens": 1500,
+            "pretty_json_tokens_diagnostic": 1492,
+            "reported_used_tokens": 1492
+          },
+          "retrieval": "cross_level",
+          "schema_version": 1,
+          "scores": {
+            "additional_record_count": 1,
+            "altered_original_records": 0,
+            "complete_critical_condition_recall": {
+              "expected": 2,
+              "fraction": 0.0,
+              "missing_ids": [
+                "ku_aad072eeb5f64e7fa7acd98c0ff4dfaf",
+                "ku_38fd1ea3760b44849e5f711d1ff16cf6"
+              ],
+              "retained": 0
+            },
+            "exact_knowledge_id_recall": {
+              "expected": 2,
+              "fraction": 0.0,
+              "missing_ids": [
+                "ku_aad072eeb5f64e7fa7acd98c0ff4dfaf",
+                "ku_38fd1ea3760b44849e5f711d1ff16cf6"
+              ],
+              "retained": 0
+            },
+            "invalid_source_references": 0,
+            "manifest_checks": {
+              "documentary_relation_witnesses_checked": 0,
+              "embedded_evidence_records_checked": 1,
+              "source_revisions_checked": 1,
+              "summary_original_references_checked": 0
+            },
+            "original_source_evidence_recall": {
+              "expected": 2,
+              "fraction": 0.0,
+              "missing_ids": [
+                "ev_c74ece194b7114d3fdc33b7291f55f62004788fa1525ab0aa1a95fae39d288a6",
+                "ev_d9565f8a1e834275d10f66347643202b98edcdd3618005a0cfa2d1c84977d5fa"
+              ],
+              "retained": 0
+            },
+            "returned_evidence_ids": [
+              "ev_13d11e3058d66cb965299c854f866412a25adab8ec70f786ab630c645316cd64"
+            ],
+            "returned_knowledge_ids": [
+              "ku_f40d34efce8046969a04c13b5d253767"
+            ],
+            "validation_scope": "documentary originals, source evidence, relationship witnesses, source revisions and summary references; native imports and grouping quality are not scored"
+          },
+          "status": "partial",
+          "warnings": [
+            "Source records retain their documentary status; neither navigation grouping nor static evidence independently proves runtime behavior."
+          ]
+        }
+      },
+      "max_tokens": 1500,
+      "query": "selected ledger database"
+    },
+    {
+      "case_id": "documented_disagreement",
+      "flat_direct": {
+        "elapsed_retrieval_us": [
+          71681,
+          66844,
+          67691
+        ],
+        "identical_outputs_across_repeats": true,
+        "median_elapsed_retrieval_us": 67691,
+        "result": {
+          "model_calls": 0,
+          "omissions": {
+            "critical_groups": 0,
+            "discrepancies": 0,
+            "imported_observations": 0,
+            "knowledge_units": 0,
+            "source_warnings": 0,
+            "unsupported_units": 0
+          },
+          "output": {
+            "cli_json_bytes": 5106,
+            "cli_json_digest": "blake3:c31261311df62e7a30400907f4fcfcf52de116df2524776c5f097073a075f3cc",
+            "cli_json_tokens": 1671,
+            "complete_cli_tokens": 1671,
+            "markdown_bytes": 3140,
+            "markdown_digest": "blake3:5a3db58e74b26b8f619191564162268819b47ce9b3069e3b00433ba23fca5591",
+            "markdown_tokens": 1056,
+            "max_tokens": 8000,
+            "pretty_json_tokens_diagnostic": 2125,
+            "reported_used_tokens": 1671
+          },
+          "retrieval": "flat_lexical_and_recorded_relationships",
+          "schema_version": 2,
+          "scores": {
+            "additional_record_count": 1,
+            "altered_original_records": 0,
+            "complete_critical_condition_recall": {
+              "expected": 2,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 2
+            },
+            "exact_knowledge_id_recall": {
+              "expected": 2,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 2
+            },
+            "invalid_source_references": 0,
+            "manifest_checks": {
+              "documentary_relation_witnesses_checked": 1,
+              "embedded_evidence_records_checked": 0,
+              "source_revisions_checked": 0,
+              "summary_original_references_checked": 0
+            },
+            "original_source_evidence_recall": {
+              "expected": 2,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 2
+            },
+            "returned_evidence_ids": [
+              "ev_13d11e3058d66cb965299c854f866412a25adab8ec70f786ab630c645316cd64",
+              "ev_c74ece194b7114d3fdc33b7291f55f62004788fa1525ab0aa1a95fae39d288a6",
+              "ev_d9565f8a1e834275d10f66347643202b98edcdd3618005a0cfa2d1c84977d5fa"
+            ],
+            "returned_knowledge_ids": [
+              "ku_38fd1ea3760b44849e5f711d1ff16cf6",
+              "ku_aad072eeb5f64e7fa7acd98c0ff4dfaf",
+              "ku_f40d34efce8046969a04c13b5d253767"
+            ],
+            "validation_scope": "documentary originals, source evidence, relationship witnesses, source revisions and summary references; native imports and grouping quality are not scored"
+          },
+          "status": "complete",
+          "warnings": []
+        }
+      },
+      "knowledge_zoom": {
+        "elapsed_retrieval_us": [
+          239211,
+          243158,
+          232023
+        ],
+        "identical_outputs_across_repeats": true,
+        "median_elapsed_retrieval_us": 239211,
+        "result": {
+          "model_calls": 0,
+          "omissions": {
+            "coverage": {
+              "eligible_units": 3,
+              "included_units": 3,
+              "omission_reasons": [],
+              "omitted_units": 0
+            },
+            "critical_groups_omitted": 0
+          },
+          "output": {
+            "cli_json_bytes": 11077,
+            "cli_json_digest": "blake3:b3e7daf2f6c4bb77cda1971cbd86dd145f578999c37f6650be2fb22868999e0a",
+            "cli_json_tokens": 4261,
+            "complete_cli_tokens": 4261,
+            "markdown_bytes": 4904,
+            "markdown_digest": "blake3:b01d7736c27302ab28dbe0f888c5c4190e1935d1aa3fd85af9365915f228754e",
+            "markdown_tokens": 1649,
+            "max_tokens": 8000,
+            "pretty_json_tokens_diagnostic": 5106,
+            "reported_used_tokens": 5106
+          },
+          "retrieval": "cross_level",
+          "schema_version": 1,
+          "scores": {
+            "additional_record_count": 1,
+            "altered_original_records": 0,
+            "complete_critical_condition_recall": {
+              "expected": 2,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 2
+            },
+            "exact_knowledge_id_recall": {
+              "expected": 2,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 2
+            },
+            "invalid_source_references": 0,
+            "manifest_checks": {
+              "documentary_relation_witnesses_checked": 1,
+              "embedded_evidence_records_checked": 3,
+              "source_revisions_checked": 3,
+              "summary_original_references_checked": 4
+            },
+            "original_source_evidence_recall": {
+              "expected": 2,
+              "fraction": 1.0,
+              "missing_ids": [],
+              "retained": 2
+            },
+            "returned_evidence_ids": [
+              "ev_13d11e3058d66cb965299c854f866412a25adab8ec70f786ab630c645316cd64",
+              "ev_c74ece194b7114d3fdc33b7291f55f62004788fa1525ab0aa1a95fae39d288a6",
+              "ev_d9565f8a1e834275d10f66347643202b98edcdd3618005a0cfa2d1c84977d5fa"
+            ],
+            "returned_knowledge_ids": [
+              "ku_38fd1ea3760b44849e5f711d1ff16cf6",
+              "ku_aad072eeb5f64e7fa7acd98c0ff4dfaf",
+              "ku_f40d34efce8046969a04c13b5d253767"
+            ],
+            "validation_scope": "documentary originals, source evidence, relationship witnesses, source revisions and summary references; native imports and grouping quality are not scored"
+          },
+          "status": "complete",
+          "warnings": [
+            "Source records retain their documentary status; neither navigation grouping nor static evidence independently proves runtime behavior."
+          ]
+        }
+      },
+      "max_tokens": 8000,
+      "query": "selected ledger database"
+    },
+    {
+      "case_id": "unrecorded_identifier",
+      "flat_direct": {
+        "elapsed_retrieval_us": [
+          7624,
+          6896,
+          8846
+        ],
+        "identical_outputs_across_repeats": true,
+        "median_elapsed_retrieval_us": 7624,
+        "result": {
+          "model_calls": 0,
+          "omissions": {
+            "critical_groups": 0,
+            "discrepancies": 0,
+            "imported_observations": 0,
+            "knowledge_units": 0,
+            "source_warnings": 0,
+            "unsupported_units": 0
+          },
+          "output": {
+            "cli_json_bytes": 785,
+            "cli_json_digest": "blake3:7d0969fff7484080737ae2bad1ec5c244c3a7cc52b5f42f37b5759162bdc56b1",
+            "cli_json_tokens": 192,
+            "complete_cli_tokens": 192,
+            "markdown_bytes": 472,
+            "markdown_digest": "blake3:b421724236e5a7d0d3e18b8f28254672fd437c0c53c5b77516da66f52c8a0576",
+            "markdown_tokens": 107,
+            "max_tokens": 1500,
+            "pretty_json_tokens_diagnostic": 286,
+            "reported_used_tokens": 192
+          },
+          "retrieval": "flat_lexical_and_recorded_relationships",
+          "schema_version": 2,
+          "scores": {
+            "additional_record_count": 0,
+            "altered_original_records": 0,
+            "complete_critical_condition_recall": {
+              "expected": 0,
+              "fraction": null,
+              "missing_ids": [],
+              "retained": 0
+            },
+            "exact_knowledge_id_recall": {
+              "expected": 0,
+              "fraction": null,
+              "missing_ids": [],
+              "retained": 0
+            },
+            "invalid_source_references": 0,
+            "manifest_checks": {
+              "documentary_relation_witnesses_checked": 0,
+              "embedded_evidence_records_checked": 0,
+              "source_revisions_checked": 0,
+              "summary_original_references_checked": 0
+            },
+            "original_source_evidence_recall": {
+              "expected": 0,
+              "fraction": null,
+              "missing_ids": [],
+              "retained": 0
+            },
+            "returned_evidence_ids": [],
+            "returned_knowledge_ids": [],
+            "validation_scope": "documentary originals, source evidence, relationship witnesses, source revisions and summary references; native imports and grouping quality are not scored"
+          },
+          "status": "empty",
+          "warnings": [
+            "No relevant stored knowledge found. This does not establish that no constraints exist."
+          ]
+        }
+      },
+      "knowledge_zoom": {
+        "elapsed_retrieval_us": [
+          32838,
+          31836,
+          32969
+        ],
+        "identical_outputs_across_repeats": true,
+        "median_elapsed_retrieval_us": 32838,
+        "result": {
+          "model_calls": 0,
+          "omissions": {
+            "coverage": {
+              "eligible_units": 0,
+              "included_units": 0,
+              "omission_reasons": [],
+              "omitted_units": 0
+            },
+            "critical_groups_omitted": 0
+          },
+          "output": {
+            "cli_json_bytes": 798,
+            "cli_json_digest": "blake3:3d99477b06194563c59d7f0acc980ca00c799119f9ccfe65964f9729e95ac16a",
+            "cli_json_tokens": 198,
+            "complete_cli_tokens": 198,
+            "markdown_bytes": 536,
+            "markdown_digest": "blake3:edb8dcdd5998f09ce774c5d4d92a0d29b103683b2d6cd8795fcb08d16e05c3f0",
+            "markdown_tokens": 130,
+            "max_tokens": 1500,
+            "pretty_json_tokens_diagnostic": 265,
+            "reported_used_tokens": 265
+          },
+          "retrieval": "cross_level",
+          "schema_version": 1,
+          "scores": {
+            "additional_record_count": 0,
+            "altered_original_records": 0,
+            "complete_critical_condition_recall": {
+              "expected": 0,
+              "fraction": null,
+              "missing_ids": [],
+              "retained": 0
+            },
+            "exact_knowledge_id_recall": {
+              "expected": 0,
+              "fraction": null,
+              "missing_ids": [],
+              "retained": 0
+            },
+            "invalid_source_references": 0,
+            "manifest_checks": {
+              "documentary_relation_witnesses_checked": 0,
+              "embedded_evidence_records_checked": 0,
+              "source_revisions_checked": 0,
+              "summary_original_references_checked": 0
+            },
+            "original_source_evidence_recall": {
+              "expected": 0,
+              "fraction": null,
+              "missing_ids": [],
+              "retained": 0
+            },
+            "returned_evidence_ids": [],
+            "returned_knowledge_ids": [],
+            "validation_scope": "documentary originals, source evidence, relationship witnesses, source revisions and summary references; native imports and grouping quality are not scored"
+          },
+          "status": "no_matches",
+          "warnings": [
+            "Source records retain their documentary status; neither navigation grouping nor static evidence independently proves runtime behavior.",
+            "No eligible source-bound records matched this request. This does not establish the absence of relevant knowledge or constraints."
+          ]
+        }
+      },
+      "max_tokens": 1500,
+      "query": "ORBITAL_SPECTROMETER_UNRECORDED"
+    },
+    {
+      "case_id": "unrecorded_identifier",
+      "flat_direct": {
+        "elapsed_retrieval_us": [
+          6787,
+          6788,
+          6692
+        ],
+        "identical_outputs_across_repeats": true,
+        "median_elapsed_retrieval_us": 6787,
+        "result": {
+          "model_calls": 0,
+          "omissions": {
+            "critical_groups": 0,
+            "discrepancies": 0,
+            "imported_observations": 0,
+            "knowledge_units": 0,
+            "source_warnings": 0,
+            "unsupported_units": 0
+          },
+          "output": {
+            "cli_json_bytes": 785,
+            "cli_json_digest": "blake3:b140992a008a3738cc519072b60e3dfa851613d33c6664f3228a8e1720fc593d",
+            "cli_json_tokens": 192,
+            "complete_cli_tokens": 192,
+            "markdown_bytes": 472,
+            "markdown_digest": "blake3:6ff84f5b806132119a6f9b0aba722a362fd523eb28e887a8a3fdd11b45d73858",
+            "markdown_tokens": 107,
+            "max_tokens": 8000,
+            "pretty_json_tokens_diagnostic": 286,
+            "reported_used_tokens": 192
+          },
+          "retrieval": "flat_lexical_and_recorded_relationships",
+          "schema_version": 2,
+          "scores": {
+            "additional_record_count": 0,
+            "altered_original_records": 0,
+            "complete_critical_condition_recall": {
+              "expected": 0,
+              "fraction": null,
+              "missing_ids": [],
+              "retained": 0
+            },
+            "exact_knowledge_id_recall": {
+              "expected": 0,
+              "fraction": null,
+              "missing_ids": [],
+              "retained": 0
+            },
+            "invalid_source_references": 0,
+            "manifest_checks": {
+              "documentary_relation_witnesses_checked": 0,
+              "embedded_evidence_records_checked": 0,
+              "source_revisions_checked": 0,
+              "summary_original_references_checked": 0
+            },
+            "original_source_evidence_recall": {
+              "expected": 0,
+              "fraction": null,
+              "missing_ids": [],
+              "retained": 0
+            },
+            "returned_evidence_ids": [],
+            "returned_knowledge_ids": [],
+            "validation_scope": "documentary originals, source evidence, relationship witnesses, source revisions and summary references; native imports and grouping quality are not scored"
+          },
+          "status": "empty",
+          "warnings": [
+            "No relevant stored knowledge found. This does not establish that no constraints exist."
+          ]
+        }
+      },
+      "knowledge_zoom": {
+        "elapsed_retrieval_us": [
+          34626,
+          32410,
+          34135
+        ],
+        "identical_outputs_across_repeats": true,
+        "median_elapsed_retrieval_us": 34135,
+        "result": {
+          "model_calls": 0,
+          "omissions": {
+            "coverage": {
+              "eligible_units": 0,
+              "included_units": 0,
+              "omission_reasons": [],
+              "omitted_units": 0
+            },
+            "critical_groups_omitted": 0
+          },
+          "output": {
+            "cli_json_bytes": 798,
+            "cli_json_digest": "blake3:6d78215cf64d8100e5d06a3f3db3dcd8802d359beee92b66e891970887ed9f5d",
+            "cli_json_tokens": 198,
+            "complete_cli_tokens": 198,
+            "markdown_bytes": 536,
+            "markdown_digest": "blake3:edb8dcdd5998f09ce774c5d4d92a0d29b103683b2d6cd8795fcb08d16e05c3f0",
+            "markdown_tokens": 130,
+            "max_tokens": 8000,
+            "pretty_json_tokens_diagnostic": 265,
+            "reported_used_tokens": 265
+          },
+          "retrieval": "cross_level",
+          "schema_version": 1,
+          "scores": {
+            "additional_record_count": 0,
+            "altered_original_records": 0,
+            "complete_critical_condition_recall": {
+              "expected": 0,
+              "fraction": null,
+              "missing_ids": [],
+              "retained": 0
+            },
+            "exact_knowledge_id_recall": {
+              "expected": 0,
+              "fraction": null,
+              "missing_ids": [],
+              "retained": 0
+            },
+            "invalid_source_references": 0,
+            "manifest_checks": {
+              "documentary_relation_witnesses_checked": 0,
+              "embedded_evidence_records_checked": 0,
+              "source_revisions_checked": 0,
+              "summary_original_references_checked": 0
+            },
+            "original_source_evidence_recall": {
+              "expected": 0,
+              "fraction": null,
+              "missing_ids": [],
+              "retained": 0
+            },
+            "returned_evidence_ids": [],
+            "returned_knowledge_ids": [],
+            "validation_scope": "documentary originals, source evidence, relationship witnesses, source revisions and summary references; native imports and grouping quality are not scored"
+          },
+          "status": "no_matches",
+          "warnings": [
+            "Source records retain their documentary status; neither navigation grouping nor static evidence independently proves runtime behavior.",
+            "No eligible source-bound records matched this request. This does not establish the absence of relevant knowledge or constraints."
+          ]
+        }
+      },
+      "max_tokens": 8000,
+      "query": "ORBITAL_SPECTROMETER_UNRECORDED"
+    }
+  ],
+  "new_logged_model_calls": 0,
+  "original_record_count": 12,
+  "package_version": "0.6.0",
+  "read_only_connection": true,
+  "registry_bytes_unchanged": true,
+  "registry_revision": "blake3:6d45e794cf5cc060ad067affe68417fa4ad726871926b3e4167b80ed61eb7fea",
+  "repeats_per_arm": 3,
+  "schema_version": 1,
+  "scorer_negative_probes": {
+    "embedded_evidence_activity": "rejected",
+    "relation_endpoint_id": "rejected",
+    "relation_witness_id": "rejected",
+    "source_revision_digest": "rejected",
+    "summary_original_reference": "rejected",
+    "unmeasured_validation_retrieval_calls": 1
+  },
+  "source_inventory": [
+    {
+      "digest": "blake3:f18fec74bffb14f7c3a0d53219830ec24cf86daf13e03417145058ec3947ac29",
+      "id": "src_18524c3b88544b7c923578c8bdc37f38",
+      "material": "primary",
+      "origin": null,
+      "path": "backoff.md",
+      "revision": "sr_3b88c299e5164181a2193a05f9ea43cb",
+      "root": "docs",
+      "root_path": "/workspace/scratch/7665bed23a4d/toolchain/tmp/.tmpxniiJh/docs"
+    },
+    {
+      "digest": "blake3:44dc516b1b73597ca5d5499ccd497d608bf775a05404698be24c0e416f91e169",
+      "id": "src_6a3a353bde474052847188214c9550c5",
+      "material": "primary",
+      "origin": null,
+      "path": "capacity.md",
+      "revision": "sr_b939c3df45154e5c828882a04a0b9d03",
+      "root": "docs",
+      "root_path": "/workspace/scratch/7665bed23a4d/toolchain/tmp/.tmpxniiJh/docs"
+    },
+    {
+      "digest": "blake3:fb09e4c0ff4501e38cec45af7adde2d5d6c82ce47e8e052d7bbb9f0a34a68609",
+      "id": "src_a41bba15eaf34c76bd61d1e589fc3216",
+      "material": "primary",
+      "origin": null,
+      "path": "database-01.md",
+      "revision": "sr_2953ab7beff74c2e938053f0849996b2",
+      "root": "docs",
+      "root_path": "/workspace/scratch/7665bed23a4d/toolchain/tmp/.tmpxniiJh/docs"
+    },
+    {
+      "digest": "blake3:1794efaa31491b74ad56df2607f95db380930175bd5369f16908af514ce0d7f1",
+      "id": "src_c898d015d8fa4f46a25eefc425ad8fd6",
+      "material": "primary",
+      "origin": null,
+      "path": "database-02.md",
+      "revision": "sr_b831d524cf7d45f3b3e41f3590b5dae4",
+      "root": "docs",
+      "root_path": "/workspace/scratch/7665bed23a4d/toolchain/tmp/.tmpxniiJh/docs"
+    },
+    {
+      "digest": "blake3:684ffe251099535647d3507dafa166969b1f7bf11b0956987809f26c9f856f15",
+      "id": "src_2ca741db42ca492cb15c8622836a1d2d",
+      "material": "primary",
+      "origin": null,
+      "path": "emergency.md",
+      "revision": "sr_2311053f13db48a49723e374558d95a7",
+      "root": "docs",
+      "root_path": "/workspace/scratch/7665bed23a4d/toolchain/tmp/.tmpxniiJh/docs"
+    },
+    {
+      "digest": "blake3:738546390899b9c6ad701a837ad5a28fd12c8a006a9b1987a12efafdb4a36436",
+      "id": "src_22949d7f75804dde93fd4eafb4f69555",
+      "material": "primary",
+      "origin": null,
+      "path": "full-queue.md",
+      "revision": "sr_2838f4d1a9e0472b85f44453c685c607",
+      "root": "docs",
+      "root_path": "/workspace/scratch/7665bed23a4d/toolchain/tmp/.tmpxniiJh/docs"
+    },
+    {
+      "digest": "blake3:913bacb6fd818e3f1db1468a07f60706a1ad46a1bb45d29639392a079918a857",
+      "id": "src_0e3f3d5349fa404d8d1ff54af381a0af",
+      "material": "primary",
+      "origin": null,
+      "path": "ledger.md",
+      "revision": "sr_9f220cc0b2354e9e92bf096a2f2f946d",
+      "root": "docs",
+      "root_path": "/workspace/scratch/7665bed23a4d/toolchain/tmp/.tmpxniiJh/docs"
+    },
+    {
+      "digest": "blake3:e8ddceb48a41ce4d6b67cc080ce7a6cbaafa5261ef8a4450bd9c70f9cffb4c9a",
+      "id": "src_8da2b916b2a544ddabec4f3dc946e198",
+      "material": "primary",
+      "origin": null,
+      "path": "purpose.md",
+      "revision": "sr_4ef1d8e2294a4c659cd1f7246297edc8",
+      "root": "docs",
+      "root_path": "/workspace/scratch/7665bed23a4d/toolchain/tmp/.tmpxniiJh/docs"
+    },
+    {
+      "digest": "blake3:f4ea5e0aaa60a472799bed8637e9428d9c4db6f73459bf31e6abd5f23c3b4730",
+      "id": "src_3907738cbb894b70a832cedec891ec3f",
+      "material": "primary",
+      "origin": null,
+      "path": "refunds.md",
+      "revision": "sr_d953d5337c8e4c1190a9a81272062e1c",
+      "root": "docs",
+      "root_path": "/workspace/scratch/7665bed23a4d/toolchain/tmp/.tmpxniiJh/docs"
+    },
+    {
+      "digest": "blake3:86b69dcd52567c4b7a6456f54438cbf2c2cfbcc2b27b89e99982fa24156c0911",
+      "id": "src_5f9e12a0eee34e8c972a1268a2a4a7b9",
+      "material": "primary",
+      "origin": null,
+      "path": "release-note.md",
+      "revision": "sr_68b9e37978f444848e5cf57754fc7d8a",
+      "root": "docs",
+      "root_path": "/workspace/scratch/7665bed23a4d/toolchain/tmp/.tmpxniiJh/docs"
+    },
+    {
+      "digest": "blake3:a2116d81618c023ce2fd5adb28e91dc33eeb014aeaefeb69228bd9bb106057f1",
+      "id": "src_6f14146b500a4be7b3b451084de23d45",
+      "material": "primary",
+      "origin": null,
+      "path": "security.md",
+      "revision": "sr_a11ab50aebd64d1b8d8b19560b0f79c6",
+      "root": "docs",
+      "root_path": "/workspace/scratch/7665bed23a4d/toolchain/tmp/.tmpxniiJh/docs"
+    },
+    {
+      "digest": "blake3:00b6cac6131e8e12098991242be0f89c9dc3faf9e7a7f4bb0ec9112a889a02ad",
+      "id": "src_e5b387dd02d14097b58da863e135fb65",
+      "material": "primary",
+      "origin": null,
+      "path": "staging-proposal.md",
+      "revision": "sr_8e382e52e3e24c8fa3fb11400188d251",
+      "root": "docs",
+      "root_path": "/workspace/scratch/7665bed23a4d/toolchain/tmp/.tmpxniiJh/docs"
+    }
+  ],
+  "sqlite_changes": 0,
+  "timing_order": "alternate arms by case index and repeat; tokenizer initialized; SQLite and OS page caches uncontrolled",
+  "timing_scope": "entrypoint elapsed time; flat build_context versus uncached explore including full graph build and validation; excludes fixture compilation, scoring and report serialization",
+  "tokenizer": "cl100k_base"
+}

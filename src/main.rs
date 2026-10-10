@@ -173,6 +173,19 @@ enum Command {
         #[arg(long)]
         allow_checkout_egress: bool,
     },
+    /// Explore project concepts, then drill down to original knowledge and evidence.
+    Explore {
+        #[arg(value_name = "QUERY", value_parser = human_goal)]
+        query: Option<String>,
+        #[arg(long, help = "Continue from a view ID in the current graph")]
+        node: Option<String>,
+        #[arg(long, default_value_t = 8_000, value_parser = view_budget)]
+        max_tokens: usize,
+        #[arg(long, default_value_t = 24, value_parser = clap::value_parser!(u16).range(1..=256))]
+        max_nodes: u16,
+        #[arg(long, help = "Do not read or write the disposable navigation cache")]
+        no_cache: bool,
+    },
     /// Explain recorded choices, conditions, alternatives and historical transitions.
     Decisions {
         #[arg(value_parser = human_goal)]
@@ -348,6 +361,7 @@ async fn run(cli: Cli) -> Result<i32> {
             | Command::Evidence { .. }
             | Command::Memory { .. }
             | Command::Onboard { .. }
+            | Command::Explore { .. }
             | Command::Decisions { .. }
             | Command::Cases { .. }
             | Command::Baseline { .. }
@@ -643,6 +657,39 @@ async fn run(cli: Cli) -> Result<i32> {
                 println!("{}", serde_json::to_string(&result)?);
             } else {
                 print!("{}", lore::experience::render_markdown(&result));
+            }
+        }
+        Command::Explore {
+            query,
+            node,
+            max_tokens,
+            max_nodes,
+            no_cache,
+        } => {
+            let conn = storage::read_only(&config.state.join("state.db"))
+                .context("open project knowledge (run lore init or lore update first)")?;
+            let options = lore::knowledge::ExploreOptions {
+                query: query.unwrap_or_default(),
+                node,
+                max_tokens,
+                max_nodes: usize::from(max_nodes),
+            };
+            let result = if no_cache || !config.config.context.cache {
+                lore::knowledge::explore(&conn, &options)?
+            } else {
+                lore::knowledge::explore_cached(
+                    &conn,
+                    &options,
+                    &config.state.join("knowledge-zoom"),
+                )
+                // Cache persistence is optional. A read-only or unmanaged
+                // cache directory must not prevent original-source guidance.
+                .or_else(|_| lore::knowledge::explore(&conn, &options))?
+            };
+            if cli.json {
+                println!("{}", serde_json::to_string(&result)?);
+            } else {
+                print!("{}", lore::knowledge::render_markdown(&result));
             }
         }
         Command::Decisions { query, max_tokens } => {

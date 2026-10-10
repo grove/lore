@@ -59,6 +59,27 @@ unknown, and a reported outcome is not a runtime verification. Complete views
 are omitted with an explanation when they exceed the output budget. See the
 [decision lenses and cases guide](docs/DECISION_LENSES.md).
 
+### Explore concepts and original evidence
+
+`lore explore` opens a bounded navigation view over the same retained knowledge.
+Concepts can overlap, have several parents and reach different depths. Exact
+facts remain directly searchable even when their navigation node does not fit:
+
+```bash
+lore explore
+lore explore "payment retries"
+lore explore "MAX_RETRIES"
+lore --json explore "payment retries" --max-tokens 8000
+lore explore --node RETURNED_VIEW_ID
+```
+
+The deterministic view preserves complete source-linked conditions and
+documentary relationships, reports omitted groups, and performs no inference or
+code execution. A disposable revision-aware cache avoids rewriting unchanged
+views; `--no-cache` bypasses it. See the [Knowledge Zoom guide](docs/KNOWLEDGE_ZOOM.md)
+for direct source drill-down, grouping limits and the distinction between
+navigation and evidence authority.
+
 ## Vision
 
 **Lore's long-term goal is to make everyone working in a project more capable—newcomers, experienced developers, maintainers and coding agents.**
