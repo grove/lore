@@ -20,6 +20,10 @@ jobs:
           persist-credentials: false
       - name: Check formatting
         run: cargo fmt --all -- --check
+      - name: Strict Rust lint
+        run: |
+          rustup component add clippy
+          cargo clippy --all-targets --locked -- -D warnings
       - name: Build and run offline Rust tests
         run: cargo test --all-targets --locked
       - name: Benchmark and assessment tests (no inference)
@@ -33,6 +37,7 @@ jobs:
           python evaluation/coding_tasks.py prepare --output /tmp/lore-v05-coding
           python evaluation/decision_tasks.py prepare --output /tmp/lore-v06-decisions
           python evaluation/shared_intelligence.py prepare --cases evaluation/corpora/shared-intelligence/cases.json --output /tmp/lore-shared-intelligence
+          python evaluation/adaptive_tasks.py prepare --output /tmp/lore-adaptive-coding
       - name: Decision and case CLI help
         run: |
           cargo run --locked -- decisions --help

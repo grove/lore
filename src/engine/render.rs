@@ -61,13 +61,12 @@ pub(super) async fn build(
             &source_siblings,
             &runner.config.fingerprint,
         ))?;
-        if !force {
-            if let Some(page) = old.get(&path) {
-                if page.input_digest == input_digest {
-                    pages.insert(path, page.clone());
-                    continue;
-                }
-            }
+        if !force
+            && let Some(page) = old.get(&path)
+            && page.input_digest == input_digest
+        {
+            pages.insert(path, page.clone());
+            continue;
         }
         let title = &units[0].topic_title;
         let mut content = format!(

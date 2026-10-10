@@ -114,16 +114,15 @@ fn attach_context(conn: &Connection, id: &str, key: &str) -> Result<()> {
     if matches!(
         category,
         "relationship" | "replacement" | "reaffirmation" | "conflict"
-    ) {
-        if let Some(candidate) = fields.get(2) {
-            let exists: bool = conn.query_row(
-                "SELECT EXISTS(SELECT 1 FROM knowledge_units WHERE id=?1)",
-                [candidate],
-                |r| r.get(0),
-            )?;
-            if exists {
-                target = Some(*candidate);
-            }
+    ) && let Some(candidate) = fields.get(2)
+    {
+        let exists: bool = conn.query_row(
+            "SELECT EXISTS(SELECT 1 FROM knowledge_units WHERE id=?1)",
+            [candidate],
+            |r| r.get(0),
+        )?;
+        if exists {
+            target = Some(*candidate);
         }
     }
     conn.execute(
@@ -230,16 +229,24 @@ fn fingerprint(conn: &Connection, id: &str) -> Result<String> {
     }
     util::json_digest(&(source, target_digest))
 }
+struct ReviewActor<'a> {
+    kind: &'a str,
+    name: &'a str,
+}
+
 fn transition(
     conn: &Connection,
     id: &str,
     next: &str,
-    actor_type: &str,
-    actor: &str,
+    actor: ReviewActor<'_>,
     code: &str,
     note: &str,
     evidence: Option<&str>,
 ) -> Result<bool> {
+    let ReviewActor {
+        kind: actor_type,
+        name: actor,
+    } = actor;
     ensure!(
         ["pending", "resolved", "dismissed"].contains(&next),
         "invalid review status"
@@ -274,8 +281,10 @@ pub fn manual(conn: &Connection, id: &str, next: &str, reason: &str, actor: &str
         conn,
         id,
         next,
-        "user",
-        actor,
+        ReviewActor {
+            kind: "user",
+            name: actor,
+        },
         "manual_disposition",
         reason,
         None,
@@ -306,8 +315,10 @@ pub fn refresh(conn: &Connection) -> Result<usize> {
                         conn,
                         &item.id,
                         "pending",
-                        "automatic",
-                        "lore",
+                        ReviewActor {
+                            kind: "automatic",
+                            name: "lore",
+                        },
                         "evidence_changed",
                         "Evidence or the comparison context changed and the current cross-source interpretation raises a question; review it again.",
                         None,
@@ -329,8 +340,10 @@ pub fn refresh(conn: &Connection) -> Result<usize> {
                     conn,
                     &item.id,
                     "resolved",
-                    "automatic",
-                    "lore",
+                    ReviewActor {
+                        kind: "automatic",
+                        name: "lore",
+                    },
                     code,
                     note,
                     None,
@@ -347,8 +360,10 @@ pub fn refresh(conn: &Connection) -> Result<usize> {
                 conn,
                 &item.id,
                 "pending",
-                "automatic",
-                "lore",
+                ReviewActor {
+                    kind: "automatic",
+                    name: "lore",
+                },
                 "evidence_changed",
                 "Evidence relevant to the human disposition changed; review it again.",
                 None,
@@ -369,8 +384,10 @@ pub fn refresh(conn: &Connection) -> Result<usize> {
                     conn,
                     &item.id,
                     "pending",
-                    "automatic",
-                    "lore",
+                    ReviewActor {
+                        kind: "automatic",
+                        name: "lore",
+                    },
                     "resolution_withdrawn",
                     "The documentary evidence that resolved this question is no longer active.",
                     None,
@@ -419,8 +436,10 @@ pub fn refresh(conn: &Connection) -> Result<usize> {
                 conn,
                 &item.id,
                 "resolved",
-                "automatic",
-                "lore",
+                ReviewActor {
+                    kind: "automatic",
+                    name: "lore",
+                },
                 "documented_relationship",
                 &format!(
                     "An active, explicit {} relationship from the same source revision to this predecessor resolves this question. No runtime verification is implied.",

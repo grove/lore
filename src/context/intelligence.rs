@@ -22,7 +22,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::{
     collections::{BTreeMap, BTreeSet},
-    path::PathBuf,
+    path::{Path, PathBuf},
     time::Duration,
 };
 
@@ -944,7 +944,7 @@ fn cache_path(
         .join(format!("{}.json", &key[7..])))
 }
 
-fn read_cache(path: &PathBuf, revision_key: &str) -> Option<CachedGuidance> {
+fn read_cache(path: &Path, revision_key: &str) -> Option<CachedGuidance> {
     let raw = util::read_limited(path, MAX_DRAFT_BYTES * 2).ok()?;
     let entry: CachedGuidance = serde_json::from_str(&raw).ok()?;
     (entry.version == CACHE_VERSION
@@ -957,7 +957,7 @@ fn read_cache(path: &PathBuf, revision_key: &str) -> Option<CachedGuidance> {
 }
 
 fn write_cache(
-    path: &PathBuf,
+    path: &Path,
     revision_key: &str,
     draft: &DraftBrief,
     verification: Option<&Verification>,

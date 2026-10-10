@@ -478,11 +478,13 @@ pub async fn update(
                     &assertion,
                     &assertion_id,
                     &evidence,
-                    document,
-                    chunk,
-                    &source,
-                    &revision,
-                    &section_revision,
+                    reconcile::ReconciliationSource {
+                        document,
+                        chunk,
+                        source: &source,
+                        source_revision: &revision,
+                        section_revision: &section_revision,
+                    },
                     options.deep,
                 )
                 .await?;
@@ -542,11 +544,10 @@ pub async fn update(
     let integrity: String = conn.query_row("PRAGMA integrity_check", [], |r| r.get(0))?;
     ensure!(integrity == "ok", "SQLite integrity check failed");
     ensure!(
-        !conn
-            .prepare("PRAGMA foreign_key_check")?
+        conn.prepare("PRAGMA foreign_key_check")?
             .query([])?
             .next()?
-            .is_some(),
+            .is_none(),
         "database foreign-key validation failed"
     );
     let wiki_digest = util::json_digest(

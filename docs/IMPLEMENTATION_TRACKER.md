@@ -4,15 +4,17 @@ Baseline: merged PR [#24](https://github.com/grove/lore/pull/24), commit
 `4197ba345de5ff7ec1bad17ab1f8349803b47783` (Lore 0.6). The design documents
 describe product outcomes; this file records implementation and measured status.
 
-| Milestone / roadmap | Work package and modules | Functional gate | Validation | Status |
-| --- | --- | --- | --- | --- |
-| M0 / R0 | Preserve existing CLI, evidence, ingestion, imports and evaluation baseline | Schemas 2/3/4 and `--fast`; no-op; no source mutation | Existing Rust suite; 79 Python evaluation tests; five corpus preparation commands | Baseline CI passed on Linux, macOS and Windows |
-| M0 / A1–A2 / G1 | `context::adaptive`, existing decision runtime and inspection | Explicit schema 5; bounded automatic work within host grants; source-independent snapshot identity | 11 adaptive tests, 6 actual CLI tests and existing decision-runtime tests | Merged in [#25](https://github.com/grove/lore/pull/25); Linux, macOS and Windows CI passed |
-| M0 / O1–O2 | `experience` orientation, concepts and workflow | Human and agent consume same evidence, observations and authority; immediate useful orientation | 23 human engine tests and 6 actual CLI tests; shared evidence/snapshot comparison | Merged in [#26](https://github.com/grove/lore/pull/26); Linux, macOS and Windows CI passed |
-| M1 / O1–O3 | Guided activity, hints, first task and distinct transfer activity | Purposeful optional learning, accurate source-linked feedback, no inferred mastery | Human protocol and executable distinct transfer fixture; 90 Python evaluation tests | Implemented mechanics; independent participant outcomes unmeasured |
-| M2 / A3 / G1 | Revision-bound investigative reuse, `insights` decision lenses and source-owned cases | Revalidate old observations and newly relevant evidence; retain scope, history and negative cases without promoting reports to policy | 4 retention tests, decision-runtime mutation/reuse tests, 12 decision/case tests and actual CLI coverage | Reuse merged in #25; decision/case views in [#27](https://github.com/grove/lore/pull/27), CI integration pending |
-| M3 / R1–R4 | `knowledge` DAG and human presentation modes | Variable depth, multiple parents, preserved conditions, direct evidence bypass, bounded work | 17 graph tests and 4 actual CLI checks; [flat retrieval comparison](../evaluation/KNOWLEDGE_ZOOM.md) | Implemented; comparative fixture has mixed results, CI integration pending |
-| M4 / R5–R7 | Baseline change intelligence, advisory findings and static cases | Explicit baseline, consequential changes, useful scoped guidance without arbitrary execution | Mutation and advisory precision fixtures | Pending |
+| Milestone / roadmap | Work package and modules | Functional gate | Dependencies | Validation | Status |
+| --- | --- | --- | --- | --- | --- |
+| M0 / R0 | Preserve existing CLI, evidence, ingestion, imports and evaluation baseline | Schemas 2/3/4 and `--fast`; no-op; no source mutation | Merged #24 | Existing Rust suite; 79 baseline Python tests; five baseline preparation commands | Baseline CI passed on Linux, macOS and Windows |
+| M0 / A1–A2 / G1 | `context::adaptive`, existing decision runtime and inspection | Explicit schema 5; bounded automatic work within host grants; whole-registry identity independent of selected context | Existing retained registry, decision controller and static inspector | 11 adaptive tests, actual CLI contracts and decision-runtime regressions | Merged in [#25](https://github.com/grove/lore/pull/25); three-platform CI passed |
+| M0 / O1–O2 | `experience` orientation, concepts and workflow | Human and agent consume the same evidence, observations and authority; immediate useful orientation | Shared core #25 | 23 human engine tests and 6 actual CLI tests; shared evidence/snapshot comparison | Merged in [#26](https://github.com/grove/lore/pull/26); three-platform CI passed |
+| M1 / O1–O3 | Guided activity, hints, first task and distinct transfer activity | Purposeful optional learning, source-bound fallible feedback with pinned lessons, no inferred mastery | Shared core and human experience #25–26 | Human protocol, lesson/source mutation tests and executable distinct transfer counterexample | Implemented in [#26](https://github.com/grove/lore/pull/26); independent participant outcomes unmeasured |
+| M2 / A3 / G1 | Revision-bound investigative reuse, `insights` decision lenses and source-owned cases | Revalidate old observations and newly relevant evidence; retain scope, history and negative cases without promoting reports to policy | Shared core, exact original evidence and existing immutable history | 4 retention tests, decision-runtime mutation/reuse tests, 12 decision/case tests and actual CLI coverage | Merged in [#25](https://github.com/grove/lore/pull/25) and [#27](https://github.com/grove/lore/pull/27); three-platform CI passed; productivity outcomes unmeasured |
+| M0 / M2 / M4 / G1 | Shared `source_relationships` and human source adapter | Retain original qualifications, current review disposition, complete endpoint evidence and exact revisions through presentation and packing | Shared core #25, human adapter #26 and native/documentary relationship readers | 4 source-manifest tests plus engine/CLI qualification, whole-manifest deletion, tamper and full-budget regressions | Merged in [#29](https://github.com/grove/lore/pull/29); three-platform CI passed |
+| M2 / A3 / AG-18 | `evaluation/adaptive_tasks.py` matched actual coding-task runner | Six isolated arms, bound grants/snapshots/requests, executable independent checks and charged warm-up/replay | Existing coding/decision protocols and source manifest #29 | 11 adaptive assessor tests within 106 passing Python tests; actual offline agent/checker subprocesses | Merged in [#30](https://github.com/grove/lore/pull/30); three-platform CI passed; live-model productivity, distinct-task reuse and correction loops unmeasured |
+| M3 / R1–R4 | `knowledge` DAG, incremental derived views and human presentation modes | Variable depth, multiple parents, preserved conditions, direct evidence bypass, bounded source/topology validation | Existing documentary registry/retrieval and shared snapshot; no separate graph database | 28 graph tests, 4 actual CLI tests and 2 comparison/scorer tests; [96-call synthetic comparison](../evaluation/KNOWLEDGE_ZOOM.md) | Merged in [#28](https://github.com/grove/lore/pull/28); three-platform CI passed; constrained-budget comparative acceptance is not met |
+| M4 / R5–R7 | `companion` explicit baselines, consequential changes and guardian | Original historical evidence, native qualifications and advisory investigation remain source-bound and budgeted | Shared core #25, decisions/cases #27 and source manifest #29; no graph dependency | 14 companion tests and 2 actual CLI tests; immutable old support, native status, interpretation withdrawal, permission and whole-group budget regressions | Merged in [#31](https://github.com/grove/lore/pull/31); three-platform CI passed; longitudinal alert precision and burden unmeasured |
 
 ## Observed baseline
 
@@ -30,6 +32,35 @@ describe product outcomes; this file records implementation and measured status.
   **31 passed** using Rust 1.90 and the system linker in the local executor.
 - No human onboarding study, hosted-model quality experiment or agent
   productivity comparison is implied by these results.
+
+## Integrated engineering verification — 2026-10-10
+
+The combined implementation and existing-code lint cleanup passed:
+
+| Gate | Recorded local result |
+| --- | --- |
+| `cargo fmt --all -- --check` | Passed |
+| `cargo test --all-targets --locked` | **402 passed, 0 failed, 3 explicitly ignored**, across 53 test targets |
+| Strict Clippy, all targets and locked dependencies | Passed with zero warnings/errors through the exact Rust 1.90 Clippy driver |
+| `python3 -m unittest discover -s evaluation/tests -v` | **106 passed** |
+| No-inference `prepare` commands | All seven passed: suite, `llm-wiki` benchmark, cross-source, coding, decision, shared and adaptive protocols |
+| `git diff --check` | Passed |
+
+Two ignored tests require a live Ollama or OpenAI provider. The third requires
+an explicitly selected compiled project and independently authored comparison
+cases. None is counted as a passing provider or real-project experiment.
+
+The local executor's `cargo-clippy` frontend cannot resolve `/proc/self/exe`.
+The matching Clippy driver ran every target with `-D warnings`; this was an
+actual Clippy gate, not a plain compiler substitute. The CI workflow uses the
+standard `cargo clippy --all-targets --locked -- -D warnings` command on Linux,
+macOS and Windows. It retains the existing formatting, complete Rust/Python,
+corpus preparation and actual CLI help checks.
+
+The cache replay regression verifies that optional output can be pruned while
+the full draft remains reusable, mandatory source-bound premises survive, and
+replay makes zero model calls within the complete output budget. It does not
+require cold and cached output to have different optional packing on every run.
 
 ## Human integration checks
 
@@ -79,3 +110,10 @@ and synthetic source fixtures establish neither learning transfer nor improved
 coding productivity. Real participants, independently verified changes and
 comparable model/tool budgets must be recorded before claiming those outcomes.
 No full-program completion claim is made while those gates remain unmeasured.
+
+The Knowledge Zoom comparison records a direct-ID recall gain and several losses
+in complete critical-condition coverage at a 1500-token budget. The optional
+exploration command does not replace the established flat retrieval path. These
+results do not satisfy M3's comparative acceptance gate at constrained budgets,
+and the comparison of complete entry points does not isolate a causal benefit
+from the graph alone.

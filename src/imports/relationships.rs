@@ -388,7 +388,7 @@ pub fn audit(conn: &Connection) -> Result<Vec<String>> {
                 );
                 let expected_id = format!(
                     "xrel_{}",
-                    &util::digest(&format!("{}:{}", evaluation.signature, relation.kind))[7..]
+                    &util::digest(format!("{}:{}", evaluation.signature, relation.kind))[7..]
                 );
                 ensure!(
                     relation.id == id && id == expected_id,
@@ -453,16 +453,21 @@ pub fn audit(conn: &Connection) -> Result<Vec<String>> {
     Ok(issues)
 }
 
+pub(crate) struct EvaluationEndpoints<'a> {
+    pub from: &'a CrossSourceEndpoint,
+    pub to: Option<&'a CrossSourceEndpoint>,
+}
+
 pub(crate) fn save(
     conn: &Connection,
     project: &str,
     pair_key: &str,
     signature: &str,
-    from: &CrossSourceEndpoint,
-    to: Option<&CrossSourceEndpoint>,
+    endpoints: EvaluationEndpoints<'_>,
     disposition: &str,
     mut relation: Option<CrossSourceRelation>,
 ) -> Result<()> {
+    let EvaluationEndpoints { from, to } = endpoints;
     ensure!(
         !evaluated(conn, signature)?,
         "cross-source input signature already evaluated"
@@ -537,7 +542,7 @@ pub(crate) fn save(
         value.input_signature = signature.into();
         value.id = format!(
             "xrel_{}",
-            &util::digest(&format!("{signature}:{}", value.kind))[7..]
+            &util::digest(format!("{signature}:{}", value.kind))[7..]
         );
         value.active = true;
         // Routine qualifications on standalone recollections/completed work

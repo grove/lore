@@ -20,7 +20,7 @@ use std::{
 
 // Isolate fixture runtimes and subprocesses across test-harness workers. The
 // compiler itself deliberately uses sequential inference in this release.
-static HTTP_FIXTURE_LOCK: Mutex<()> = Mutex::new(());
+static HTTP_FIXTURE_LOCK: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
 
 #[derive(Debug, Clone)]
 struct Request {
@@ -95,13 +95,13 @@ impl Server {
 impl Drop for Server {
     fn drop(&mut self) {
         self.stopped.store(true, Ordering::SeqCst);
-        if let Some(h) = self.handle.take() {
-            if let Err(panic) = h.join() {
-                // A second panic during unwinding aborts the test executable and
-                // hides the original HTTP/client failure on Windows.
-                if !thread::panicking() {
-                    std::panic::resume_unwind(panic);
-                }
+        if let Some(h) = self.handle.take()
+            && let Err(panic) = h.join()
+        {
+            // A second panic during unwinding aborts the test executable and
+            // hides the original HTTP/client failure on Windows.
+            if !thread::panicking() {
+                std::panic::resume_unwind(panic);
             }
         }
     }
@@ -211,7 +211,7 @@ fn question() -> DecisionRequest {
 }
 #[tokio::test]
 async fn calls_openai_responses_with_strict_schema_and_no_storage() {
-    let _serial = HTTP_FIXTURE_LOCK.lock().unwrap_or_else(|p| p.into_inner());
+    let _serial = HTTP_FIXTURE_LOCK.lock().await;
     let (_dir, cfg, _) = project();
     let server = Server::new(|r, _| {
         assert_eq!(r.path, "/v1/responses");
@@ -234,7 +234,7 @@ async fn calls_openai_responses_with_strict_schema_and_no_storage() {
 }
 #[tokio::test]
 async fn openai_http_restores_source_passages_before_validation() {
-    let _serial = HTTP_FIXTURE_LOCK.lock().unwrap_or_else(|p| p.into_inner());
+    let _serial = HTTP_FIXTURE_LOCK.lock().await;
     let (_dir, cfg, _) = project();
     let quote = "Synthetic source: use `database`.\r\nKeep the qualifier (local-only).";
     let request = GenerationRequest {
@@ -291,7 +291,7 @@ async fn openai_live_preserves_multiline_quote_constraints() {
 }
 #[tokio::test]
 async fn decision_http_paths_and_predicate_mappings_match_each_backend() {
-    let _serial = HTTP_FIXTURE_LOCK.lock().unwrap_or_else(|p| p.into_inner());
+    let _serial = HTTP_FIXTURE_LOCK.lock().await;
     let (_dir, cfg, _) = project();
     for provider in ["openai", "ollama", "typesafe"] {
         let p = provider.to_owned();
@@ -322,7 +322,7 @@ async fn decision_http_paths_and_predicate_mappings_match_each_backend() {
 }
 #[tokio::test]
 async fn retries_transient_errors_and_withholds_failure_body() {
-    let _serial = HTTP_FIXTURE_LOCK.lock().unwrap_or_else(|p| p.into_inner());
+    let _serial = HTTP_FIXTURE_LOCK.lock().await;
     let (_dir, cfg, _) = project();
     let server = Server::new(|_, attempt| {
         if attempt == 1 {
@@ -395,7 +395,7 @@ fn local_only_rejects_remote_hosts_before_network_io() {
 }
 #[test]
 fn real_cli_compiles_over_http_then_updates_with_server_offline() {
-    let _serial = HTTP_FIXTURE_LOCK.lock().unwrap_or_else(|p| p.into_inner());
+    let _serial = HTTP_FIXTURE_LOCK.blocking_lock();
     let (_dir, cfg, _) = project();
     put(
         &cfg,
@@ -470,7 +470,7 @@ fn real_cli_compiles_over_http_then_updates_with_server_offline() {
 
 #[tokio::test]
 async fn calls_ollama_embedding_api_with_explicit_input_bounds() {
-    let _serial = HTTP_FIXTURE_LOCK.lock().unwrap_or_else(|p| p.into_inner());
+    let _serial = HTTP_FIXTURE_LOCK.lock().await;
     let (_dir, cfg, _) = project();
     let server = Server::new(|request, _| {
         assert_eq!(request.path, "/api/embed");
@@ -521,7 +521,7 @@ async fn calls_ollama_embedding_api_with_explicit_input_bounds() {
 
 #[tokio::test]
 async fn openai_embedding_response_indices_preserve_exact_input_association() {
-    let _serial = HTTP_FIXTURE_LOCK.lock().unwrap_or_else(|p| p.into_inner());
+    let _serial = HTTP_FIXTURE_LOCK.lock().await;
     let (_dir, cfg, _) = project();
     let server = Server::new(|request, _| {
         assert_eq!(request.path, "/v1/embeddings");
@@ -666,7 +666,7 @@ fn model_cache_identities_include_endpoint_but_never_credentials() {
 
 #[tokio::test]
 async fn embedding_retries_count_as_one_logical_inference_call() {
-    let _serial = HTTP_FIXTURE_LOCK.lock().unwrap_or_else(|p| p.into_inner());
+    let _serial = HTTP_FIXTURE_LOCK.lock().await;
     let (_dir, cfg, _) = project();
     let server = Server::new(|request, _| {
         assert_eq!(request.path, "/api/embed");

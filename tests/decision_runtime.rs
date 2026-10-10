@@ -1168,3 +1168,54 @@ async fn inline_only_local_citation_remains_manifested_when_output_budget_prunes
             .contains(id)
     );
 }
+
+#[tokio::test]
+async fn cache_replay_repacks_the_unpruned_draft_and_preserves_required_premises() {
+    let mut fixture = Fixture::new();
+    let model = FakeModel::new(Behavior::InlineObservation);
+    fixture.options.max_tokens = 3_000;
+    let run = RunOptions {
+        inspect: true,
+        ..Default::default()
+    };
+    let first = fixture.run(&model, run.clone()).await;
+    assert_eq!(first["mode"], "intelligent");
+    assert_eq!(first["cache_status"], "miss");
+    let cache_files = fixture.cache_files();
+    assert_eq!(cache_files.len(), 1);
+    let cache = &cache_files[0];
+    let original = fs::read(cache).unwrap();
+    let saved: Value = serde_json::from_slice(&original).unwrap();
+    assert_eq!(saved["revision_key"], first["revision_key"]);
+    assert_eq!(saved["draft"]["heuristics"].as_array().unwrap().len(), 6);
+    assert!(first["brief"]["heuristics"].as_array().unwrap().len() < 6);
+    assert!(first["brief_items_omitted"].as_u64().unwrap() > 0);
+
+    let calls = model.calls.load(Ordering::SeqCst);
+    let second = fixture.run(&model, run).await;
+    assert_eq!(second["mode"], "intelligent");
+    assert_eq!(second["cache_status"], "hit");
+    assert_eq!(second["model_calls"], 0);
+    assert_eq!(calls, model.calls.load(Ordering::SeqCst));
+    assert_eq!(original, fs::read(cache).unwrap());
+    assert!(second["brief"]["heuristics"].as_array().unwrap().len() < 6);
+    assert!(second["brief_items_omitted"].as_u64().unwrap() > 0);
+    assert_eq!(first["revision_key"], second["revision_key"]);
+    assert_eq!(
+        first["budget"]["max_tokens"],
+        second["budget"]["max_tokens"]
+    );
+    // Replays fit the complete cached draft against current work metadata.
+    // Optional packing may agree or differ; mandatory premises must agree.
+    for required in [
+        "preferred_approach",
+        "rationale",
+        "main_tradeoff",
+        "next_action",
+        "constraints",
+        "risks",
+        "material_blockers",
+    ] {
+        assert_eq!(first["brief"][required], second["brief"][required]);
+    }
+}

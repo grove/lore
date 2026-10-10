@@ -525,23 +525,34 @@ pub fn create_unit(
         &unit,
         &a.statement,
         &a.kind,
-        &a.lifecycle,
-        "current_documentary_support",
-        "",
+        RevisionState {
+            lifecycle: &a.lifecycle,
+            support: "current_documentary_support",
+            temporal: "",
+        },
         "initial",
     )?;
     Ok(unit)
 }
+struct RevisionState<'a> {
+    lifecycle: &'a str,
+    support: &'a str,
+    temporal: &'a str,
+}
+
 fn write_revision(
     conn: &Connection,
     unit: &str,
     statement: &str,
     kind: &str,
-    lifecycle: &str,
-    support: &str,
-    temporal: &str,
+    state: RevisionState<'_>,
     fingerprint: &str,
 ) -> Result<String> {
+    let RevisionState {
+        lifecycle,
+        support,
+        temporal,
+    } = state;
     let number: i64 = conn.query_row(
         "SELECT coalesce(max(revision_number),0)+1 FROM knowledge_revisions WHERE knowledge_id=?1",
         [unit],
@@ -852,9 +863,11 @@ pub fn refresh_knowledge(conn: &Connection, project: &str) -> Result<()> {
                 &unit.id,
                 &unit.statement,
                 &unit.kind,
-                lifecycle,
-                support,
-                if active { "documented" } else { "historical" },
+                RevisionState {
+                    lifecycle,
+                    support,
+                    temporal: if active { "documented" } else { "historical" },
+                },
                 &fingerprint,
             )?;
         }

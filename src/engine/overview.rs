@@ -322,15 +322,14 @@ pub(super) async fn build(
         decisions,
         &runner.config.fingerprint,
     ))?;
-    if !force {
-        if let Some(old) = previous {
-            if old.input_digest == digest {
-                let mut reused = old.clone();
-                update_review_counter(&mut reused.content, runner.conn)?;
-                reused.output_digest = util::digest(&reused.content);
-                return Ok(reused);
-            }
-        }
+    if !force
+        && let Some(old) = previous
+        && old.input_digest == digest
+    {
+        let mut reused = old.clone();
+        update_review_counter(&mut reused.content, runner.conn)?;
+        reused.output_digest = util::digest(&reused.content);
+        return Ok(reused);
     }
     let mut content = format!(
         "# {} — project understanding\n\nThis overview synthesizes selected, source-backed project knowledge. It distinguishes documented design, future intent and reported outcomes; it is not independent implementation verification. Topic pages retain the full knowledge and evidence.\n\n",
@@ -566,7 +565,7 @@ mod selection_contracts {
         let edge = link(&next, &old);
         units.push(old);
         units.push(next);
-        let selected = select(&units, &[edge.clone()], 100_000).unwrap();
+        let selected = select(&units, std::slice::from_ref(&edge), 100_000).unwrap();
         let ids = selected
             .iter()
             .map(|u| u.id.as_str())
@@ -617,7 +616,7 @@ mod selection_contracts {
         let relation = link(&successor, &previous);
         units.push(previous);
         units.push(successor);
-        let selected = select(&units, &[relation.clone()], 23_808).unwrap();
+        let selected = select(&units, std::slice::from_ref(&relation), 23_808).unwrap();
         assert!(selected.len() < units.len());
         assert!(selected.iter().any(|u| u.kind == "reported_outcome"));
         assert_eq!(
@@ -658,7 +657,7 @@ mod selection_contracts {
         let edge = link(&next, &old);
         let budget = serde_json::to_vec(&row(&old)).unwrap().len() + 3;
         let units = [old, next];
-        let selected = select(&units, &[edge.clone()], budget).unwrap();
+        let selected = select(&units, std::slice::from_ref(&edge), budget).unwrap();
         assert_eq!(selected.len(), 1);
         assert!(
             citable_decisions(&[edge], &selected, 4096)
@@ -673,7 +672,7 @@ mod selection_contracts {
         let next = unit("ku_next", "migration", false);
         let edge = link(&next, &old);
         assert!(
-            select(&[old.clone(), next.clone()], &[edge.clone()], 1)
+            select(&[old.clone(), next.clone()], std::slice::from_ref(&edge), 1)
                 .unwrap_err()
                 .to_string()
                 .contains("cannot fit a single evidence-backed knowledge row")

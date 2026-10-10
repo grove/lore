@@ -258,8 +258,10 @@ fn version_five_registry_remains_readable_and_migrates_without_touching_history(
 fn native_project() -> (tempfile::TempDir, ResolvedConfig) {
     let directory = tempfile::tempdir().unwrap();
     let path = directory.path().join("lore.yml");
-    let mut config = Config::default();
-    config.schema_version = 2;
+    let mut config = Config {
+        schema_version: 2,
+        ..Config::default()
+    };
     config.sources.roots.clear();
     config.imports.push(ImportSource {
         id: "work".into(),
