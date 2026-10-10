@@ -75,8 +75,16 @@ The assessor recomputes checks from full records and the copied source bytes:
 
 - The outer human/agent schemas and nested schema-4 contract remain explicit.
 - Both shared experiences identify the same project and registry revision.
-- Every human evidence reference belongs to the nested shared evidence
-  manifest. Every static observation has its original file hash, exact line
+- Every human evidence reference belongs to the nested shared evidence or the
+  validated schema-5 `source_relationships` manifest. Source relationships must
+  keep their endpoint identities, knowledge/native revisions, complete evidence,
+  discrepancy status and qualifications. Orphan records, duplicate identities,
+  substituted support and unbound review dispositions fail the gate.
+- The relationship manifest's exact documentary excerpts and source provenance,
+  and its native endpoint scope, source metadata and locators, must match the
+  originals returned by the existing `lore evidence` resolver. Native metadata
+  and quoted example identifiers are source data; they cannot mint citations.
+  Every static observation separately has its original file hash, exact line
   range, verbatim bytes and content-derived identity verified independently.
 - Source-registry and wiki bytes stay unchanged during context collection.
   Source hashes and modification times also stay unchanged.

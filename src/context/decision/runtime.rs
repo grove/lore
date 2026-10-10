@@ -48,6 +48,10 @@ pub struct CheckoutEgress {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[expect(
+    clippy::large_enum_variant,
+    reason = "Preserve the existing public Rust response constructors; boxing payloads would change the embedding API."
+)]
 pub enum DecisionContextResult {
     Brief(DecisionResult),
     FastFallback(DecisionFallback),
@@ -194,6 +198,23 @@ pub async fn run(
     options: &ContextOptions,
     run: &RunOptions,
 ) -> Result<DecisionContextResult> {
+    run_prepared(config, conn, options, run, |options, _| {
+        Ok((options.clone(), ()))
+    })
+    .await
+    .map(|(result, ())| result)
+}
+
+/// Shared schema adapters can retain source-owned metadata from the exact
+/// selection and reserve its output space before any decision synthesis.
+/// Legacy callers use the identity preparation above and keep schema 4.
+pub(crate) async fn run_prepared<T>(
+    config: &ResolvedConfig,
+    conn: &Connection,
+    options: &ContextOptions,
+    run: &RunOptions,
+    prepare: impl FnOnce(&ContextOptions, &ContextResult) -> Result<(ContextOptions, T)>,
+) -> Result<(DecisionContextResult, T)> {
     context::validate_options(options)?;
     let started = Instant::now();
     let config = configured(config, options, run);
@@ -202,21 +223,24 @@ pub async fn run(
     conn.execute_batch("SAVEPOINT lore_decision_context")?;
     let result = async {
         let selected = select_evidence(conn, &config, options, model.is_some(), started).await?;
+        let (options, prepared) = prepare(options, &selected)?;
+        context::validate_options(&options)?;
         let budget = Budget::with_usage(
             config.config.context.investigation,
             started,
             selected.model_calls,
         )?;
-        build(
+        let result = build(
             conn,
             &config,
-            options,
+            &options,
             selected,
             model.as_ref().map(|m| m as &dyn GenerativeModel),
             run,
             budget,
         )
-        .await
+        .await?;
+        Ok((result, prepared))
     }
     .await;
     let released = conn.execute_batch("RELEASE lore_decision_context");
@@ -294,15 +318,16 @@ async fn select_evidence(
         .processing
         .max_context_bytes
         .saturating_sub(16_000);
-    if enabled && input_bytes >= 2048 {
-        if let Some(role) = config
+    if enabled
+        && input_bytes >= 2048
+        && let Some(role) = config
             .config
             .models
             .embedding
             .as_ref()
             .filter(|r| r.enabled)
-        {
-            match HttpModel::new(config, role) {
+    {
+        match HttpModel::new(config, role) {
                 Ok(embedding) => {
                     let limited = LimitedEmbedding { model: &embedding, calls: AtomicU32::new(0),
                         limit: config.config.context.investigation.max_model_calls.saturating_sub(2).min(2) };
@@ -325,7 +350,6 @@ async fn select_evidence(
                 },
                 Err(_) => warnings.push("Embedding configuration unavailable or disallowed; using lexical and recorded relationship retrieval.".into()),
             }
-        }
     }
     let mut input_options = options.clone();
     if enabled {
@@ -559,19 +583,32 @@ async fn generate(
     Ok(response.text)
 }
 
+struct SynthesisContext<'a> {
+    options: &'a ContextOptions,
+    retained: &'a EvidenceCatalog,
+    sources: &'a Value,
+    observations: &'a [CodeObservation],
+    previous: Option<&'a DecisionBrief>,
+    plan: Option<&'a investigation::InvestigationPlan>,
+    key: &'a str,
+}
+
 async fn synthesize(
     model: &dyn GenerativeModel,
     config: &ResolvedConfig,
-    options: &ContextOptions,
-    retained: &EvidenceCatalog,
-    sources: &Value,
-    observations: &[CodeObservation],
-    previous: Option<&DecisionBrief>,
-    plan: Option<&investigation::InvestigationPlan>,
+    context: SynthesisContext<'_>,
     budget: &mut Budget,
     egress: &mut CheckoutEgress,
-    key: &str,
 ) -> Result<(DraftDecision, DecisionBrief)> {
+    let SynthesisContext {
+        options,
+        retained,
+        sources,
+        observations,
+        previous,
+        plan,
+        key,
+    } = context;
     let catalog = DecisionCatalog::new(retained, observations)?;
     let mut input = request_input(
         &options.task,
@@ -656,76 +693,77 @@ async fn build(
     let can_cache = config.config.context.cache
         && (!config.config.context.inspection.enabled || inspection.index_complete);
     // Privacy authorization precedes cache reads as well as all provider calls.
-    if let Some(model) = model.filter(|m| authorize_model(config, m.descriptor()).is_ok()) {
-        if can_cache {
-            let cached = util::read_limited(&cache, MAX_CACHE_BYTES)
-                .ok()
-                .and_then(|raw| serde_json::from_str::<CachedDecision>(&raw).ok())
-                .filter(|entry| {
-                    entry.version == CACHE_VERSION
-                        && entry.key == key
-                        && entry.registry_revision == registry_revision
-                        && entry.permission_key == permission_key
-                        && context::memory::fresh(&entry.created_at)
-                        && cache_hash(entry).ok().as_ref() == Some(&entry.content_hash)
-                });
-            if let Some(entry) = cached {
-                let files_valid = entry.inspection.observations.is_empty()
-                    || session
-                        .revalidate(&entry.inspection.observations)
-                        .unwrap_or(false);
-                let exposed = if egress.allowed {
-                    entry.inspection.observations.as_slice()
-                } else {
-                    &[]
-                };
-                let validated = DecisionCatalog::new(&retained, exposed).and_then(|catalog| {
-                    validate_cached_trace(&entry.investigation, &retained, exposed)?;
-                    validate_draft(&catalog, &entry.draft)?;
-                    ensure!(
-                        revision_key(&key, exposed)? == entry.revision_key,
-                        "cache revision changed"
-                    );
-                    let brief = finish_brief(&catalog, &entry.draft, &entry.revision_key);
-                    parse_validate_verification(
-                        &serde_json::to_string(&entry.verification)?,
-                        &catalog,
-                        &brief,
-                    )?;
-                    validate_trace_verification(&entry.investigation, &entry.verification)?;
-                    Ok(brief)
-                });
-                if files_valid && budget.ensure_time().is_ok() {
-                    if let Ok(brief) = validated {
-                        let mut current_inspection = inspection_report(&session, config);
-                        current_inspection.observations = entry.inspection.observations;
-                        let mut report = entry.investigation;
-                        report.budget = budget.report();
-                        report.stop_reason = "cache_reused".into();
-                        let result = assemble(
-                            options,
-                            &selected,
-                            &retained,
-                            model,
-                            brief,
-                            current_inspection,
-                            report,
-                            &budget,
-                            egress.clone(),
-                            "hit",
-                            None,
-                        );
-                        if let Some(result) = fit(result)? {
-                            if budget.ensure_time().is_ok() {
-                                return Ok(DecisionContextResult::Brief(result));
-                            }
-                        }
-                    }
+    if let Some(model) = model.filter(|m| authorize_model(config, m.descriptor()).is_ok())
+        && can_cache
+    {
+        let cached = util::read_limited(&cache, MAX_CACHE_BYTES)
+            .ok()
+            .and_then(|raw| serde_json::from_str::<CachedDecision>(&raw).ok())
+            .filter(|entry| {
+                entry.version == CACHE_VERSION
+                    && entry.key == key
+                    && entry.registry_revision == registry_revision
+                    && entry.permission_key == permission_key
+                    && context::memory::fresh(&entry.created_at)
+                    && cache_hash(entry).ok().as_ref() == Some(&entry.content_hash)
+            });
+        if let Some(entry) = cached {
+            let files_valid = entry.inspection.observations.is_empty()
+                || session
+                    .revalidate(&entry.inspection.observations)
+                    .unwrap_or(false);
+            let exposed = if egress.allowed {
+                entry.inspection.observations.as_slice()
+            } else {
+                &[]
+            };
+            let validated = DecisionCatalog::new(&retained, exposed).and_then(|catalog| {
+                validate_cached_trace(&entry.investigation, &retained, exposed)?;
+                validate_draft(&catalog, &entry.draft)?;
+                ensure!(
+                    revision_key(&key, exposed)? == entry.revision_key,
+                    "cache revision changed"
+                );
+                let brief = finish_brief(&catalog, &entry.draft, &entry.revision_key);
+                parse_validate_verification(
+                    &serde_json::to_string(&entry.verification)?,
+                    &catalog,
+                    &brief,
+                )?;
+                validate_trace_verification(&entry.investigation, &entry.verification)?;
+                Ok(brief)
+            });
+            if files_valid
+                && budget.ensure_time().is_ok()
+                && let Ok(brief) = validated
+            {
+                let mut current_inspection = inspection_report(&session, config);
+                current_inspection.observations = entry.inspection.observations;
+                let mut report = entry.investigation;
+                report.budget = budget.report();
+                report.stop_reason = "cache_reused".into();
+                let result = assemble(
+                    options,
+                    &selected,
+                    &retained,
+                    model,
+                    brief,
+                    current_inspection,
+                    report,
+                    &budget,
+                    egress.clone(),
+                    "hit",
+                    None,
+                );
+                if let Some(result) = fit(result)?
+                    && budget.ensure_time().is_ok()
+                {
+                    return Ok(DecisionContextResult::Brief(result));
                 }
-                // A stale cache probe may have read changed files. A fresh
-                // discovery preserves their consumed I/O budget via the session;
-                // it does not reset limits to make more reads possible.
             }
+            // A stale cache probe may have read changed files. A fresh
+            // discovery preserves their consumed I/O budget via the session;
+            // it does not reset limits to make more reads possible.
         }
     }
     if budget.ensure_time().is_err() {
@@ -785,15 +823,17 @@ async fn build(
     let (mut draft, mut brief) = match synthesize(
         model,
         config,
-        options,
-        &retained,
-        &sources,
-        &observations,
-        None,
-        None,
+        SynthesisContext {
+            options,
+            retained: &retained,
+            sources: &sources,
+            observations: &observations,
+            previous: None,
+            plan: None,
+            key: &key,
+        },
         &mut budget,
         &mut egress,
-        &key,
     )
     .await
     {
@@ -904,15 +944,17 @@ async fn build(
                 let (next_draft, next_brief) = match synthesize(
                     model,
                     config,
-                    options,
-                    &retained,
-                    &sources,
-                    &observations,
-                    Some(&brief),
-                    Some(&plan),
+                    SynthesisContext {
+                        options,
+                        retained: &retained,
+                        sources: &sources,
+                        observations: &observations,
+                        previous: Some(&brief),
+                        plan: Some(&plan),
+                        key: &key,
+                    },
                     &mut budget,
                     &mut egress,
-                    &key,
                 )
                 .await
                 {

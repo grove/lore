@@ -54,6 +54,7 @@ compatibility; migration to the new contract is explicit.
 | `snapshot.registry_revision` | Digest of the retained source heads, knowledge, imported observations and relationships in the read transaction |
 | `capabilities` | Caller-granted inspection scope status, hosted egress permissions, and explicit absence of execution/source-write capabilities |
 | `intelligence` | The established schema-4 decision or honest deterministic fallback, including constraints, evidence, observations, investigation trace and completion checks |
+| `source_relationships` | When present, complete source-owned cross-source relationship groups, their endpoint revisions, original evidence and review qualifications |
 | `budget` | Token bound for the complete envelope in both JSON and Markdown |
 
 The nested decision contract keeps readiness, preferred action, facts,
@@ -72,6 +73,69 @@ The registry revision describes **retained evidence**. It is not a promise that
 every file in the live checkout has been scanned. Run `lore update` to reconcile
 documentary changes. Granted code observations are bound to full-file hashes
 and revalidated before fresh or cached recommendations are returned.
+
+### Source-owned relationship groups
+
+Optional decision prose can be shortened to fit a request. A source-reported
+relationship's reason, status and caveats must remain available even when its
+endpoints also appear in a shorter decision brief. Schema 5 therefore retains
+an endpoint-only `source_relationships` manifest from the exact context
+selection used by the decision engine. It is omitted when no cross-source
+relationship group was selected. It introduces no additional registry or
+mutable source of truth, and does not change the schema-2/3/4 response shapes.
+
+| Manifest field | Retained source data |
+| --- | --- |
+| `relations` | Original `CrossSourceRelation` objects: IDs, reasons, qualifications, endpoint kinds and immutable revisions, evidence IDs, upstream vocabulary/status, current interpretation membership and review IDs |
+| `discrepancies` | The selected verification question and its review disposition, including any qualification added when a review was resolved or dismissed |
+| `knowledge` | Complete selected documentary endpoint statements, scope, lifecycle, support status, qualifications and evidence references |
+| `knowledge_revisions` | Documentary endpoint ID to knowledge-revision ID; these are distinct from source-capture revisions |
+| `observations` | Selected native endpoint records, including source-reported scope, lifecycle, freshness, verification metadata and qualifications |
+| `evidence`, `imported_evidence` | The original context evidence types for those groups, including immutable source/native snapshot identities, source metadata and complete endpoint evidence references |
+
+`relations[].active` means that an interpretation belongs to the current
+retained projection. `upstream_status` and `upstream_active` retain the native
+source's independent meaning. A closed work item, a withdrawn upstream link,
+or a dismissed review does not establish that production behavior was checked
+or that an accepted policy was replaced. These distinctions remain visible in
+both JSON and Markdown.
+
+The manifest is validated against current retained relationship payloads,
+immutable endpoint revisions and evidence snapshots. Every relationship
+endpoint and evidence reference must resolve within its retained group. A
+human presentation rechecks the same manifest, includes it unchanged, and
+attaches its source qualifications to claims about the related endpoints.
+Manifest evidence remains usable even when optional schema-4 facts were
+removed during packing. The human adapter rejects altered reasons, source
+status, review qualifications, revision bindings or missing group members
+before using those records in presentation inference.
+
+The adapter also checks current registry relationships touching the source
+records retained by its presentation, so deleting the whole manifest while
+keeping those premises is rejected. This completeness check does not
+reconstruct candidates that a supplied answer removed entirely. If checkout
+revalidation requires fresh documentary selection, its source relationship
+manifest is refreshed from that same selection before presentation resumes.
+
+After retrieval, schema 5 reserves the manifest's complete JSON/Markdown space
+before decision synthesis. It then checks both complete final output formats,
+including the manifest, nested intelligence and token-accounting metadata.
+Once selected, a group is not shortened by removing an exception, endpoint or
+review caveat. If the requested budget cannot hold that complete group and the
+response envelope, the request returns a budget error asking for more space.
+Selection may still omit an entire group under the established retrieval
+budget; those omissions remain reported by the nested context contract.
+
+The manifest is bounded to 128 relationships, 256 endpoint records, 1,024
+evidence entries and 512 KiB of serialized source data. Native evidence keeps
+the existing compact context representation; use `lore evidence <id>` for its
+complete immutable imported record. No source report becomes independent
+implementation verification merely by being retained here.
+
+These limits bound the retained response. A nonempty manifest still validates
+against registry-wide documentary records, relationship facts and reviews;
+it does not claim that source validation work is proportional only to the
+selected groups. An empty manifest skips those additional validation reads.
 
 ## Reusing investigative experience
 

@@ -240,6 +240,7 @@ pub fn render_markdown(result: &ExperienceResult) -> String {
         output.push_str(&runtime::render(&result.intelligence));
         output.push('\n');
     }
+    output.push_str(&result.source_relationships.render());
     output.push_str("## Exact evidence\n\n");
     match &result.intelligence {
         DecisionContextResult::Brief(shared) => {

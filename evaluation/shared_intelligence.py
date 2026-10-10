@@ -102,15 +102,198 @@ def generated_reference_ids(value, prefix: str) -> set[str]:
     return ids
 
 
+def verify_source_relationships(response: dict) -> tuple[set[str], set[str]]:
+    """Check the additive source manifest before it can supply citation IDs.
+
+    This checks complete typed endpoint/revision/evidence closure. It does not
+    authenticate an interpretation or promote a native report into policy.
+    Collection also resolves these IDs through the original registry and checks
+    the retained documentary/native payloads against those resolver responses.
+    """
+    if "source_relationships" not in response:
+        return set(), set()
+    manifest = response["source_relationships"]
+    fields = {"relations", "discrepancies", "knowledge", "knowledge_revisions",
+              "observations", "evidence", "imported_evidence"}
+    if not isinstance(manifest, dict) or set(manifest) != fields:
+        raise ValueError("Source relationship manifest has an invalid shape")
+
+    def index(name):
+        values = manifest[name]
+        if not isinstance(values, list) or any(not isinstance(item, dict) for item in values):
+            raise ValueError("Source relationship records must be objects in a list")
+        result = {}
+        for item in values:
+            identity = item.get("id")
+            if not isinstance(identity, str) or not identity or identity in result:
+                raise ValueError("Source relationship manifest has a missing or duplicated identity")
+            result[identity] = item
+        return result
+
+    def identifiers(value, *, empty=False):
+        if (not isinstance(value, list) or (not value and not empty)
+                or any(not isinstance(item, str) or not item for item in value)
+                or len(value) != len(set(value))):
+            raise ValueError("Source relationship manifest has an invalid reference list")
+        return set(value)
+
+    def qualifications(value):
+        if not isinstance(value, list) or any(not isinstance(item, str) or not item.strip() for item in value):
+            raise ValueError("Source relationship qualifications must be retained as complete strings")
+        return set(value)
+
+    relations, discrepancies = index("relations"), index("discrepancies")
+    knowledge, observations = index("knowledge"), index("observations")
+    documentary, imported = index("evidence"), index("imported_evidence")
+    revisions = manifest["knowledge_revisions"]
+    if (not isinstance(revisions, dict) or set(revisions) != set(knowledge)
+            or any(not isinstance(value, str) or not value for value in revisions.values())
+            or set(knowledge) & set(observations) or set(documentary) & set(imported)):
+        raise ValueError("Source relationship endpoint identities or revisions are ambiguous")
+    for identity, evidence in documentary.items():
+        if (not identity.startswith("ev_") or type(evidence.get("current")) is not bool
+                or any(not isinstance(evidence.get(key), str) or not evidence[key]
+                       for key in ("source", "source_revision_id", "excerpt"))):
+            raise ValueError("Documentary relationship evidence is incomplete")
+    for identity, evidence in imported.items():
+        snapshot = evidence.get("snapshot_id")
+        if (not isinstance(snapshot, str) or not snapshot.startswith("ns_")
+                or identity != "ne_" + snapshot[3:]
+                or evidence.get("observation_id") not in observations
+                or type(evidence.get("current")) is not bool):
+            raise ValueError("Native relationship evidence has an invalid snapshot binding")
+
+    endpoint_support = {}
+    for identity, record in knowledge.items():
+        support = identifiers(record.get("evidence_ids"))
+        if not support <= set(documentary):
+            raise ValueError("A documentary relationship endpoint lacks complete evidence")
+        qualifications(record.get("qualifications"))
+        endpoint_support[identity] = support
+    for identity, record in observations.items():
+        support = identifiers(record.get("evidence_ids"))
+        if not identity.startswith("no_") or not support <= set(imported):
+            raise ValueError("A native relationship endpoint lacks complete evidence")
+        qualifications(record.get("qualifications"))
+        for evidence_id in support:
+            evidence = imported[evidence_id]
+            if (evidence["observation_id"] != identity
+                    or any(evidence.get(key) != record.get(key)
+                           for key in ("import_id", "origin", "native_id", "current", "verification"))):
+                raise ValueError("Native endpoint metadata differs from its retained evidence")
+        endpoint_support[identity] = support
+
+    endpoints_used, expected_discrepancies = set(), set()
+    allowed_kinds = {"potential_discrepancy", "uncertain", "verification_question",
+                     "related_to", "consistent_with", "upstream_relationship"}
+    question_kinds = {"potential_discrepancy", "uncertain", "verification_question"}
+    for identity, relation in relations.items():
+        if (not identity.startswith("xrel_") or relation.get("active") is not True
+                or relation.get("kind") not in allowed_kinds
+                or not isinstance(relation.get("reason"), str) or not relation["reason"].strip()):
+            raise ValueError("Source relationship lacks its retained classification or reason")
+        qualifiers = qualifications(relation.get("qualifications"))
+        support, knowledge_ids, observation_ids = set(), set(), set()
+        for endpoint in [relation.get("from"), *([relation["to"]] if relation.get("to") is not None else [])]:
+            if (not isinstance(endpoint, dict) or set(endpoint) != {"kind", "id", "revision_id"}
+                    or not isinstance(endpoint.get("id"), str)
+                    or not isinstance(endpoint.get("revision_id"), str) or not endpoint["revision_id"]):
+                raise ValueError("Source relationship endpoint lacks its immutable revision")
+            endpoint_id = endpoint["id"]
+            endpoints_used.add(endpoint_id)
+            if endpoint["kind"] == "knowledge" and endpoint_id in knowledge:
+                if endpoint["revision_id"] != revisions[endpoint_id]:
+                    raise ValueError("Source relationship names a different knowledge revision")
+                knowledge_ids.add(endpoint_id)
+                # ContextItem deliberately retains historical support as well;
+                # a current relation binds the endpoint's current support only.
+                support.update(item for item in endpoint_support[endpoint_id] if documentary[item]["current"])
+            elif endpoint["kind"] == "observation" and endpoint_id in observations:
+                observation_ids.add(endpoint_id)
+                for item in endpoint_support[endpoint_id]:
+                    if imported[item]["snapshot_id"] != endpoint["revision_id"] or not imported[item]["current"]:
+                        raise ValueError("Source relationship names a different native snapshot")
+                support.update(endpoint_support[endpoint_id])
+            else:
+                raise ValueError("Source relationship refers to an absent or misclassified endpoint")
+        if not support or identifiers(relation.get("evidence_ids")) != support:
+            raise ValueError("Source relationship omits or substitutes current endpoint evidence")
+        if relation["kind"] in question_kinds:
+            expected_discrepancies.add(identity)
+            discrepancy = discrepancies.get(identity)
+            if (discrepancy is None or discrepancy.get("kind") != relation["kind"]
+                    or discrepancy.get("reason") != relation["reason"]
+                    or discrepancy.get("review_id") != relation.get("review_id")
+                    or discrepancy.get("status") not in ("unresolved", "pending", "resolved", "dismissed")
+                    or identifiers(discrepancy.get("knowledge_ids"), empty=True) != knowledge_ids
+                    or identifiers(discrepancy.get("observation_ids"), empty=True) != observation_ids
+                    or identifiers(discrepancy.get("evidence_ids")) != support
+                    or not qualifiers <= qualifications(discrepancy.get("qualifications"))):
+                raise ValueError("Source discrepancy lost its original endpoints, evidence, or qualifications")
+            if relation.get("review_id") is None and discrepancy["status"] != "unresolved":
+                raise ValueError("Source discrepancy invents an unbound review disposition")
+    used_evidence = set().union(*endpoint_support.values()) if endpoint_support else set()
+    if (endpoints_used != set(knowledge) | set(observations)
+            or set(discrepancies) != expected_discrepancies
+            or used_evidence != set(documentary) | set(imported)):
+        raise ValueError("Source relationship manifest contains orphaned records or evidence")
+    return used_evidence, set(observations)
+
+
+def response_citations(response: dict) -> set[str]:
+    source_ids, _ = verify_source_relationships(response)
+    # Source-native metadata is data, including any upstream evidence_ids keys.
+    # Only typed, closure-validated fields in this manifest mint citations.
+    return source_ids | cross.cited_ids({key: value for key, value in response.items()
+                                        if key != "source_relationships"})
+
+
+def verify_relationship_sources(response: dict, resolution: dict) -> None:
+    """Compare manifested source fields with independently resolved originals."""
+    if "source_relationships" not in response:
+        return
+    verify_source_relationships(response)
+    sources = {item["evidence_id"]: item.get("response") for item in resolution.get("results", [])}
+    manifest = response["source_relationships"]
+    for evidence in manifest["evidence"]:
+        original = sources.get(evidence["id"])
+        if (not isinstance(original, dict)
+                or any(evidence.get(key) != original.get(key) for key in
+                       ("excerpt", "source_revision_id", "material", "origin", "line_start", "line_end"))
+                or evidence.get("source") != f"{original.get('root')}:{original.get('observed_path')}"
+                or evidence.get("provenance_recorded") != (original.get("root_path") is not None)):
+            raise ValueError("Relationship documentary payload differs from its original source evidence")
+    observations = {item["id"]: item for item in manifest["observations"]}
+    for evidence in manifest["imported_evidence"]:
+        original = sources.get(evidence["id"])
+        if not isinstance(original, dict) or not isinstance(original.get("record"), dict):
+            raise ValueError("Relationship native evidence does not resolve to an original record")
+        record = original["record"]
+        expected = {key: original.get(key) for key in
+                    ("snapshot_id", "import_id", "origin", "format", "content_hash", "captured_at", "current")}
+        expected.update(observation_id=original.get("id"), native_id=record.get("native_id"),
+            source=original.get("source_path"), observed_at=record.get("observed_at"),
+            verification=record.get("verification"), locators=record.get("evidence"), metadata=record.get("metadata"))
+        if any(evidence.get(key) != value for key, value in expected.items()):
+            raise ValueError("Relationship native metadata differs from its original source evidence")
+        observation = observations[evidence["observation_id"]]
+        if any(observation.get(key) != record.get(key) for key in
+               ("native_id", "kind", "title", "subject", "statement", "scope", "lifecycle", "verification")):
+            raise ValueError("Relationship endpoint fields differ from the original native record")
+
+
 def verify_shared_references(response: dict, experience: str, source: Path) -> dict:
     core = intelligence(response, experience)
     checked = decision.verify_observations(core, source)
+    source_evidence, _ = verify_source_relationships(response)
     if experience.startswith("onboard"):
-        presentation = {key: value for key, value in response.items() if key != "intelligence"}
+        presentation = {key: value for key, value in response.items()
+                        if key not in ("intelligence", "source_relationships")}
         # Human presentation must use the same closed evidence manifest as the
         # agent core. A valid ID elsewhere in the registry is insufficient.
         evidence = cross.cited_ids({"evidence": core.get("evidence", []),
                                     "imported_evidence": core.get("imported_evidence", [])})
+        evidence |= source_evidence
         required = cross.cited_ids(presentation)
         required |= generated_reference_ids(presentation, "ev_") | generated_reference_ids(presentation, "ne_")
         if not required <= evidence:
@@ -190,7 +373,7 @@ def collect(binary: str, project: Path, source: Path, experience: str, task: str
     response, elapsed = bench.subprocess_json(binary, project, *argv, timeout=timeout, env=env)
     repeated, repeat_elapsed = bench.subprocess_json(binary, project, *argv, timeout=timeout, env=env)
     core, repeated_core = intelligence(response, experience), intelligence(repeated, experience)
-    ids = cross.cited_ids(response) | cross.cited_ids(repeated)
+    ids = response_citations(response) | response_citations(repeated)
     citations = cross.resolve_citations(binary, project, ids, timeout)
     record = {
         "arguments": argv, "requested_max_tokens": max_tokens,
@@ -215,6 +398,8 @@ def context_checks(record: dict, experience: str, task: str, source: Path) -> di
     checks = {}
     for label, response in zip(("first", "repeat"), answers):
         checks.update({f"{label}_{key}": value for key, value in response_checks(response, experience, task, source).items()})
+        verify_relationship_sources(response, record["citation_integrity"])
+        checks[f"{label}_source_relationship_originals_match"] = True
     expected_files = cross.fingerprint(source)["files_sha256"]
     checks.update({
         "invocation_bound": record["arguments"] == arguments(experience, task, record["requested_max_tokens"])
@@ -226,7 +411,7 @@ def context_checks(record: dict, experience: str, task: str, source: Path) -> di
             and record["registry_before"] == record["registry_after"],
         "checkout_sources_preserved": record["checkout_before"] == record["checkout_after"],
         "checkout_matches_original": {path: value["sha256"] for path, value in record["checkout_before"].items()} == expected_files,
-        "citations_resolve": coding.resolver_complete(record["citation_integrity"], cross.cited_ids(answers[0]) | cross.cited_ids(answers[1])),
+        "citations_resolve": coding.resolver_complete(record["citation_integrity"], response_citations(answers[0]) | response_citations(answers[1])),
         "legacy_fast_repeat_identical": experience != "fast" or answers[0] == answers[1],
     })
     first_core, repeated_core = (intelligence(answer, experience) for answer in answers)

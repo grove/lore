@@ -260,6 +260,12 @@ pub struct ExperienceResult {
     /// The original, independently versioned shared answer and evidence
     /// manifest. Human claims resolve against this exact result.
     pub intelligence: DecisionContextResult,
+    /// The same source-owned groups retained by the explicit schema-5 engine.
+    #[serde(
+        default,
+        skip_serializing_if = "adaptive::SourceRelationships::is_empty"
+    )]
+    pub source_relationships: adaptive::SourceRelationships,
     pub budget: ContextBudget,
     pub model_calls: u32,
     pub presentation_model_calls: u32,
@@ -552,7 +558,8 @@ async fn build_with_budget(
         );
     }
     let mode = resolve_mode(options);
-    let mut catalog = source::Catalog::load(conn, &shared.intelligence)?;
+    let mut catalog =
+        source::Catalog::load(conn, &shared.intelligence, &shared.source_relationships)?;
     let mut orientation = catalog.orientation();
     let mut tutorial = if mode == ExperienceMode::Tutorial {
         learning::fallback_path(
@@ -627,8 +634,14 @@ async fn build_with_budget(
         // No current guidance may retain static premises whose files changed
         // while the human view was being generated. Keep coherent documentary
         // help and the actual attempted model count; never relabel stale code.
-        shared.intelligence = documentary_fallback(conn, config, &shared.intelligence).await?;
-        catalog = source::Catalog::load(conn, &shared.intelligence)?;
+        (shared.intelligence, shared.source_relationships) = documentary_fallback(
+            conn,
+            config,
+            &shared.intelligence,
+            &shared.source_relationships,
+        )
+        .await?;
+        catalog = source::Catalog::load(conn, &shared.intelligence, &shared.source_relationships)?;
         orientation = catalog.orientation();
         tutorial = if mode == ExperienceMode::Tutorial {
             learning::fallback_path(
@@ -685,6 +698,7 @@ async fn build_with_budget(
         first_task,
         feedback,
         intelligence: shared.intelligence,
+        source_relationships: shared.source_relationships,
         budget: ContextBudget {
             max_tokens: options.max_tokens,
             used_tokens: 0,
@@ -720,6 +734,7 @@ async fn build_with_budget(
     result.revision_key = util::json_digest(&(
         EXPERIENCE_PROMPT_VERSION,
         &result.snapshot,
+        &result.source_relationships,
         &result.orientation,
         &result.tutorial,
         &result.references,
@@ -793,7 +808,8 @@ async fn documentary_fallback(
     conn: &Connection,
     config: &ResolvedConfig,
     previous: &DecisionContextResult,
-) -> Result<DecisionContextResult> {
+    previous_relationships: &adaptive::SourceRelationships,
+) -> Result<(DecisionContextResult, adaptive::SourceRelationships)> {
     let (task, paths, max_tokens) = match previous {
         DecisionContextResult::Brief(shared) => {
             (&shared.task, &shared.paths, shared.budget.max_tokens)
@@ -807,9 +823,13 @@ async fn documentary_fallback(
     let options = ContextOptions {
         task: task.clone(),
         paths: paths.clone(),
-        max_tokens,
+        max_tokens: max_tokens
+            .checked_add(previous_relationships.token_overhead()?)
+            .filter(|budget| *budget <= context::MAX_MAX_TOKENS)
+            .ok_or_else(|| anyhow::anyhow!("invalid documentary relationship fallback budget"))?,
     };
     let mut selected = context::build_context(conn, &options)?;
+    let (options, relationships) = adaptive::prepare_relationships(conn, &options, &selected)?;
     selected.model_calls = model_calls(previous);
     let mut fallback = runtime::build_decision_context(
         conn,
@@ -829,7 +849,7 @@ async fn documentary_fallback(
         DecisionContextResult::Brief(shared) => shared.warnings.push(warning),
         DecisionContextResult::FastFallback(shared) => shared.context.warnings.push(warning),
     }
-    Ok(fallback)
+    Ok((fallback, relationships))
 }
 
 fn first_task(intelligence: &DecisionContextResult, task: &str, supplied: bool) -> FirstTask {
