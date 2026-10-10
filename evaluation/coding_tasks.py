@@ -262,10 +262,12 @@ def validate_agent_response(response: dict, editable_files: list[str]) -> dict:
     return response
 
 
-def invoke_json(command: list[str], cwd: Path, timeout: int, request: dict | None = None) -> tuple[dict, float]:
+def invoke_json(command: list[str], cwd: Path, timeout: int, request: dict | None = None,
+                *, env: dict[str, str] | None = None) -> tuple[dict, float]:
     start = time.monotonic()
     process = subprocess.run(command, cwd=cwd, input=json.dumps(request) if request is not None else None,
-                             capture_output=True, text=True, timeout=timeout, shell=False)
+                             capture_output=True, text=True, encoding="utf-8", timeout=timeout,
+                             shell=False, env=env)
     elapsed = round(time.monotonic() - start, 3)
     if process.returncode != 0:
         raise ValueError(f"Execution failed with exit {process.returncode}; provider output is not copied into reports")
@@ -280,7 +282,8 @@ def invoke_json(command: list[str], cwd: Path, timeout: int, request: dict | Non
     return value, elapsed
 
 
-def execute_checks(case: dict, workspace: Path, manifest_dir: Path, timeout: int) -> tuple[dict, float]:
+def execute_checks(case: dict, workspace: Path, manifest_dir: Path, timeout: int,
+                   *, env: dict[str, str] | None = None) -> tuple[dict, float]:
     replacements = {"{python}": sys.executable, "{workspace}": str(workspace), "{manifest}": str(manifest_dir)}
     command = []
     for item in case["test_command"]:
@@ -299,7 +302,8 @@ def execute_checks(case: dict, workspace: Path, manifest_dir: Path, timeout: int
     for name in case.get("verification_files", []):
         candidate = (manifest_dir / name).absolute()
         files[str(candidate)] = hash_file(candidate)
-    result, elapsed = invoke_json(command, workspace, timeout)
+    result, elapsed = invoke_json(command, workspace, timeout,
+                                   **({"env": env} if env is not None else {}))
     if any(hash_file(Path(path)) != expected for path, expected in files.items()):
         raise ValueError("Verification program changed while executing candidate code")
     checks = result.get("checks")
@@ -341,7 +345,8 @@ def agent_request(case: dict, source_files: dict, context: dict | None) -> dict:
 
 
 def run(args: argparse.Namespace, *, setups=SETUPS, context_collector=None,
-        assessor=None, review_template=None, report_metadata=None, config_transform=None) -> dict:
+        assessor=None, review_template=None, report_metadata=None, config_transform=None,
+        subprocess_environment=None) -> dict:
     """Execute one comparison; newer protocols inject explicit policy helpers.
 
     Defaults preserve the original 0.5 runner. No module globals or monkeypatch
@@ -350,6 +355,12 @@ def run(args: argparse.Namespace, *, setups=SETUPS, context_collector=None,
     if not setups or setups[0] != "baseline" or len(set(setups)) != len(setups):
         raise ValueError("Comparison setups require baseline followed by unique context arms")
     collector = context_collector or collect_context
+
+    def environment(project, stage):
+        # A newer protocol can supply grants to each child without changing
+        # process-global state or the original runners' inherited environment.
+        return {"env": subprocess_environment(project, stage)} if subprocess_environment else {}
+
     command = json.loads(args.agent_command)
     if not isinstance(command, list) or not command or any(not isinstance(item, str) or not item for item in command):
         raise ValueError("--agent-command must be a JSON argv array")
@@ -377,6 +388,8 @@ def run(args: argparse.Namespace, *, setups=SETUPS, context_collector=None,
               "execution_qualification": "Agent-reported model identity, usage, billing, and genuine model execution are operator attestations. Subprocesses are real; this harness cannot authenticate the runner's claims or sandbox it."}
     if report_metadata is not None:
         report["study"] = report_metadata
+        if "cost_scope" in report_metadata:
+            report["cost_scope"] = report_metadata["cost_scope"]
     report["setups"] = list(setups)
     for entry in prepared["cases"]:
         case = entry["case"]
@@ -388,7 +401,8 @@ def run(args: argparse.Namespace, *, setups=SETUPS, context_collector=None,
         if config_transform:
             config_transform(config)
         cross.write_json(project / "lore.yml", config)
-        init, _ = bench.subprocess_json(binary, project, "init", timeout=args.timeout)
+        init, _ = bench.subprocess_json(binary, project, "init", timeout=args.timeout,
+                                        **environment(project, "preparation"))
         preparation_seconds = round(time.monotonic() - preparation_start, 3)
         preparation_usage = usage(init.get("usage"), calls=cross.model_calls(init))
         contexts = {setup: collector(binary, project, case["task"], setup, args.timeout, args.max_tokens)
@@ -407,9 +421,11 @@ def run(args: argparse.Namespace, *, setups=SETUPS, context_collector=None,
             # answer keys through cwd. This is input discipline, not a sandbox.
             agent_cwd = output / "agent-runs" / sample_id
             agent_cwd.mkdir(parents=True)
-            response, coding_seconds = invoke_json(command, agent_cwd, args.timeout, request)
+            response, coding_seconds = invoke_json(command, agent_cwd, args.timeout, request,
+                                                   **environment(workspace, "agent"))
             response = validate_agent_response(response, case["editable_files"])
-            agent_citations = cross.resolve_citations(binary, project, answer_evidence_ids(response), args.timeout)
+            agent_citations = cross.resolve_citations(binary, project, answer_evidence_ids(response), args.timeout,
+                                                       **environment(project, "evidence"))
             if cross.fingerprint(snapshot) != entry["source_manifest"]:
                 raise ValueError("Original source snapshot changed during coding execution")
             for filename, content in response["files"].items():
@@ -418,7 +434,8 @@ def run(args: argparse.Namespace, *, setups=SETUPS, context_collector=None,
                 # Preserve the exact UTF-8 bytes bound to the answer hash;
                 # text-mode writes translate LF to CRLF on Windows.
                 target.write_bytes(content.encode("utf-8"))
-            checks, verification_seconds = execute_checks(case, workspace, cases_path.parent, args.timeout)
+            checks, verification_seconds = execute_checks(case, workspace, cases_path.parent, args.timeout,
+                                                           **environment(workspace, "verification"))
             actual = cross.fingerprint(workspace)
             allowed = set(case["editable_files"])
             protected_sources = (set(actual["files_sha256"]) == set(entry["source_manifest"]["files_sha256"])

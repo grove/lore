@@ -7,6 +7,13 @@ legacy and permission contracts, and provides an external same-project transfer
 task whose non-idempotent exception defeats a copied retry solution. Human
 source review, actual learning and coding-agent outcomes remain separate.
 
+For matched actual coding tasks with schema-5 reuse enabled and disabled, see
+[Adaptive coding-task comparison](ADAPTIVE_TASKS.md). It keeps the legacy arms,
+isolates context copies and subprocess grant environments, charges both warm-up
+and served context, and reuses independent executable checks and bound review.
+Its `--no-cache` arm tests combined cache/investigation reuse, not a memory-only
+ablation; offline fixtures do not establish real coding productivity.
+
 For Lore 0.5's executable baseline / fast / intelligent coding-task comparison,
 see [Intelligence evaluation](INTELLIGENCE.md). It runs a supplied real coding
 agent, applies allowed implementation changes to isolated copies, executes
