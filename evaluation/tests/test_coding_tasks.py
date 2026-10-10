@@ -52,7 +52,7 @@ def context_fixture(task, setup, fallback=False):
     return result
 
 
-def run_fixture(root: Path):
+def run_fixture(root: Path, *, fallback=False):
     binary = root / "lore-fixture"
     binary.write_text("unit-test executable identity; not a real model run")
     # This subprocess intentionally returns unimplemented code. The harness
@@ -71,7 +71,7 @@ print(json.dumps({'schema_version':1,'summary':'Unimplemented unit-test fixture;
                               agent_id="fixture runner, no inference", agent_location="local",
                               timeout=30, max_tokens=6000)
     def collect(binary, project, task, setup, timeout, max_tokens):
-        return context_fixture(task, setup)
+        return context_fixture(task, setup, fallback=fallback)
     with patch.object(coding.bench, "subprocess_json", return_value=({"model_calls": 1}, 1.0)), patch.object(coding, "collect_context", side_effect=collect):
         result = coding.run(args)
     return args.output, result
@@ -207,12 +207,7 @@ class CodingTaskTests(unittest.TestCase):
 
     def test_fallback_is_never_counted_as_intelligent_evaluation(self):
         with tempfile.TemporaryDirectory() as temporary:
-            directory, _ = run_fixture(Path(temporary).resolve())
-            metrics = cross.read_json(directory / "metrics.json")
-            for sample in metrics["samples"]:
-                if sample["setup"] == "intelligent":
-                    sample["context"] = context_fixture(sample["task"], "intelligent", fallback=True)
-            cross.write_json(directory / "metrics.json", metrics)
+            directory, _ = run_fixture(Path(temporary).resolve(), fallback=True)
             result = coding.assess(directory)
             self.assertTrue(result["comparison_complete"])
             self.assertFalse(result["all_intelligent_tasks_received_intelligence"])

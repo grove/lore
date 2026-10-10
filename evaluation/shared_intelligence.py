@@ -374,7 +374,7 @@ def collect(binary: str, project: Path, source: Path, experience: str, task: str
     repeated, repeat_elapsed = bench.subprocess_json(binary, project, *argv, timeout=timeout, env=env)
     core, repeated_core = intelligence(response, experience), intelligence(repeated, experience)
     ids = response_citations(response) | response_citations(repeated)
-    citations = cross.resolve_citations(binary, project, ids, timeout)
+    citations = cross.resolve_citations(binary, project, ids, timeout, env=env)
     record = {
         "arguments": argv, "requested_max_tokens": max_tokens,
         "host_grants": {"inspection_root": (env or {}).get("LORE_INSPECTION_ROOT"),

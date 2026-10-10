@@ -1,0 +1,1072 @@
+{
+  "authorship": {
+    "checker_author": "coding-onboarding implementation agent",
+    "independent_reviewers": [],
+    "task_author": "coding-onboarding implementation agent"
+  },
+  "created_at": "2026-10-10",
+  "fixture_only": true,
+  "held_out": false,
+  "projects": {
+    "boltons": {
+      "commit": "4e5faa3d7e4008d89e0d8bf1ea87b6d9a061a16d",
+      "manifest": {
+        "file_count": 4,
+        "files_sha256": {
+          "LICENSE": "c301912653a8d8c99eab6212aa3aea8d164ea249d8ad53c941e0558a0a5ac1e3",
+          "README.md": "125d653ce15f442d8cafb2b43b4ddc01f443807a4a782e035528cfd75c4388f9",
+          "boltons/iterutils.py": "7fb67f49dc1d895051549b523c2e21161e3c1f4e21590fa7fd09039386d08510",
+          "boltons/strutils.py": "c5ecb7efd3b2e86f92545c18d8d72193f45a1bd1d0edaf3da65868aa0e8bcdda"
+        },
+        "sha256": "fafe897f46eea381df9404a51c2bc0cd603ecef5099f7f26c658bb4a44a15b27"
+      },
+      "repository": "mahmoud/boltons",
+      "selection": "Bounded upstream module and documentation slice; not a full repository checkout.",
+      "source_url": "https://github.com/mahmoud/boltons/tree/4e5faa3d7e4008d89e0d8bf1ea87b6d9a061a16d"
+    },
+    "more-itertools": {
+      "commit": "b21ec4ee8e139ebe297e2221980a694bebb69523",
+      "manifest": {
+        "file_count": 3,
+        "files_sha256": {
+          "LICENSE": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46",
+          "README.rst": "6a5dad4de3ffc03544d72a70cc876e15565b250231557b566f967965d4dd1c5f",
+          "more_itertools/recipes.py": "98bf2a0f8ca454a4674c99e50cb883c3d602032b2fa21b3f3a7e56f4950285e0"
+        },
+        "sha256": "af31b793f7f8a6567c2b64bbceef0bc7980a2abe6631241690af7cf7fd61ac57"
+      },
+      "repository": "more-itertools/more-itertools",
+      "selection": "Bounded upstream module and documentation slice; not a full repository checkout.",
+      "source_url": "https://github.com/more-itertools/more-itertools/tree/b21ec4ee8e139ebe297e2221980a694bebb69523"
+    },
+    "python-dotenv": {
+      "commit": "0b2880591780a426b0551436f47a17e7a76d954f",
+      "manifest": {
+        "file_count": 4,
+        "files_sha256": {
+          "LICENSE": "80619b7049f08c81683ad0e01f08f257a840652dd71ee83146d36658c7d2c2b9",
+          "README.md": "7d06cf7aa8278a4416873e141b5510d99bcc46bd14b440221ef46eba74009441",
+          "src/dotenv/parser.py": "0bc1350444eeff987f2c22924400ad0b7727563798118c641cd4c0de55bd30d0",
+          "src/dotenv/variables.py": "083d2a5cebefa41deae51a4140c0fda97eaf1d7ed2c96f92ba2c063054a5b74f"
+        },
+        "sha256": "93e74bee9615c333190dfc900ed48a4677d7da0a85b31c7adeed215d0b44f9a4"
+      },
+      "repository": "theskumar/python-dotenv",
+      "selection": "Bounded upstream module and documentation slice; not a full repository checkout.",
+      "source_url": "https://github.com/theskumar/python-dotenv/tree/0b2880591780a426b0551436f47a17e7a76d954f"
+    }
+  },
+  "real_model_outcomes": "unmeasured",
+  "schema_version": 1,
+  "status": "agent_authored_candidates_independent_review_pending",
+  "tasks": [
+    {
+      "critical_constraints": [
+        "Keep lower=False case-preserving.",
+        "Respect custom delimiters and empty inputs.",
+        "The ascii=True option returns ASCII bytes, as documented upstream."
+      ],
+      "file": "boltons/strutils.py",
+      "id": "boltons-slugify",
+      "probes": [
+        {
+          "expression": "m.slugify('Hello, World!') == 'hello_world'",
+          "id": "boltons-slugify-1",
+          "kind": "correctness"
+        },
+        {
+          "expression": "m.slugify('Hello World', delim='-', lower=False) == 'Hello-World'",
+          "id": "boltons-slugify-2",
+          "kind": "constraint"
+        },
+        {
+          "expression": "m.slugify('') == ''",
+          "id": "boltons-slugify-3",
+          "kind": "constraint"
+        },
+        {
+          "expression": "m.slugify('Beyonc\u00e9', ascii=True) == b'beyonce'",
+          "id": "boltons-slugify-4",
+          "kind": "constraint"
+        }
+      ],
+      "project": "boltons",
+      "symbol": "slugify",
+      "task": "Restore slugify in boltons/strutils.py. Normalize text into slugs with the documented delimiter, case and ASCII options. The study removed this function body while retaining the pinned upstream module and documentation. Preserve public behavior and explain material edge cases."
+    },
+    {
+      "critical_constraints": [
+        "Teen suffixes override the last digit.",
+        "Nondigit endings remain unchanged."
+      ],
+      "file": "boltons/strutils.py",
+      "id": "boltons-ordinalize",
+      "probes": [
+        {
+          "expression": "m.ordinalize(21) == '21st'",
+          "id": "boltons-ordinalize-1",
+          "kind": "correctness"
+        },
+        {
+          "expression": "[m.ordinalize(n) for n in (11,12,13,111)] == ['11th','12th','13th','111th']",
+          "id": "boltons-ordinalize-2",
+          "kind": "constraint"
+        },
+        {
+          "expression": "m.ordinalize(2, ext_only=True) == 'nd'",
+          "id": "boltons-ordinalize-3",
+          "kind": "constraint"
+        },
+        {
+          "expression": "m.ordinalize('hi') == 'hi' and m.ordinalize('') == ''",
+          "id": "boltons-ordinalize-4",
+          "kind": "constraint"
+        }
+      ],
+      "project": "boltons",
+      "symbol": "ordinalize",
+      "task": "Restore ordinalize in boltons/strutils.py. Restore English ordinal suffixes and ext_only. The study removed this function body while retaining the pinned upstream module and documentation. Preserve public behavior and explain material edge cases."
+    },
+    {
+      "critical_constraints": [
+        "Repeated punctuation does not emit empty tokens.",
+        "Keep Unicode word characters."
+      ],
+      "file": "boltons/strutils.py",
+      "id": "boltons-split-punct-ws",
+      "probes": [
+        {
+          "expression": "m.split_punct_ws('hi, world!') == ['hi','world']",
+          "id": "boltons-split-punct-ws-1",
+          "kind": "correctness"
+        },
+        {
+          "expression": "m.split_punct_ws(' ..a___b  ') == ['a','b']",
+          "id": "boltons-split-punct-ws-2",
+          "kind": "constraint"
+        },
+        {
+          "expression": "m.split_punct_ws('\u00e9clair caf\u00e9') == ['\u00e9clair','caf\u00e9']",
+          "id": "boltons-split-punct-ws-3",
+          "kind": "constraint"
+        },
+        {
+          "expression": "m.split_punct_ws('') == []",
+          "id": "boltons-split-punct-ws-4",
+          "kind": "constraint"
+        }
+      ],
+      "project": "boltons",
+      "symbol": "split_punct_ws",
+      "task": "Restore split_punct_ws in boltons/strutils.py. Split on punctuation and whitespace without emitting empty components. The study removed this function body while retaining the pinned upstream module and documentation. Preserve public behavior and explain material edge cases."
+    },
+    {
+      "critical_constraints": [
+        "Preserve negative sign and configurable precision.",
+        "Zero and exact boundaries retain the documented suffix."
+      ],
+      "file": "boltons/strutils.py",
+      "id": "boltons-bytes2human",
+      "probes": [
+        {
+          "expression": "m.bytes2human(1024) == '1K'",
+          "id": "boltons-bytes2human-1",
+          "kind": "correctness"
+        },
+        {
+          "expression": "m.bytes2human(0, 2) == '0.00B'",
+          "id": "boltons-bytes2human-2",
+          "kind": "constraint"
+        },
+        {
+          "expression": "m.bytes2human(-1536, 1) == '-1.5K'",
+          "id": "boltons-bytes2human-3",
+          "kind": "constraint"
+        },
+        {
+          "expression": "m.bytes2human(1024**8) == '1Y'",
+          "id": "boltons-bytes2human-4",
+          "kind": "constraint"
+        }
+      ],
+      "project": "boltons",
+      "symbol": "bytes2human",
+      "task": "Restore bytes2human in boltons/strutils.py. Format byte quantities using the existing binary suffix table. The study removed this function body while retaining the pinned upstream module and documentation. Preserve public behavior and explain material edge cases."
+    },
+    {
+      "critical_constraints": [
+        "CRLF is one boundary.",
+        "Preserve the documented terminal empty line after a final newline."
+      ],
+      "file": "boltons/strutils.py",
+      "id": "boltons-iter-splitlines",
+      "probes": [
+        {
+          "expression": "list(m.iter_splitlines('a\\nb')) == ['a','b']",
+          "id": "boltons-iter-splitlines-1",
+          "kind": "correctness"
+        },
+        {
+          "expression": "list(m.iter_splitlines('a\\r\\nb\\r')) == ['a','b','']",
+          "id": "boltons-iter-splitlines-2",
+          "kind": "constraint"
+        },
+        {
+          "expression": "list(m.iter_splitlines('')) == []",
+          "id": "boltons-iter-splitlines-3",
+          "kind": "constraint"
+        },
+        {
+          "expression": "list(m.iter_splitlines('a\\v b')) == ['a',' b']",
+          "id": "boltons-iter-splitlines-4",
+          "kind": "constraint"
+        }
+      ],
+      "project": "boltons",
+      "symbol": "iter_splitlines",
+      "task": "Restore iter_splitlines in boltons/strutils.py. Return a lazy line iterator preserving the documented iterator line-boundary semantics. The study removed this function body while retaining the pinned upstream module and documentation. Preserve public behavior and explain material edge cases."
+    },
+    {
+      "critical_constraints": [
+        "Blank lines are omitted by the default key.",
+        "A custom key can include blank lines."
+      ],
+      "file": "boltons/strutils.py",
+      "id": "boltons-indent",
+      "probes": [
+        {
+          "expression": "m.indent('a\\nb','> ') == '> a\\n> b'",
+          "id": "boltons-indent-1",
+          "kind": "correctness"
+        },
+        {
+          "expression": "m.indent('a\\n\\nb','> ') == '> a\\n\\n> b'",
+          "id": "boltons-indent-2",
+          "kind": "constraint"
+        },
+        {
+          "expression": "m.indent('a\\n\\nb','> ',key=lambda line: True) == '> a\\n> \\n> b'",
+          "id": "boltons-indent-3",
+          "kind": "constraint"
+        },
+        {
+          "expression": "m.indent('', '> ') == ''",
+          "id": "boltons-indent-4",
+          "kind": "constraint"
+        }
+      ],
+      "project": "boltons",
+      "symbol": "indent",
+      "task": "Restore indent in boltons/strutils.py. Indent selected text lines using the existing margin/key interface. The study removed this function body while retaining the pinned upstream module and documentation. Preserve public behavior and explain material edge cases."
+    },
+    {
+      "critical_constraints": [
+        "Omitted fill differs from fill=None.",
+        "Invalid sizes are rejected."
+      ],
+      "file": "boltons/iterutils.py",
+      "id": "boltons-chunked-iter",
+      "probes": [
+        {
+          "expression": "list(m.chunked_iter(range(5),2)) == [[0,1],[2,3],[4]]",
+          "id": "boltons-chunked-iter-1",
+          "kind": "correctness"
+        },
+        {
+          "expression": "list(m.chunked_iter(range(3),2,fill=None)) == [[0,1],[2,None]]",
+          "id": "boltons-chunked-iter-2",
+          "kind": "constraint"
+        },
+        {
+          "expression": "list(m.chunked_iter([1],0))",
+          "id": "boltons-chunked-iter-3",
+          "kind": "constraint",
+          "raises": "ValueError"
+        },
+        {
+          "expression": "list(m.chunked_iter('abc',2)) == ['ab','c']",
+          "id": "boltons-chunked-iter-4",
+          "kind": "constraint"
+        }
+      ],
+      "project": "boltons",
+      "symbol": "chunked_iter",
+      "task": "Restore chunked_iter in boltons/iterutils.py. Yield fixed-size chunks including optional padding. The study removed this function body while retaining the pinned upstream module and documentation. Preserve public behavior and explain material edge cases."
+    },
+    {
+      "critical_constraints": [
+        "Key functions affect equality without changing returned values.",
+        "Single-pass input is consumed correctly."
+      ],
+      "file": "boltons/iterutils.py",
+      "id": "boltons-unique-iter",
+      "probes": [
+        {
+          "expression": "list(m.unique_iter([3,1,3,2,1])) == [3,1,2]",
+          "id": "boltons-unique-iter-1",
+          "kind": "correctness"
+        },
+        {
+          "expression": "list(m.unique_iter(['A','a','B'],key=str.lower)) == ['A','B']",
+          "id": "boltons-unique-iter-2",
+          "kind": "constraint"
+        },
+        {
+          "expression": "list(m.unique_iter(iter([1,1,2]))) == [1,2]",
+          "id": "boltons-unique-iter-3",
+          "kind": "constraint"
+        },
+        {
+          "expression": "list(m.unique_iter([])) == []",
+          "id": "boltons-unique-iter-4",
+          "kind": "constraint"
+        }
+      ],
+      "project": "boltons",
+      "symbol": "unique_iter",
+      "task": "Restore unique_iter in boltons/iterutils.py. Yield the first occurrence of each key while preserving order. The study removed this function body while retaining the pinned upstream module and documentation. Preserve public behavior and explain material edge cases."
+    },
+    {
+      "critical_constraints": [
+        "Transform values only after grouping by the original item.",
+        "Keys rejected by key_filter are absent."
+      ],
+      "file": "boltons/iterutils.py",
+      "id": "boltons-bucketize",
+      "probes": [
+        {
+          "expression": "m.bucketize([0,1,2,3],key=lambda x:x%2) == {0:[0,2],1:[1,3]}",
+          "id": "boltons-bucketize-1",
+          "kind": "correctness"
+        },
+        {
+          "expression": "m.bucketize([1,2],key=lambda x:x%2,value_transform=lambda x:x*10) == {1:[10],0:[20]}",
+          "id": "boltons-bucketize-2",
+          "kind": "constraint"
+        },
+        {
+          "expression": "m.bucketize([1,2,3],key=lambda x:x%2,key_filter=bool) == {1:[1,3]}",
+          "id": "boltons-bucketize-3",
+          "kind": "constraint"
+        },
+        {
+          "expression": "m.bucketize([]) == {}",
+          "id": "boltons-bucketize-4",
+          "kind": "constraint"
+        }
+      ],
+      "project": "boltons",
+      "symbol": "bucketize",
+      "task": "Restore bucketize in boltons/iterutils.py. Group input using documented key, transform and key-filter hooks. The study removed this function body while retaining the pinned upstream module and documentation. Preserve public behavior and explain material edge cases."
+    },
+    {
+      "critical_constraints": [
+        "Missing paths must preserve a supplied default.",
+        "List positions and mapping keys can be mixed."
+      ],
+      "file": "boltons/iterutils.py",
+      "id": "boltons-get-path",
+      "probes": [
+        {
+          "expression": "m.get_path({'a':{'b':3}},'a.b') == 3",
+          "id": "boltons-get-path-1",
+          "kind": "correctness"
+        },
+        {
+          "expression": "m.get_path({'a':[{'b':4}]},('a',0,'b')) == 4",
+          "id": "boltons-get-path-2",
+          "kind": "constraint"
+        },
+        {
+          "expression": "m.get_path({},'missing',default=7) == 7",
+          "id": "boltons-get-path-3",
+          "kind": "constraint"
+        },
+        {
+          "expression": "m.get_path({},'missing')",
+          "id": "boltons-get-path-4",
+          "kind": "constraint",
+          "raises": "PathAccessError"
+        }
+      ],
+      "project": "boltons",
+      "symbol": "get_path",
+      "task": "Restore get_path in boltons/iterutils.py. Traverse nested mapping/list paths with documented fallback errors. The study removed this function body while retaining the pinned upstream module and documentation. Preserve public behavior and explain material edge cases."
+    },
+    {
+      "critical_constraints": [
+        "Strict rejects incomplete final groups.",
+        "Ignore and fill remain distinct."
+      ],
+      "file": "more_itertools/recipes.py",
+      "id": "more-itertools-grouper",
+      "probes": [
+        {
+          "expression": "list(m.grouper('ABCDE',2)) == [('A','B'),('C','D'),('E',None)]",
+          "id": "more-itertools-grouper-1",
+          "kind": "correctness"
+        },
+        {
+          "expression": "list(m.grouper('ABCDE',2,incomplete='ignore')) == [('A','B'),('C','D')]",
+          "id": "more-itertools-grouper-2",
+          "kind": "constraint"
+        },
+        {
+          "expression": "list(m.grouper('ABC',2,incomplete='strict'))",
+          "id": "more-itertools-grouper-3",
+          "kind": "constraint",
+          "raises": "ValueError"
+        },
+        {
+          "expression": "list(m.grouper('AB',2,incomplete='bad'))",
+          "id": "more-itertools-grouper-4",
+          "kind": "constraint",
+          "raises": "ValueError"
+        }
+      ],
+      "project": "more-itertools",
+      "symbol": "grouper",
+      "task": "Restore grouper in more_itertools/recipes.py. Group single-pass input with fill, ignore or strict incompleteness. The study removed this function body while retaining the pinned upstream module and documentation. Preserve public behavior and explain material edge cases."
+    },
+    {
+      "critical_constraints": [
+        "Unequal input lengths do not truncate longer iterators.",
+        "Empty iterables do not stop others."
+      ],
+      "file": "more_itertools/recipes.py",
+      "id": "more-itertools-roundrobin",
+      "probes": [
+        {
+          "expression": "list(m.roundrobin('AB','C','DE')) == ['A','C','D','B','E']",
+          "id": "more-itertools-roundrobin-1",
+          "kind": "correctness"
+        },
+        {
+          "expression": "list(m.roundrobin('', 'ABC')) == ['A','B','C']",
+          "id": "more-itertools-roundrobin-2",
+          "kind": "constraint"
+        },
+        {
+          "expression": "list(m.roundrobin()) == []",
+          "id": "more-itertools-roundrobin-3",
+          "kind": "constraint"
+        },
+        {
+          "expression": "list(m.roundrobin(iter([1,2]),iter([3]))) == [1,3,2]",
+          "id": "more-itertools-roundrobin-4",
+          "kind": "constraint"
+        }
+      ],
+      "project": "more-itertools",
+      "symbol": "roundrobin",
+      "task": "Restore roundrobin in more_itertools/recipes.py. Interleave iterables until every input is exhausted. The study removed this function body while retaining the pinned upstream module and documentation. Preserve public behavior and explain material edge cases."
+    },
+    {
+      "critical_constraints": [
+        "Unhashable items raise TypeError unless the key converts them to a hashable representation.",
+        "Returned values are original items."
+      ],
+      "file": "more_itertools/recipes.py",
+      "id": "more-itertools-unique-everseen",
+      "probes": [
+        {
+          "expression": "list(m.unique_everseen('ABACB')) == ['A','B','C']",
+          "id": "more-itertools-unique-everseen-1",
+          "kind": "correctness"
+        },
+        {
+          "expression": "list(m.unique_everseen([[1],[1],[2]]))",
+          "id": "more-itertools-unique-everseen-2",
+          "kind": "constraint",
+          "raises": "TypeError"
+        },
+        {
+          "expression": "list(m.unique_everseen(['A','a','B'],key=str.lower)) == ['A','B']",
+          "id": "more-itertools-unique-everseen-3",
+          "kind": "constraint"
+        },
+        {
+          "expression": "list(m.unique_everseen([])) == []",
+          "id": "more-itertools-unique-everseen-4",
+          "kind": "constraint"
+        },
+        {
+          "expression": "list(m.unique_everseen([[1],[1],[2]],key=tuple)) == [[1],[2]]",
+          "id": "more-itertools-unique-everseen-5",
+          "kind": "constraint"
+        }
+      ],
+      "project": "more-itertools",
+      "symbol": "unique_everseen",
+      "task": "Restore unique_everseen in more_itertools/recipes.py. Return stable unique items with key transformations and documented hashability requirements. The study removed this function body while retaining the pinned upstream module and documentation. Preserve public behavior and explain material edge cases."
+    },
+    {
+      "critical_constraints": [
+        "Negative indexes count from the end.",
+        "Invalid indexes and negative sizes raise documented errors."
+      ],
+      "file": "more_itertools/recipes.py",
+      "id": "more-itertools-nth-combination",
+      "probes": [
+        {
+          "expression": "m.nth_combination(range(5),3,5) == (0,3,4)",
+          "id": "more-itertools-nth-combination-1",
+          "kind": "correctness"
+        },
+        {
+          "expression": "m.nth_combination('ABC',2,-1) == ('B','C')",
+          "id": "more-itertools-nth-combination-2",
+          "kind": "constraint"
+        },
+        {
+          "expression": "m.nth_combination('AB',2,1)",
+          "id": "more-itertools-nth-combination-3",
+          "kind": "constraint",
+          "raises": "IndexError"
+        },
+        {
+          "expression": "m.nth_combination('AB',-1,0)",
+          "id": "more-itertools-nth-combination-4",
+          "kind": "constraint",
+          "raises": "ValueError"
+        }
+      ],
+      "project": "more-itertools",
+      "symbol": "nth_combination",
+      "task": "Restore nth_combination in more_itertools/recipes.py. Index combinations directly with Python-style negative indexing. The study removed this function body while retaining the pinned upstream module and documentation. Preserve public behavior and explain material edge cases."
+    },
+    {
+      "critical_constraints": [
+        "The failing element belongs to the after iterator.",
+        "Consume before first; do not lose the transition element."
+      ],
+      "file": "more_itertools/recipes.py",
+      "id": "more-itertools-before-and-after",
+      "probes": [
+        {
+          "expression": "(lambda parts: (list(parts[0]),list(parts[1])))(m.before_and_after(str.isupper,'ABCdE')) == (['A','B','C'],['d','E'])",
+          "id": "more-itertools-before-and-after-1",
+          "kind": "correctness"
+        },
+        {
+          "expression": "(lambda parts: (list(parts[0]),list(parts[1])))(m.before_and_after(bool,[0,1])) == ([],[0,1])",
+          "id": "more-itertools-before-and-after-2",
+          "kind": "constraint"
+        },
+        {
+          "expression": "(lambda parts: (list(parts[0]),list(parts[1])))(m.before_and_after(bool,[1,2])) == ([1,2],[])",
+          "id": "more-itertools-before-and-after-3",
+          "kind": "constraint"
+        },
+        {
+          "expression": "(lambda parts: (list(parts[0]),list(parts[1])))(m.before_and_after(bool,[])) == ([],[])",
+          "id": "more-itertools-before-and-after-4",
+          "kind": "constraint"
+        }
+      ],
+      "project": "more-itertools",
+      "symbol": "before_and_after",
+      "task": "Restore before_and_after in more_itertools/recipes.py. Split a single-pass iterator at the first predicate failure. The study removed this function body while retaining the pinned upstream module and documentation. Preserve public behavior and explain material edge cases."
+    },
+    {
+      "critical_constraints": [
+        "Incomplete windows are omitted.",
+        "A one-element window and empty input preserve tuple output."
+      ],
+      "file": "more_itertools/recipes.py",
+      "id": "more-itertools-sliding-window",
+      "probes": [
+        {
+          "expression": "list(m.sliding_window('ABCD',3)) == [('A','B','C'),('B','C','D')]",
+          "id": "more-itertools-sliding-window-1",
+          "kind": "correctness"
+        },
+        {
+          "expression": "list(m.sliding_window([1],2)) == []",
+          "id": "more-itertools-sliding-window-2",
+          "kind": "constraint"
+        },
+        {
+          "expression": "list(m.sliding_window([1,2],1)) == [(1,),(2,)]",
+          "id": "more-itertools-sliding-window-3",
+          "kind": "constraint"
+        },
+        {
+          "expression": "list(m.sliding_window([],3)) == []",
+          "id": "more-itertools-sliding-window-4",
+          "kind": "constraint"
+        }
+      ],
+      "project": "more-itertools",
+      "symbol": "sliding_window",
+      "task": "Restore sliding_window in more_itertools/recipes.py. Yield full overlapping windows using bounded iterator storage. The study removed this function body while retaining the pinned upstream module and documentation. Preserve public behavior and explain material edge cases."
+    },
+    {
+      "critical_constraints": [
+        "Empty and singleton inputs are equal.",
+        "Key transformations apply before comparing."
+      ],
+      "file": "more_itertools/recipes.py",
+      "id": "more-itertools-all-equal",
+      "probes": [
+        {
+          "expression": "m.all_equal([2,2,2]) is True",
+          "id": "more-itertools-all-equal-1",
+          "kind": "correctness"
+        },
+        {
+          "expression": "m.all_equal([]) is True and m.all_equal([1]) is True",
+          "id": "more-itertools-all-equal-2",
+          "kind": "constraint"
+        },
+        {
+          "expression": "m.all_equal(['A','a'],key=str.lower) is True",
+          "id": "more-itertools-all-equal-3",
+          "kind": "constraint"
+        },
+        {
+          "expression": "m.all_equal([1,2]) is False",
+          "id": "more-itertools-all-equal-4",
+          "kind": "constraint"
+        }
+      ],
+      "project": "more-itertools",
+      "symbol": "all_equal",
+      "task": "Restore all_equal in more_itertools/recipes.py. Check whether all keyed values agree using one-pass input. The study removed this function body while retaining the pinned upstream module and documentation. Preserve public behavior and explain material edge cases."
+    },
+    {
+      "critical_constraints": [
+        "The streams preserve original relative order.",
+        "A None predicate uses truthiness."
+      ],
+      "file": "more_itertools/recipes.py",
+      "id": "more-itertools-partition",
+      "probes": [
+        {
+          "expression": "(lambda p:(list(p[0]),list(p[1])))(m.partition(lambda x:x%2,[1,2,3,4])) == ([2,4],[1,3])",
+          "id": "more-itertools-partition-1",
+          "kind": "correctness"
+        },
+        {
+          "expression": "(lambda p:(list(p[0]),list(p[1])))(m.partition(None,[0,1,'',2])) == ([0,''],[1,2])",
+          "id": "more-itertools-partition-2",
+          "kind": "constraint"
+        },
+        {
+          "expression": "(lambda p:(list(p[0]),list(p[1])))(m.partition(bool,[])) == ([],[])",
+          "id": "more-itertools-partition-3",
+          "kind": "constraint"
+        },
+        {
+          "expression": "(lambda p:(list(p[1]),list(p[0])))(m.partition(bool,[0,1,0,2])) == ([1,2],[0,0])",
+          "id": "more-itertools-partition-4",
+          "kind": "constraint"
+        }
+      ],
+      "project": "more-itertools",
+      "symbol": "partition",
+      "task": "Restore partition in more_itertools/recipes.py. Split values into false and true predicate streams. The study removed this function body while retaining the pinned upstream module and documentation. Preserve public behavior and explain material edge cases."
+    },
+    {
+      "critical_constraints": [
+        "Constant and empty coefficient sequences retain defined behavior.",
+        "Retain support for numeric types such as Decimal and negative x."
+      ],
+      "file": "more_itertools/recipes.py",
+      "id": "more-itertools-polynomial-eval",
+      "probes": [
+        {
+          "expression": "m.polynomial_eval([2,3,4],2) == 18",
+          "id": "more-itertools-polynomial-eval-1",
+          "kind": "correctness"
+        },
+        {
+          "expression": "m.polynomial_eval([7],10) == 7",
+          "id": "more-itertools-polynomial-eval-2",
+          "kind": "constraint"
+        },
+        {
+          "expression": "m.polynomial_eval([],3) == 0",
+          "id": "more-itertools-polynomial-eval-3",
+          "kind": "constraint"
+        },
+        {
+          "expression": "m.polynomial_eval([1,0,-1],__import__('decimal').Decimal('-2')) == __import__('decimal').Decimal('3')",
+          "id": "more-itertools-polynomial-eval-4",
+          "kind": "constraint"
+        }
+      ],
+      "project": "more-itertools",
+      "symbol": "polynomial_eval",
+      "task": "Restore polynomial_eval in more_itertools/recipes.py. Evaluate coefficient iterables at a supplied x in descending powers. The study removed this function body while retaining the pinned upstream module and documentation. Preserve public behavior and explain material edge cases."
+    },
+    {
+      "critical_constraints": [
+        "Ragged matrices raise ValueError.",
+        "Empty input and one row remain valid."
+      ],
+      "file": "more_itertools/recipes.py",
+      "id": "more-itertools-transpose",
+      "probes": [
+        {
+          "expression": "list(m.transpose([(1,2),(3,4)])) == [(1,3),(2,4)]",
+          "id": "more-itertools-transpose-1",
+          "kind": "correctness"
+        },
+        {
+          "expression": "list(m.transpose([(1,2),(3,)]))",
+          "id": "more-itertools-transpose-2",
+          "kind": "constraint",
+          "raises": "ValueError"
+        },
+        {
+          "expression": "list(m.transpose([])) == []",
+          "id": "more-itertools-transpose-3",
+          "kind": "constraint"
+        },
+        {
+          "expression": "list(m.transpose([(1,2,3)])) == [(1,),(2,),(3,)]",
+          "id": "more-itertools-transpose-4",
+          "kind": "constraint"
+        }
+      ],
+      "project": "more-itertools",
+      "symbol": "transpose",
+      "task": "Restore transpose in more_itertools/recipes.py. Transpose rectangular matrices without silently truncating ragged rows. The study removed this function body while retaining the pinned upstream module and documentation. Preserve public behavior and explain material edge cases."
+    },
+    {
+      "critical_constraints": [
+        "Comment starts produce no key.",
+        "Quoted keys can contain spaces."
+      ],
+      "file": "src/dotenv/parser.py",
+      "id": "python-dotenv-parse-key",
+      "probes": [
+        {
+          "expression": "m.parse_key(m.Reader(io.StringIO('ABC=1'))) == 'ABC'",
+          "id": "python-dotenv-parse-key-1",
+          "kind": "correctness"
+        },
+        {
+          "expression": "m.parse_key(m.Reader(io.StringIO(\"'A B'=1\"))) == 'A B'",
+          "id": "python-dotenv-parse-key-2",
+          "kind": "constraint"
+        },
+        {
+          "expression": "m.parse_key(m.Reader(io.StringIO('# comment'))) is None",
+          "id": "python-dotenv-parse-key-3",
+          "kind": "constraint"
+        },
+        {
+          "expression": "m.parse_key(m.Reader(io.StringIO(' =x')))",
+          "id": "python-dotenv-parse-key-4",
+          "kind": "constraint",
+          "raises": "Error"
+        }
+      ],
+      "project": "python-dotenv",
+      "symbol": "parse_key",
+      "task": "Restore parse_key in src/dotenv/parser.py. Read quoted, unquoted or comment keys from Reader. The study removed this function body while retaining the pinned upstream module and documentation. Preserve public behavior and explain material edge cases."
+    },
+    {
+      "critical_constraints": [
+        "A hash without leading whitespace is literal content.",
+        "Trim trailing whitespace and stop before a newline."
+      ],
+      "file": "src/dotenv/parser.py",
+      "id": "python-dotenv-parse-unquoted-value",
+      "probes": [
+        {
+          "expression": "m.parse_unquoted_value(m.Reader(io.StringIO('abc # comment'))) == 'abc'",
+          "id": "python-dotenv-parse-unquoted-value-1",
+          "kind": "correctness"
+        },
+        {
+          "expression": "m.parse_unquoted_value(m.Reader(io.StringIO('abc#literal'))) == 'abc#literal'",
+          "id": "python-dotenv-parse-unquoted-value-2",
+          "kind": "constraint"
+        },
+        {
+          "expression": "m.parse_unquoted_value(m.Reader(io.StringIO('a  \\nnext'))) == 'a'",
+          "id": "python-dotenv-parse-unquoted-value-3",
+          "kind": "constraint"
+        },
+        {
+          "expression": "m.parse_unquoted_value(m.Reader(io.StringIO(''))) == ''",
+          "id": "python-dotenv-parse-unquoted-value-4",
+          "kind": "constraint"
+        }
+      ],
+      "project": "python-dotenv",
+      "symbol": "parse_unquoted_value",
+      "task": "Restore parse_unquoted_value in src/dotenv/parser.py. Remove whitespace-delimited inline comments while preserving literal hashes. The study removed this function body while retaining the pinned upstream module and documentation. Preserve public behavior and explain material edge cases."
+    },
+    {
+      "critical_constraints": [
+        "Single-quoted values preserve unsupported escapes.",
+        "Empty and newline-only values are empty strings."
+      ],
+      "file": "src/dotenv/parser.py",
+      "id": "python-dotenv-parse-value",
+      "probes": [
+        {
+          "expression": "m.parse_value(m.Reader(io.StringIO('plain'))) == 'plain'",
+          "id": "python-dotenv-parse-value-1",
+          "kind": "correctness"
+        },
+        {
+          "expression": "m.parse_value(m.Reader(io.StringIO(r'\"a\\nb\"'))) == 'a\\nb'",
+          "id": "python-dotenv-parse-value-2",
+          "kind": "constraint"
+        },
+        {
+          "expression": "m.parse_value(m.Reader(io.StringIO(r\"'a\\nb'\"))) == r'a\\nb'",
+          "id": "python-dotenv-parse-value-3",
+          "kind": "constraint"
+        },
+        {
+          "expression": "m.parse_value(m.Reader(io.StringIO('\\n'))) == ''",
+          "id": "python-dotenv-parse-value-4",
+          "kind": "constraint"
+        }
+      ],
+      "project": "python-dotenv",
+      "symbol": "parse_value",
+      "task": "Restore parse_value in src/dotenv/parser.py. Parse quoted/unquoted values using the correct escape scope. The study removed this function body while retaining the pinned upstream module and documentation. Preserve public behavior and explain material edge cases."
+    },
+    {
+      "critical_constraints": [
+        "Whitespace before a hash after equals makes an empty value.",
+        "A malformed line is returned as error without losing its original text."
+      ],
+      "file": "src/dotenv/parser.py",
+      "id": "python-dotenv-parse-binding",
+      "probes": [
+        {
+          "expression": "(lambda b:(b.key,b.value,b.error))(m.parse_binding(m.Reader(io.StringIO('A=1\\n')))) == ('A','1',False)",
+          "id": "python-dotenv-parse-binding-1",
+          "kind": "correctness"
+        },
+        {
+          "expression": "m.parse_binding(m.Reader(io.StringIO('A= # comment\\n'))).value == ''",
+          "id": "python-dotenv-parse-binding-2",
+          "kind": "constraint"
+        },
+        {
+          "expression": "m.parse_binding(m.Reader(io.StringIO('A=#literal\\n'))).value == '#literal'",
+          "id": "python-dotenv-parse-binding-3",
+          "kind": "constraint"
+        },
+        {
+          "expression": "(lambda b:b.error and b.original.line == 1 and bool(b.original.string))(m.parse_binding(m.Reader(io.StringIO('bad bad=1\\n'))))",
+          "id": "python-dotenv-parse-binding-4",
+          "kind": "constraint"
+        }
+      ],
+      "project": "python-dotenv",
+      "symbol": "parse_binding",
+      "task": "Restore parse_binding in src/dotenv/parser.py. Parse one assignment with original-line provenance and error recovery. The study removed this function body while retaining the pinned upstream module and documentation. Preserve public behavior and explain material edge cases."
+    },
+    {
+      "critical_constraints": [
+        "Unknown escapes remain literal.",
+        "Unicode text outside matched escapes is preserved."
+      ],
+      "file": "src/dotenv/parser.py",
+      "id": "python-dotenv-decode-escapes",
+      "probes": [
+        {
+          "expression": "m.decode_escapes(m._double_quote_escapes,r'a\\nb') == 'a\\nb'",
+          "id": "python-dotenv-decode-escapes-1",
+          "kind": "correctness"
+        },
+        {
+          "expression": "m.decode_escapes(m._single_quote_escapes,r'a\\nb') == r'a\\nb'",
+          "id": "python-dotenv-decode-escapes-2",
+          "kind": "constraint"
+        },
+        {
+          "expression": "m.decode_escapes(m._double_quote_escapes,r'\u00e9\\q') == r'\u00e9\\q'",
+          "id": "python-dotenv-decode-escapes-3",
+          "kind": "constraint"
+        },
+        {
+          "expression": "m.decode_escapes(m._double_quote_escapes,'') == ''",
+          "id": "python-dotenv-decode-escapes-4",
+          "kind": "constraint"
+        }
+      ],
+      "project": "python-dotenv",
+      "symbol": "decode_escapes",
+      "task": "Restore decode_escapes in src/dotenv/parser.py. Decode only regex-approved backslash escapes. The study removed this function body while retaining the pinned upstream module and documentation. Preserve public behavior and explain material edge cases."
+    },
+    {
+      "critical_constraints": [
+        "CRLF counts as one line break.",
+        "Character offsets and line numbers both advance."
+      ],
+      "file": "src/dotenv/parser.py",
+      "id": "python-dotenv-position-advance",
+      "probes": [
+        {
+          "expression": "(lambda p:(p.advance('abc'),p.chars,p.line)[1:])(m.Position.start()) == (3,1)",
+          "id": "python-dotenv-position-advance-1",
+          "kind": "correctness"
+        },
+        {
+          "expression": "(lambda p:(p.advance('a\\r\\nb\\rc\\n'),p.chars,p.line)[1:])(m.Position.start()) == (7,4)",
+          "id": "python-dotenv-position-advance-2",
+          "kind": "constraint"
+        },
+        {
+          "expression": "(lambda p:(p.advance(''),p.chars,p.line)[1:])(m.Position.start()) == (0,1)",
+          "id": "python-dotenv-position-advance-3",
+          "kind": "constraint"
+        },
+        {
+          "expression": "(lambda p:(p.advance('\u00e9'),p.chars,p.line)[1:])(m.Position.start()) == (1,1)",
+          "id": "python-dotenv-position-advance-4",
+          "kind": "constraint"
+        }
+      ],
+      "project": "python-dotenv",
+      "symbol": "Position.advance",
+      "task": "Restore Position.advance in src/dotenv/parser.py. Advance exact character and newline positions. The study removed this function body while retaining the pinned upstream module and documentation. Preserve public behavior and explain material edge cases."
+    },
+    {
+      "critical_constraints": [
+        "Insufficient input raises Error.",
+        "Zero-character reads do not advance."
+      ],
+      "file": "src/dotenv/parser.py",
+      "id": "python-dotenv-reader-read",
+      "probes": [
+        {
+          "expression": "(lambda r:(r.read(2),r.peek(1)))(m.Reader(io.StringIO('abc'))) == ('ab','c')",
+          "id": "python-dotenv-reader-read-1",
+          "kind": "correctness"
+        },
+        {
+          "expression": "m.Reader(io.StringIO('a')).read(2)",
+          "id": "python-dotenv-reader-read-2",
+          "kind": "constraint",
+          "raises": "Error"
+        },
+        {
+          "expression": "(lambda r:(r.read(0),r.position.chars))(m.Reader(io.StringIO('a'))) == ('',0)",
+          "id": "python-dotenv-reader-read-3",
+          "kind": "constraint"
+        },
+        {
+          "expression": "(lambda r:(r.read(2),r.position.line))(m.Reader(io.StringIO('a\\n'))) == ('a\\n',2)",
+          "id": "python-dotenv-reader-read-4",
+          "kind": "constraint"
+        }
+      ],
+      "project": "python-dotenv",
+      "symbol": "Reader.read",
+      "task": "Restore Reader.read in src/dotenv/parser.py. Read exactly the requested characters and advance position. The study removed this function body while retaining the pinned upstream module and documentation. Preserve public behavior and explain material edge cases."
+    },
+    {
+      "critical_constraints": [
+        "A later match is not an anchored match.",
+        "Only the exact matched characters advance the reader."
+      ],
+      "file": "src/dotenv/parser.py",
+      "id": "python-dotenv-reader-read-regex",
+      "probes": [
+        {
+          "expression": "m.Reader(io.StringIO('ABC=1')).read_regex(m._unquoted_key) == ('ABC',)",
+          "id": "python-dotenv-reader-read-regex-1",
+          "kind": "correctness"
+        },
+        {
+          "expression": "m.Reader(io.StringIO('  A')).read_regex(m._unquoted_key)",
+          "id": "python-dotenv-reader-read-regex-2",
+          "kind": "constraint",
+          "raises": "Error"
+        },
+        {
+          "expression": "(lambda r:(r.read_regex(m._unquoted_key),r.peek(1)))(m.Reader(io.StringIO('A=1'))) == (('A',),'=')",
+          "id": "python-dotenv-reader-read-regex-3",
+          "kind": "constraint"
+        },
+        {
+          "expression": "m.Reader(io.StringIO('')).read_regex(m._whitespace) == ()",
+          "id": "python-dotenv-reader-read-regex-4",
+          "kind": "constraint"
+        }
+      ],
+      "project": "python-dotenv",
+      "symbol": "Reader.read_regex",
+      "task": "Restore Reader.read_regex in src/dotenv/parser.py. Consume an anchored regex match and return captured groups. The study removed this function body while retaining the pinned upstream module and documentation. Preserve public behavior and explain material edge cases."
+    },
+    {
+      "critical_constraints": [
+        "An explicitly empty or None binding is not replaced by a default.",
+        "Only an absent key selects its default."
+      ],
+      "file": "src/dotenv/variables.py",
+      "id": "python-dotenv-variable-resolve",
+      "probes": [
+        {
+          "expression": "m.Variable('A','fallback').resolve({'A':'set'}) == 'set'",
+          "id": "python-dotenv-variable-resolve-1",
+          "kind": "correctness"
+        },
+        {
+          "expression": "m.Variable('A','fallback').resolve({}) == 'fallback'",
+          "id": "python-dotenv-variable-resolve-2",
+          "kind": "constraint"
+        },
+        {
+          "expression": "m.Variable('A','fallback').resolve({'A':''}) == '' and m.Variable('A','fallback').resolve({'A':None}) == ''",
+          "id": "python-dotenv-variable-resolve-3",
+          "kind": "constraint"
+        },
+        {
+          "expression": "m.Variable('A',None).resolve({}) == ''",
+          "id": "python-dotenv-variable-resolve-4",
+          "kind": "constraint"
+        }
+      ],
+      "project": "python-dotenv",
+      "symbol": "Variable.resolve",
+      "task": "Restore Variable.resolve in src/dotenv/variables.py. Resolve variables with missing/default/None distinctions. The study removed this function body while retaining the pinned upstream module and documentation. Preserve public behavior and explain material edge cases."
+    },
+    {
+      "critical_constraints": [
+        "Only braced variables expand.",
+        "Unmatched text and adjacent substitutions preserve order."
+      ],
+      "file": "src/dotenv/variables.py",
+      "id": "python-dotenv-parse-variables",
+      "probes": [
+        {
+          "expression": "''.join(a.resolve({'A':'x'}) for a in m.parse_variables('before${A}after')) == 'beforexafter'",
+          "id": "python-dotenv-parse-variables-1",
+          "kind": "correctness"
+        },
+        {
+          "expression": "''.join(a.resolve({}) for a in m.parse_variables('${A:-fallback}')) == 'fallback'",
+          "id": "python-dotenv-parse-variables-2",
+          "kind": "constraint"
+        },
+        {
+          "expression": "''.join(a.resolve({'A':'x'}) for a in m.parse_variables('$A ${A}${A}')) == '$A xx'",
+          "id": "python-dotenv-parse-variables-3",
+          "kind": "constraint"
+        },
+        {
+          "expression": "list(m.parse_variables('')) == []",
+          "id": "python-dotenv-parse-variables-4",
+          "kind": "constraint"
+        }
+      ],
+      "project": "python-dotenv",
+      "symbol": "parse_variables",
+      "task": "Restore parse_variables in src/dotenv/variables.py. Tokenize POSIX-style interpolation without expanding literal dollar text. The study removed this function body while retaining the pinned upstream module and documentation. Preserve public behavior and explain material edge cases."
+    }
+  ],
+  "version": "coding-real-candidates-v1"
+}

@@ -47,10 +47,11 @@ requests occur before any coding agent or checker runs for that case. Context
 arm order and coding-agent arm order are separately shuffled, with the context
 collection order recorded in each sample.
 
-This measures **same-task reuse**. It does not establish reuse on a different
-question, reuse after source mutation, or reduced investigation across an
-iterative coding session. The existing Rust source-mutation and permission
-tests cover freshness contracts separately.
+This part measures **same-task reuse**. The separate `adaptive_sequences.py`
+protocol below measures task B after a distinct task A, related and unrelated
+source revisions, and a narrower grant. Its context results are not substituted
+for executed coding outcomes. Repair iterations reuse the already collected
+context, so they do not silently introduce additional investigation in one arm.
 
 The independent checker and answer keys should be outside the selected source
 tree, as in the bundled manifests. The runner never adds checker programs,
@@ -85,6 +86,7 @@ python3 evaluation/adaptive_tasks.py run \
   --agent-id 'YOUR_CODING_MODEL; pinned settings; file-proposal adapter' \
   --agent-location local \
   --max-tokens 6000 --timeout 3600 \
+  --max-attempts 3 --attempt-budget-seconds 7200 --seed 7 \
   --output evaluation-results/adaptive-local-01
 ```
 
@@ -166,21 +168,22 @@ observation references are checked against exact source bytes and line ranges.
 The additive source-relationship manifest is checked against retained resolver
 responses, preserving native qualifications and documentary revision bindings.
 
-Each task retains its exact proposed files, implementation manifest, agent
-request hash, checker executable/helper hashes, independent correctness and
-constraint results, and reviewer bindings. Assessment derives those checks
-again from the saved artifacts; editing a recorded `checks` boolean is
-insufficient. It does not authenticate a researcher's wholesale replacement of
-an entire report and its source artifacts.
+Each task retains every proposed implementation, agent request/response hash,
+checker executable/helper hashes, independent correctness and constraint
+results, and reviewer bindings. Assessment derives those bindings again from
+the saved artifacts. Empty check sets, duplicate check IDs, non-boolean results,
+missing kinds, changed checker programs and changed check coverage are rejected.
+Assessment does not execute candidate code again or authenticate a researcher's
+wholesale replacement of a report and all its source artifacts.
 
 | Measurement | Meaning and limit |
 | --- | --- |
 | Passed tasks and failed constraint checks | Actual selected checker results against the submitted implementation. A failed task can coexist with a mechanically valid comparison. |
-| Material mistakes and missed conditions | Concrete annotations averaged across at least two independently identified blinded reviewers. Review identity, independence and judgment remain accountable attestations. |
+| Material mistakes and missed conditions | Concrete final-answer annotations averaged across at least two blinded reviewers, with separate reviews for earlier failed implementations. Claims of independence require bound captures excluding the operator and task/checker authors; names alone are insufficient. |
 | Warm-up and served model calls | Calls reported by the real CLI for each request; the schema-5 envelope is unwrapped correctly. Unknown provider tokens and actual billing stay null. |
 | Complete context size | Full Python-serialized response byte size plus the CLI's reported whole-output token budget. The byte metric is not a token estimate or a second independent tokenizer. |
 | Served context latency | Wall time for the second CLI request. It includes the selected command's retrieval, inspection and revalidation work; no latency threshold establishes a win. |
-| Warm-up-inclusive recorded cost | Initialization is charged in full to each Lore arm; context-copy time, both context requests, agent time and verification time are included in their recorded phases. The baseline has no Lore initialization charge. |
+| Warm-up-inclusive recorded cost | Initialization is charged in full to each Lore arm; context-copy time, both context requests, every coding/checker attempt and measured iteration overhead are included. The baseline has no Lore initialization charge. Supplied upstream snapshot creation and independent review labor are unmeasured. |
 | Guidance cache hits | A hit must match the unsolved warm-up revision and non-prunable decision premises, retain the same trace, have saved cache data, and report zero served model calls. Complete optional items may pack differently; both responses undergo full source validation. Schema 3 retains its older public preferred-approach comparison. A cache hit is not a correctness result. |
 | Retained investigation reuse | A served hit with `cache_reused` and a retained nonempty investigative trace. Merely enabling cache, returning fallback, or retaining no trace does not count. |
 
@@ -191,18 +194,139 @@ component remains unknown; calls do not imply billed dollars or provider token
 counts. Review completeness and independently reviewed task attempts are
 separate from fixture results.
 
-This remains one coding attempt per arm. It does not measure correction loops,
-time to a correct final contribution, mentor effort, human learning, provider
-server-cache effects, or avoided investigation across different tasks. It
-does not automatically announce a productivity win. Three distinct held-out
-projects, genuine intelligent responses, actual coding calls and complete
-independent review are prerequisites for its reviewed-task status; broader
-productivity claims need a declared study and the missing longitudinal outcomes.
+### Bounded repair and hidden-checker hygiene
+
+The default remains one attempt. `--max-attempts` permits 1–5 attempts and
+`--attempt-budget-seconds` bounds the complete coding/checking loop. Every arm
+gets identical allowances. The runner stops on the first independently correct
+implementation, the attempt limit, or the wall-time limit. Each failed checked
+attempt can receive only strings declared in the case's `repair_feedback`
+mapping before execution, or a generic failure message. The runner never sends
+raw checker IDs, diagnostics, exceptions, hidden test inputs or answer keys to
+the coding adapter. Feedback is capped at eight messages; each declared message
+is bounded. Subsequent requests contain the current allowed source edits and
+the original task/context, plus a schema-1-compatible `repair` object.
+
+`attempts/` retains each tested source copy; `attempt-records/` binds the exact
+request, response, checker result, timing and implementation digest. Before each
+adapter call, `attempt-invocations/` checkpoints a started invocation. Provider
+errors, process failures, malformed responses and failures before verification
+leave an `incomplete` record with its stage, elapsed time, known usage or null
+usage, and error class. Such a failure aborts the run and cannot become a
+completed checker outcome. Do not delete it or silently retry into the same
+study directory. A completed run's assessor also validates every earlier
+attempt, its cumulative costs, the stop condition and the exact checker identity.
+
+`reviews/<sample>.json` reviews the final implementation and contains separate
+`earlier_attempt_reviews` packets for all preceding failures. Each packet has
+two blinded annotation slots and an `independence_evidence` list. Evidence
+entries identify a reviewer, declare no conflicts and independent/blind review,
+and bind a retained capture to `independence_target_sha256`. A capture must have
+a relative path and exact SHA-256; the two reviewers cannot reuse identical
+capture bytes. Reviewer identities must match the annotations. These remain
+accountable evidence, not authentication of the reviewer's human identity.
+
+### Preregistered pilot and full study
+
+Preparation creates an incomplete `PREREGISTRATION.json`. Freeze a selected
+cohort and model settings before collecting outcomes; then supply the completed
+file with `run --preregistration /absolute/path/PREREGISTRATION.json`. Its bound
+gold-review captures must live below `gold-review-captures/` beside that file;
+the runner copies them into the study. The registration records exact source
+repository/commit, original source hashes, transformed input digest, task and
+checker contract, independent task/checker authors, and two independent gold
+reviews. The model/revision, reasoning, temperature, tools, prompt digest,
+command digest, attempts, wall time and external token/tool limits must be
+pinned. Use the exact reported provider model identity; an alias or missing
+model cannot substitute for a different observed model. Prompt identity must
+be a SHA-256 digest. `lore.configuration_sha256_by_case` freezes each case's
+complete generated Lore configuration before the study, covering its model
+roles, reasoning, endpoint and permission settings. The assessor compares these
+pins to the retained matched configurations. Model-weight/revision identity
+inside a provider remains an accountable declaration. The harness enforces its
+own path, output, attempt and wall-time limits;
+provider identities and limits inside arbitrary external adapters require the
+independent execution capture and audit.
+
+Run six pilot tasks across three projects first. Fix concrete harness problems
+on that pilot, freeze the study again, then use a separate full set of at least
+30 held-out tasks across three real projects and all six arms: at least 180
+initial coding attempts, plus recorded repairs. The
+[real-source candidate guide](REAL_CODING_TASKS.md) provides 30 runnable public
+candidates, exact source pins and a fixed six-task pilot subset. They remain
+published debugging tasks with independent authorship and outcomes pending;
+relabeling them cannot supply the held-out study.
+
+The assessor separates mechanical comparison, completed annotations, independent
+answer reviews, gold review/preregistration, true intelligent-mode coverage and
+execution/egress audit. `independent_validation_complete` needs all of these,
+actual nonzero coding-model calls on every attempt, and three distinct held-out
+projects. `productivity_benefit_established` is always false: an analyst must
+evaluate the preregistered effect and its uncertainty rather than treating a
+mechanically valid run as a win.
+
+### Paired outcomes and missing costs
+
+`iteration_outcomes.per_task` retains all six arms for each matched task:
+checker completion, critical-constraint failures, attempts/correction loops,
+warm-up-inclusive time, time to first correct completion, reported provider
+tokens/billing, source UTF-8 bytes, and whole-context token counts where the CLI
+reports them. Source byte size is not presented as a tokenizer estimate. Failed
+tasks remain in all-task elapsed-time statistics and have null time to first
+correct completion. Unknown provider usage and billing remain null.
+
+The baseline comparisons resample matched tasks, keeping their arm assignments
+together, for 2,000 seeded percentile bootstrap draws and 95% intervals. Pass
+rate, constraint failures and correction loops use mean paired differences;
+time and cost use the ratio of arm medians. Usage coverage is explicit. Billing
+comparisons over a complete-case subset cannot substitute for unknown costs.
+Fewer than 30 paired tasks are flagged as small samples. Intervals are
+conditional on these projects and do not remove correlation between tasks in
+the same repository. The proposed product target is a 10-percentage-point pass
+rate improvement, or a 20% time/cost reduction with non-inferior pass rate and
+no increase in critical-constraint violations. No such outcome has been measured
+by the checked-in control tests.
+
+### Different-task, revision and permission sequence
+
+`adaptive_sequences.py` has `prepare`, `run` and `assess` commands. The default
+public payment sequence asks an explanation task A followed by a distinct
+implementation task B, then repeats B after a meaningful same-size source edit,
+an unrelated documentary edit, and removal of inspection/hosted/checkout grants.
+The reuse and `--no-cache` arms start from copies of one initialized registry,
+receive the same source changes and have identical effective capabilities at
+each phase. The source updates call the actual `lore update` command. Each phase
+retains its exact source snapshot, response, evidence resolutions, registry,
+cache state, grants, usage and latency. Assessment replays the declared source
+changes and rejects stale observations or wider-grant replay even when a
+response hash has been recomputed. Initialization, refreshes, every context
+request and measured protocol overhead are included in each arm's total.
+
+```bash
+python3 evaluation/adaptive_sequences.py prepare \
+  --output evaluation-results/different-task-prepared
+
+python3 evaluation/adaptive_sequences.py run \
+  --lore-binary target/release/lore --provider ollama --model YOUR_LORE_MODEL \
+  --allow-inspection --max-tokens 6000 --timeout 3600 --seed 7 \
+  --output evaluation-results/different-task-01
+
+python3 evaluation/adaptive_sequences.py assess evaluation-results/different-task-01
+```
+
+This companion records context/investigation behavior, not completed coding
+work, and does not send solved patches or task-B gold into task A. A cache miss
+can be correct after changed evidence; a hit is not proof of a correct patch.
+Provider server-cache effects, genuine different-task model outcomes and human
+learning remain separate measurements. Human contributions and independent
+transfer use [HUMAN_ONBOARDING.md](HUMAN_ONBOARDING.md).
 
 ## Offline contract gate
 
 ```bash
 python3 -m unittest discover -s evaluation/tests -p test_adaptive_tasks.py -v
+python3 -m unittest discover -s evaluation/tests -p test_outcome_repairs.py -v
+python3 -m unittest discover -s evaluation/tests -p test_adaptive_sequences.py -v
 python3 -m unittest discover -s evaluation/tests -v
 ```
 
