@@ -1,0 +1,40 @@
+{
+  "all_other_git_tree_paths_unchanged": true,
+  "audited_integrated_source": "24222ca4f01849ebfcd29cf93c0e78686124c82a",
+  "authored_fix_source": "165e97dfc9d8a4e79f3892d670b5a91564c1a320",
+  "baseline_public_source": "a55cfeead56775af4e0ae9d171cbdcf191af2007",
+  "baseline_tree": "a0ebeecb3970a14abd10a4bcf15ea96d4bbc2049",
+  "change_set": [
+    "M\tevaluation/tests/test_human_onboarding.py"
+  ],
+  "changed_path": "evaluation/tests/test_human_onboarding.py",
+  "classification": "exact_test_fixture_change_manifest",
+  "correction": "Serialize retained review capture paths with Path.as_posix(); verify that malformed backslash references remain rejected for both assisted and unassisted transfer cases.",
+  "file_versions": {
+    "authored_fix": {
+      "bytes": 32198,
+      "git_blob": "1c2ea3cad18770d4638aa4122d232f9bd2d5479b",
+      "sha256": "4a999f0cabfa5ab73b1a605cda0dc4878288f9f30393f5d82f29430a3e6242a5",
+      "source_revision": "165e97dfc9d8a4e79f3892d670b5a91564c1a320"
+    },
+    "integrated_root_snapshot": {
+      "bytes": 32198,
+      "git_blob": "1c2ea3cad18770d4638aa4122d232f9bd2d5479b",
+      "sha256": "4a999f0cabfa5ab73b1a605cda0dc4878288f9f30393f5d82f29430a3e6242a5",
+      "source_revision": "24222ca4f01849ebfcd29cf93c0e78686124c82a"
+    },
+    "public_before": {
+      "bytes": 31564,
+      "git_blob": "e48e07ece668eb4bda6d27f89f58d1434aa5c883",
+      "sha256": "d5c1aaf7d00b1ee778d9f6e6dbb5357b8efdd684f2f4b95d30e39bbdd3bcb631",
+      "source_revision": "a55cfeead56775af4e0ae9d171cbdcf191af2007"
+    }
+  },
+  "fix_tree": "b46950c453580e834f1d18c63bb46c51a20bc714",
+  "full_index_patch_sha256": "a3c276409cbbbf30bc66b03a99597230a509032a5a37eaa14fe2981684946fdc",
+  "no_new_ci_result_claimed": true,
+  "numstat": "11\t1\tevaluation/tests/test_human_onboarding.py",
+  "production_code_changed": false,
+  "schema_version": 1,
+  "test_skips_added": false
+}

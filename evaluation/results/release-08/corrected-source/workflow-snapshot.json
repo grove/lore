@@ -1,0 +1,20 @@
+{
+  "classification": "observed_workflow_metadata_change_scope",
+  "files": [
+    {
+      "head_sha256": "c87a2979e5f1d73fa8ca030b5f658f43812a4d21f174bc5c9bfa31f3ab891f45",
+      "matches_head": true,
+      "path": ".github/workflows/ci.yml",
+      "working_sha256": "c87a2979e5f1d73fa8ca030b5f658f43812a4d21f174bc5c9bfa31f3ab891f45"
+    },
+    {
+      "head_sha256": "62620ce22674c8e3dd685ae6befed1377d77d889e1a282bbdc46482e0495d26e",
+      "matches_head": true,
+      "path": ".github/workflows/guardian-integrity.yml",
+      "working_sha256": "62620ce22674c8e3dd685ae6befed1377d77d889e1a282bbdc46482e0495d26e"
+    }
+  ],
+  "head_revision_at_snapshot": "2680a3c69c9c5d2b2d3c38942aa2d0d96572ce54",
+  "qualification": "The isolated fixture fix 165e97d changes no workflow. Root was separately adding source/toolchain version-printing steps during this audit. Those workflow edits require their own final commit binding; they do not change runtime source identities or establish a new CI pass.",
+  "schema_version": 1
+}

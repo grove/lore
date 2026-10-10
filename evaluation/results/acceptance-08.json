@@ -1,4 +1,6 @@
 {
+  "accepted_runtime_source": "6e6f8a6af871bdeca53dcc79b63a60fd2af52743",
+  "accepted_runtime_tree": "1e77e84d9f7e69b89968c6b60a6beef7f9afec82",
   "actual_human_participants": 0,
   "allowed_statuses": [
     "passed",
@@ -8,9 +10,110 @@
   ],
   "artifact_manifest": {
     "path": "release-08/artifact-manifest.json",
-    "sha256": "d2c721e476175bc5439f3bc9da4159677990401872c386a7dda7195ba3bcaae4"
+    "sha256": "420e660303a8cb268634b02009e36b29b1b1ed203431009e05a107c9aea2240a"
   },
   "baseline_commit": "0ba8b17f7e63726a8d81def2b60af18573d4640c",
+  "empirical_outcomes": {
+    "coding_pilot": {
+      "actual_coding_attempts": 0,
+      "artifact": {
+        "path": "experiment-08-readiness/not-run.json",
+        "sha256": "3054c801cb76b894fe9f42e43015f4c90fc36c82ac56da8ae237a4b8b0855c47"
+      },
+      "launched_study_subprocesses": 0,
+      "missing_prerequisites": [
+        {
+          "gate": "grants_models_and_limits",
+          "passed": false,
+          "reason": "Configure a real Lore model and pinned coding-agent identity"
+        },
+        {
+          "gate": "preregistration_record",
+          "passed": false,
+          "reason": "Preregistration, independent task/checker authors and two gold reviews per task are pending"
+        },
+        {
+          "gate": "preregistration_and_independent_gold_reviews",
+          "passed": false,
+          "reason": "Requires passing gate: grants_models_and_limits, preregistration_record"
+        },
+        {
+          "gate": "model_command_prompt_and_configuration",
+          "passed": false,
+          "reason": "Requires passing gate: grants_models_and_limits"
+        },
+        {
+          "gate": "current_contract",
+          "passed": false,
+          "reason": "Requires passing gate: grants_models_and_limits, preregistration_and_independent_gold_reviews, model_command_prompt_and_configuration"
+        },
+        {
+          "gate": "sealed_contract",
+          "passed": false,
+          "reason": "Requires passing gate: current_contract"
+        },
+        {
+          "gate": "external_readiness_record",
+          "passed": false,
+          "reason": "Required JSON artifact is missing: READINESS.json"
+        },
+        {
+          "gate": "provider_availability_and_external_runtime_egress_audit",
+          "passed": false,
+          "reason": "Requires passing gate: sealed_contract, external_readiness_record"
+        }
+      ],
+      "planned_initial_assignments": 36,
+      "provider_calls": 0,
+      "public_tasks": 6,
+      "status": "not_run"
+    },
+    "coding_productivity_and_all_in_cost": {
+      "billed_usd": null,
+      "held_out_study": "not_run",
+      "net_time_saved": null,
+      "provider_tokens": null,
+      "qualification": "No genuine matched outcome, elapsed-time or provider-billing observations; public development tasks are not an untouched holdout.",
+      "status": "unmeasured",
+      "success_rate": null
+    },
+    "guardian_independent_alert_quality": {
+      "external_execution_and_egress_audit": "not_run",
+      "missing_prerequisites": [
+        "Permitted pinned inference",
+        "Independent event and advisory outcome review",
+        "Authenticated external execution and egress audit"
+      ],
+      "precision": null,
+      "qualification": "Source preservation in controlled replays does not measure advisory quality.",
+      "recall": null,
+      "status": "unmeasured",
+      "useful_warning_burden": null
+    },
+    "human_contribution_and_transfer": {
+      "actual_independent_assessments": 0,
+      "actual_participants": 0,
+      "actual_sessions": 0,
+      "artifact": {
+        "path": "../evidence/human-onboarding-08-not-run.json",
+        "sha256": "26d24c476f31f733ac64f5837ea77fc05392df47eac0d23dedb51a6625192cb5"
+      },
+      "missing_prerequisites": [
+        "independent_unfamiliar_held_out_projects",
+        "twelve_real_consented_participants",
+        "four_completed_stages_per_participant",
+        "independent_submission_and_explanation_reviews",
+        "participation_access_assistance_and_withdrawal_audit"
+      ],
+      "planned_slots": 12,
+      "status": "unmeasured"
+    }
+  },
+  "final_merge_record": {
+    "pull_request": "https://github.com/grove/lore/pull/47",
+    "reason": "A commit cannot contain its own eventual Git commit/merge SHA. PR47 retains the exact final acceptance head, current-head CI and merge identity.",
+    "requirement": "Documentation/evidence-only successor must pass the unchanged complete native matrix and Guardian workflows before merge."
+  },
   "gates": {
     "adaptive_default": {
       "artifacts": [
@@ -24,7 +127,11 @@
         },
         {
           "path": "release-08/merged-packages.json",
-          "sha256": "c9f073657cf88b05e9b071e341100fb293df94e3936a29520337d3581d45ff4b"
+          "sha256": "9340507198e0ea9d824f3bf0ea600b094f028f96cf64ab41fba1f51700edafc5"
+        },
+        {
+          "path": "release-08/matrix-6e6f8a6/matrix-verification.json",
+          "sha256": "35ae2cbfb096e97d4e2f7f5df96e4d8c3fa2e94d306db2d2adf2c0828132b30a"
         }
       ],
       "scope": "Passed schema 2/3 byte compatibility, schema 4 elapsed-only compatibility, default/explicit 5 parity, complete budgets and permissions; PR44 native matrix and all a55 Rust targets passed.",
@@ -68,7 +175,11 @@
         },
         {
           "path": "release-08/merged-packages.json",
-          "sha256": "c9f073657cf88b05e9b071e341100fb293df94e3936a29520337d3581d45ff4b"
+          "sha256": "9340507198e0ea9d824f3bf0ea600b094f028f96cf64ab41fba1f51700edafc5"
+        },
+        {
+          "path": "release-08/matrix-6e6f8a6/matrix-verification.json",
+          "sha256": "35ae2cbfb096e97d4e2f7f5df96e4d8c3fa2e94d306db2d2adf2c0828132b30a"
         }
       ],
       "scope": "Read-only model-free first contact, bounded enumeration, source/config identity and exact evidence tests passed on all three platforms; PR43 merged.",
@@ -79,83 +190,157 @@
         {
           "path": "release-08/integrated-python.json",
           "sha256": "c39e67115285a18993c7d3aa747eb45204b5de07de56346de585ac2ba1ed1bcd"
+        },
+        {
+          "path": "release-08/matrix-6e6f8a6/matrix-verification.json",
+          "sha256": "35ae2cbfb096e97d4e2f7f5df96e4d8c3fa2e94d306db2d2adf2c0828132b30a"
         }
       ],
       "scope": "Preflight, provenance, isolation/audit and attempt-ledger controls;236 integrated offline Python tests passed; no empirical outcome claim.",
       "status": "passed"
     },
     "coding_productivity": {
-      "artifacts": [],
+      "artifacts": [
+        {
+          "path": "experiment-08-readiness/not-run.json",
+          "sha256": "3054c801cb76b894fe9f42e43015f4c90fc36c82ac56da8ae237a4b8b0855c47"
+        }
+      ],
       "scope": "Actual independent outcome study required",
       "status": "unmeasured"
     },
     "guardian_alert_quality": {
-      "artifacts": [],
+      "artifacts": [
+        {
+          "path": "release-08/guardian-6e6f8a6/guardian-verification.json",
+          "sha256": "f8288c32009cf4b35674755c659455b489af793418451dd877ef8eb95d0625c1"
+        }
+      ],
       "scope": "Actual independent outcome study required",
       "status": "unmeasured"
     },
     "guardian_source_integrity": {
       "artifacts": [
         {
-          "path": "release-08/guardian-a55cfee/guardian-verification.json",
-          "sha256": "dde6ae997a303789e2b5c5a6313ce3a1bb19ab3832705bdddf9052daa8b517ee"
+          "path": "release-08/guardian-6e6f8a6/guardian-verification.json",
+          "sha256": "f8288c32009cf4b35674755c659455b489af793418451dd877ef8eb95d0625c1"
         },
         {
-          "path": "release-08/guardian-a55cfee/retained-inner-verification.json",
-          "sha256": "8130b8a877318fd0f3d86e6606e2df972f2486a83de45e50a36d544c987d2a85"
+          "path": "release-08/guardian-6e6f8a6/retained-inner-verification.json",
+          "sha256": "f8bf2b9898b41cb55f11527da91bbab02eea609951880868acddfe1bd7905d55"
         },
         {
-          "path": "release-08/guardian-a55cfee/receipt.json",
-          "sha256": "d1defb19308392294679798c6f6debd35a807055a89f701e904e8fe34a6a0706"
+          "path": "release-08/guardian-6e6f8a6/receipt.json",
+          "sha256": "24ccb9a06d19739063a533fa08645e880708dbf2d4d059f3847da787b2ec5184"
         },
         {
-          "path": "release-08/guardian-a55cfee/guardian-integrity-evidence.zip",
-          "sha256": "7435a529a96d68c3ad432ef4a13c4a47877a97cfdb96750edd2be6563310ef40"
+          "path": "release-08/guardian-6e6f8a6/guardian-integrity-evidence.zip",
+          "sha256": "7d74e13097c6fe201f589e21b4bc92861b18c3ff157f434c0053a7000a082301"
         }
       ],
-      "scope": "Integrated a55 source: 190 replay events, 1891 preserved source-observer-complete CLI intervals, 240 no-Lore intervals, 259 checked manifest members and 200 authorized snapshot intervals. Logical model calls zero; independent physical attempts unknown without sidecars. Later release head requires its own Guardian CI.",
-      "source_revision": "a55cfeead56775af4e0ae9d171cbdcf191af2007",
+      "scope": "Corrected integrated source: 190 replay events, 1875 preserved source-observer-complete CLI intervals, 240 no-Lore intervals, 259 checked manifest members and 200 authorized snapshot intervals. Logical model calls zero; independent physical attempts unknown without sidecars. Dev/test profiles explicitly observed.",
+      "source_revision": "6e6f8a6af871bdeca53dcc79b63a60fd2af52743",
       "status": "passed",
-      "workflow_run": 38092630241
+      "workflow_run": 38094627173
     },
     "human_contribution": {
-      "artifacts": [],
+      "artifacts": [
+        {
+          "path": "../evidence/human-onboarding-08-not-run.json",
+          "sha256": "26d24c476f31f733ac64f5837ea77fc05392df47eac0d23dedb51a6625192cb5"
+        }
+      ],
       "scope": "Actual independent outcome study required",
       "status": "unmeasured"
     },
     "human_harness": {
       "artifacts": [
         {
-          "path": "release-08/integrated-python.json",
-          "sha256": "c39e67115285a18993c7d3aa747eb45204b5de07de56346de585ac2ba1ed1bcd"
+          "path": "release-08/merged-packages.json",
+          "sha256": "9340507198e0ea9d824f3bf0ea600b094f028f96cf64ab41fba1f51700edafc5"
         },
         {
-          "path": "release-08/pr46-pr47-human-fixture-regression.json",
-          "sha256": "d30b7e3224d906cb8ac2d03bc13e1e9f70e653e49883f4acf5e45d364ab0a970"
+          "path": "release-08/pr46-pr47-human-fixture-regression-v3.json",
+          "sha256": "f3b1aae178294edb788691cef60ee34d1ea17b1081bd2deef8b1e58d4da8660e"
+        },
+        {
+          "path": "release-08/pr46-corrected-native-verification.json",
+          "sha256": "f389cddffdcda6ea3b61f9cf903d52a73bf94adb30a359e64d8bd786747304b7"
+        },
+        {
+          "path": "release-08/matrix-6e6f8a6/matrix-verification.json",
+          "sha256": "35ae2cbfb096e97d4e2f7f5df96e4d8c3fa2e94d306db2d2adf2c0828132b30a"
         }
       ],
-      "remaining_gate": "Corrected current-head Linux/macOS/Windows Python suite; no real participant outcome is implied.",
-      "scope": "Prior local full suite passed; latest integrated native matrix had two Windows subtest failures from non-POSIX fixture paths. Production validation correctly rejected them; a fixture-only correction with a negative boundary assertion is committed.",
-      "source_revision": "a55cfeead56775af4e0ae9d171cbdcf191af2007",
-      "status": "failed"
+      "scope": "Corrected canonical fixture and unchanged production guard passed complete native Linux/macOS/Windows suites. PR46 debug-profile CLI checks passed; release-profile checks are separately gated in PR47. No real participant outcome is implied.",
+      "source_revision": "76826b68a6054af10cedc7fe45386e96bf20f55f",
+      "status": "passed",
+      "workflow_run": 38094401927
     },
     "human_transfer": {
-      "artifacts": [],
+      "artifacts": [
+        {
+          "path": "../evidence/human-onboarding-08-not-run.json",
+          "sha256": "26d24c476f31f733ac64f5837ea77fc05392df47eac0d23dedb51a6625192cb5"
+        }
+      ],
       "scope": "Actual independent outcome study required",
       "status": "unmeasured"
     },
     "platform_matrix": {
       "artifacts": [
         {
+          "path": "release-08/matrix-6e6f8a6/matrix-verification.json",
+          "sha256": "35ae2cbfb096e97d4e2f7f5df96e4d8c3fa2e94d306db2d2adf2c0828132b30a"
+        },
+        {
           "path": "release-08/matrix-a55cfee-failed/matrix-verification.json",
           "sha256": "745704e12fb1c790925b7daea9c9b7df552fc0ab125e768cc9545c6ebb37731d"
         }
       ],
-      "remaining_gate": "Corrected head 76826b68a6054af10cedc7fe45386e96bf20f55f in PR46 and the corresponding integrated PR47 head require complete success.",
-      "scope": "Integrated native matrix: all 57 Rust targets and release builds passed on all platforms; Linux/macOS complete success, Windows failed two human test fixture subtests.",
-      "source_revision": "a55cfeead56775af4e0ae9d171cbdcf191af2007",
-      "status": "failed",
-      "workflow_run": 38092630287
+      "matrix": {
+        "linux": {
+          "python_discovered": 236,
+          "python_error_outcomes": 0,
+          "python_failure_outcomes": 0,
+          "python_passed": 236,
+          "python_skipped": 0,
+          "release_build": "passed",
+          "release_cli_invocations": 11,
+          "rust_failed": 0,
+          "rust_ignored": 3,
+          "rust_passed": 472
+        },
+        "macos": {
+          "python_discovered": 236,
+          "python_error_outcomes": 0,
+          "python_failure_outcomes": 0,
+          "python_passed": 235,
+          "python_skipped": 1,
+          "release_build": "passed",
+          "release_cli_invocations": 11,
+          "rust_failed": 0,
+          "rust_ignored": 3,
+          "rust_passed": 472
+        },
+        "windows": {
+          "python_discovered": 236,
+          "python_error_outcomes": 0,
+          "python_failure_outcomes": 0,
+          "python_passed": 226,
+          "python_skipped": 10,
+          "release_build": "passed",
+          "release_cli_invocations": 11,
+          "rust_failed": 0,
+          "rust_ignored": 3,
+          "rust_passed": 461
+        }
+      },
+      "scope": "Complete exact-head native matrix with 57 reconciled Rust targets on Linux/macOS/Windows, all enabled Python cases passed, optimized release build and 11 release CLI invocations per platform reporting lore 0.8.0. Earlier failed a55 attempt retained separately.",
+      "source_revision": "6e6f8a6af871bdeca53dcc79b63a60fd2af52743",
+      "source_tree": "1e77e84d9f7e69b89968c6b60a6beef7f9afec82",
+      "status": "passed",
+      "workflow_run": 38094627128
     },
     "provider_usage": {
       "artifacts": [
@@ -165,7 +350,11 @@
         },
         {
           "path": "release-08/merged-packages.json",
-          "sha256": "c9f073657cf88b05e9b071e341100fb293df94e3936a29520337d3581d45ff4b"
+          "sha256": "9340507198e0ea9d824f3bf0ea600b094f028f96cf64ab41fba1f51700edafc5"
+        },
+        {
+          "path": "release-08/matrix-6e6f8a6/matrix-verification.json",
+          "sha256": "35ae2cbfb096e97d4e2f7f5df96e4d8c3fa2e94d306db2d2adf2c0828132b30a"
         }
       ],
       "scope": "Per-attempt nullable tokens/USD, failure/retry/cancellation and additive migration tests; final native PR42 matrix passed after retained runtime/fixture corrections.",
@@ -174,17 +363,34 @@
     "release": {
       "artifacts": [
         {
+          "path": "release-08/matrix-6e6f8a6/matrix-verification.json",
+          "sha256": "35ae2cbfb096e97d4e2f7f5df96e4d8c3fa2e94d306db2d2adf2c0828132b30a"
+        },
+        {
+          "path": "release-08/guardian-6e6f8a6/guardian-verification.json",
+          "sha256": "f8288c32009cf4b35674755c659455b489af793418451dd877ef8eb95d0625c1"
+        },
+        {
           "path": "release-08/local-final/summary.json",
           "sha256": "bd74d42d75d0adab7748a410539b25814143811660a5add2d740cb7a2f01a89d"
         },
         {
+          "path": "release-08/local-final/contract-comparison.json",
+          "sha256": "93f609a7e24eff9d8904d863bd77b9fcf8944278316d4a8f4047e4fae73939dc"
+        },
+        {
+          "path": "release-08/corrected-source/corrected-head-binding.json",
+          "sha256": "29b62c0f9cdc57e4b6bbccd410ee8d953059c2d6762046148eb3b1d8de2fd913"
+        },
+        {
           "path": "release-08/merged-packages.json",
-          "sha256": "c9f073657cf88b05e9b071e341100fb293df94e3936a29520337d3581d45ff4b"
+          "sha256": "9340507198e0ea9d824f3bf0ea600b094f028f96cf64ab41fba1f51700edafc5"
         }
       ],
-      "remaining_gate": "Complete corrected native platform matrix, current-head Guardian, all 11 release smoke commands on every platform and exact final CI receipts; six of eight PRs merged.",
-      "scope": "All engineering ship gates",
-      "status": "not_run"
+      "scope": "All integrated runtime engineering gates passed; ready with explicitly unmeasured empirical outcomes. Final documentation/evidence successor remains subject to the same current-head checks before PR47 merges.",
+      "source_revision": "6e6f8a6af871bdeca53dcc79b63a60fd2af52743",
+      "status": "passed",
+      "version": "0.8.0"
     }
   },
   "publication_review": {
@@ -198,6 +404,6 @@
   },
   "real_model_study_attempts": 0,
   "release": "0.8.0",
-  "release_decision": "in_progress",
+  "release_decision": "ready_with_explicitly_unmeasured_empirical_outcomes",
   "schema_version": 1
 }

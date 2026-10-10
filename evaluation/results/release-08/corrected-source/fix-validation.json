@@ -1,0 +1,58 @@
+{
+  "checks": [
+    {
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "evaluation.tests.test_human_onboarding.HumanOnboardingTests.test_independent_transfer_requires_bound_explanation_review_and_no_assistance",
+        "-v"
+      ],
+      "covered_assistance_cases": [
+        false,
+        true
+      ],
+      "discovered_tests": 1,
+      "exit_code": 0,
+      "seconds": 3.674,
+      "status": "passed"
+    },
+    {
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "evaluation.tests.test_human_onboarding",
+        "-v"
+      ],
+      "discovered_tests": 20,
+      "exit_code": 0,
+      "failures": 0,
+      "seconds": 11.348,
+      "skipped": 0,
+      "status": "passed"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "status": "passed"
+    }
+  ],
+  "classification": "local_human_fixture_validation",
+  "independent_code_review": "Separate implementation-agent read-only review of the exact 11-added/1-removed test diff closed without a material issue; not an independent human-outcome assessment.",
+  "native_windows_rerun": null,
+  "observation_basis": "Actual local exec results in /lore-human before committing the exact tested diff unchanged.",
+  "parent_source_revision": "a55cfeead56775af4e0ae9d171cbdcf191af2007",
+  "production_guards_changed": false,
+  "qualification": "Offline local regression checks preserve consent, withdrawal, source/submission/checker binding and transfer gates. These observations do not claim a corrected native CI result.",
+  "raw_logs_included": false,
+  "real_participants": 0,
+  "real_provider_calls": 0,
+  "schema_version": 1,
+  "source_revision": "165e97dfc9d8a4e79f3892d670b5a91564c1a320",
+  "test_file_sha256": "4a999f0cabfa5ab73b1a605cda0dc4878288f9f30393f5d82f29430a3e6242a5"
+}

@@ -41,9 +41,13 @@ not authorship, external sandboxing, product benefit or an unobserved source wri
 | [Initial local release commands](release-08/initial-local.json) | Formatting, strict Clippy driver and release build passed; the standard Rust run failed because a generated test executable lost execute permission. The failed run remains retained. |
 | [Merged Guardian package proof](release-08/guardian-pr41/verified-summary.json) | Verified GitHub artifact and all inner manifest members: baseline/candidate/repeat/focused190 events and1889 source-preserving observed commands, plus240 zero-Lore control intervals. Final integrated0.8 proof remains a separate gate. |
 | [Integrated Guardian proof](release-08/guardian-a55cfee/README.md) | Public source a55cfee: all 259 members verified, 190 replay events, 1,891 preserved and source-observer-complete commands, 240 no-Lore intervals and permanent retained-inner verification. Physical provider attempts remain unknown without sidecar ledgers. |
+| [Corrected integrated Guardian proof](release-08/guardian-6e6f8a6/README.md) | Public source 6e6f8a6: all 259 members verified, 190 events, 1,875 source-preserving and source-observer-complete commands, 240 no-Lore intervals; direct compiler/profile measurements and permanent retained-inner verification. |
+| [Corrected source binding](release-08/corrected-source/corrected-head-binding.json) | All 70 runtime and 145 Guardian inputs are identical to a55; the sole human fixture change matches the reviewed correction. This historical binding makes no later CI claim. |
+| [Completed integrated platform matrix](release-08/matrix-6e6f8a6/MATRIX.md) | Exact source 6e6f8a6: all 57 Rust targets and enabled Python cases passed on Linux/macOS/Windows; optimized release builds, 11 CLI checks per platform and `lore 0.8.0` confirmed. |
 | [Retained integrated matrix failure](release-08/matrix-a55cfee-failed/MATRIX.md) | All 57 Rust targets and release compilation passed on Linux/macOS/Windows. Windows failed two human-workflow fixture subtests; the failed run remains distinct from corrected-head CI. |
 | [Native runtime regression history](release-08/pr42-runtime-regression-history.json) | Failed main-stack and owned-fixture revisions, exact corrections and the final passing three-platform PR42 matrix. |
-| [Human fixture correction](release-08/pr46-pr47-human-fixture-regression.json) | Exact two Windows fixture failures, canonical POSIX path correction and preserved rejection boundary; corrected native CI remains required. |
+| [Human fixture correction](release-08/pr46-pr47-human-fixture-regression-v3.json) | Exact two Windows fixture failures, canonical POSIX path correction and preserved rejection boundary; failed attempts remain separate from the completed corrected-head verification. |
+| [Corrected human-package native verification](release-08/pr46-corrected-native-verification.json) | Source 76826b68 and merge 7b242d25: all 57 Rust targets and enabled Python tests passed on Linux/macOS/Windows, including the previously failing transfer fixture; 11 debug CLI checks per platform. Release-profile validation is separately recorded for PR47. |
 | [Coding preflight](experiment-08-readiness/not-run.json) | Actual preflight refusal, six public tasks and36 planned assignments, no launched study or real providers; exact missing prerequisites retained. |
 | [Human readiness](../evidence/human-onboarding-08-not-run.json) | Actual prepare/readiness/assess commands,12 planned slots and zero people or sessions; contribution and transfer remain unmeasured. |
 
@@ -55,9 +59,13 @@ command logs are not published in this directory; condensed receipts retain
 their hashes and available GitHub links. Controlled-fixture publication review
 is separate from independent empirical study review.
 
-The current release is still undergoing final platform and Guardian checks.
-The [scorecard](../PRODUCT_QUALITY_08.md) records the release decision and the
-precise scope of each successful or failed capture.
+The integrated runtime has passed its full platform and Guardian gates. The
+[scorecard](../PRODUCT_QUALITY_08.md) records readiness with explicitly unmeasured
+empirical outcomes, while [PR47](https://github.com/grove/lore/pull/47) records the
+current-head acceptance-commit checks and final merge. Each retained capture
+keeps its actual source, successful or failed outcome, and qualification.
+
+The [human-fixture history correction](release-08/pr46-pr47-human-fixture-regression-v3.json) supersedes the earlier derived receipt's release-build statement: PR46 had no separate release-build step, and its later debug-profile CLI smoke steps were skipped after the Python failure. PR47 did complete its explicit release build. PR46 uses `cargo run --locked`; PR47 uses `cargo run --release --locked`. The failed source revisions, outcomes and raw-log hashes are unchanged. The earlier v1/v2 summaries and the v2 copy inside the historical corrected-source handoff are superseded on this build-profile detail. The [PR42 checkout binding](release-08/pr42-tested-source-binding.json) separately confirms that its tested merge checkout and reviewed head have identical source trees.
 
 ## Reproduce the published candidate contracts
 
@@ -86,14 +94,14 @@ official outer ZIP digest as provenance rather than claiming to download or
 revalidate that omitted ZIP:
 
 ```sh
-python3 evaluation/results/release-08/guardian-a55cfee/verify_guardian_release.py \
+python3 evaluation/results/release-08/guardian-6e6f8a6/verify_guardian_release.py \
   --retained-inner \
-  --input evaluation/results/release-08/guardian-a55cfee \
+  --input evaluation/results/release-08/guardian-6e6f8a6 \
   --output /absolute/new-guardian-verification \
-  --collector /absolute/exact-a55cfee-checkout/evaluation
+  --collector /absolute/exact-6e6f8a6-checkout/evaluation
 ```
 
-The [verification receipt](release-08/guardian-a55cfee/retained-inner-verification.json)
+The [verification receipt](release-08/guardian-6e6f8a6/retained-inner-verification.json)
 records an actual successful execution of that mode. The [matrix verifier](release-08/matrix-a55cfee-failed/MATRIX.md)
 requires separately obtained job logs; their bytes are deliberately not
 republished in the release evidence.

@@ -71,6 +71,20 @@
       "pull_request": 45,
       "reviewed_head": "b69e4ab0c9f213d9969115edd5ce10067e3e1782",
       "url": "https://github.com/grove/lore/pull/45"
+    },
+    {
+      "cli_smoke_profile": "dev",
+      "guardian_result": "success",
+      "guardian_run": 38094401929,
+      "merge_commit": "7b242d25b7a5bc1825c146c77657b46bd0eb73c6",
+      "merged": true,
+      "package": 7,
+      "platform_result": "success",
+      "platform_run": 38094401927,
+      "pull_request": 46,
+      "reviewed_head": "76826b68a6054af10cedc7fe45386e96bf20f55f",
+      "url": "https://github.com/grove/lore/pull/46",
+      "version_bump_and_release_profile_gate": "PR47"
     }
   ],
   "repository": "grove/lore",

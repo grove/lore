@@ -1,0 +1,89 @@
+{
+  "actual_observed_status": "verified",
+  "candidate_binary_sha256": "59f20591127dbd04ac350ae0bd7e9651be0f33daf7a24d3dbcd9bfd05c6c83f8",
+  "classification": "existing_guardian_evidence_reference",
+  "cohorts": {
+    "baseline": {
+      "command_intervals": 608,
+      "events": 60,
+      "logical_model_calls": 0,
+      "physical_provider_attempts": null,
+      "source_observer_complete": 608,
+      "source_preserved": 608
+    },
+    "candidate": {
+      "command_intervals": 606,
+      "events": 60,
+      "logical_model_calls": 0,
+      "physical_provider_attempts": null,
+      "source_observer_complete": 606,
+      "source_preserved": 606
+    },
+    "candidate-repeat": {
+      "command_intervals": 606,
+      "events": 60,
+      "logical_model_calls": 0,
+      "physical_provider_attempts": null,
+      "source_observer_complete": 606,
+      "source_preserved": 606
+    },
+    "focused-payments": {
+      "command_intervals": 71,
+      "events": 10,
+      "logical_model_calls": 0,
+      "physical_provider_attempts": null,
+      "source_observer_complete": 71,
+      "source_preserved": 71
+    }
+  },
+  "corrected_head_ci_status": null,
+  "guardian_input_manifest": "guardian-inputs.json",
+  "limits": [
+    "This receipt is bound to the stated PR head; later revisions need their own CI result.",
+    "Retained-inner mode verifies receipt and archive member bindings, without synthesizing an outer ZIP or claiming to revalidate its recorded origin digest.",
+    "All source observers are complete. Recorded new-directory observer gaps apply only to permitted Lore-owned state.",
+    "Guardian independent alert quality remains unmeasured; execution/egress syscall audit was not run.",
+    "Logical model calls are independently summed from every initialization, event materialization and guard intelligence response. Physical provider-attempt ledgers are not retained in this synthetic replay archive, so that independent field remains null.",
+    "The original historical source-restoration failures are not relabeled or attributed to a writer by this clean run.",
+    "Platform tests and release-mode CLI smoke results are recorded separately; no raw CI log is included."
+  ],
+  "new_replay_performed": false,
+  "no_lore_control": {
+    "events": 60,
+    "failed_events": [],
+    "intervals": 240,
+    "model_calls": 0,
+    "processes_started": 0,
+    "source_observer_complete": 240,
+    "source_preserved": 240
+  },
+  "observed_source_revision": "a55cfeead56775af4e0ae9d171cbdcf191af2007",
+  "observed_source_tree": "a0ebeecb3970a14abd10a4bcf15ea96d4bbc2049",
+  "original_receipt": {
+    "bytes": 49384,
+    "sha256": "d1defb19308392294679798c6f6debd35a807055a89f701e904e8fe34a6a0706"
+  },
+  "qualification": "Reuses identity of the existing a55 source-integrity capture only. The earlier PR41 1,889-command proof is a separate historical capture; a55 has 1,891 command intervals. No new corrected-head or physical-provider-ledger observation is synthesized.",
+  "runtime_input_manifest": "runtime-inputs.json",
+  "schema_version": 1,
+  "synthetic_evidence_archive": {
+    "bytes": 4803212,
+    "sha256": "7435a529a96d68c3ad432ef4a13c4a47877a97cfdb96750edd2be6563310ef40"
+  },
+  "total_command_intervals": 1891,
+  "total_replay_events": 190,
+  "verification_sha256": "dde6ae997a303789e2b5c5a6313ce3a1bb19ab3832705bdddf9052daa8b517ee",
+  "workflow_run": {
+    "conclusion": "success",
+    "created_at": "2026-10-10T22:45:50Z",
+    "event": "pull_request",
+    "head_sha": "a55cfeead56775af4e0ae9d171cbdcf191af2007",
+    "head_tree_sha": "a0ebeecb3970a14abd10a4bcf15ea96d4bbc2049",
+    "html_url": "https://github.com/grove/lore/actions/runs/38092630241",
+    "id": 38092630241,
+    "name": "Guardian source integrity",
+    "run_started_at": "2026-10-10T22:45:50Z",
+    "status": "completed",
+    "updated_at": "2026-10-10T22:54:00Z"
+  }
+}

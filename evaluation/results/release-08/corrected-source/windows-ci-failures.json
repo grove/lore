@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "kind": "lore_08_human_fixture_windows_regression",
+  "recorded_at_utc": "2026-10-10 23:21:13 UTC",
+  "status": "fix_authored_corrected_native_ci_pending",
+  "repository": "grove/lore",
+  "observation": "Both assisted and unassisted variants of the independent-transfer test serialized a nested reviewer capture path using host-native separators. Native Windows produced backslashes, which the canonical relative POSIX evidence-path validator correctly rejected.",
+  "failure_classification": "portable_test_fixture_serialization",
+  "failed_test": "test_human_onboarding.HumanOnboardingTests.test_independent_transfer_requires_bound_explanation_review_and_no_assistance",
+  "failing_subtests": [
+    {
+      "assisted": false
+    },
+    {
+      "assisted": true
+    }
+  ],
+  "public_source_trace": {
+    "file": "evaluation/tests/test_human_onboarding.py",
+    "assertion_line": 177,
+    "measurement_helper_line": 159
+  },
+  "failed_contract": "File paths must be nonempty relative POSIX paths",
+  "authored_fix": {
+    "commit": "165e97dfc9d8a4e79f3892d670b5a91564c1a320",
+    "path": "evaluation/tests/test_human_onboarding.py",
+    "correction": "Serialize capture.relative_to(directory).as_posix(); add backslash rejection assertions to both assisted cases while preserving the original transfer scoring and assistance gates.",
+    "product_changes": false,
+    "test_skips_added": false,
+    "read_only_review": "Closed against the authored diff; portable canonical references plus malformed native-separator control; no product path guard relaxed."
+  },
+  "observations": [
+    {
+      "pull_request": 46,
+      "workflow_source_head": "eb42f4cd0a75c7987dbacecf16b0af5bbfda87c6",
+      "observed_checkout_sha": "89cde0d52086088e0b3e83a1888e968f443f250b",
+      "run_id": 38092607146,
+      "job_id": 114331947435,
+      "job_url": "https://github.com/grove/lore/actions/runs/38092607146/jobs/114331947435",
+      "platform": "windows",
+      "conclusion": "failure",
+      "stages": {
+        "format": "success",
+        "strict_clippy": "success",
+        "rust_all_targets": "success",
+        "python": "failure",
+        "cli_smoke": "skipped",
+        "release_build": null
+      },
+      "rust_all_targets": {
+        "suite_summaries": 57,
+        "passed": 461,
+        "failed": 0,
+        "ignored": 3,
+        "measured": 0,
+        "filtered_out": 0,
+        "complete": true
+      },
+      "human_experience_cli": {
+        "passed": 7,
+        "failed": 0
+      },
+      "python": {
+        "discovered": 236,
+        "passed": null,
+        "reported_failure_outcomes": 2,
+        "reported_error_outcomes": 0,
+        "skipped": 10,
+        "elapsed_seconds": 144.846
+      },
+      "decoded_log": {
+        "encoding": "decoded UTF-8 job log",
+        "bytes": 176092,
+        "sha256": "aae887091a76e1f24a51c6f70c9704728d3bf1383766741e7cafa054a8f39a6e",
+        "raw_included": false
+      },
+      "release_build_evidence": "not_observed; no dedicated step in this workflow and later release CLI smoke was skipped"
+    },
+    {
+      "pull_request": 47,
+      "workflow_source_head": "a55cfeead56775af4e0ae9d171cbdcf191af2007",
+      "observed_checkout_sha": "cc9c520f15d6cba5b5b1c8dca428383fda401487",
+      "run_id": 38092630287,
+      "job_id": 114332014292,
+      "job_url": "https://github.com/grove/lore/actions/runs/38092630287/jobs/114332014292",
+      "platform": "windows",
+      "conclusion": "failure",
+      "stages": {
+        "format": "success",
+        "strict_clippy": "success",
+        "rust_all_targets": "success",
+        "release_build": "success",
+        "python": "failure",
+        "cli_smoke": "skipped"
+      },
+      "rust_all_targets": {
+        "suite_summaries": 57,
+        "passed": 461,
+        "failed": 0,
+        "ignored": 3,
+        "measured": 0,
+        "filtered_out": 0,
+        "complete": true
+      },
+      "human_experience_cli": {
+        "passed": 7,
+        "failed": 0
+      },
+      "python": {
+        "discovered": 236,
+        "passed": null,
+        "reported_failure_outcomes": 2,
+        "reported_error_outcomes": 0,
+        "skipped": 10,
+        "elapsed_seconds": 85.21
+      },
+      "decoded_log": {
+        "encoding": "decoded UTF-8 job log",
+        "bytes": 186674,
+        "sha256": "346bab7efcc245fd62630572abef3c575cfca2e464b43857d31ee76cffe997f5",
+        "raw_included": false
+      },
+      "release_build_evidence": "explicit cargo build --release --locked step succeeded"
+    }
+  ],
+  "corrected_native_result": null,
+  "raw_ci_logs_included": false,
+  "limits": [
+    "Reported failure outcomes are subtest failures, not two distinct discovered unittest test cases; passed-test counts remain unknown for these failed runs.",
+    "Both completed failed job logs were decoded and inspected. No other Python failure/error was reported; later CLI smoke stages were skipped after the Python command failed.",
+    "Both native Rust suites passed. Only PR47's workflow includes a separate successful release-build stage. PR46 stopped in Python before its release CLI smoke steps, so this job provides no release-build evidence.",
+    "This receipt records an observed fixture failure and authored correction; it does not claim success for a later source head until that head's native CI finishes.",
+    "No real provider, participant, or empirical study was launched."
+  ],
+  "supersedes": {
+    "name": "pr46-pr47-human-fixture-regression.json",
+    "bytes": 5026,
+    "sha256": "d30b7e3224d906cb8ac2d03bc13e1e9f70e653e49883f4acf5e45d364ab0a970",
+    "reason": "Correct the scope of release-build evidence: PR46 has no dedicated release-build step and skipped all later release CLI smoke after Python failed; only PR47 has a successful separate release build."
+  }
+}

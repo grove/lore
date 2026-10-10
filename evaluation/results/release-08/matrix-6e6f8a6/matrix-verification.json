@@ -1,0 +1,413 @@
+{
+  "checkout_commit": {
+    "parents": [
+      "be67e368287e421b4595f3f761bb9408f5b686f6",
+      "6e6f8a6af871bdeca53dcc79b63a60fd2af52743"
+    ],
+    "sha": "26165b9daa3cd4df3b81bfce987b59e62f345c95",
+    "tree_sha": "1e77e84d9f7e69b89968c6b60a6beef7f9afec82"
+  },
+  "kind": "condensed_final_candidate_platform_verification",
+  "limits": [
+    "Counts are recomputed from completed public CI jobs and bound to their exact observed checkout commit.",
+    "The GitHub merge-ref tree equals the stated PR-head tree.",
+    "Raw log content remains in a separate local-only directory and is not part of this receipt.",
+    "Ignored or skipped tests remain visible and are not counted as passes; failed commands may stop before every target runs.",
+    "No live inference, source modification or CI rerun was initiated by this verifier.",
+    "This receipt covers only its stated head; later changes require their own checks."
+  ],
+  "matrix": {
+    "linux": {
+      "clippy_conclusion": "success",
+      "conclusion": "success",
+      "format_conclusion": "success",
+      "job_id": 114337891311,
+      "local_raw_log_binding": {
+        "bytes": 517016,
+        "included_in_published_receipt": false,
+        "sha256": "140169a9d02ead8f547aca92cec44186b8fc214d677daf7a85f0d8cf829c876b"
+      },
+      "python": {
+        "command_conclusion": "success",
+        "discovered": 236,
+        "elapsed_seconds": 78.479,
+        "passed": 236,
+        "reported_error_outcomes": 0,
+        "reported_failure_outcomes": 0,
+        "skipped": 0
+      },
+      "release_build": {
+        "command": [
+          "cargo",
+          "build",
+          "--release",
+          "--locked"
+        ],
+        "conclusion": "success",
+        "release_command_observed": true
+      },
+      "release_cli_invocations": [
+        [
+          "decisions",
+          "--help"
+        ],
+        [
+          "cases",
+          "--help"
+        ],
+        [
+          "baseline",
+          "--help"
+        ],
+        [
+          "changes",
+          "--help"
+        ],
+        [
+          "guard",
+          "--help"
+        ],
+        [
+          "--help"
+        ],
+        [
+          "review",
+          "--help"
+        ],
+        [
+          "context",
+          "--help"
+        ],
+        [
+          "onboard",
+          "--help"
+        ],
+        [
+          "explore",
+          "--help"
+        ],
+        [
+          "--version"
+        ]
+      ],
+      "release_cli_smoke_steps": {
+        "CLI help": "success",
+        "CLI version": "success",
+        "Context CLI help": "success",
+        "Decision and case CLI help": "success",
+        "Exploration CLI help": "success",
+        "Onboarding CLI help": "success",
+        "Project companion CLI help": "success",
+        "Review CLI help": "success"
+      },
+      "runner_environment": {
+        "cargo_version": "1.99.0 (5f94df478 2026-08-27)",
+        "exact_toolchain_versions_observed": true,
+        "image": "ubuntu-24.04",
+        "image_version": "20261004.327.1",
+        "python_version": "3.12.3",
+        "runner_version": "2.337.0",
+        "rustc_version": "1.99.0 (b940084d7 2026-09-28)"
+      },
+      "rust_all_targets": {
+        "all_targets_gate_passed": true,
+        "command_conclusion": "success",
+        "declared_test_count": 475,
+        "expected_targets": 57,
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 3,
+        "measured": 0,
+        "observed_failed_test_lines": 0,
+        "parse_complete": true,
+        "parsed_targets": 57,
+        "passed": 472,
+        "suite_summaries": 57
+      },
+      "separate_frozen_zoom": {
+        "command_conclusion": "success",
+        "failed": 0,
+        "filtered_out": 3,
+        "ignored": 0,
+        "measured": 0,
+        "passed": 1,
+        "suite_summaries": 1
+      },
+      "tested_checkout_sha": "26165b9daa3cd4df3b81bfce987b59e62f345c95",
+      "unexpected_cli_invocation_count": 0,
+      "unexpected_cli_invocation_sha256": [],
+      "unexpected_version_count": 0,
+      "version_stdout": [
+        "lore 0.8.0"
+      ]
+    },
+    "macos": {
+      "clippy_conclusion": "success",
+      "conclusion": "success",
+      "format_conclusion": "success",
+      "job_id": 114337891412,
+      "local_raw_log_binding": {
+        "bytes": 200605,
+        "included_in_published_receipt": false,
+        "sha256": "1f884052a7cef47f0c02bc3f5e8733a2211c132d47744bc0c7f12ea47a6dd975"
+      },
+      "python": {
+        "command_conclusion": "success",
+        "discovered": 236,
+        "elapsed_seconds": 47.719,
+        "passed": 235,
+        "reported_error_outcomes": 0,
+        "reported_failure_outcomes": 0,
+        "skipped": 1
+      },
+      "release_build": {
+        "command": [
+          "cargo",
+          "build",
+          "--release",
+          "--locked"
+        ],
+        "conclusion": "success",
+        "release_command_observed": true
+      },
+      "release_cli_invocations": [
+        [
+          "decisions",
+          "--help"
+        ],
+        [
+          "cases",
+          "--help"
+        ],
+        [
+          "baseline",
+          "--help"
+        ],
+        [
+          "changes",
+          "--help"
+        ],
+        [
+          "guard",
+          "--help"
+        ],
+        [
+          "--help"
+        ],
+        [
+          "review",
+          "--help"
+        ],
+        [
+          "context",
+          "--help"
+        ],
+        [
+          "onboard",
+          "--help"
+        ],
+        [
+          "explore",
+          "--help"
+        ],
+        [
+          "--version"
+        ]
+      ],
+      "release_cli_smoke_steps": {
+        "CLI help": "success",
+        "CLI version": "success",
+        "Context CLI help": "success",
+        "Decision and case CLI help": "success",
+        "Exploration CLI help": "success",
+        "Onboarding CLI help": "success",
+        "Project companion CLI help": "success",
+        "Review CLI help": "success"
+      },
+      "runner_environment": {
+        "cargo_version": "1.98.1 (797e8a9bc 2026-08-05)",
+        "exact_toolchain_versions_observed": true,
+        "image": "macos-26-arm64",
+        "image_version": "20260907.0351.1",
+        "python_version": "3.14.7",
+        "runner_version": "2.337.0",
+        "rustc_version": "1.98.1 (48a229cea 2026-09-01)"
+      },
+      "rust_all_targets": {
+        "all_targets_gate_passed": true,
+        "command_conclusion": "success",
+        "declared_test_count": 475,
+        "expected_targets": 57,
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 3,
+        "measured": 0,
+        "observed_failed_test_lines": 0,
+        "parse_complete": true,
+        "parsed_targets": 57,
+        "passed": 472,
+        "suite_summaries": 57
+      },
+      "separate_frozen_zoom": {
+        "command_conclusion": "skipped",
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "passed": 0,
+        "suite_summaries": 0
+      },
+      "tested_checkout_sha": "26165b9daa3cd4df3b81bfce987b59e62f345c95",
+      "unexpected_cli_invocation_count": 0,
+      "unexpected_cli_invocation_sha256": [],
+      "unexpected_version_count": 0,
+      "version_stdout": [
+        "lore 0.8.0"
+      ]
+    },
+    "windows": {
+      "clippy_conclusion": "success",
+      "conclusion": "success",
+      "format_conclusion": "success",
+      "job_id": 114337891394,
+      "local_raw_log_binding": {
+        "bytes": 203723,
+        "included_in_published_receipt": false,
+        "sha256": "897ba9ec9648d271c906956eb026891d2ae6a696955a6057c6333f5a403e0a7d"
+      },
+      "python": {
+        "command_conclusion": "success",
+        "discovered": 236,
+        "elapsed_seconds": 146.838,
+        "passed": 226,
+        "reported_error_outcomes": 0,
+        "reported_failure_outcomes": 0,
+        "skipped": 10
+      },
+      "release_build": {
+        "command": [
+          "cargo",
+          "build",
+          "--release",
+          "--locked"
+        ],
+        "conclusion": "success",
+        "release_command_observed": true
+      },
+      "release_cli_invocations": [
+        [
+          "decisions",
+          "--help"
+        ],
+        [
+          "cases",
+          "--help"
+        ],
+        [
+          "baseline",
+          "--help"
+        ],
+        [
+          "changes",
+          "--help"
+        ],
+        [
+          "guard",
+          "--help"
+        ],
+        [
+          "--help"
+        ],
+        [
+          "review",
+          "--help"
+        ],
+        [
+          "context",
+          "--help"
+        ],
+        [
+          "onboard",
+          "--help"
+        ],
+        [
+          "explore",
+          "--help"
+        ],
+        [
+          "--version"
+        ]
+      ],
+      "release_cli_smoke_steps": {
+        "CLI help": "success",
+        "CLI version": "success",
+        "Context CLI help": "success",
+        "Decision and case CLI help": "success",
+        "Exploration CLI help": "success",
+        "Onboarding CLI help": "success",
+        "Project companion CLI help": "success",
+        "Review CLI help": "success"
+      },
+      "runner_environment": {
+        "cargo_version": "1.98.1 (797e8a9bc 2026-08-05)",
+        "exact_toolchain_versions_observed": true,
+        "image": "windows-2025-vs2026",
+        "image_version": "20260925.250.1",
+        "python_version": "3.12.10",
+        "runner_version": "2.337.0",
+        "rustc_version": "1.98.1 (48a229cea 2026-09-01)"
+      },
+      "rust_all_targets": {
+        "all_targets_gate_passed": true,
+        "command_conclusion": "success",
+        "declared_test_count": 464,
+        "expected_targets": 57,
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 3,
+        "measured": 0,
+        "observed_failed_test_lines": 0,
+        "parse_complete": true,
+        "parsed_targets": 57,
+        "passed": 461,
+        "suite_summaries": 57
+      },
+      "separate_frozen_zoom": {
+        "command_conclusion": "skipped",
+        "failed": 0,
+        "filtered_out": 0,
+        "ignored": 0,
+        "measured": 0,
+        "passed": 0,
+        "suite_summaries": 0
+      },
+      "tested_checkout_sha": "26165b9daa3cd4df3b81bfce987b59e62f345c95",
+      "unexpected_cli_invocation_count": 0,
+      "unexpected_cli_invocation_sha256": [],
+      "unexpected_version_count": 0,
+      "version_stdout": [
+        "lore 0.8.0"
+      ]
+    }
+  },
+  "metadata_sha256": "e8edf72ffac2da6f5803c70aaee17532333f994ff30f9237d45c39669bd3bd87",
+  "pull_request": 47,
+  "raw_ci_logs_included": false,
+  "repository": "grove/lore",
+  "schema_version": 1,
+  "status": "verified_success",
+  "verifier_sha256": "b3a741e066c1d5c90c66a43db0c9455fa3e1f292137aab2ba834b3671303ee12",
+  "workflow_run": {
+    "conclusion": "success",
+    "created_at": "2026-10-10T23:19:35Z",
+    "event": "pull_request",
+    "head_sha": "6e6f8a6af871bdeca53dcc79b63a60fd2af52743",
+    "head_tree_sha": "1e77e84d9f7e69b89968c6b60a6beef7f9afec82",
+    "html_url": "https://github.com/grove/lore/actions/runs/38094627128",
+    "id": 38094627128,
+    "name": "Lore tests",
+    "run_started_at": "2026-10-10T23:19:35Z",
+    "status": "completed",
+    "updated_at": "2026-10-10T23:41:52Z"
+  }
+}
