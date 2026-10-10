@@ -17,6 +17,7 @@ import math
 import os
 from pathlib import Path
 import re
+import signal
 import shutil
 import sqlite3
 import subprocess
@@ -26,6 +27,7 @@ import time
 import coding_tasks as coding
 import cross_source as cross
 import shared_intelligence as shared
+import guardian_integrity as integrity
 
 ROOT = Path(__file__).resolve().parent
 DEFAULT_EVENTS = ROOT / "corpora" / "guardian" / "events.json"
@@ -43,6 +45,11 @@ def read_json(path: Path):
     if path.stat().st_size > MAX_BYTES:
         raise ValueError("Guardian artifact exceeds the bounded input size")
     return cross.read_json(path)
+
+
+def collector_identity() -> dict:
+    return {path.name: coding.hash_file(path) for path in (
+        Path(__file__), Path(integrity.__file__), Path(cross.__file__), Path(coding.__file__), Path(shared.__file__))}
 
 
 def identity(value: str) -> str:
@@ -143,7 +150,7 @@ def prepare(output: Path, events_path: Path = DEFAULT_EVENTS) -> dict:
     manifest = load_events(events_path)
     if output.exists():
         raise ValueError("Use a fresh guardian preparation directory")
-    output.mkdir(parents=True)
+    output.mkdir(parents=True, mode=0o700)
     projects, counts = [], Counter()
     for project in manifest["projects"]:
         current = copy.deepcopy(project["initial_files"])
@@ -236,8 +243,20 @@ def source_fingerprint(project: Path, filenames: set[str]) -> dict:
 
 
 def apply_snapshot(source: Path, project: Path, previous: set[str]) -> set[str]:
+    cross.reject_symlink_path(source)
+    cross.reject_symlink_path(project)
+    source_root, project_root = source.resolve(), project.resolve()
+    if source_root.is_relative_to(project_root) or project_root.is_relative_to(source_root):
+        raise ValueError("Prepared source snapshots and mutable project workspaces must be disjoint")
     manifest = cross.fingerprint(source)
     next_files = set(manifest["files_sha256"])
+    # Preflight every destination before deleting anything. Prepared hashes are
+    # integrity bindings, not permission to overwrite Lore state or follow links.
+    for relative in sorted(previous | next_files):
+        target = project / source_file(relative)
+        cross.reject_symlink_path(target)
+        if not target.resolve().is_relative_to(project_root):
+            raise ValueError("Snapshot destination escapes its selected project")
     for relative in sorted(previous - next_files):
         target = project / source_file(relative)
         cross.reject_symlink_path(target)
@@ -306,18 +325,101 @@ def audit_trace(text: str, binary: str, *, network_granted: bool) -> dict:
             "network_granted": network_granted, "trace_sha256": hashlib.sha256(text.encode()).hexdigest()}
 
 
+def integrity_snapshot(project: Path, filenames: set[str]) -> dict:
+    """Keep failed observations without exposing source text or exception paths."""
+    result = {"sources": None, "inventory": None, "errors": []}
+    for name, callback in (("sources", lambda: source_fingerprint(project, filenames)),
+                           ("inventory", lambda: integrity.inventory(project))):
+        try:
+            result[name] = callback()
+        except (OSError, ValueError) as error:
+            result["errors"].append({"capture": name, "type": type(error).__name__})
+    return result
+
+
+def observed_operation(project: Path, filenames: set[str], phase: str, operation,
+                       *, observe_filesystem: bool = False) -> dict:
+    """Measure one interval, including failed/cancelled commands and net-zero writes."""
+    observer = integrity.FilesystemObserver(project, observe_filesystem)
+    before = integrity_snapshot(project, filenames)
+    started = time.monotonic()
+    result = None
+    try:
+        result = operation(observer)
+    finally:
+        after = integrity_snapshot(project, filenames)
+        observation = observer.finish()
+    changes = integrity.effects(before["inventory"] or {}, after["inventory"] or {})
+    source_changes = [effect for effect in changes if effect["category"] == "primary_source"
+                      or effect.get("destination_category") == "primary_source"]
+    observed_source_events = [event for event in observation["events"] if event["category"] == "primary_source"]
+    return {"result": result, "integrity": {
+        "schema_version": 1, "phase": phase, "elapsed_seconds": round(time.monotonic() - started, 6),
+        "before": before, "after": after, "effects": changes, "observer": observation,
+        "source_preserved": not before["errors"] and not after["errors"]
+            and before["sources"] == after["sources"] and not source_changes and not observed_source_events,
+        "writer_attribution": "not_identified" if source_changes or observed_source_events else "no_source_write_observed"}}
+
+
 def invoke(binary: str, project: Path, argv: list[str], environment: dict, timeout: int,
-           *, trace: Path | None = None, network_granted: bool = False) -> dict:
+           *, trace: Path | None = None, network_granted: bool = False,
+           source_names: set[str] | None = None, observe_filesystem: bool = False) -> dict:
     command = [binary, "--config", str(project / "lore.yml"), "--json", *argv]
     if trace is not None:
         command = ["strace", "-f", "-q", "-e", "trace=execve,execveat,connect,sendto,sendmsg", "-o", str(trace), *command]
     started = time.monotonic()
-    try:
-        result = subprocess.run(command, cwd=project, env=environment, capture_output=True,
-                                text=True, encoding="utf-8", timeout=timeout)
-    except subprocess.TimeoutExpired:
-        return {"arguments": argv, "elapsed_seconds": round(time.monotonic() - started, 6), "response": None,
-                "response_sha256": None, "error": "timeout", "audit": {"status": "incomplete"}}
+    process_record = {"status": "not_captured"}
+
+    def execute(observer):
+        nonlocal process_record
+        if source_names is None:
+            try:
+                return subprocess.run(command, cwd=project, env=environment, capture_output=True,
+                                      text=True, encoding="utf-8", timeout=timeout)
+            except subprocess.TimeoutExpired:
+                return "timeout"
+        process = None
+        try:
+            process = subprocess.Popen(command, cwd=project, env=environment, stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE, text=True, encoding="utf-8", start_new_session=os.name == "posix")
+            process_record = {"status": "spawned", "pid": process.pid, "parent_pid": os.getpid(),
+                              "pid_tree": integrity.process_tree(process.pid)}
+            deadline = time.monotonic() + timeout
+            while True:
+                observer.poll()
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise subprocess.TimeoutExpired(command, timeout)
+                try:
+                    stdout, stderr = process.communicate(timeout=min(.1, remaining))
+                    return subprocess.CompletedProcess(command, process.returncode, stdout, stderr)
+                except subprocess.TimeoutExpired:
+                    tree = integrity.process_tree(process.pid)
+                    if tree["processes"]:
+                        process_record["pid_tree"] = tree
+        except (subprocess.TimeoutExpired, KeyboardInterrupt) as error:
+            if process is not None:
+                if os.name == "posix":
+                    try:
+                        os.killpg(process.pid, signal.SIGKILL)
+                    except ProcessLookupError:
+                        pass
+                else:
+                    process.kill()
+                process.communicate()
+            return "cancelled" if isinstance(error, KeyboardInterrupt) else "timeout"
+        except OSError:
+            return "process_unavailable"
+
+    observation = observed_operation(project, source_names, " ".join(argv[:2]), execute,
+                  observe_filesystem=observe_filesystem) if source_names is not None else None
+    result = observation["result"] if observation is not None else execute(None)
+    if isinstance(result, str):
+        record = {"arguments": argv, "elapsed_seconds": round(time.monotonic() - started, 6), "response": None,
+                  "response_sha256": None, "error": result, "audit": {"status": "incomplete"}, "process": process_record}
+        if observation is not None:
+            record["source_integrity"] = observation["integrity"]
+        return record
     elapsed = round(time.monotonic() - started, 6)
     # stderr and failed stdout can include source/provider secrets; keep a code.
     value = None
@@ -335,15 +437,24 @@ def invoke(binary: str, project: Path, argv: list[str], environment: dict, timeo
             error = "invalid_json_response"
     audit = audit_trace(trace.read_text(encoding="utf-8"), binary, network_granted=network_granted) if trace is not None and trace.exists() else {
         "status": "not_captured", "execution_verified": False, "network_verified": False}
-    return {"arguments": argv, "elapsed_seconds": elapsed, "response": value,
+    record = {"arguments": argv, "elapsed_seconds": elapsed, "response": value,
             "response_sha256": cross.digest(value) if value is not None else None,
-            "stdout_bytes": len(result.stdout.encode()), "error": error, "audit": audit}
+            "stdout_bytes": len(result.stdout.encode()), "error": error, "audit": audit, "process": process_record}
+    if observation is not None:
+        record["source_integrity"] = observation["integrity"]
+    return record
 
 
 def require_response(record: dict) -> dict:
     if record.get("error") is not None or not isinstance(record.get("response"), dict):
         raise ValueError(f"Guardian source transition command failed: {record.get('error', 'missing_response')}")
     return record["response"]
+
+
+def not_run_after_cancel(arguments: list[str]) -> dict:
+    return {"arguments": arguments, "elapsed_seconds": 0.0, "response": None,
+            "response_sha256": None, "error": "not_run_after_cancellation",
+            "audit": {"status": "not_captured"}}
 
 
 def configuration(template: Path | None, project: str) -> dict:
@@ -380,6 +491,7 @@ def guard_citations(guard: dict, changes: dict) -> set[str]:
 
 
 def run(args: argparse.Namespace) -> dict:
+    collector = collector_identity()
     prepared_dir, output = cross.selected_path(args.prepared), cross.selected_path(args.output)
     prepared = validate_prepared(prepared_dir)
     binary = str(Path(args.binary).resolve(strict=True))
@@ -412,12 +524,13 @@ def run(args: argparse.Namespace) -> dict:
         prepared["projects"][0]["states"] = states[first_event - 1:first_event + count]
         prepared["counts"] = dict(Counter(state["event"]["expected"]["significance"] for state in prepared["projects"][0]["states"][1:]))
         prepared["full_size"] = False
-    output.mkdir(parents=True)
+    output.mkdir(parents=True, mode=0o700)
     records, initialization = [], []
+    cancelled = False
     all_started = time.monotonic()
     for project in prepared["projects"]:
         workspace = output / "workspaces" / project["id"]
-        workspace.mkdir(parents=True)
+        workspace.mkdir(parents=True, mode=0o700)
         config = configuration(args.config_template, project["id"])
         # A provider template is configuration, not an additional permission
         # grant. These explicit run flags bound every subprocess invocation.
@@ -437,7 +550,11 @@ def run(args: argparse.Namespace) -> dict:
 
         def materialize(state, first=False):
             nonlocal filenames
-            filenames = apply_snapshot(prepared_dir / state["source_root"], workspace, filenames)
+            def apply(_observer):
+                nonlocal filenames
+                filenames = apply_snapshot(prepared_dir / state["source_root"], workspace, filenames)
+            applied = observed_operation(workspace, all_source_names, "apply_snapshot", apply,
+                        observe_filesystem=getattr(args, "observe_filesystem", False))
             if compiled is not None:
                 entry = next((item for item in compiled["states"] if item["project"] == project["id"] and item["revision"] == state["revision"]), None)
                 if entry is None:
@@ -450,14 +567,26 @@ def run(args: argparse.Namespace) -> dict:
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(source, target)
                 return {"mode": "explicit_synthetic_registry_capture", "inference_calls": 0,
-                        "database_sha256": entry["database_sha256"], "elapsed_seconds": 0.0}
-            return invoke(binary, workspace, ["init" if first else "update"], environment, args.timeout)
+                        "database_sha256": entry["database_sha256"], "elapsed_seconds": 0.0,
+                        "snapshot_integrity": applied["integrity"]}
+            result = invoke(binary, workspace, ["init" if first else "update"], environment, args.timeout,
+                            source_names=all_source_names, observe_filesystem=getattr(args, "observe_filesystem", False))
+            result["snapshot_integrity"] = applied["integrity"]
+            return result
+
+        def call(argv, **options):
+            return invoke(binary, workspace, argv, environment, args.timeout, source_names=all_source_names,
+                          observe_filesystem=getattr(args, "observe_filesystem", False), **options)
 
         initial = project["states"][0]
         build = materialize(initial, first=True)
+        initialization.append({"project": project["id"], "compilation": build,
+                               "environment": integrity.environment_classification(workspace)})
+        if build.get("error") == "cancelled":
+            cancelled = True
+            break
         if compiled is None:
             require_response(build)
-        initialization.append({"project": project["id"], "compilation": build})
         for before, after in zip(project["states"], project["states"][1:]):
             event = after["event"]
             directory = output / "events" / event["id"]
@@ -465,32 +594,38 @@ def run(args: argparse.Namespace) -> dict:
             started = time.monotonic()
             before_sources = source_fingerprint(workspace, all_source_names)
             before_registry = registry_capture(workspace)
-            saved = invoke(binary, workspace, ["baseline", "save", "transition", "--replace"], environment, args.timeout)
-            require_response(saved)
+            saved = call(["baseline", "save", "transition", "--replace"])
+            stopped = saved.get("error") == "cancelled"
             build_started = time.monotonic()
-            build = materialize(after)
+            build = not_run_after_cancel(["update"]) if stopped else materialize(after)
             build["elapsed_seconds"] = round(time.monotonic() - build_started, 6)
-            if compiled is None:
+            stopped |= build.get("error") == "cancelled"
+            if compiled is None and not stopped:
                 require_response(build)
             query_sources = source_fingerprint(workspace, all_source_names)
             query_registry = registry_capture(workspace)
-            changes = invoke(binary, workspace, ["changes", "--since", "transition", "--max-tokens", str(args.max_tokens)], environment, args.timeout,
+            changes = not_run_after_cancel(["changes"]) if stopped else call(["changes", "--since", "transition", "--max-tokens", str(args.max_tokens)],
                              trace=directory / "changes.trace" if args.audit_strace else None)
+            stopped |= changes.get("error") == "cancelled"
             guard_args = ["guard", "--since", "transition", "--max-tokens", str(args.max_tokens), "--no-cache"]
             if not args.allow_inspection:
                 guard_args.append("--no-inspect")
-            guarded = invoke(binary, workspace, guard_args, environment, args.timeout,
+            guarded = not_run_after_cancel(guard_args) if stopped else call(guard_args,
                              trace=directory / "guard.trace" if args.audit_strace else None,
                              network_granted=args.allow_hosted or args.config_template is not None)
+            stopped |= guarded.get("error") == "cancelled"
             changes_value = changes.get("response") or {}
             guard_value = guarded.get("response") or {}
             ids = guard_citations(guard_value, changes_value) if not changes.get("error") and not guarded.get("error") else set()
             resolution = []
             for evidence_id in sorted(ids):
-                resolved = invoke(binary, workspace, ["evidence", evidence_id], environment, args.timeout)
+                resolved = call(["evidence", evidence_id])
                 resolution.append({"evidence_id": evidence_id, **resolved})
+                if resolved.get("error") == "cancelled":
+                    stopped = True
+                    break
             final_registry = registry_capture(workspace)
-            record = {"event_id": event["id"], "project": project["id"], "event": event,
+            record = {"event_id": event["id"], "project": project["id"], "event": event, "integrity_version": 1,
                       "before_revision": before["revision"], "after_revision": after["revision"],
                       "expected_before_sources": before["source_fingerprint"], "expected_after_sources": after["source_fingerprint"],
                       "sources_before": before_sources, "sources_query": query_sources,
@@ -502,7 +637,13 @@ def run(args: argparse.Namespace) -> dict:
             cross.write_json(directory / "capture.json", record)
             records.append({"event_id": event["id"], "path": f"events/{event['id']}/capture.json",
                             "sha256": coding.hash_file(directory / "capture.json")})
-    report = {"schema_version": 1, "protocol": PROTOCOL, "phase": "actual_cli_capture",
+            if stopped:
+                cancelled = True
+                break
+        if cancelled:
+            break
+    report = {"schema_version": 1, "protocol": PROTOCOL, "phase": "cancelled_actual_cli_capture" if cancelled else "actual_cli_capture",
+              "termination": "cancelled" if cancelled else "completed",
               "fixture_only": prepared["fixture_only"] or compiled is not None,
               "held_out": prepared["held_out"] and compiled is None,
               "label_provenance": prepared["label_provenance"], "prepared_sha256": coding.hash_file(prepared_dir / "prepared.json"),
@@ -512,7 +653,10 @@ def run(args: argparse.Namespace) -> dict:
               "max_tokens": args.max_tokens, "counts": prepared["counts"], "initialization": initialization,
               "permissions": {"inspection": args.allow_inspection, "hosted_egress": args.allow_hosted,
                               "checkout_egress": args.allow_checkout_egress, "repository_execution": False},
-              "audit_requested": args.audit_strace, "elapsed_seconds": round(time.monotonic() - all_started, 6),
+              "audit_requested": args.audit_strace, "integrity_version": 1,
+              "collector_source_sha256": collector,
+              "filesystem_observer_requested": getattr(args, "observe_filesystem", False),
+              "elapsed_seconds": round(time.monotonic() - all_started, 6),
               "records": records}
     cross.write_json(output / "run.json", report)
     return report
@@ -532,7 +676,8 @@ def merge_runs(prepared_directory: Path, directories: list[Path], output: Path) 
     expected = {state["event"]["id"] for project in prepared["projects"] for state in project["states"][1:]}
     bound_fields = ("schema_version", "protocol", "fixture_only", "held_out", "label_provenance",
                     "prepared_sha256", "events_manifest_sha256", "binary_sha256", "compiler_mode",
-                    "max_tokens", "permissions", "audit_requested")
+                    "max_tokens", "permissions", "audit_requested", "integrity_version", "filesystem_observer_requested",
+                    "collector_source_sha256")
     merged, captures, components, initializations = None, {}, [], []
     elapsed = 0.0
     for directory in directories:
@@ -578,6 +723,88 @@ def merge_runs(prepared_directory: Path, directories: list[Path], output: Path) 
                   component_runs=components, elapsed_seconds=round(elapsed, 6))
     cross.write_json(output / "run.json", merged)
     return merged
+
+
+def no_lore_control(args: argparse.Namespace) -> dict:
+    """Replay identical source edits and quiet command intervals with no Lore process.
+
+    Fixed dwell is reported, never presented as matched runtime or an OS sandbox.
+    Run through both uninterrupted and yielded tool sessions when diagnosing a
+    suspected external synchronizer. Independent events cannot identify its PID.
+    """
+    collector = collector_identity()
+    prepared_dir, output = cross.selected_path(args.prepared), cross.selected_path(args.output)
+    prepared = validate_prepared(prepared_dir)
+    if output.exists() or not 0 <= args.dwell_ms <= 60000:
+        raise ValueError("No-Lore controls require a fresh output and a dwell between 0 and 60000 ms")
+    project_filter = getattr(args, "project", None)
+    first, count = getattr(args, "first_event", 1), getattr(args, "event_count", None)
+    if (first != 1 or count is not None) and project_filter is None:
+        raise ValueError("A control segment needs an explicit project")
+    if project_filter is not None:
+        prepared = copy.deepcopy(prepared)
+        prepared["projects"] = [project for project in prepared["projects"] if project["id"] == project_filter]
+        if len(prepared["projects"]) != 1:
+            raise ValueError("Unknown guardian control project")
+        states = prepared["projects"][0]["states"]
+        count = len(states) - first if count is None else count
+        if first < 1 or count < 1 or first + count > len(states):
+            raise ValueError("Guardian control segment is outside its successive history")
+        prepared["projects"][0]["states"] = states[first - 1:first + count]
+    output.mkdir(parents=True, mode=0o700)
+    records, environments = [], []
+    started = time.monotonic()
+    for project in prepared["projects"]:
+        workspace = output / "workspaces" / project["id"]
+        workspace.mkdir(parents=True, mode=0o700)
+        names = {name for state in project["states"] for name in state["source_fingerprint"]["files_sha256"]}
+        filenames = apply_snapshot(prepared_dir / project["states"][0]["source_root"], workspace, set())
+        environments.append(integrity.environment_classification(workspace))
+
+        def quiet(observer):
+            deadline = time.monotonic() + args.dwell_ms / 1000
+            while time.monotonic() < deadline:
+                observer.poll()
+                time.sleep(min(.05, max(0, deadline - time.monotonic())))
+            return {"mode": "no_lore_control", "processes_started": 0, "dwell_ms": args.dwell_ms}
+
+        for before, after in zip(project["states"], project["states"][1:]):
+            before_hash = source_fingerprint(workspace, names)
+            saved = observed_operation(workspace, names, "baseline save control", quiet,
+                                      observe_filesystem=args.observe_filesystem)
+            filenames = apply_snapshot(prepared_dir / after["source_root"], workspace, filenames)
+            query_hash = source_fingerprint(workspace, names)
+            commands = [saved]
+            for phase in ("changes control", "guard control", "evidence control"):
+                commands.append(observed_operation(workspace, names, phase, quiet,
+                                                   observe_filesystem=args.observe_filesystem))
+            final_hash = source_fingerprint(workspace, names)
+            passed = (before_hash == before["source_fingerprint"]
+                      and query_hash == final_hash == after["source_fingerprint"]
+                      and all(item["integrity"]["source_preserved"] for item in commands))
+            record = {"event_id": after["event"]["id"], "expected_before_sources": before["source_fingerprint"],
+                      "expected_after_sources": after["source_fingerprint"], "sources_before": before_hash,
+                      "sources_query": query_hash, "sources_after": final_hash,
+                      "commands": commands, "source_integrity_pass": passed}
+            path = output / "events" / record["event_id"] / "control.json"
+            cross.write_json(path, record)
+            records.append({"event_id": record["event_id"], "path": path.relative_to(output).as_posix(),
+                            "sha256": coding.hash_file(path), "source_integrity_pass": passed})
+    result = {"schema_version": 1, "protocol": PROTOCOL, "phase": "no_lore_source_control",
+              "prepared_sha256": coding.hash_file(prepared_dir / "prepared.json"),
+              "events_manifest_sha256": prepared["events_manifest_sha256"], "processes_started": 0,
+              "model_calls": 0, "dwell_ms_per_phase": args.dwell_ms,
+              "collector_source_sha256": collector,
+              "filesystem_observer_requested": args.observe_filesystem, "environments": environments,
+              "events": len(records), "source_integrity_pass": all(row["source_integrity_pass"] for row in records),
+              "failed_events": [row["event_id"] for row in records if not row["source_integrity_pass"]],
+              "elapsed_seconds": round(time.monotonic() - started, 6), "records": records,
+              "writer_attribution": "not_identified", "runtime_audit_complete": False,
+              "limitations": ["Fixed quiet intervals are not matched Lore command runtimes.",
+                              "A clean control does not identify the historical writer or repair its cause.",
+                              "A dedicated directory is not independently enforced process isolation."]}
+    cross.write_json(output / "control.json", result)
+    return result
 
 
 def response_hash_valid(record: dict) -> bool:
@@ -661,6 +888,66 @@ def exact_checkpoint_states(record: dict, changes: dict) -> bool:
     return True
 
 
+def read_commands(record: dict) -> list[dict]:
+    commands = [record.get(key, {}) for key in ("baseline_save", "changes", "guard")]
+    commands.extend(record.get("resolution", []))
+    materialization = record.get("materialization", {})
+    if materialization.get("mode") != "explicit_synthetic_registry_capture":
+        commands.insert(1, materialization)
+    return commands
+
+
+def command_integrity_valid(command: dict) -> bool:
+    captured = command.get("source_integrity", {})
+    if captured.get("schema_version") != 1 or captured.get("source_preserved") is not True:
+        return False
+    before, after = captured.get("before", {}), captured.get("after", {})
+    if before.get("errors") != [] or after.get("errors") != [] or not isinstance(before.get("sources"), dict):
+        return False
+    if before["sources"] != after.get("sources"):
+        return False
+    for snapshot in (before, after):
+        inventory = snapshot.get("inventory") or {}
+        if not isinstance(inventory.get("paths"), dict) or inventory.get("sha256") != cross.digest(inventory["paths"]):
+            return False
+        source_files = {path: value["sha256"] for path, value in inventory["paths"].items()
+                        if integrity.category(path) == "primary_source" and value.get("kind") == "file"}
+        sources = snapshot.get("sources", {})
+        if (source_files != sources.get("files_sha256") or sources.get("sha256") != cross.digest(source_files)
+                or sources.get("file_count") != len(source_files)):
+            return False
+    differences = integrity.effects(before["inventory"], after["inventory"])
+    protected = {"primary_source", "configuration"}
+    if (command.get("arguments") or [None])[0] not in ("init", "update"):
+        protected.add("generated_output")
+    if differences != captured.get("effects") or any(effect["category"] in protected
+            or effect.get("destination_category") in protected for effect in differences):
+        return False
+    observation = captured.get("observer", {})
+    return isinstance(observation.get("events"), list) and not any(
+        integrity.category(event.get("path", "")) in protected for event in observation["events"])
+
+
+def per_command_integrity(record: dict) -> bool:
+    commands = read_commands(record)
+    if not all(command_integrity_valid(command) for command in commands):
+        return False
+    saved = record["baseline_save"]["source_integrity"]
+    if saved["before"]["sources"] != record["sources_before"] or saved["after"]["sources"] != record["sources_before"]:
+        return False
+    materialized = record.get("materialization", {}).get("snapshot_integrity", {})
+    if (materialized.get("before", {}).get("sources") != saved["after"]["sources"]
+            or materialized.get("after", {}).get("sources") != record["sources_query"]):
+        return False
+    previous = record["sources_query"]
+    for command in [record["changes"], record["guard"], *record.get("resolution", [])]:
+        captured = command["source_integrity"]
+        if captured["before"]["sources"] != previous:
+            return False
+        previous = captured["after"]["sources"]
+    return previous == record["sources_after_queries"]
+
+
 def event_checks(record: dict, max_tokens: int) -> dict:
     changes = record.get("changes", {}).get("response") or {}
     guard = record.get("guard", {}).get("response") or {}
@@ -683,7 +970,7 @@ def event_checks(record: dict, max_tokens: int) -> dict:
         and ((nested["intelligence"].get("brief", {}).get("generation_basis") == "model_assessed") == (status == "source_reviewed_advisory"))
         and (status != "partial_static_guidance" or not guard.get("advisories"))
     )
-    return {
+    checks = {
         "response_hashes": all(response_hash_valid(record.get(key, {})) for key in ("baseline_save", "changes", "guard")),
         "versioned_contracts": changes.get("schema_version") == guard.get("schema_version") == saved.get("schema_version") == 1
             and guard.get("assessment_status") in ASSESSMENTS and status_consistent,
@@ -705,6 +992,11 @@ def event_checks(record: dict, max_tokens: int) -> dict:
         "no_execution_claims": guard.get("execution") is False and guard.get("source_write") is False
             and changes.get("live_checkout_assessed") is False and saved.get("source_write") is False,
     }
+    # Legacy archives retain their original oracle. New captures must additionally
+    # prove every command interval; a restore before apply_snapshot cannot vanish.
+    if "integrity_version" in record:
+        checks["per_command_source_integrity"] = record["integrity_version"] == 1 and per_command_integrity(record)
+    return checks
 
 
 def review_template(directory: Path) -> dict:
@@ -774,6 +1066,8 @@ def assess(directory: Path, review_files: list[Path] | None = None) -> dict:
         if event_id not in expected or event_id in captures or coding.hash_file(path) != entry["sha256"]:
             raise ValueError("Missing, duplicated, unknown, or modified event capture")
         record = read_json(path)
+        if run.get("integrity_version") is not None and record.get("integrity_version") != run["integrity_version"]:
+            raise ValueError("A new capture cannot omit its per-command source-integrity ledger")
         if record.get("event_id") != event_id or record.get("event") != expected[event_id]:
             raise ValueError("Captured event label differs from the pinned source manifest")
         project_id, before, after = endpoints[event_id]
@@ -793,12 +1087,23 @@ def assess(directory: Path, review_files: list[Path] | None = None) -> dict:
     usage_known = True
     audit_complete = True
     elapsed = []
+    observed_commands = Counter()
     for initial in run["initialization"]:
         try:
             total_compilation_calls += compilation_calls(initial["compilation"])
         except (KeyError, ValueError, TypeError):
             usage_known = False
     for event_id, (record, _) in captures.items():
+        for command in read_commands(record):
+            capture = command.get("source_integrity")
+            observed_commands["total"] += 1
+            if capture is not None:
+                observed_commands["captured"] += 1
+                observed_commands["preserved"] += command_integrity_valid(command)
+                observer = capture.get("observer", {})
+                observed_commands["filesystem_observer_captured"] += observer.get("status") == "captured"
+                observed_commands["filesystem_observer_complete"] += observer.get("complete") is True
+                observed_commands["filesystem_source_observer_complete"] += observer.get("source_complete") is True
         guard = record.get("guard", {}).get("response") or {}
         changes = record.get("changes", {}).get("response") or {}
         try:
@@ -878,6 +1183,9 @@ def assess(directory: Path, review_files: list[Path] | None = None) -> dict:
                "fixture_only": run["fixture_only"], "held_out": run["held_out"], "events": len(rows), "projects": len(prepared["projects"]),
                "counts": dict(counts), "assessment_statuses": dict(statuses), "full_size": full_size,
                "engineering_capture_pass": not failures, "failed_checks": dict(failures),
+               "command_integrity": dict(observed_commands),
+               "per_command_source_integrity_pass": run.get("integrity_version") == 1
+                   and observed_commands["captured"] == observed_commands["preserved"] == observed_commands["total"] and not failures,
                "independent_runtime_audit_complete": audit_complete,
                "high_severity_precision": precision, "high_severity_precision_numerator": supported_alerts,
                "high_severity_precision_denominator": reviewed_alerts,
@@ -927,6 +1235,16 @@ def main(argv: list[str] | None = None) -> int:
     command.add_argument("--allow-hosted", action="store_true")
     command.add_argument("--allow-checkout-egress", action="store_true")
     command.add_argument("--audit-strace", action="store_true")
+    command.add_argument("--observe-filesystem", action="store_true",
+                         help="Record independent kernel file events where available; unavailable observation stays explicit")
+    command.add_argument("--project")
+    command.add_argument("--first-event", type=int, default=1)
+    command.add_argument("--event-count", type=int)
+    command = sub.add_parser("control", help="Source replay and quiet intervals without any Lore process")
+    command.add_argument("--prepared", type=Path, required=True)
+    command.add_argument("--output", type=Path, required=True)
+    command.add_argument("--observe-filesystem", action="store_true")
+    command.add_argument("--dwell-ms", type=int, default=100)
     command.add_argument("--project")
     command.add_argument("--first-event", type=int, default=1)
     command.add_argument("--event-count", type=int)
@@ -946,6 +1264,8 @@ def main(argv: list[str] | None = None) -> int:
             result = prepare(args.output, args.events)
         elif args.command == "run":
             result = run(args)
+        elif args.command == "control":
+            result = no_lore_control(args)
         elif args.command == "merge":
             result = merge_runs(args.prepared, args.runs, args.output)
         elif args.command == "review-template":
@@ -959,7 +1279,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"guardian_longitudinal: {error}", file=sys.stderr)
         return 1
     print(json.dumps({key: value for key, value in result.items() if key not in ("projects", "records", "rows", "prepared", "initialization", "initialization_and_compilation")}, indent=2, sort_keys=True))
-    return 0
+    return 1 if result.get("termination") == "cancelled" else 0
 
 
 if __name__ == "__main__":

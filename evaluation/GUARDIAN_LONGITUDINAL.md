@@ -85,6 +85,97 @@ temporary file during replay fails the byte-integrity checks. The evaluator does
 not ignore these failures or retrospectively declare a run clean. Use a fresh
 directory and rerun after removing the external writer.
 
+### Per-command diagnosis and supported integrity runner (0.8)
+
+Every new replay records a `source_integrity` ledger around each actual
+`baseline save`, `changes`, `guard`, and `evidence` invocation. The live-provider
+adapter also surrounds `init`/`update`; deliberately applied source snapshots
+have a separately labeled `snapshot_integrity` interval. Records include the
+exact phase, before/after SHA-256 file maps, file device/inode/mode/timestamps,
+create/delete/write/replacement or identity-bound rename effects, spawned PID,
+and a bounded child-tree observation where the platform permits it. The ledger
+classifies primary sources, configuration, `.lore` state, and generated output.
+It contains no unrestricted environment values, process arguments from other
+processes, source text, or failed provider output.
+
+File capture compares path metadata before/after the read and descriptor
+metadata before/after hashing, retaining both timestamp observations. It does
+not equate path and descriptor `ctime`: [CPython's Windows issue
+157671](https://github.com/python/cpython/issues/157671) documents that those
+APIs can expose creation time and metadata-change time respectively. Identity,
+mode, size and modification time still agree across the opened file and its
+path. Any change within either metadata sequence fails capture, and a path
+replacement after the read is rejected. The additional
+`descriptor_ctime_ns` field also preserves descriptor-only metadata changes
+between command intervals. No source byte hash or observer requirement changes.
+
+The original `source_hashes` oracle remains unchanged. A new independent
+`per_command_source_integrity` check additionally rejects a mutation during
+baseline saving even if the next authorized snapshot copy would overwrite it.
+It also rejects writes that restore the original bytes before a whole episode
+ends. New run manifests cannot drop their per-command ledger and fall back to
+legacy assessment. Old archived captures retain their original failed results.
+Source snapshot application preflights all destinations before deleting any
+old file; snapshots cannot overlap the mutable project, follow a symlink, or
+replace configuration, state, generated output, or a sibling source root.
+
+Add `--observe-filesystem` to record Linux inotify events independently of the
+hash inventory. The observer sees temporary creates, writes, deletes, metadata
+changes, and paired rename cookies even when final source bytes match. It
+reports unsupported platforms, failed watches, overflow and newly created
+directory coverage gaps explicitly. A new directory inside Lore-owned state
+does not remove existing watches on source roots; overall filesystem coverage
+and source-only coverage are therefore reported separately. Inotify supplies
+**no writer PID** and is not an execution/egress audit. `--audit-strace` remains
+a separate, optional operation with its existing permission checks.
+
+Use the same prepared corpus for a no-Lore differential control:
+
+```sh
+python3 evaluation/guardian_longitudinal.py control \
+  --prepared /absolute/lore-guardian-prepared \
+  --output /absolute/lore-guardian-no-lore \
+  --observe-filesystem --dwell-ms 400
+```
+
+The control applies the exact source transitions, then observes four quiet
+intervals per event. It starts **zero subprocesses**. Its fixed dwell is
+reported explicitly and is not described as a runtime-matched performance
+comparison. `--project payments --first-event 6 --event-count 4` focuses on
+deletion and reversion. No path, including `.rsync-tmp`, is ignored.
+
+An actual 0.8 diagnostic in the managed development workspace reproduced source
+restoration without running Lore: **40/60 events failed the unchanged byte
+oracle, and 42/60 failed the stronger metadata/event check**. In `payments-06`,
+the observer recorded a temporary proposal file being written, moved through
+`docs/.rsync-tmp`, and restored as `docs/proposal.md` with its earlier hash.
+`ledger-07` captured the temporary path and its same-inode rename into the
+restored source. This isolates that reproduction outside Lore. The rename
+pattern is consistent with synchronization; the executable and PID remain
+unidentified because inotify does not provide them and `ptrace` was denied.
+It does not authenticate the writer of the historical 0.7 capture. The
+[diagnostic receipt](results/baseline-08/guardian-08-no-lore-reproduction.json)
+and [hash-bound control archive](results/baseline-08/guardian-08-no-lore-control.zip)
+retain all events, observer gaps and the development collector's provenance
+limitation. These remain failed captures, not a repaired runtime result.
+
+The dedicated [Guardian integrity workflow](../.github/workflows/guardian-integrity.yml)
+runs on Ubuntu with a fresh runner temporary directory, separate frozen 0.7
+and candidate binaries, and one exact synthetic retained-history preparation.
+It executes both full 60-event cohorts, a second full candidate replay, the
+10-event payments segment, and the full no-Lore control. Its thin
+`guardian_integrity_gate.py` wrapper requires every expected event, the original
+oracle, every command ledger, zero provider calls and complete kernel source
+observation. A failing capture or unavailable source observer fails the job.
+The job uploads exact JSON captures, artifact hashes and a receipt even on
+failure; it excludes workspaces, databases and binaries from the archive.
+
+Only an actually passing job establishes this supported runner's clean replay.
+The local external-writer reproduction does not substitute for that gate, and
+a dedicated directory alone is not an operating-system sandbox. The workflow
+does not measure provider advisory quality or pass an independent
+execution/egress audit.
+
 For an execution host that cannot retain a long-lived process, the synthetic
 adapter also supports `--project payments --first-event 1 --event-count 10` and
 the corresponding segment beginning at event 11. Each segment starts from the
