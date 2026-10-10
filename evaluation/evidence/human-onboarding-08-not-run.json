@@ -1,0 +1,304 @@
+{
+  "actual_human_participants": 0,
+  "actual_human_sessions": 0,
+  "actual_independent_human_assessments": 0,
+  "assessment": {
+    "completed_participants": 0,
+    "enrolled_participant_records": 0,
+    "first_correct_contribution_time_status": "unmeasured",
+    "fixture_only": true,
+    "held_out": false,
+    "human_audit_complete": false,
+    "human_outcomes_status": "unmeasured",
+    "independent_learning_transfer_status": "unmeasured",
+    "independent_review_complete": false,
+    "issues": [],
+    "learning_benefit_established": false,
+    "mechanical_contracts_passed": true,
+    "paired_outcomes": {
+      "contribution": {
+        "active_seconds": {
+          "ci95": null,
+          "estimate": null,
+          "pairs": 0,
+          "small_sample": true,
+          "unit": "counterbalanced participant"
+        },
+        "first_correct_active_seconds": {
+          "ci95": null,
+          "estimate": null,
+          "pairs": 0,
+          "small_sample": true,
+          "unit": "counterbalanced participant"
+        },
+        "hints": {
+          "ci95": null,
+          "estimate": null,
+          "pairs": 0,
+          "small_sample": true,
+          "unit": "counterbalanced participant"
+        },
+        "mean_factual_explanation_0_to_3": {
+          "ci95": null,
+          "estimate": null,
+          "pairs": 0,
+          "small_sample": true,
+          "unit": "counterbalanced participant"
+        },
+        "mean_missed_exceptions": {
+          "ci95": null,
+          "estimate": null,
+          "pairs": 0,
+          "small_sample": true,
+          "unit": "counterbalanced participant"
+        },
+        "mentor_interventions": {
+          "ci95": null,
+          "estimate": null,
+          "pairs": 0,
+          "small_sample": true,
+          "unit": "counterbalanced participant"
+        },
+        "passed": {
+          "ci95": null,
+          "estimate": null,
+          "pairs": 0,
+          "small_sample": true,
+          "unit": "counterbalanced participant"
+        }
+      },
+      "transfer": {
+        "active_seconds": {
+          "ci95": null,
+          "estimate": null,
+          "pairs": 0,
+          "small_sample": true,
+          "unit": "counterbalanced participant"
+        },
+        "first_correct_active_seconds": {
+          "ci95": null,
+          "estimate": null,
+          "pairs": 0,
+          "small_sample": true,
+          "unit": "counterbalanced participant"
+        },
+        "hints": {
+          "ci95": null,
+          "estimate": null,
+          "pairs": 0,
+          "small_sample": true,
+          "unit": "counterbalanced participant"
+        },
+        "independent_transfer_success": {
+          "ci95": null,
+          "estimate": null,
+          "pairs": 0,
+          "small_sample": true,
+          "unit": "counterbalanced participant"
+        },
+        "mean_factual_explanation_0_to_3": {
+          "ci95": null,
+          "estimate": null,
+          "pairs": 0,
+          "small_sample": true,
+          "unit": "counterbalanced participant"
+        },
+        "mean_missed_exceptions": {
+          "ci95": null,
+          "estimate": null,
+          "pairs": 0,
+          "small_sample": true,
+          "unit": "counterbalanced participant"
+        },
+        "mentor_interventions": {
+          "ci95": null,
+          "estimate": null,
+          "pairs": 0,
+          "small_sample": true,
+          "unit": "counterbalanced participant"
+        },
+        "passed": {
+          "ci95": null,
+          "estimate": null,
+          "pairs": 0,
+          "small_sample": true,
+          "unit": "counterbalanced participant"
+        }
+      }
+    },
+    "participant_records_sha256": "68eec344e3a94eeaac23a44e48a7839954c85cb86c2a88314bbe247c5aff16e7",
+    "per_participant": [],
+    "phase": "not_run",
+    "planned_slots": 12,
+    "protocol": "human-onboarding-v1",
+    "qualification": "Twelve participants form a pilot. Prepared slots are not participants, simulated learners are not human evidence, and a correct patch alone is not mastery. Real identity/consent verification requires the independent audit capture.",
+    "schema_version": 1,
+    "verified_human_participants": null,
+    "withdrawn_data_excluded": true,
+    "withdrawn_participant_records": 0
+  },
+  "cases": [
+    {
+      "case_id": "payments-retry",
+      "checker_files_sha256": {
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3.12": "fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7",
+        "/workspace/scratch/286e1ddfee82/lore-human/evaluation/corpora/human-onboarding/../shared-intelligence/../coding-tasks/check_tasks.py": "2989df20907ae29d2eaedb6fc8c4b4229e50eba960e90202fa778081954c2b3e"
+      },
+      "source_sha256": "b58316abc19b929b196f5612a3b33eea963e462096c222211237411a8fc02e84"
+    },
+    {
+      "case_id": "payments-refund-reconciliation",
+      "checker_files_sha256": {
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3.12": "fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7",
+        "/workspace/scratch/286e1ddfee82/lore-human/evaluation/corpora/human-onboarding/../shared-intelligence/check_transfer.py": "84c760f844f5d875e7cf1b029fe1e94546bc5381a1e6386144950cb34ca084d6"
+      },
+      "source_sha256": "16e33ba264a9810e734d3393b3c0882e98bf25b183371c57584b2ae42445dc4b"
+    },
+    {
+      "case_id": "release-admission",
+      "checker_files_sha256": {
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3.12": "fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7",
+        "/workspace/scratch/286e1ddfee82/lore-human/evaluation/corpora/human-onboarding/../coding-tasks/check_tasks.py": "2989df20907ae29d2eaedb6fc8c4b4229e50eba960e90202fa778081954c2b3e"
+      },
+      "source_sha256": "af9acec7461b401f566846a91d796f364832fbe2a1b2ca8c5b32535bdd8242a2"
+    },
+    {
+      "case_id": "release-rollback-withdrawal",
+      "checker_files_sha256": {
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3.12": "fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7",
+        "/workspace/scratch/286e1ddfee82/lore-human/evaluation/corpora/human-onboarding/check_rollback.py": "bbd8df6ed584bb977ba2b4dfef3d486f3e05f0fbe229ee2997ae2810e02c93c8"
+      },
+      "source_sha256": "b1b0b3b18e70d796d1ccc57d26f4a58afbda5203bce238bb80562537876bb41b"
+    }
+  ],
+  "contract": "lore.human_onboarding_release_readiness",
+  "execution": {
+    "checkers_executed": 0,
+    "commands": [
+      [
+        "python3",
+        "evaluation/human_onboarding.py",
+        "prepare",
+        "--participants",
+        "12",
+        "--seed",
+        "7",
+        "--output",
+        "evaluation-results/human-onboarding-08-readiness-final"
+      ],
+      [
+        "python3",
+        "evaluation/human_onboarding.py",
+        "readiness",
+        "--study",
+        "evaluation-results/human-onboarding-08-readiness-final"
+      ],
+      [
+        "python3",
+        "evaluation/human_onboarding.py",
+        "assess",
+        "evaluation-results/human-onboarding-08-readiness-final"
+      ]
+    ],
+    "files_sha256": {
+      "evaluation/corpora/human-onboarding/cases.json": "883855432817bf0ad320b0f81137e2bfaf67d53ffb3b4def5194722a81faa130",
+      "evaluation/human_onboarding.py": "16c10e3e4ad184e56f31c8b1db53490f5ba454aec52fe5f5890e13377b443291"
+    },
+    "participant_directory_created": false,
+    "prepared_tree_sha256_after_assessment": "c227cf54b39d71a0276ed69c86c2399e81fb7a9b92c983d580de230f7e67524e",
+    "prepared_tree_sha256_before_readiness": "c227cf54b39d71a0276ed69c86c2399e81fb7a9b92c983d580de230f7e67524e",
+    "provider_calls": 0,
+    "python": "3.12.14",
+    "readiness_and_assessment_left_study_bytes_unchanged": true,
+    "source_base_commit": "4b39dddc262fe7cae264d3b003d5aa4944770a11",
+    "study_sha256": "b680dba4d5b4a5398e2a3a7102c0d4b9194d2fdbf978cde804de7f60ce5eb901"
+  },
+  "first_correct_contribution_time_status": "unmeasured",
+  "independent_learning_transfer_status": "unmeasured",
+  "learning_benefit_established": false,
+  "lore_release": "0.8",
+  "preparation": {
+    "enrolled_participants": 0,
+    "fixture_only": true,
+    "human_outcomes": "unmeasured",
+    "inference_calls": 0,
+    "phase": "preparation_only",
+    "planned_slots": 12,
+    "protocol": "human-onboarding-v1",
+    "schema_version": 1,
+    "study_sha256": "b680dba4d5b4a5398e2a3a7102c0d4b9194d2fdbf978cde804de7f60ce5eb901"
+  },
+  "qualification": "This report retains actual prepare/readiness/assess output for an empty bundled-fixture study. No run or record command was invoked, nobody was enrolled, no people or review captures were invented, and no human time or learning-transfer outcome was measured. Prepared slots and offline fixture regression tests cannot enter human-outcome denominators. Verified human count remains null until an independent participation audit exists. The exact pending prerequisites are in readiness.requirements.",
+  "readiness": {
+    "blocking_prerequisites": [
+      "independent_unfamiliar_held_out_projects",
+      "twelve_real_consented_participants",
+      "four_completed_stages_per_participant",
+      "independent_submission_and_explanation_reviews",
+      "participation_access_assistance_and_withdrawal_audit"
+    ],
+    "completed_participants": 0,
+    "contract": "lore.human_study_readiness",
+    "enrolled_participant_records": 0,
+    "enrollment_or_session_writes": false,
+    "executed_checks": 0,
+    "first_correct_contribution_time_status": "unmeasured",
+    "fixture_only": true,
+    "human_outcomes_status": "unmeasured",
+    "independent_learning_transfer_status": "unmeasured",
+    "inference_calls": 0,
+    "issues": [],
+    "learning_benefit_established": false,
+    "mechanical_contracts_passed": true,
+    "phase": "not_run",
+    "planned_slots": 12,
+    "protocol": "human-onboarding-v1",
+    "qualification": "Readiness validates retained local mechanics and declarations. It does not recruit people, authenticate human identities, contact a provider, prove OS isolation or measure learning. A local session may be mechanically ready while the real study remains not run.",
+    "requirements": [
+      {
+        "id": "pinned_source_task_checker_integrity",
+        "requirement": "Keep the exact prepared source snapshots, manifest tasks, counterbalanced assignments and checker programs intact, with declared checker/helper paths and bytes outside every participant source input.",
+        "status": "satisfied"
+      },
+      {
+        "id": "independent_unfamiliar_held_out_projects",
+        "requirement": "Prepare two independently selected unfamiliar projects with distinct contribution/transfer cases and external hidden checkers via --cases; bundled fixtures are ineligible.",
+        "status": "pending"
+      },
+      {
+        "id": "twelve_real_consented_participants",
+        "requirement": "Enroll at least twelve actual consenting humans with study-bound pseudonyms; verify participation and current consent through independent retained audit capture.",
+        "status": "pending"
+      },
+      {
+        "id": "four_completed_stages_per_participant",
+        "requirement": "Collect both counterbalanced rounds, each with a first contribution and different transfer, including unsuccessful stops, exact patches, cumulative time and assistance.",
+        "status": "pending"
+      },
+      {
+        "id": "independent_submission_and_explanation_reviews",
+        "requirement": "Obtain two distinct blinded, conflict-free reviews and source-derived factual/exception scores bound to every exact submitted record, including earlier failures.",
+        "status": "pending"
+      },
+      {
+        "id": "participation_access_assistance_and_withdrawal_audit",
+        "requirement": "Complete the independent study/record-bound human audit, including enforced checker isolation, assistance/time capture and all current withdrawals.",
+        "status": "pending"
+      }
+    ],
+    "schema_version": 1,
+    "session": {
+      "human_identity_authenticated": false,
+      "mechanically_ready": null,
+      "operator_isolation": "requires_independent_verification",
+      "provider_availability": "not_checked",
+      "requested": false
+    },
+    "study_sha256": "b680dba4d5b4a5398e2a3a7102c0d4b9194d2fdbf978cde804de7f60ce5eb901",
+    "verified_human_participants": null,
+    "withdrawn_participant_records": 0
+  },
+  "recorded_at": "2026-10-10T22:14:24.281265+00:00",
+  "schema_version": 1,
+  "status": "not_run"
+}

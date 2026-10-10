@@ -660,6 +660,16 @@ async fn build_with_budget(
         generation_basis = GenerationBasis::DeterministicFallback;
         status = "documentary_fallback_after_revalidation".into();
     }
+    let initial_concept_omissions = if mode == ExperienceMode::Explanation
+        && options.task.is_none()
+        && options.goal.is_none()
+    {
+        let omitted = orientation.concepts.len().saturating_sub(3);
+        orientation.concepts.truncate(3);
+        omitted
+    } else {
+        0
+    };
     if let Some(path) = &mut tutorial {
         path.reveal(options.activity, options.hint_level, options.show_solution);
     }
@@ -709,7 +719,7 @@ async fn build_with_budget(
         model_call_limit: budget.report().max_model_calls,
         presentation_status: status,
         presentation_revalidation,
-        omitted_items: 0,
+        omitted_items: initial_concept_omissions,
         warnings: Vec::new(),
     };
     if mode == ExperienceMode::Reference {

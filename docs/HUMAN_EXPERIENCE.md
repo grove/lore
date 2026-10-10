@@ -1,6 +1,6 @@
 # Understand a project, then work on it
 
-`lore onboard` presents the same retained evidence and bounded investigations used by adaptive task context as an explanation for a person. It starts with the project's purpose, a few important concepts, architectural responsibilities, a documented or statically inferred workflow, and conditions that matter when changing it. There is no questionnaire or required learning profile.
+`lore onboard` gives a person a first view of the project. In a fresh checkout it reads bounded original documentation and returns exact source excerpts, qualifications and navigation without setup. When compiled project knowledge is available, it presents the same retained evidence and bounded investigations used by adaptive task context as an explanation: purpose, important concepts, architectural responsibilities, a documented or statically inferred workflow, and conditions that matter when changing it. There is no questionnaire or required learning profile.
 
 ```bash
 lore onboard
@@ -8,11 +8,19 @@ lore onboard --topic "Explain dispatch and its failure boundaries"
 lore --json onboard
 ```
 
-The command reads the existing compiled registry. Run the ordinary `lore init`/`lore update` workflow first. Onboarding does not write project sources, create a contribution, or execute tests. It can reuse source-derived guidance under the existing context cache policy. Learner answers and feedback are never saved.
+## First contact without setup
+
+Run the commands above in a checkout even before creating `lore.yml` or running `lore init`. The first-run `bootstrap_source_only` response uses the same scanner and complete source bundles as fresh-checkout task context. It makes zero model calls, creates no configuration or cache, and leaves original files unchanged. Each excerpt carries its original relative path, full-file content hash and exact line range. It keeps documentary text, including linked qualifications, together; an oversized or ambiguous group is omitted as a whole with explicit navigation and omission reporting.
+
+This response explains its limited source-only status. Its JSON contract is `lore.bootstrap_onboard`, `schema_version: 1`, with `mode: bootstrap_source_only`; it is separate from the compiled human contract described below. It does not have retained evidence IDs, a compiled decision, a generated workflow or a lesson to assess. When useful evidence is unavailable or exceeds the budget, it says so. An explicit missing configuration or a malformed existing configuration is an actionable error.
+
+Use ordinary `lore init` and `lore update` when you want the compiled orientation, task guidance and optional learning behavior below. Tutorial mode, hints, answers, lesson pins and transfer activities require compiled knowledge; first-run source excerpts cannot substitute for a pinned lesson. Other first-run intent choices still return the explicitly labeled source-only contract. Neither path writes project sources, creates a contribution or executes tests. Compiled onboarding can reuse source-derived guidance under the existing context cache policy. Learner answers and feedback are never saved.
 
 ## Choose by intent
 
-Describe what you want. The default `auto` mode recognizes a learning request, an exact reference question, or a goal such as a refactor; otherwise it explains the project. An explicit mode overrides this routing.
+With compiled knowledge, describe what you want. The default `auto` mode recognizes a learning request, an exact reference question, or a goal such as a refactor; otherwise it explains the project. An explicit mode overrides this routing.
+
+An initial explanation without a task or goal presents at most three grounded concepts and counts additional concepts in `omitted_items`. Its full source conditions and relationships remain available. A targeted explanation and an optional tutorial retain their own concept material and lesson bindings.
 
 | Mode | What it provides | Example |
 | --- | --- | --- |
@@ -105,7 +113,7 @@ The default output limit is 6,000 tokens. The complete JSON and Markdown outputs
 
 Onboarding reserves up to two attempts from the configured aggregate model-call allowance for presentation synthesis and source checking. A reused draft needs no new presentation call unless a pinned answer requests feedback. All attempts and the original request deadline remain bounded. A dropped or cancelled presentation releases its read snapshot and schedules no background continuation.
 
-The version-1 human response contains:
+The compiled version-1 human response contains:
 
 | Field | Meaning |
 | --- | --- |
@@ -131,4 +139,6 @@ The `human_experience` tests use real retained SQLite evidence and filesystem ob
 
 The `human_experience_cli` tests invoke the actual binary after ordinary fixture ingestion. They check shared snapshot identity, exact evidence drill-down, complete JSON and Markdown budgets, immediate task routing, input rejection before configuration access, and unchanged source, wiki and state bytes for requests with `--no-cache`. Hosted inference is denied before client construction in these tests; no live provider is needed.
 
-These are executable integrity and behavior checks. They do not establish that a real model consistently produces excellent tours or that developers make better contributions. Human first-contribution correctness, explanation accuracy, a distinct less-assisted second task, mentor dependence and total time still need an independent human study. The evaluation work keeps those outcomes separate from coding-agent implementation results.
+The `bootstrap_cli` tests additionally exercise the actual first-run commands, exact excerpts and budgets, symlink/configuration boundaries, changed-source handling, linked qualifications and zero model or source/cache writes. Updating the first-contact instructions here corrects the obsolete requirement to initialize before every orientation; it is not evidence of a measured human improvement.
+
+These are executable integrity and behavior checks. They do not establish that a real model consistently produces excellent tours or that developers make better contributions. The 0.8 release records **zero real human participants**: first-correct contribution time and independent learning transfer remain **unmeasured**. The [human onboarding protocol](../evaluation/HUMAN_ONBOARDING.md) provides read-only readiness checks, actual consent withdrawal and independently bound submission/review gates. Its prepared slots and offline fixture tests are separate from human observations and from coding-agent implementation results.
