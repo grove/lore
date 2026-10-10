@@ -20,13 +20,15 @@ and general engineering principles. Opt-in `--inspect` reads relevant local sour
 and tests; `--investigate` performs bounded follow-up inspections and revises the
 recommendation when evidence contradicts the original hypothesis. `--fast`
 preserves deterministic schema 2, and `--schema-version 3` retains the 0.5
-contract. The established default schema 4 remains available with the privacy,
+contract. Explicit schema 4 remains available with the privacy,
 limits, and caching described in [the historical 0.6 guide](docs/V06.md).
 
-### Experimental shared intelligence
+### Adaptive project intelligence
 
-`lore context TASK --schema-version 5` selects automatic investigation within
-caller-owned standing grants, while existing schemas retain their behavior.
+Ordinary initialized-project `lore context TASK` uses schema 5 and selects
+automatic investigation within caller-owned standing grants. Explicit schemas
+3/4 and `--fast` retain their contracts. Agent integrations can pin
+`--schema-version 5`; see [the copyable agent instructions](docs/AGENTS.example.md).
 Human and agent experiences share a complete retained-registry snapshot and the
 existing evidence/decision runtime. Exact supported symbolic lookups avoid
 unnecessary model calls. Investigative findings are revision-bound, revalidated
@@ -153,8 +155,8 @@ navigation and evidence authority.
 The optional `--compact` response uses exploration schema 2 to retain complete
 source records, original quotations, and mandatory relationship endpoints with
 less envelope overhead. It reports a budget limitation when a complete evidence
-obligation cannot fit. Plain `lore explore` retains schema 1; adaptive context
-still requires the explicit `--schema-version 5` selection.
+obligation cannot fit. Plain `lore explore` retains schema 1; initialized context
+uses adaptive schema 5 by default.
 
 ## Vision
 
@@ -249,13 +251,15 @@ lore context "Implement payment retries" --inspect
 lore context "Implement payment retries" --investigate --max-tokens 8000
 lore context "Implement payment retries" --no-inspect
 lore --json context "Implement payment retries" --schema-version 3
+lore --json context "Implement payment retries" --schema-version 4
+lore --json context "Implement payment retries" --schema-version 5
 ```
 
-`context` combines relevant knowledge from the last compiled registry with the configured generative model. The schema 4 briefing includes readiness, the preferred approach, rationale, trade-off, implementation seams, constraints, prioritized checks, and completion criteria. Facts are copied from retained records. Hypotheses retain their supporting evidence, alternatives, and applicability. General engineering principles are tagged separately. A second support check reviews factual support, readiness, and treatment of counterevidence. Context preserves the registry, original sources, and generated wiki.
+Initialized `context` combines relevant retained knowledge with the configured model when permitted. Its default schema-5 envelope includes a complete registry snapshot identity, actual capabilities, source relationship groups, and a decision or honest deterministic fallback under `intelligence`. Markdown leads with the preferred approach, next action and critical constraints. The decision retains readiness, rationale, trade-off, implementation seams, prioritized checks and future completion criteria. Facts are copied from retained records; hypotheses keep their support, alternatives and applicability, and general engineering principles remain separate. Exact supported symbolic queries can use a zero-call reference result. Context preserves the registry, original sources and generated wiki.
 
-Checkout inspection is opt-in while its real-world benefit is being evaluated. `--inspect` selects a few relevant source and test files; `--investigate` can inspect a discriminating follow-up and revise the approach. Observations include exact paths, line ranges, excerpts, and complete-file hashes. Static inspection never proves runtime behavior or runs a test. Hosted documentary permission does not permit checkout egress: code and discovered filenames require separate `privacy.allow_checkout_egress: true` or `--allow-checkout-egress`. `--no-inspect` overrides configured inspection.
+Checkout inspection requires a caller grant: `LORE_INSPECTION_ROOT` permits bounded automatic reads within that root, or `--inspect`/`--investigate` grants the configuration directory for one invocation. `--no-inspect` always denies it. Repository settings cannot widen the grant. Observations include exact paths, line ranges, excerpts and full-file hashes; static inspection does not execute tests or prove runtime behavior. Default schema 5 requires a caller hosted grant and `privacy.local_only: false` for hosted documentary inference. The host can set `LORE_ALLOW_HOSTED_EGRESS=1`; checkout content and discovered filenames additionally need their separate host/config grants. The explicit per-invocation `--allow-checkout-egress` flag grants both within the local-only ceiling. See [the exact grant rules](docs/SHARED_INTELLIGENCE.md#standing-grants).
 
-The default output budget is 3,000 tokens. Lore measures the complete compact JSON and human-readable output with the embedded `cl100k_base` tokenizer and bounds both forms, including citations, metadata, and warnings. The model's evidence input is separately limited by `processing.max_context_bytes`. Whole optional brief items can be omitted with an explicit count; required risk and constraint qualifications stay with the recommendation. When a valid briefing cannot fit, inference fails, or the configured provider is unavailable, `mode: fast_fallback` identifies a deterministic result without fresh reasoning. Use `mode`, `model_calls`, and `cache_status` to distinguish those outcomes.
+The default output budget is 3,000 tokens. Lore measures the complete compact JSON and Markdown with the embedded `cl100k_base` tokenizer, including the schema-5 envelope, source relationship manifest, citations, metadata and warnings. The model's evidence input is separately limited by `processing.max_context_bytes`. Whole optional items can be omitted with a count; required risk and constraint qualifications stay together. If inference fails or the provider is unavailable, `intelligence.mode: fast_fallback` identifies a deterministic result without fresh reasoning. If the minimum complete response cannot fit, Lore returns a typed budget error. Read the nested mode, model-call count and cache status before treating a result as fresh reasoning.
 
 `lore context --fast` emits the unchanged schema 2 retrieval contract with zero model calls and no writes, credentials, model server, or embedding service required. It groups related documentary/native records with their evidence and preserves conflict endpoints. A tight budget can omit an entire connected group, with explicit omission counts. In fast mode, paths are relevance hints and captured inspection leads; no checkout inspection occurs. An empty result means no eligible knowledge was retrieved, not that no constraints apply.
 

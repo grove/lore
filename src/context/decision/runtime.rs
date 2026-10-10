@@ -1430,6 +1430,16 @@ fn fit(mut result: DecisionResult) -> Result<Option<DecisionResult>> {
 }
 
 pub fn render(result: &DecisionContextResult) -> String {
+    render_ordered(result, false)
+}
+
+/// Adaptive presentation leads with the action and constraints while explicit
+/// schema 4 keeps its established Markdown order and complete public contract.
+pub(crate) fn render_action_first(result: &DecisionContextResult) -> String {
+    render_ordered(result, true)
+}
+
+fn render_ordered(result: &DecisionContextResult, action_first: bool) -> String {
     match result {
         DecisionContextResult::FastFallback(result) => format!(
             "# Decision context\n\n{}\n\nInspection: {}. Investigation: {}.\n\n{}",
@@ -1439,7 +1449,11 @@ pub fn render(result: &DecisionContextResult) -> String {
             context::render_context(&result.context)
         ),
         DecisionContextResult::Brief(result) => {
-            let mut text = render_brief(&result.brief);
+            let mut text = if action_first {
+                super::render_brief_action_first(&result.brief)
+            } else {
+                render_brief(&result.brief)
+            };
             if let Some(reason) = &result.fallback_reason {
                 text.push_str(&format!("\nFallback: {}\n", display_text(reason)));
             }

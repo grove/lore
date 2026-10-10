@@ -1,15 +1,17 @@
 # Adaptive shared project intelligence
 
-The explicit schema-5 experience reuses Lore's evidence registry, lexical and
+The default initialized-project context uses schema 5 and reuses Lore's evidence registry, lexical and
 semantic retrieval, decision validation, static checkout inspector and bounded
 investigation controller. It adds automatic initiative within caller grants and
 a source-selection-independent registry revision. Schemas 2, 3 and 4 keep their
-existing command behavior; schema 4 remains the default.
+existing explicitly selected command behavior. Pin schema 5 in agent integrations
+to keep the contract stable; ordinary human requests need no schema selection.
 
 ```bash
+lore --json context "Refactor retries without changing behavior"
+lore --json context "Refactor retries without changing behavior" --inspect
+lore --json context "Refactor retries without changing behavior" --no-inspect
 lore --json context "Refactor retries without changing behavior" --schema-version 5
-lore --json context "Refactor retries without changing behavior" --schema-version 5 --inspect
-lore --json context "Refactor retries without changing behavior" --schema-version 5 --no-inspect
 ```
 
 ## Standing grants
@@ -20,7 +22,7 @@ one checkout for subsequent commands:
 
 ```bash
 export LORE_INSPECTION_ROOT="$PWD"
-lore context "Refactor retries without changing behavior" --schema-version 5
+lore context "Refactor retries without changing behavior"
 ```
 
 `context.inspection.root` can narrow that root. It cannot select a parent,
@@ -43,13 +45,15 @@ execution, network transmission or a wider checkout root by itself.
 Embedders can construct `adaptive::HostGrants` and apply `adaptive::authorize`
 without reading environment variables. No command executes repository code or
 changes accepted policy. Existing schema-3/4 grant behavior is preserved for
-compatibility; migration to the new contract is explicit.
+compatibility when explicitly pinned. The default does not create new grants:
+an unavailable capability leaves the best permitted evidence and honest fallback
+usable. It does not become an invented policy or technical blocker.
 
 ## Schema 5
 
 | Field | Meaning |
 | --- | --- |
-| `schema_version` | `5`, explicitly selected by the caller |
+| `schema_version` | `5`, the initialized-project default or an explicit schema pin |
 | `snapshot.project_id` | Resolved project identity |
 | `snapshot.registry_revision` | Digest of the retained source heads, knowledge, imported observations and relationships in the read transaction |
 | `capabilities` | Caller-granted inspection scope status, hosted egress permissions, and explicit absence of execution/source-write capabilities |
@@ -62,6 +66,18 @@ hypotheses, general engineering judgment, scoped blockers, implementation seams,
 counterevidence and future completion criteria distinct. Reading an existing
 test declaration does not establish that any test was run or passed. Lack of a
 capability is reported separately from a real authority blocker.
+
+Markdown starts with the preferred approach, next action and complete critical
+constraints before the supporting rationale and detail. JSON retains the full
+decision structure, evidence, provenance, omissions and source relationships.
+Both presentations are measured within the same requested token bound. Explicit
+schema 4 retains its existing rendering and response shape.
+
+Before compilation, an unpinned context request can instead return the distinct
+`lore.bootstrap_context` schema-1 `bootstrap_source_only` contract. Its ephemeral
+source digest is not a registry revision. Explicit schema 3/4/5 and `--fast`
+return `uninitialized_project` until a registry exists; they never silently
+switch to the bootstrap shape.
 
 An exact retained symbolic query such as `What is QUEUE_CAPACITY?` uses
 `intelligence.mode: reference` when current selected evidence contains the

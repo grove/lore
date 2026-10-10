@@ -455,7 +455,7 @@ fn finish(
 }
 
 pub fn render(result: &AdaptiveResult) -> String {
-    let mut text = runtime::render(&result.intelligence);
+    let mut text = runtime::render_action_first(&result.intelligence);
     text.push_str(&result.source_relationships.render());
     text.push_str(&format!(
         "\nShared project snapshot: `{}`\n\nInspection: {}. Execution: unavailable.\n",
