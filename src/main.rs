@@ -185,6 +185,11 @@ enum Command {
         max_nodes: u16,
         #[arg(long, help = "Do not read or write the disposable navigation cache")]
         no_cache: bool,
+        #[arg(
+            long,
+            help = "Use explicit schema 2 with reversible normalized evidence tables"
+        )]
+        compact: bool,
     },
     /// Explain recorded choices, conditions, alternatives and historical transitions.
     Decisions {
@@ -665,6 +670,7 @@ async fn run(cli: Cli) -> Result<i32> {
             max_tokens,
             max_nodes,
             no_cache,
+            compact,
         } => {
             let conn = storage::read_only(&config.state.join("state.db"))
                 .context("open project knowledge (run lore init or lore update first)")?;
@@ -674,22 +680,40 @@ async fn run(cli: Cli) -> Result<i32> {
                 max_tokens,
                 max_nodes: usize::from(max_nodes),
             };
-            let result = if no_cache || !config.config.context.cache {
-                lore::knowledge::explore(&conn, &options)?
+            if compact {
+                let result = if no_cache || !config.config.context.cache {
+                    lore::knowledge::explore_compact(&conn, &options)?
+                } else {
+                    lore::knowledge::explore_compact_cached(
+                        &conn,
+                        &options,
+                        &config.state.join("knowledge-zoom"),
+                    )
+                    .or_else(|_| lore::knowledge::explore_compact(&conn, &options))?
+                };
+                if cli.json {
+                    println!("{}", serde_json::to_string(&result)?);
+                } else {
+                    print!("{}", lore::knowledge::render_compact_markdown(&result)?);
+                }
             } else {
-                lore::knowledge::explore_cached(
-                    &conn,
-                    &options,
-                    &config.state.join("knowledge-zoom"),
-                )
-                // Cache persistence is optional. A read-only or unmanaged
-                // cache directory must not prevent original-source guidance.
-                .or_else(|_| lore::knowledge::explore(&conn, &options))?
-            };
-            if cli.json {
-                println!("{}", serde_json::to_string(&result)?);
-            } else {
-                print!("{}", lore::knowledge::render_markdown(&result));
+                let result = if no_cache || !config.config.context.cache {
+                    lore::knowledge::explore(&conn, &options)?
+                } else {
+                    lore::knowledge::explore_cached(
+                        &conn,
+                        &options,
+                        &config.state.join("knowledge-zoom"),
+                    )
+                    // Cache persistence is optional. A read-only or unmanaged
+                    // cache directory must not prevent original-source guidance.
+                    .or_else(|_| lore::knowledge::explore(&conn, &options))?
+                };
+                if cli.json {
+                    println!("{}", serde_json::to_string(&result)?);
+                } else {
+                    print!("{}", lore::knowledge::render_markdown(&result));
+                }
             }
         }
         Command::Decisions { query, max_tokens } => {

@@ -77,6 +77,8 @@ fn capture(
         kind: kind.into(),
         lifecycle: if kind == "decision" {
             "accepted"
+        } else if kind == "proposal" {
+            "proposed"
         } else {
             "active"
         }
@@ -1323,6 +1325,47 @@ fn recomputing_the_cache_checksum_cannot_authorize_forged_summary_or_scope() {
 }
 
 #[test]
+fn a_resigned_cache_rejects_overflowing_summary_coverage_without_panicking() {
+    let conn = database();
+    record(
+        &conn,
+        "capacity.md",
+        "dispatch",
+        "dispatch",
+        "constraint",
+        "QUEUE_CAPACITY must remain at 128 jobs.",
+    );
+    storage::refresh_knowledge(&conn, "p").unwrap();
+    let temp = tempfile::tempdir().unwrap();
+    let directory = fs::canonicalize(temp.path()).unwrap().join("zoom");
+    knowledge::build_cached(&conn, &ZoomOptions::default(), &directory).unwrap();
+    let path = directory.join("snapshot.json");
+    let mut changed: serde_json::Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    let node = changed["nodes"]
+        .as_array_mut()
+        .unwrap()
+        .iter_mut()
+        .find(|node| node["summary_coverage"]["included_units"] == 1)
+        .unwrap();
+    assert_eq!(node["summary_coverage"]["eligible_units"], 1);
+    node["summary_coverage"]["omitted_units"] = serde_json::json!(usize::MAX);
+    resign_cache(&mut changed);
+    fs::write(&path, serde_json::to_vec(&changed).unwrap()).unwrap();
+
+    let repaired = knowledge::build_cached(&conn, &ZoomOptions::default(), &directory).unwrap();
+    assert!(!repaired.refresh.topology_reused);
+    assert!(
+        repaired
+            .refresh
+            .fallback_reason
+            .as_deref()
+            .unwrap()
+            .contains("summary coverage manifest mismatch")
+    );
+    assert_matches_fresh(&repaired.graph, &conn);
+}
+
+#[test]
 fn an_incremental_cache_cannot_mask_corrupted_authoritative_evidence() {
     let conn = database();
     let original = record(
@@ -1624,4 +1667,837 @@ fn a_resigned_cache_cannot_remove_a_derived_intersection_and_flatten_its_childre
     assert_eq!(repaired.graph.nodes, first.graph.nodes);
     assert_eq!(repaired.graph.edges, first.graph.edges);
     assert_matches_fresh(&repaired.graph, &conn);
+}
+
+fn assert_compact_budget(result: &knowledge::CompactExploreResult) {
+    let actual = lore::context::count_tokens(&(serde_json::to_string(result).unwrap() + "\n")).max(
+        lore::context::count_tokens(&knowledge::render_compact_markdown(result).unwrap()),
+    );
+    assert!(
+        actual <= result.used_tokens,
+        "{actual} > {}",
+        result.used_tokens
+    );
+    assert!(result.used_tokens <= result.max_tokens);
+}
+
+fn assert_compact_originals(conn: &Connection, result: &knowledge::CompactExploreResult) {
+    assert_compact_budget(result);
+    let resolved = result.resolve().unwrap();
+    let originals = storage::views(conn).unwrap();
+    for record in &resolved.knowledge {
+        let original = originals
+            .iter()
+            .find(|original| original.id == record.id)
+            .unwrap();
+        assert_eq!(
+            serde_json::to_value(record).unwrap(),
+            serde_json::to_value(original).unwrap()
+        );
+    }
+    for evidence in &resolved.evidence {
+        let original = storage::evidence_snapshot(conn, &evidence.id).unwrap();
+        assert_eq!(
+            serde_json::to_value(evidence).unwrap(),
+            serde_json::to_value(original).unwrap()
+        );
+    }
+    for relation in &resolved.relations {
+        assert!(
+            resolved
+                .knowledge
+                .iter()
+                .any(|record| record.id == relation.from)
+        );
+        assert!(
+            resolved
+                .knowledge
+                .iter()
+                .any(|record| record.id == relation.to)
+        );
+        assert!(
+            resolved
+                .evidence
+                .iter()
+                .any(|evidence| evidence.id == relation.evidence_id)
+        );
+    }
+}
+
+#[test]
+fn dense_shared_topic_does_not_make_unrelated_conditions_mandatory() {
+    let conn = database();
+    let capacity = record(
+        &conn,
+        "queue-limit.md",
+        "operations",
+        "queue admission",
+        "decision",
+        "QUEUE_LIMIT is 8 pending jobs.",
+    );
+    let exception = record(
+        &conn,
+        "queue-drain.md",
+        "operations",
+        "queue admission",
+        "constraint",
+        "Queue admission must stop while a drain is active.",
+    );
+    for index in 0..24 {
+        record(
+            &conn,
+            &format!("credentials-{index}.md"),
+            "operations",
+            &format!("credential rotation {index}"),
+            "constraint",
+            &format!("Credential {index} must be rotated after its individual expiry date."),
+        );
+    }
+    let graph = build(&conn);
+    let bundles = knowledge::inspect_bundles(&graph, std::slice::from_ref(&capacity.id)).unwrap();
+    assert_eq!(bundles.len(), 1);
+    assert_eq!(
+        bundles[0].knowledge_ids,
+        BTreeSet::from([capacity.id.clone(), exception.id.clone()])
+    );
+    assert!(bundles[0].dependencies.iter().any(|dependency| {
+        dependency.from == capacity.id
+            && dependency.to == exception.id
+            && dependency.reason == "directly_applicable_explicit_condition"
+    }));
+    for max_tokens in [512, 1_000, 1_500, 3_000, 8_000] {
+        let options = ExploreOptions {
+            query: "QUEUE_LIMIT".into(),
+            max_tokens,
+            ..ExploreOptions::default()
+        };
+        let result = knowledge::select(&graph, &options).unwrap();
+        assert_complete_budget(&result);
+        let ids: BTreeSet<_> = result
+            .knowledge
+            .iter()
+            .map(|record| record.id.as_str())
+            .collect();
+        assert_eq!(
+            ids.contains(capacity.id.as_str()),
+            ids.contains(exception.id.as_str())
+        );
+        let compact = knowledge::select_compact(&graph, &options).unwrap();
+        assert_compact_originals(&conn, &compact);
+        let resolved = compact.resolve().unwrap();
+        let ids: BTreeSet<_> = resolved
+            .knowledge
+            .iter()
+            .map(|record| record.id.as_str())
+            .collect();
+        assert_eq!(
+            ids.contains(capacity.id.as_str()),
+            ids.contains(exception.id.as_str())
+        );
+        if max_tokens >= 1_500 {
+            assert!(
+                ids.contains(capacity.id.as_str()),
+                "complete compact pair did not fit {max_tokens}: {compact:#?}"
+            );
+        }
+    }
+}
+
+#[test]
+fn compact_conditions_survive_node_focus_and_cannot_be_replaced_by_navigation() {
+    let conn = database();
+    let capacity = record(
+        &conn,
+        "capacity.md",
+        "dispatch",
+        "dispatch",
+        "decision",
+        "QUEUE_CAPACITY is 128 jobs in production and 64 jobs in staging.",
+    );
+    let full = record(
+        &conn,
+        "full.md",
+        "dispatch",
+        "dispatch",
+        "constraint",
+        "A full production dispatch queue must return Busy without accepting a job.",
+    );
+    let exception = record(
+        &conn,
+        "drain.md",
+        "dispatch",
+        "dispatch",
+        "constraint",
+        "Except during an emergency drain, production dispatch must preserve tenant order; a drain still refuses new jobs.",
+    );
+    let purpose = record(
+        &conn,
+        "purpose.md",
+        "dispatch",
+        "dispatch",
+        "decision",
+        "Harbor isolates dispatch admission from worker execution so a slow tenant cannot consume every worker.",
+    );
+    let graph = build(&conn);
+    let bundle = knowledge::inspect_bundles(&graph, std::slice::from_ref(&capacity.id)).unwrap();
+    assert!(!bundle[0].knowledge_ids.contains(&purpose.id));
+    let leaf = graph
+        .nodes
+        .iter()
+        .find(|node| node.kind == "evidence" && node.knowledge_ids == [capacity.id.clone()])
+        .unwrap();
+    for node in [None, Some(leaf.id.clone())] {
+        let options = ExploreOptions {
+            query: "increase QUEUE_CAPACITY for production dispatch".into(),
+            node,
+            max_tokens: 1_500,
+            ..ExploreOptions::default()
+        };
+        let compact = knowledge::select_compact(&graph, &options).unwrap();
+        assert_compact_originals(&conn, &compact);
+        let result = compact.resolve().unwrap();
+        let ids: BTreeSet<_> = result
+            .knowledge
+            .iter()
+            .map(|record| record.id.as_str())
+            .collect();
+        assert!(
+            ids.contains(capacity.id.as_str()),
+            "capacity missing: {compact:#?}"
+        );
+        assert!(
+            ids.contains(full.id.as_str()),
+            "full-queue condition missing"
+        );
+        assert!(
+            ids.contains(exception.id.as_str()),
+            "rare exception missing"
+        );
+    }
+    // Independent minimum: original records and their exact evidence alone,
+    // before adding any envelope, navigation, sources or qualifications, already
+    // exceed v1's 1500-token allowance. This is not a successful v1 retrieval.
+    let required = [&capacity.id, &full.id, &exception.id];
+    let originals: Vec<_> = graph
+        .knowledge
+        .iter()
+        .filter(|record| required.contains(&&record.id))
+        .collect();
+    let cited: BTreeSet<_> = originals
+        .iter()
+        .flat_map(|record| record.evidence.iter().map(|e| &e.id))
+        .collect();
+    let evidence: Vec<_> = graph
+        .evidence
+        .iter()
+        .filter(|e| cited.contains(&e.id))
+        .collect();
+    let mandatory_originals = serde_json::to_string_pretty(&originals).unwrap();
+    let mandatory_evidence = serde_json::to_string_pretty(&evidence).unwrap();
+    assert!(lore::context::count_tokens(&(mandatory_originals + &mandatory_evidence)) > 1_500);
+}
+
+#[test]
+fn compact_disagreement_preserves_both_endpoints_witness_and_exact_resolution() {
+    let conn = database();
+    let old = record(
+        &conn,
+        "mysql.md",
+        "database",
+        "ledger database",
+        "decision",
+        "MySQL is the selected database.",
+    );
+    let new = record(
+        &conn,
+        "postgresql.md",
+        "database",
+        "ledger database",
+        "decision",
+        "PostgreSQL is the selected database.",
+    );
+    storage::add_relation(
+        &conn,
+        &new.id,
+        &old.id,
+        "contradicts",
+        &new.assertion,
+        &new.evidence,
+    )
+    .unwrap();
+    let graph = build(&conn);
+    let options = ExploreOptions {
+        query: "selected ledger database".into(),
+        max_tokens: 1_500,
+        ..ExploreOptions::default()
+    };
+    let compact = knowledge::select_compact(&graph, &options).unwrap();
+    assert_compact_originals(&conn, &compact);
+    let resolved = compact.resolve().unwrap();
+    assert_eq!(resolved.knowledge.len(), 2, "{compact:#?}");
+    assert_eq!(resolved.relations.len(), 1);
+    assert_eq!(resolved.relations[0].evidence_id, new.evidence);
+    let bundles = knowledge::inspect_bundles(&graph, std::slice::from_ref(&old.id)).unwrap();
+    assert!(
+        bundles[0]
+            .dependencies
+            .iter()
+            .any(|dependency| dependency.evidence_id.as_deref() == Some(&new.evidence))
+    );
+    for mutation in 0..6 {
+        let mut changed = compact.clone();
+        match mutation {
+            0 => changed.evidence[0].1 = usize::MAX,
+            1 => changed.knowledge[0].12[0].0 = usize::MAX,
+            2 => changed.relations[0].4 = usize::MAX,
+            3 => changed.relations[0].1 = usize::MAX,
+            4 => changed.strings[changed.evidence[0].5].push_str(" forged exception"),
+            _ => changed.source_revisions.clear(),
+        }
+        assert!(
+            changed.resolve().is_err(),
+            "resolver accepted mutation {mutation}"
+        );
+    }
+}
+
+#[test]
+fn compact_resolver_rejects_overflowing_coverage_without_panicking() {
+    let conn = database();
+    record(
+        &conn,
+        "capacity.md",
+        "dispatch",
+        "dispatch",
+        "decision",
+        "QUEUE_CAPACITY is 128 jobs.",
+    );
+    let graph = build(&conn);
+    let mut compact = knowledge::select_compact(
+        &graph,
+        &ExploreOptions {
+            query: "QUEUE_CAPACITY".into(),
+            ..ExploreOptions::default()
+        },
+    )
+    .unwrap();
+    assert_compact_originals(&conn, &compact);
+    assert_eq!(compact.coverage.included_units, 1);
+    compact.coverage.eligible_units = 0;
+    compact.coverage.omitted_units = usize::MAX;
+    assert!(compact.resolve().is_err());
+}
+
+#[test]
+fn compact_staging_proposal_retains_accepted_baseline_without_promoting_proposal() {
+    let conn = database();
+    let capacity = record(
+        &conn,
+        "capacity.md",
+        "dispatch",
+        "dispatch",
+        "decision",
+        "QUEUE_CAPACITY is 128 jobs in production and 64 jobs in staging.",
+    );
+    record(
+        &conn,
+        "drain.md",
+        "dispatch",
+        "dispatch",
+        "constraint",
+        "Except during an emergency drain, production dispatch must preserve tenant order.",
+    );
+    let text = "Proposed staging queues would hold 256 jobs after the next capacity review.";
+    let proposed_id = record(
+        &conn,
+        "proposal.md",
+        "dispatch",
+        "dispatch",
+        "proposal",
+        text,
+    )
+    .id;
+    let graph = build(&conn);
+    let compact = knowledge::select_compact(
+        &graph,
+        &ExploreOptions {
+            query: "proposed staging queue capacity".into(),
+            max_tokens: 1_500,
+            ..ExploreOptions::default()
+        },
+    )
+    .unwrap();
+    assert_compact_originals(&conn, &compact);
+    let result = compact.resolve().unwrap();
+    assert!(
+        result
+            .knowledge
+            .iter()
+            .any(|record| record.id == capacity.id && record.lifecycle == "accepted")
+    );
+    assert!(
+        result
+            .knowledge
+            .iter()
+            .any(|record| record.id == proposed_id && record.lifecycle == "proposed")
+    );
+}
+
+#[test]
+fn controlled_selection_has_identical_candidate_and_obligation_sets() {
+    let conn = database();
+    let rule = record(
+        &conn,
+        "rule.md",
+        "payments",
+        "payment retry",
+        "decision",
+        "RETRY_LIMIT is three attempts.",
+    );
+    let exception = record(
+        &conn,
+        "exception.md",
+        "payments",
+        "payment retry",
+        "constraint",
+        "Payment retry must stop after settlement.",
+    );
+    record(
+        &conn,
+        "unrelated.md",
+        "payments",
+        "identity privacy",
+        "constraint",
+        "Identity tokens must stay private.",
+    );
+    let graph = build(&conn);
+    let options = ExploreOptions {
+        query: "RETRY_LIMIT".into(),
+        max_tokens: 8_000,
+        ..ExploreOptions::default()
+    };
+    let mut ids = Vec::new();
+    for mode in [
+        knowledge::SelectionMode::DirectOnly,
+        knowledge::SelectionMode::GraphGuided,
+    ] {
+        let result = knowledge::select_compact_controlled(
+            &graph,
+            &options,
+            std::slice::from_ref(&rule.id),
+            mode,
+        )
+        .unwrap();
+        assert_compact_originals(&conn, &result);
+        let resolved = result.resolve().unwrap();
+        ids.push(
+            resolved
+                .knowledge
+                .iter()
+                .map(|record| record.id.clone())
+                .collect::<BTreeSet<_>>(),
+        );
+    }
+    assert_eq!(ids[0], ids[1]);
+    assert_eq!(ids[0], BTreeSet::from([rule.id, exception.id]));
+    assert!(
+        knowledge::select_controlled(
+            &graph,
+            &options,
+            &["ku_absent".into()],
+            knowledge::SelectionMode::DirectOnly
+        )
+        .is_err()
+    );
+}
+
+#[test]
+fn compact_historical_evidence_and_unfit_obligations_are_explicit() {
+    let conn = database();
+    let old = record(
+        &conn,
+        "old.md",
+        "retry",
+        "retry",
+        "decision",
+        "OLD_RETRY_LIMIT was three attempts.",
+    );
+    storage::retire_source(&conn, &old.source).unwrap();
+    let huge = record(
+        &conn,
+        "huge.md",
+        "limits",
+        "memory limits",
+        "constraint",
+        &format!(
+            "HUGE_MEMORY_LIMIT applies only before initialization. {}",
+            "a b c d e f g h i j ".repeat(170)
+        ),
+    );
+    let graph = build(&conn);
+    let original = knowledge::select_compact(
+        &graph,
+        &ExploreOptions {
+            query: old.id.clone(),
+            max_tokens: 1_500,
+            ..ExploreOptions::default()
+        },
+    )
+    .unwrap();
+    assert_compact_originals(&conn, &original);
+    let resolved = original.resolve().unwrap();
+    assert_eq!(resolved.knowledge[0].support_state, "historical_only");
+    assert!(
+        resolved.knowledge[0]
+            .evidence
+            .iter()
+            .all(|citation| !citation.active)
+    );
+    assert!(
+        resolved
+            .source_revisions
+            .iter()
+            .all(|source| !source.current)
+    );
+    for max_tokens in [512, 1_000, 1_500, 3_000] {
+        let result = knowledge::select_compact(
+            &graph,
+            &ExploreOptions {
+                query: huge.id.clone(),
+                max_tokens,
+                ..ExploreOptions::default()
+            },
+        )
+        .unwrap();
+        assert_compact_originals(&conn, &result);
+        assert_eq!(result.status, "budget_limited");
+        assert!(result.knowledge.is_empty());
+        assert!(result.critical_groups_omitted > 0);
+        assert_eq!(result.coverage.omitted_units, 1);
+        assert!(!result.coverage.omission_reasons.is_empty());
+    }
+    let sparse_match = knowledge::select_compact(
+        &graph,
+        &ExploreOptions {
+            query: "initialization".into(),
+            max_tokens: 512,
+            ..ExploreOptions::default()
+        },
+    )
+    .unwrap();
+    assert_compact_originals(&conn, &sparse_match);
+    assert_eq!(sparse_match.status, "budget_limited");
+    assert_eq!(sparse_match.coverage.omitted_units, 1);
+    let absent = knowledge::select_compact(
+        &graph,
+        &ExploreOptions {
+            query: "ABSENT_SYNCHRONIZER_IDENTIFIER".into(),
+            max_tokens: 512,
+            ..ExploreOptions::default()
+        },
+    )
+    .unwrap();
+    assert_compact_originals(&conn, &absent);
+    assert_eq!(absent.status, "no_matches");
+}
+
+#[test]
+fn explanatory_language_cannot_hide_explicit_permissions_or_mandatory_rules() {
+    let conn = database();
+    let rule = record(
+        &conn,
+        "rule.md",
+        "dispatch",
+        "dispatch",
+        "decision",
+        "QUEUE_LIMIT is 8 pending jobs.",
+    );
+    let permission = record(
+        &conn,
+        "permission.md",
+        "dispatch",
+        "dispatch",
+        "decision",
+        "Admission authenticates callers so unauthorized jobs cannot enter the queue.",
+    );
+    let mandatory = record(
+        &conn,
+        "mandatory.md",
+        "dispatch",
+        "dispatch",
+        "decision",
+        "Dispatch must require signed grants so invalid callers cannot enter.",
+    );
+    let typed = record(
+        &conn,
+        "typed.md",
+        "dispatch",
+        "dispatch",
+        "constraint",
+        "Credentials are checked so callers cannot exceed their authorization.",
+    );
+    let purpose = record(
+        &conn,
+        "purpose.md",
+        "dispatch",
+        "dispatch",
+        "decision",
+        "Harbor isolates dispatch admission from worker execution so a slow tenant cannot consume every worker.",
+    );
+    let graph = build(&conn);
+    let bundles = knowledge::inspect_bundles(&graph, std::slice::from_ref(&rule.id)).unwrap();
+    for record in [&rule, &permission, &mandatory, &typed] {
+        assert!(bundles[0].knowledge_ids.contains(&record.id));
+    }
+    assert!(!bundles[0].knowledge_ids.contains(&purpose.id));
+    let result = knowledge::select_compact(
+        &graph,
+        &ExploreOptions {
+            query: "QUEUE_LIMIT".into(),
+            max_tokens: 512,
+            ..ExploreOptions::default()
+        },
+    )
+    .unwrap();
+    assert_compact_originals(&conn, &result);
+    let resolved = result.resolve().unwrap();
+    assert!(!resolved.knowledge.iter().any(|record| record.id == rule.id));
+    assert_eq!(result.status, "budget_limited");
+}
+
+#[test]
+fn generic_shared_cli_words_are_context_not_transitive_obligations() {
+    let conn = database();
+    let rule = record(
+        &conn,
+        "hidden.md",
+        "search",
+        "hidden files",
+        "constraint",
+        "File search includes hidden files only with --hidden.",
+    );
+    let exception = record(
+        &conn,
+        "confidential.md",
+        "search",
+        "confidential directories",
+        "constraint",
+        "Hidden files must remain ignored when their parent directory is confidential.",
+    );
+    let unrelated = record(
+        &conn,
+        "workers.md",
+        "search",
+        "parallel workers",
+        "constraint",
+        "File search uses four parallel workers when processing input files.",
+    );
+    let other = record(
+        &conn,
+        "binary.md",
+        "search",
+        "binary content",
+        "constraint",
+        "File search treats binary input as opaque content.",
+    );
+    let graph = build(&conn);
+    let bundles = knowledge::inspect_bundles(&graph, std::slice::from_ref(&rule.id)).unwrap();
+    assert_eq!(
+        bundles[0].knowledge_ids,
+        BTreeSet::from([rule.id.clone(), exception.id.clone()])
+    );
+    assert!(!bundles[0].knowledge_ids.contains(&unrelated.id));
+    assert!(!bundles[0].knowledge_ids.contains(&other.id));
+    let result = knowledge::select_compact(
+        &graph,
+        &ExploreOptions {
+            query: rule.id.clone(),
+            max_tokens: 1_500,
+            ..ExploreOptions::default()
+        },
+    )
+    .unwrap();
+    assert_compact_originals(&conn, &result);
+    let resolved = result.resolve().unwrap();
+    assert!(resolved.knowledge.iter().any(|record| record.id == rule.id));
+    assert!(
+        resolved
+            .knowledge
+            .iter()
+            .any(|record| record.id == exception.id)
+    );
+}
+
+#[test]
+fn sentence_punctuation_does_not_turn_prose_into_an_exact_reference() {
+    let conn = database();
+    let expected = record(
+        &conn,
+        "archive.md",
+        "search",
+        "compressed archives",
+        "constraint",
+        "Compressed archives are searched with the --archive flag.",
+    );
+    record(
+        &conn,
+        "plain.md",
+        "search",
+        "plain text",
+        "constraint",
+        "Ordinary text search accepts files.",
+    );
+    let graph = build(&conn);
+    let result = knowledge::select_compact(
+        &graph,
+        &ExploreOptions {
+            query: "Search compressed archives inside files.".into(),
+            max_tokens: 1_500,
+            ..ExploreOptions::default()
+        },
+    )
+    .unwrap();
+    assert_compact_originals(&conn, &result);
+    assert_eq!(result.retrieval, "cross_level");
+    assert!(
+        result
+            .resolve()
+            .unwrap()
+            .knowledge
+            .iter()
+            .any(|record| record.id == expected.id)
+    );
+}
+
+#[test]
+fn format_acronyms_do_not_bind_unrelated_options_but_explicit_flags_do() {
+    let conn = database();
+    let rule = record(
+        &conn,
+        "plain.md",
+        "formatting",
+        "plain output",
+        "constraint",
+        "The --plain-text option writes XML text directly.",
+    );
+    let exception = record(
+        &conn,
+        "nul.md",
+        "formatting",
+        "embedded characters",
+        "constraint",
+        "With --plain-text, embedded NUL characters must produce an error.",
+    );
+    let unrelated = record(
+        &conn,
+        "decode.md",
+        "formatting",
+        "input parsing",
+        "constraint",
+        "The decoder must parse XML input using the --decode option.",
+    );
+    let extension = record(
+        &conn,
+        "syntax.md",
+        "formatting",
+        "syntax checking",
+        "constraint",
+        "The --plain-text-syntax option must validate XML document structure.",
+    );
+    let graph = build(&conn);
+    let bundle = knowledge::inspect_bundles(&graph, std::slice::from_ref(&rule.id)).unwrap();
+    assert_eq!(
+        bundle[0].knowledge_ids,
+        BTreeSet::from([rule.id.clone(), exception.id.clone()])
+    );
+    assert!(!bundle[0].knowledge_ids.contains(&unrelated.id));
+    assert!(!bundle[0].knowledge_ids.contains(&extension.id));
+    let result = knowledge::select_compact(
+        &graph,
+        &ExploreOptions {
+            query: "What does --plain-text output for XML?".into(),
+            max_tokens: 1_500,
+            ..ExploreOptions::default()
+        },
+    )
+    .unwrap();
+    assert_compact_originals(&conn, &result);
+    assert_eq!(result.retrieval, "direct_reference");
+    let resolved = result.resolve().unwrap();
+    for expected in [&rule.id, &exception.id] {
+        assert!(
+            resolved
+                .knowledge
+                .iter()
+                .any(|record| &record.id == expected)
+        );
+    }
+}
+
+#[test]
+fn requested_body_conditions_outrank_a_broad_matching_subject() {
+    let conn = database();
+    let required = record(
+        &conn,
+        "headerless.md",
+        "export",
+        "headerless export",
+        "constraint",
+        "The --headerless mode writes binary content without an audit header.",
+    );
+    let related = record(
+        &conn,
+        "binary.md",
+        "export",
+        "binary payload",
+        "constraint",
+        "The --binary option exports a binary payload with an audit header. The header records the producing service, encoding version and creation time. This mode supports interchange between compatible services and retains the original creation information for downstream readers. Every reader must validate that information before it processes the message contents.",
+    );
+    let graph = build(&conn);
+    // Both complete originals fit separately, so skipping an oversized rival
+    // cannot explain the requested rule's selection under the shared budget.
+    for id in [&required.id, &related.id] {
+        let alone = knowledge::select_compact(
+            &graph,
+            &ExploreOptions {
+                query: id.clone(),
+                max_tokens: 800,
+                ..ExploreOptions::default()
+            },
+        )
+        .unwrap();
+        assert!(
+            alone
+                .resolve()
+                .unwrap()
+                .knowledge
+                .iter()
+                .any(|record| &record.id == id)
+        );
+    }
+    let result = knowledge::select_compact(
+        &graph,
+        &ExploreOptions {
+            query: "Produce a binary payload without an audit header.".into(),
+            max_tokens: 800,
+            ..ExploreOptions::default()
+        },
+    )
+    .unwrap();
+    assert_compact_originals(&conn, &result);
+    let resolved = result.resolve().unwrap();
+    assert!(
+        resolved
+            .knowledge
+            .iter()
+            .any(|record| record.id == required.id)
+    );
+    assert!(
+        !resolved
+            .knowledge
+            .iter()
+            .any(|record| record.id == related.id),
+        "both originals fit at {} tokens",
+        result.used_tokens
+    );
 }

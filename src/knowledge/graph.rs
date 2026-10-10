@@ -543,8 +543,11 @@ fn validate_inner(graph: &KnowledgeGraph, dependencies: Option<&Dependencies>) -
         ensure!(
             node.summary_coverage.eligible_units == node.knowledge_ids.len()
                 && node.summary_coverage.included_units == node.summary_knowledge_ids.len()
-                && node.summary_coverage.omitted_units + node.summary_coverage.included_units
-                    == node.summary_coverage.eligible_units,
+                && node
+                    .summary_coverage
+                    .omitted_units
+                    .checked_add(node.summary_coverage.included_units)
+                    == Some(node.summary_coverage.eligible_units),
             "summary coverage manifest mismatch"
         );
         if let Some(dependencies) = dependencies {
