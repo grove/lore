@@ -104,7 +104,14 @@ The [Knowledge Experience architecture](docs/KNOWLEDGE_EXPERIENCE_DESIGN.md) com
 
 ## Evaluating Lore
 
-Lore's first CLI implementation is available, but we are still validating how accurately **real inference models** understand heterogeneous project documents. The [evaluation toolkit](evaluation/README.md) includes a controlled, evolving project with reviewed source checkpoints, Lore's own documentation, and pinned public OpenWiki and LLM Wiki corpora. It can run local Ollama or explicitly authorized hosted OpenAI inference, report provenance and incremental-update checks, and produce a human review sheet. Automated fixture tests and source hashes cannot establish semantic correctness, so [the baseline](evaluation/BASELINE.md) clearly separates what is already measured from the quality and billing data we still need to collect.
+Lore's CLI is available, but we are still validating how accurately **real inference models** understand heterogeneous project documents. The [evaluation toolkit](evaluation/README.md) includes a controlled, evolving project with reviewed source checkpoints, Lore's own documentation, and pinned public OpenWiki and LLM Wiki corpora. It can run local Ollama or explicitly authorized hosted OpenAI inference, report provenance and incremental-update checks, and produce a human review sheet. Automated fixture tests and source hashes cannot establish semantic correctness, so [the baseline](evaluation/BASELINE.md) clearly separates what is already measured from the quality and billing data we still need to collect.
+
+The [adaptive coding-task comparison](evaluation/ADAPTIVE_TASKS.md) runs matched
+original-source, legacy and schema-5 agent attempts with independent executable
+checks and explicit reuse controls. The [Knowledge Zoom comparison](evaluation/KNOWLEDGE_ZOOM.md)
+records actual synthetic retrieval results, including material condition-recall
+losses at constrained budgets. Human learning, real-model coding productivity and
+a general advantage from the graph remain separate, unestablished outcomes.
 
 ## Why a project needs more than a summary
 

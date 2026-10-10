@@ -384,10 +384,10 @@ fn scope_conflict(from: Target<'_>, to: Target<'_>) -> Option<&'static str> {
         ("component", left.component, right.component),
         ("environment", left.environment, right.environment),
     ] {
-        if let (Some(a), Some(b)) = (a, b) {
-            if normalize(&a) != normalize(&b) {
-                return Some(name);
-            }
+        if let (Some(a), Some(b)) = (a, b)
+            && normalize(&a) != normalize(&b)
+        {
+            return Some(name);
         }
     }
     None
@@ -396,19 +396,17 @@ fn scope_conflict(from: Target<'_>, to: Target<'_>) -> Option<&'static str> {
 /// Revisions are compared only for the same explicitly scoped source locator.
 /// Different opaque tokens on different files are not assumed to be Git SHAs.
 fn revision_qualification(from: Target<'_>, to: Target<'_>) -> Option<String> {
-    if let (Target::Observation(a), Target::Observation(b)) = (from, to) {
-        if a.record.scope.repository.is_some()
-            && a.record.scope.repository == b.record.scope.repository
-        {
-            for first in &a.record.evidence {
-                for second in &b.record.evidence {
-                    if first.locator == second.locator {
-                        if let (Some(left), Some(right)) = (&first.revision, &second.revision) {
-                            if left != right {
-                                return Some("The observations reference different opaque revisions of the same scoped source locator; a change over time cannot be treated as a contradiction.".into());
-                            }
-                        }
-                    }
+    if let (Target::Observation(a), Target::Observation(b)) = (from, to)
+        && a.record.scope.repository.is_some()
+        && a.record.scope.repository == b.record.scope.repository
+    {
+        for first in &a.record.evidence {
+            for second in &b.record.evidence {
+                if first.locator == second.locator
+                    && let (Some(left), Some(right)) = (&first.revision, &second.revision)
+                    && left != right
+                {
+                    return Some("The observations reference different opaque revisions of the same scoped source locator; a change over time cannot be treated as a contradiction.".into());
                 }
             }
         }
@@ -422,10 +420,10 @@ fn revision_qualification(from: Target<'_>, to: Target<'_>) -> Option<String> {
         let observed = observation.record.observed_at.as_deref().and_then(|time| {
             chrono::NaiveDate::parse_from_str(time.get(..10).unwrap_or(""), "%Y-%m-%d").ok()
         });
-        if let (Some(documented), Some(observed)) = (documented, observed) {
-            if observed < documented {
-                return Some("The imported observation predates the documented effective date. It cannot establish a present divergence from that later decision.".into());
-            }
+        if let (Some(documented), Some(observed)) = (documented, observed)
+            && observed < documented
+        {
+            return Some("The imported observation predates the documented effective date. It cannot establish a present divergence from that later decision.".into());
         }
     }
     None
@@ -507,22 +505,22 @@ fn interpreted(
             qualifiers,
         ));
     }
-    if let Target::Observation(value) = from {
-        if matches!(
+    if let Target::Observation(value) = from
+        && matches!(
             value.record.kind,
             ObservationKind::Recollection | ObservationKind::WorkState
-        ) {
-            return Some(new_relation(
-                from,
-                Some(to),
-                "verification_question",
-                format!(
-                    "Verify the reported history against the applicable policy and current implementation before relying on it. {}",
-                    judgment.reason
-                ),
-                qualifiers,
-            ));
-        }
+        )
+    {
+        return Some(new_relation(
+            from,
+            Some(to),
+            "verification_question",
+            format!(
+                "Verify the reported history against the applicable policy and current implementation before relying on it. {}",
+                judgment.reason
+            ),
+            qualifiers,
+        ));
     }
     let (kind, prefix) = match judgment.judgment.as_str() {
         "potential_divergence" => (
@@ -576,8 +574,10 @@ async fn compare(
             &runner.config.project_id,
             &key,
             &signature,
-            &from_endpoint,
-            Some(&to_endpoint),
+            relationships::EvaluationEndpoints {
+                from: &from_endpoint,
+                to: Some(&to_endpoint),
+            },
             "incompatible_scope",
             None,
         )?;
@@ -626,8 +626,10 @@ async fn compare(
         &runner.config.project_id,
         &key,
         &signature,
-        &from_endpoint,
-        Some(&to_endpoint),
+        relationships::EvaluationEndpoints {
+            from: &from_endpoint,
+            to: Some(&to_endpoint),
+        },
         &disposition,
         relation,
     )
@@ -705,8 +707,10 @@ fn native_relationships(
                 &runner.config.project_id,
                 &key,
                 &signature,
-                &endpoint,
-                to_endpoint.as_ref(),
+                relationships::EvaluationEndpoints {
+                    from: &endpoint,
+                    to: to_endpoint.as_ref(),
+                },
                 kind,
                 Some(relation),
             )?;
@@ -743,8 +747,10 @@ fn result_questions(
             &runner.config.project_id,
             &key,
             &signature,
-            &endpoint,
-            None,
+            relationships::EvaluationEndpoints {
+                from: &endpoint,
+                to: None,
+            },
             "verification_question",
             Some(relation),
         )?;
@@ -852,8 +858,10 @@ fn shared_evidence(
                 &runner.config.project_id,
                 &key,
                 &signature,
-                &endpoint,
-                Some(&to_endpoint),
+                relationships::EvaluationEndpoints {
+                    from: &endpoint,
+                    to: Some(&to_endpoint),
+                },
                 "shared_upstream_evidence",
                 Some(relation),
             )?;
@@ -1491,8 +1499,10 @@ mod tests {
                 &config.project_id,
                 "invalid-pair",
                 "invalid-signature",
-                &invalid.from,
-                invalid.to.as_ref(),
+                relationships::EvaluationEndpoints {
+                    from: &invalid.from,
+                    to: invalid.to.as_ref(),
+                },
                 "potential_discrepancy",
                 Some(invalid.clone())
             )

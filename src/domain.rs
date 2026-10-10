@@ -249,7 +249,7 @@ pub fn effective_time_grounded(quote: &str, context: &str, effective_at: &str) -
     context.lines().any(|line| {
         let line = line
             .trim()
-            .trim_start_matches(|c: char| c == '-' || c == '*' || c == ' ')
+            .trim_start_matches(['-', '*', ' '])
             .to_lowercase();
         [
             "effective:",

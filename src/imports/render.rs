@@ -33,12 +33,12 @@ pub fn augment(conn: &Connection, pages: &mut BTreeMap<String, StoredPage>) -> R
     warnings.extend(super::relationships::warnings(conn)?);
     let has_imports = !counts.is_empty() || !warnings.is_empty();
     if let Some(index) = pages.get_mut("index.md") {
-        if let Some(start) = index.content.find(START) {
-            if let Some(end) = index.content[start..].find(END) {
-                index
-                    .content
-                    .replace_range(start..start + end + END.len(), "");
-            }
+        if let Some(start) = index.content.find(START)
+            && let Some(end) = index.content[start..].find(END)
+        {
+            index
+                .content
+                .replace_range(start..start + end + END.len(), "");
         }
         if has_imports {
             index.content = format!(

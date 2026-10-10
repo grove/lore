@@ -194,20 +194,20 @@ fn adr_header_status(text: &str, path: &str) -> Option<String> {
         if trimmed.starts_with("## ") {
             break;
         }
-        if let Some(title) = line.strip_prefix("# ") {
-            if let Some(prefix) = title.get(..stem.len()) {
-                title_matches = prefix.eq_ignore_ascii_case(stem)
-                    && title[stem.len()..]
-                        .chars()
-                        .next()
-                        .is_none_or(|ch| ch.is_whitespace() || ch == ':' || ch == '—');
-            }
+        if let Some(title) = line.strip_prefix("# ")
+            && let Some(prefix) = title.get(..stem.len())
+        {
+            title_matches = prefix.eq_ignore_ascii_case(stem)
+                && title[stem.len()..]
+                    .chars()
+                    .next()
+                    .is_none_or(|ch| ch.is_whitespace() || ch == ':' || ch == '—');
         }
         // Only an unindented metadata field is authoritative, not a quote.
-        if let Some((name, value)) = line.split_once(':') {
-            if name.eq_ignore_ascii_case("status") {
-                values.push(value.trim().to_ascii_lowercase());
-            }
+        if let Some((name, value)) = line.split_once(':')
+            && name.eq_ignore_ascii_case("status")
+        {
+            values.push(value.trim().to_ascii_lowercase());
         }
     }
     if title_matches && !values.is_empty() && values.iter().all(|v| v == &values[0]) {
@@ -304,12 +304,11 @@ pub fn split_markdown(text: &str, root: &str, path: &str, limit: usize) -> Resul
             while !text.is_char_boundary(boundary) {
                 boundary -= 1;
             }
-            if boundary < end {
-                if let Some(newline) = text[offset..boundary].rfind('\n') {
-                    if newline > limit / 2 {
-                        boundary = offset + newline + 1;
-                    }
-                }
+            if boundary < end
+                && let Some(newline) = text[offset..boundary].rfind('\n')
+                && newline > limit / 2
+            {
+                boundary = offset + newline + 1;
             }
             let section = &text[offset..boundary];
             if !section.trim().is_empty() {

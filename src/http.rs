@@ -158,12 +158,12 @@ impl HttpModel {
     }
     async fn send(&self, endpoint: &str, body: Option<&Value>) -> Result<Value, ModelError> {
         let key = self.authorize()?;
-        if let Some(body) = body {
-            if body.to_string().len() > self.max_context * 3 {
-                return Err(ModelError::InvalidRequest(
-                    "request exceeds context budget".into(),
-                ));
-            }
+        if let Some(body) = body
+            && body.to_string().len() > self.max_context * 3
+        {
+            return Err(ModelError::InvalidRequest(
+                "request exceeds context budget".into(),
+            ));
         }
         let url = self
             .base
@@ -309,10 +309,10 @@ impl GenerativeModel for HttpModel {
             };
             let raw = self.send(endpoint, Some(&body)).await?;
             let mut response = decode_generation(&self.descriptor.provider, &raw)?;
-            if self.descriptor.provider == Provider::OpenAi {
-                if let Some(schema) = &request.schema {
-                    response.text = restore_openai_output(schema, &response.text)?;
-                }
+            if self.descriptor.provider == Provider::OpenAi
+                && let Some(schema) = &request.schema
+            {
+                response.text = restore_openai_output(schema, &response.text)?;
             }
             Ok(response)
         })

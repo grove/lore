@@ -234,16 +234,15 @@ fn openai_schema(schema: &mut Value, passages: &mut Vec<Value>) {
                             .is_some_and(|text| text.contains(['\n', '\r']))
                     })
                 })
+                && let Some(Value::Array(values)) = fields.get_mut("enum")
             {
-                if let Some(Value::Array(values)) = fields.get_mut("enum") {
-                    for value in values {
-                        if value.as_str() == Some("") {
-                            continue;
-                        }
-                        let id = format!("lore_passage_{}", passages.len());
-                        passages.push(json!({"id":id,"text":value}));
-                        *value = Value::String(id);
+                for value in values {
+                    if value.as_str() == Some("") {
+                        continue;
                     }
+                    let id = format!("lore_passage_{}", passages.len());
+                    passages.push(json!({"id":id,"text":value}));
+                    *value = Value::String(id);
                 }
             }
             for value in fields.values_mut() {
@@ -286,15 +285,14 @@ pub fn restore_openai_output(schema: &Value, text: &str) -> Result<String, Model
         if let (Some(original_values), Some(wire_values)) = (
             original.get("enum").and_then(Value::as_array),
             wire.get("enum").and_then(Value::as_array),
-        ) {
-            if original_values != wire_values {
-                let index = wire_values
-                    .iter()
-                    .position(|value| value == output)
-                    .ok_or_else(|| invalid("unknown source passage ID"))?;
-                *output = original_values[index].clone();
-                return Ok(());
-            }
+        ) && original_values != wire_values
+        {
+            let index = wire_values
+                .iter()
+                .position(|value| value == output)
+                .ok_or_else(|| invalid("unknown source passage ID"))?;
+            *output = original_values[index].clone();
+            return Ok(());
         }
         if let (Some(properties), Some(fields)) = (
             original.get("properties").and_then(Value::as_object),

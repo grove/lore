@@ -105,12 +105,11 @@ impl ModelServer {
 impl Drop for ModelServer {
     fn drop(&mut self) {
         self.stopped.store(true, Ordering::SeqCst);
-        if let Some(handle) = self.thread.take() {
-            if let Err(error) = handle.join() {
-                if !thread::panicking() {
-                    std::panic::resume_unwind(error);
-                }
-            }
+        if let Some(handle) = self.thread.take()
+            && let Err(error) = handle.join()
+            && !thread::panicking()
+        {
+            std::panic::resume_unwind(error);
         }
     }
 }

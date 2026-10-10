@@ -119,16 +119,14 @@ impl<'a> Runner<'a> {
             .join("cache")
             .join(format!("{}.json", &key[7..]));
         if !self.refresh && path.exists() {
-            if let Ok(text) = util::read_limited(&path, 4_000_000) {
-                if let Ok(cached) = serde_json::from_str::<Cached>(&text) {
-                    if let Ok(mut value) = serde_json::from_str::<T>(&cached.text) {
-                        if validate(&mut value).is_ok() {
-                            self.cache_hits += 1;
-                            self.record(task, &provider, &cached.model, &key, true, 0)?;
-                            return Ok((value, cached.model));
-                        }
-                    }
-                }
+            if let Ok(text) = util::read_limited(&path, 4_000_000)
+                && let Ok(cached) = serde_json::from_str::<Cached>(&text)
+                && let Ok(mut value) = serde_json::from_str::<T>(&cached.text)
+                && validate(&mut value).is_ok()
+            {
+                self.cache_hits += 1;
+                self.record(task, &provider, &cached.model, &key, true, 0)?;
+                return Ok((value, cached.model));
             }
             std::fs::remove_file(&path)?;
         }

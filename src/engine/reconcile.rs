@@ -9,18 +9,29 @@ use rusqlite::params;
 use serde_json::{Value, json};
 use std::collections::{BTreeMap, BTreeSet};
 
+pub(super) struct ReconciliationSource<'a> {
+    pub document: &'a Document,
+    pub chunk: &'a Chunk,
+    pub source: &'a str,
+    pub source_revision: &'a str,
+    pub section_revision: &'a str,
+}
+
 pub(super) async fn apply(
     runner: &mut Runner<'_>,
     assertion: &AssertionProposal,
     assertion_id: &str,
     evidence: &str,
-    document: &Document,
-    chunk: &Chunk,
-    source: &str,
-    source_revision: &str,
-    section_revision: &str,
+    provenance: ReconciliationSource<'_>,
     deep: bool,
 ) -> Result<()> {
+    let ReconciliationSource {
+        document,
+        chunk,
+        source,
+        source_revision,
+        section_revision,
+    } = provenance;
     let conn = runner.conn;
     let config = runner.config;
     let assigned = storage::assigned(conn, assertion_id)?;

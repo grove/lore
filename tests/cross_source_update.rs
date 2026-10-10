@@ -98,8 +98,10 @@ fn project() -> (tempfile::TempDir, ResolvedConfig, Model) {
         "The worker concurrency limit is five.",
         "opaque-file-version-1",
     );
-    let mut config = Config::default();
-    config.schema_version = 2;
+    let mut config = Config {
+        schema_version: 2,
+        ..Config::default()
+    };
     config.project.name = "project".into();
     config.imports.push(ImportSource {
         id: "implementation".into(),

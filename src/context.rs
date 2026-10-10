@@ -390,10 +390,10 @@ fn assemble(
         if let Some(id) = &review.target_unit_id {
             ids.insert(id.clone());
         }
-        if let Some(assertion) = &review.assertion_revision_id {
-            if let Some(id) = storage::assigned(conn, assertion)? {
-                ids.insert(id);
-            }
+        if let Some(assertion) = &review.assertion_revision_id
+            && let Some(id) = storage::assigned(conn, assertion)?
+        {
+            ids.insert(id);
         }
         for id in &ids {
             adjacency
