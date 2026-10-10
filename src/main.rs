@@ -187,6 +187,37 @@ enum Command {
         #[arg(long, default_value_t = 6_000, value_parser = view_budget)]
         max_tokens: usize,
     },
+    /// Save or remove an explicit local project comparison baseline.
+    Baseline {
+        #[command(subcommand)]
+        action: BaselineCommand,
+    },
+    /// Explain consequential retained-knowledge changes since a named baseline.
+    Changes {
+        #[arg(long, value_parser = baseline_name)]
+        since: String,
+        #[arg(long, value_parser = human_goal)]
+        task: Option<String>,
+        #[arg(long, default_value_t = 8_000, value_parser = view_budget)]
+        max_tokens: usize,
+    },
+    /// Investigate consequential project risks and return source-linked advice.
+    Guard {
+        #[arg(long, value_parser = baseline_name)]
+        since: String,
+        #[arg(long, value_parser = human_goal)]
+        task: Option<String>,
+        #[arg(long, default_value_t = 8_000, value_parser = guardian_budget)]
+        max_tokens: usize,
+        #[arg(long)]
+        no_cache: bool,
+        #[arg(long, conflicts_with = "no_inspect")]
+        inspect: bool,
+        #[arg(long)]
+        no_inspect: bool,
+        #[arg(long, conflicts_with = "no_inspect")]
+        allow_checkout_egress: bool,
+    },
     /// Inspect and disposition review questions; never edits source knowledge.
     Review {
         #[command(subcommand)]
@@ -232,6 +263,22 @@ enum ReviewCommand {
         reason: String,
         #[arg(long, default_value = "user")]
         actor: String,
+    },
+}
+
+#[derive(Subcommand)]
+enum BaselineCommand {
+    /// Capture current retained knowledge; replacement must be explicit.
+    Save {
+        #[arg(value_parser = baseline_name)]
+        name: String,
+        #[arg(long)]
+        replace: bool,
+    },
+    /// Remove one saved comparison point without changing sources or knowledge.
+    Remove {
+        #[arg(value_parser = baseline_name)]
+        name: String,
     },
 }
 
@@ -303,6 +350,9 @@ async fn run(cli: Cli) -> Result<i32> {
             | Command::Onboard { .. }
             | Command::Decisions { .. }
             | Command::Cases { .. }
+            | Command::Baseline { .. }
+            | Command::Changes { .. }
+            | Command::Guard { .. }
     ) {
         ResolvedConfig::load_for_read(&cli.config)
     } else {
@@ -611,6 +661,87 @@ async fn run(cli: Cli) -> Result<i32> {
                 println!("{}", serde_json::to_string(&result)?);
             } else {
                 print!("{}", lore::insights::render_cases(&result));
+            }
+        }
+        Command::Baseline { action } => match action {
+            BaselineCommand::Save { name, replace } => {
+                let conn = storage::read_only(&config.state.join("state.db"))?;
+                let saved = lore::companion::save_baseline(&config, &conn, &name, replace)?;
+                if cli.json {
+                    emit(
+                        json!({"schema_version":1,"baseline":saved.name,"snapshot":saved.snapshot,"captured_at":saved.captured_at,"records":saved.records.len(),"source_write":false}),
+                        true,
+                    )?;
+                } else {
+                    println!(
+                        "Saved baseline {name}. Review later changes with `lore changes --since {name}`."
+                    );
+                }
+            }
+            BaselineCommand::Remove { name } => {
+                lore::companion::remove_baseline(&config, &name)?;
+                if cli.json {
+                    emit(
+                        json!({"schema_version":1,"removed":name,"source_write":false}),
+                        true,
+                    )?;
+                } else {
+                    println!("Removed baseline {name}.");
+                }
+            }
+        },
+        Command::Changes {
+            since,
+            task,
+            max_tokens,
+        } => {
+            let conn = storage::read_only(&config.state.join("state.db"))?;
+            let result = lore::companion::changes(
+                &config,
+                &conn,
+                &lore::companion::ChangeOptions {
+                    since,
+                    task,
+                    max_tokens,
+                },
+            )?;
+            if cli.json {
+                println!("{}", serde_json::to_string(&result)?);
+            } else {
+                print!("{}", lore::companion::render_changes(&result));
+            }
+        }
+        Command::Guard {
+            since,
+            task,
+            max_tokens,
+            no_cache,
+            inspect,
+            no_inspect,
+            allow_checkout_egress,
+        } => {
+            let conn = storage::read_only(&config.state.join("state.db"))?;
+            let result = lore::companion::guard(
+                &config,
+                &conn,
+                &lore::companion::ChangeOptions {
+                    since,
+                    task,
+                    max_tokens,
+                },
+                &context::decision::runtime::RunOptions {
+                    inspect,
+                    investigate: false,
+                    no_inspect,
+                    no_cache,
+                    allow_checkout_egress,
+                },
+            )
+            .await?;
+            if cli.json {
+                println!("{}", serde_json::to_string(&result)?);
+            } else {
+                print!("{}", lore::companion::render_guard(&result));
             }
         }
         Command::Memory { clear } => {
@@ -1019,6 +1150,28 @@ fn view_budget(value: &str) -> std::result::Result<usize, String> {
         Err("complete project views require --max-tokens between 512 and 100000".into())
     } else {
         Ok(budget)
+    }
+}
+
+fn guardian_budget(value: &str) -> std::result::Result<usize, String> {
+    let budget = context_budget(value)?;
+    if budget < 1024 {
+        Err("guard --max-tokens must be 1024..100000".into())
+    } else {
+        Ok(budget)
+    }
+}
+
+fn baseline_name(value: &str) -> std::result::Result<String, String> {
+    if !value.is_empty()
+        && value.len() <= 64
+        && value
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'-' | b'_'))
+    {
+        Ok(value.into())
+    } else {
+        Err("baseline name must contain 1..64 letters, digits, hyphens or underscores".into())
     }
 }
 

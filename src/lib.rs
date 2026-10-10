@@ -1,4 +1,5 @@
 //! Local-first project knowledge compilation with auditable evidence.
+pub mod companion;
 pub mod config;
 pub mod context;
 pub mod domain;

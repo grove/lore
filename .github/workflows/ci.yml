@@ -33,6 +33,15 @@ jobs:
           python evaluation/coding_tasks.py prepare --output /tmp/lore-v05-coding
           python evaluation/decision_tasks.py prepare --output /tmp/lore-v06-decisions
           python evaluation/shared_intelligence.py prepare --cases evaluation/corpora/shared-intelligence/cases.json --output /tmp/lore-shared-intelligence
+      - name: Decision and case CLI help
+        run: |
+          cargo run --locked -- decisions --help
+          cargo run --locked -- cases --help
+      - name: Project companion CLI help
+        run: |
+          cargo run --locked -- baseline --help
+          cargo run --locked -- changes --help
+          cargo run --locked -- guard --help
       - name: CLI help
         run: cargo run --locked -- --help
       - name: Review CLI help
