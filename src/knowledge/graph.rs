@@ -2,6 +2,13 @@ use super::*;
 use anyhow::{Context, ensure};
 use std::collections::VecDeque;
 
+mod dependencies;
+mod reuse;
+mod summary;
+pub(super) use dependencies::Dependencies;
+pub(super) use reuse::{grouping_signature, validate_reusable_topology};
+pub(super) use summary::Summaries;
+
 #[derive(Clone)]
 struct Group {
     ids: BTreeSet<String>,
@@ -24,7 +31,28 @@ impl Work {
     }
 }
 
-pub(super) fn assemble(graph: &mut KnowledgeGraph) -> Result<()> {
+pub(super) fn assemble(graph: &mut KnowledgeGraph, dependencies: &Dependencies) -> Result<()> {
+    let layout = derive_layout(graph);
+    assemble_from_layout(graph, layout, dependencies)
+}
+
+/// The canonical navigation plan contains no summary text or view revisions.
+/// Cache validation derives this same bounded plan before reusing view objects.
+pub(super) struct Layout {
+    nodes: Vec<LayoutNode>,
+    edges: Vec<ViewEdge>,
+    pub(super) report: BuildReport,
+}
+
+struct LayoutNode {
+    id: String,
+    kind: &'static str,
+    title: String,
+    grouping_basis: Vec<String>,
+    ids: BTreeSet<String>,
+}
+
+pub(super) fn derive_layout(graph: &KnowledgeGraph) -> Layout {
     let all_ids: BTreeSet<_> = graph.knowledge.iter().map(|v| v.id.clone()).collect();
     let mut work = Work {
         used: 0,
@@ -39,6 +67,185 @@ pub(super) fn assemble(graph: &mut KnowledgeGraph) -> Result<()> {
     let reserved_leaves = graph.knowledge.len().min(available_nodes - reserved_groups);
     let group_limit = available_nodes - reserved_leaves;
     let mut groups = BTreeMap::<Vec<String>, Group>::new();
+    let candidates = candidate_memberships(graph, &mut work);
+    groups.extend(seed_groups(&candidates, all_ids.len(), group_limit));
+    // Close useful overlaps under intersection, within a work budget. Strict
+    // set containment creates arbitrary meaningful depth; no level counter or
+    // fixed number of presentation categories controls the stored structure.
+    let mut queue: Vec<Group> = groups.values().cloned().collect();
+    let mut cursor = 0;
+    'intersections: while cursor < queue.len() && groups.len() < group_limit {
+        let left = queue[cursor].clone();
+        for right_index in 0..cursor {
+            let right = &queue[right_index];
+            if !work.take(left.ids.len().min(right.ids.len()).max(1)) {
+                break 'intersections;
+            }
+            let ids: BTreeSet<_> = left.ids.intersection(&right.ids).cloned().collect();
+            if ids.len() < 2 || ids.len() == left.ids.len() || ids.len() == right.ids.len() {
+                continue;
+            }
+            let key = ids.iter().cloned().collect::<Vec<_>>();
+            if groups.contains_key(&key) {
+                continue;
+            }
+            let group = Group {
+                ids,
+                labels: left.labels.union(&right.labels).cloned().collect(),
+            };
+            groups.insert(key, group.clone());
+            queue.push(group);
+            if groups.len() >= group_limit {
+                break 'intersections;
+            }
+        }
+        cursor += 1;
+    }
+    let leaf_count = graph.knowledge.len().min(available_nodes - groups.len());
+    let mut nodes = vec![LayoutNode {
+        id: graph.root_id.clone(),
+        kind: "project",
+        title: "Project knowledge".into(),
+        grouping_basis: vec!["all eligible documentary knowledge".into()],
+        ids: all_ids,
+    }];
+    for group in groups.values() {
+        let member_key = group.ids.iter().cloned().collect::<Vec<_>>().join("\n");
+        let title = group_title(&group.labels);
+        nodes.push(LayoutNode {
+            id: stable_id("members", &member_key),
+            kind: "concept",
+            title,
+            grouping_basis: group.labels.iter().cloned().collect(),
+            ids: group.ids.clone(),
+        });
+    }
+    let mut leaves: Vec<_> = graph.knowledge.iter().collect();
+    leaves.sort_by(|a, b| critical(b).cmp(&critical(a)).then(a.id.cmp(&b.id)));
+    for view in leaves.into_iter().take(leaf_count) {
+        nodes.push(LayoutNode {
+            id: stable_id("record", &view.id),
+            kind: "evidence",
+            title: view.subject.clone(),
+            grouping_basis: vec!["original knowledge record".into()],
+            ids: BTreeSet::from([view.id.clone()]),
+        });
+    }
+    // Nearest strict supersets are the immediate semantic parents. Overlapping
+    // incomparable groups both remain parents of a shared lower-level concept.
+    let members: Vec<_> = nodes.iter().map(|node| &node.ids).collect();
+    let mut group_indices: Vec<_> = (1..=groups.len()).collect();
+    group_indices.sort_by_key(|index| (members[*index].len(), nodes[*index].id.clone()));
+    let mut edges = BTreeSet::new();
+    for child in 1..nodes.len() {
+        let mut parents = Vec::<usize>::new();
+        for &parent in &group_indices {
+            if parent == child || members[parent].len() <= members[child].len() {
+                continue;
+            }
+            if !work.take(members[child].len().max(1)) {
+                break;
+            }
+            if !members[child].is_subset(members[parent]) {
+                continue;
+            }
+            if parents
+                .iter()
+                .any(|previous| members[*previous].is_subset(members[parent]))
+            {
+                continue;
+            }
+            // Reserve at least one edge for each remaining node so resource
+            // pressure degrades to a connected flat index, never orphaned data.
+            let reserved = nodes.len() - child - 1;
+            if edges.len() + parents.len() + 1 + reserved > graph.options.max_edges {
+                work.exhausted = true;
+                break;
+            }
+            parents.push(parent);
+        }
+        if parents.is_empty() {
+            parents.push(0);
+        }
+        for parent in parents {
+            edges.insert(ViewEdge {
+                parent: nodes[parent].id.clone(),
+                child: nodes[child].id.clone(),
+                kind: "contains".into(),
+            });
+        }
+    }
+    let omitted_navigation_units = graph.knowledge.len() - leaf_count;
+    let mut report = BuildReport {
+        work_used: work.used,
+        work_limit: graph.options.max_work,
+        truncated: work.exhausted || omitted_navigation_units > 0,
+        omitted_navigation_units,
+        unsupported_units: graph.report.unsupported_units,
+        warnings: Vec::new(),
+    };
+    if work.exhausted {
+        report.warnings.push(
+            "Navigation grouping reached its work/edge budget; original records remain directly searchable.".into(),
+        );
+    }
+    if omitted_navigation_units > 0 {
+        report.warnings.push(
+            "Some original records have no dedicated navigation node because of the node budget; direct retrieval still includes them.".into(),
+        );
+    }
+    nodes.sort_by(|a, b| a.id.cmp(&b.id));
+    Layout {
+        nodes,
+        edges: edges.into_iter().collect(),
+        report,
+    }
+}
+
+pub(super) fn assemble_from_layout(
+    graph: &mut KnowledgeGraph,
+    layout: Layout,
+    dependencies: &Dependencies,
+) -> Result<()> {
+    let summaries = Summaries::new(graph);
+    let mut nodes = layout
+        .nodes
+        .into_iter()
+        .map(|node| {
+            make_node(
+                node.id,
+                node.kind,
+                node.title,
+                node.grouping_basis,
+                &node.ids,
+                &summaries,
+            )
+        })
+        .collect::<Vec<_>>();
+    let edges = layout.edges;
+    for node in &mut nodes {
+        node.child_view_ids = edges
+            .iter()
+            .filter(|edge| edge.parent == node.id)
+            .map(|edge| edge.child.clone())
+            .collect();
+        node.parent_view_ids = edges
+            .iter()
+            .filter(|edge| edge.child == node.id)
+            .map(|edge| edge.parent.clone())
+            .collect();
+        node.revision = dependencies.revision(node)?;
+    }
+    graph.nodes = nodes;
+    graph.edges = edges;
+    graph.report = layout.report;
+    Ok(())
+}
+
+fn candidate_memberships(
+    graph: &KnowledgeGraph,
+    work: &mut Work,
+) -> BTreeMap<String, BTreeSet<String>> {
     let mut candidates = BTreeMap::<String, BTreeSet<String>>::new();
     for view in &graph.knowledge {
         if !work.take(2) {
@@ -73,191 +280,54 @@ pub(super) fn assemble(graph: &mut KnowledgeGraph) -> Result<()> {
             .or_default()
             .extend([relation.from.clone(), relation.to.clone()]);
     }
+    candidates
+}
+
+fn seed_groups(
+    candidates: &BTreeMap<String, BTreeSet<String>>,
+    all_count: usize,
+    group_limit: usize,
+) -> BTreeMap<Vec<String>, Group> {
+    let mut groups = BTreeMap::<Vec<String>, Group>::new();
     for (label, ids) in candidates {
-        if ids.len() < 2 || ids.len() == all_ids.len() {
+        if ids.len() < 2 || ids.len() == all_count {
             continue;
         }
         let key = ids.iter().cloned().collect::<Vec<_>>();
         if let Some(group) = groups.get_mut(&key) {
-            group.labels.insert(label);
+            group.labels.insert(label.clone());
         } else if groups.len() < group_limit {
             groups.insert(
                 key,
                 Group {
-                    ids,
-                    labels: BTreeSet::from([label]),
+                    ids: ids.clone(),
+                    labels: BTreeSet::from([label.clone()]),
                 },
             );
         }
     }
-    // Close useful overlaps under intersection, within a work budget. Strict
-    // set containment creates arbitrary meaningful depth; no level counter or
-    // fixed number of presentation categories controls the stored structure.
-    let mut queue: Vec<Group> = groups.values().cloned().collect();
-    let mut cursor = 0;
-    'intersections: while cursor < queue.len() && groups.len() < group_limit {
-        let left = queue[cursor].clone();
-        for right_index in 0..cursor {
-            let right = &queue[right_index];
-            if !work.take(left.ids.len().min(right.ids.len()).max(1)) {
-                break 'intersections;
-            }
-            let ids: BTreeSet<_> = left.ids.intersection(&right.ids).cloned().collect();
-            if ids.len() < 2 || ids.len() == left.ids.len() || ids.len() == right.ids.len() {
-                continue;
-            }
-            let key = ids.iter().cloned().collect::<Vec<_>>();
-            if groups.contains_key(&key) {
-                continue;
-            }
-            let group = Group {
-                ids,
-                labels: left.labels.union(&right.labels).cloned().collect(),
-            };
-            groups.insert(key, group.clone());
-            queue.push(group);
-            if groups.len() >= group_limit {
-                break 'intersections;
-            }
-        }
-        cursor += 1;
-    }
-    let leaf_count = graph.knowledge.len().min(available_nodes - groups.len());
-    let records = record_map(graph);
-    let mut nodes = vec![make_node(
-        graph.root_id.clone(),
-        "project",
-        "Project knowledge".into(),
-        vec!["all eligible documentary knowledge".into()],
-        &all_ids,
-        &records,
-    )];
-    for group in groups.values() {
-        let member_key = group.ids.iter().cloned().collect::<Vec<_>>().join("\n");
-        let title = group
-            .labels
-            .iter()
-            .find(|label| label.starts_with("topic: "))
-            .or_else(|| {
-                group
-                    .labels
-                    .iter()
-                    .find(|label| label.starts_with("subject: "))
-            })
-            .map(|label| label.split_once(": ").unwrap().1.to_owned())
-            .unwrap_or_else(|| {
-                group
-                    .labels
-                    .iter()
-                    .filter_map(|label| label.strip_prefix("concept: "))
-                    .take(4)
-                    .collect::<Vec<_>>()
-                    .join(" · ")
-            });
-        let title = if title.is_empty() {
-            "Documented relationship".into()
-        } else {
-            title
-        };
-        nodes.push(make_node(
-            stable_id("members", &member_key),
-            "concept",
-            title,
-            group.labels.iter().cloned().collect(),
-            &group.ids,
-            &records,
-        ));
-    }
-    let mut leaves: Vec<_> = graph.knowledge.iter().collect();
-    leaves.sort_by(|a, b| critical(b).cmp(&critical(a)).then(a.id.cmp(&b.id)));
-    for view in leaves.into_iter().take(leaf_count) {
-        nodes.push(make_node(
-            stable_id("record", &view.id),
-            "evidence",
-            view.subject.clone(),
-            vec!["original knowledge record".into()],
-            &BTreeSet::from([view.id.clone()]),
-            &records,
-        ));
-    }
-    // Nearest strict supersets are the immediate semantic parents. Overlapping
-    // incomparable groups both remain parents of a shared lower-level concept.
-    let members: Vec<BTreeSet<_>> = nodes
+    groups
+}
+
+fn group_title(labels: &BTreeSet<String>) -> String {
+    let title = labels
         .iter()
-        .map(|node| node.knowledge_ids.iter().cloned().collect())
-        .collect();
-    let mut group_indices: Vec<_> = (1..=groups.len()).collect();
-    group_indices.sort_by_key(|index| (members[*index].len(), nodes[*index].id.clone()));
-    let mut edges = BTreeSet::new();
-    for child in 1..nodes.len() {
-        let mut parents = Vec::<usize>::new();
-        for &parent in &group_indices {
-            if parent == child || members[parent].len() <= members[child].len() {
-                continue;
-            }
-            if !work.take(members[child].len().max(1)) {
-                break;
-            }
-            if !members[child].is_subset(&members[parent]) {
-                continue;
-            }
-            if parents
+        .find(|label| label.starts_with("topic: "))
+        .or_else(|| labels.iter().find(|label| label.starts_with("subject: ")))
+        .map(|label| label.split_once(": ").unwrap().1.to_owned())
+        .unwrap_or_else(|| {
+            labels
                 .iter()
-                .any(|previous| members[*previous].is_subset(&members[parent]))
-            {
-                continue;
-            }
-            // Reserve at least one edge for each remaining node so resource
-            // pressure degrades to a connected flat index, never orphaned data.
-            let reserved = nodes.len() - child - 1;
-            if edges.len() + parents.len() + 1 + reserved > graph.options.max_edges {
-                work.exhausted = true;
-                break;
-            }
-            parents.push(parent);
-        }
-        if parents.is_empty() {
-            parents.push(0);
-        }
-        for parent in parents {
-            edges.insert(ViewEdge {
-                parent: nodes[parent].id.clone(),
-                child: nodes[child].id.clone(),
-                kind: "contains".into(),
-            });
-        }
+                .filter_map(|label| label.strip_prefix("concept: "))
+                .take(4)
+                .collect::<Vec<_>>()
+                .join(" · ")
+        });
+    if title.is_empty() {
+        "Documented relationship".into()
+    } else {
+        title
     }
-    let edges: Vec<_> = edges.into_iter().collect();
-    for node in &mut nodes {
-        node.child_view_ids = edges
-            .iter()
-            .filter(|edge| edge.parent == node.id)
-            .map(|edge| edge.child.clone())
-            .collect();
-        node.parent_view_ids = edges
-            .iter()
-            .filter(|edge| edge.child == node.id)
-            .map(|edge| edge.parent.clone())
-            .collect();
-        node.revision = node_revision(node, graph)?;
-    }
-    nodes.sort_by(|a, b| a.id.cmp(&b.id));
-    graph.nodes = nodes;
-    graph.edges = edges;
-    graph.report.work_used = work.used;
-    graph.report.omitted_navigation_units = graph.knowledge.len() - leaf_count;
-    graph.report.truncated = work.exhausted || graph.report.omitted_navigation_units > 0;
-    if work.exhausted {
-        graph.report.warnings.push(
-            "Navigation grouping reached its work/edge budget; original records remain directly searchable.".into(),
-        );
-    }
-    if graph.report.omitted_navigation_units > 0 {
-        graph.report.warnings.push(
-            "Some original records have no dedicated navigation node because of the node budget; direct retrieval still includes them.".into(),
-        );
-    }
-    Ok(())
 }
 
 fn make_node(
@@ -266,42 +336,22 @@ fn make_node(
     title: String,
     basis: Vec<String>,
     ids: &BTreeSet<String>,
-    records: &BTreeMap<&str, &KnowledgeView>,
+    summaries: &Summaries<'_>,
 ) -> ViewNode {
     let critical_ids: Vec<_> = ids
         .iter()
-        .filter(|id| critical(records[id.as_str()]))
+        .filter(|id| critical(summaries.records[id.as_str()]))
         .cloned()
         .collect();
-    let (summary, summary_ids) = if kind == "evidence" {
-        let record = records[ids.iter().next().unwrap().as_str()];
-        (
-            format!(
-                "{}; {}; {}; scope {}: {}",
-                record.kind, record.lifecycle, record.support_state, record.scope, record.statement
-            ),
-            vec![record.id.clone()],
-        )
-    } else {
-        summarize(ids, &critical_ids, records)
-    };
+    let plan = summaries.plan(kind, ids, &critical_ids);
     ViewNode {
         id,
         revision: String::new(),
         kind: kind.into(),
         title,
-        summary,
-        summary_coverage: Coverage {
-            eligible_units: ids.len(),
-            included_units: summary_ids.len(),
-            omitted_units: ids.len() - summary_ids.len(),
-            omission_reasons: if summary_ids.len() < ids.len() {
-                vec!["Representative summary; full critical records are required during answer selection.".into()]
-            } else {
-                Vec::new()
-            },
-        },
-        summary_knowledge_ids: summary_ids,
+        summary: plan.render(),
+        summary_coverage: plan.coverage(),
+        summary_knowledge_ids: plan.knowledge_ids,
         grouping_basis: basis,
         knowledge_ids: ids.iter().cloned().collect(),
         critical_knowledge_ids: critical_ids,
@@ -316,148 +366,45 @@ fn make_node(
     }
 }
 
-fn summarize(
-    ids: &BTreeSet<String>,
-    critical_ids: &[String],
-    records: &BTreeMap<&str, &KnowledgeView>,
-) -> (String, Vec<String>) {
-    let describe = |record: &KnowledgeView| {
-        format!(
-            "{} [{}; {}; {}; scope {}; evidence {}]: {}",
-            record.subject,
-            record.kind,
-            record.lifecycle,
-            record.support_state,
-            record.scope,
-            record
-                .evidence
-                .iter()
-                .map(|e| e.id.as_str())
-                .collect::<Vec<_>>()
-                .join(", "),
-            record.statement,
-        )
-    };
-    let fallback = || {
-        (
-            format!(
-                "This concept contains {} source-bound records, including {} complete decisions, constraints, exceptions or historical transitions. Their required qualifications exceed the summary budget. Open the concept to select a complete bounded group or follow an exact source reference.",
-                ids.len(),
-                critical_ids.len()
-            ),
-            Vec::new(),
-        )
-    };
-    let mut parts = Vec::new();
-    let mut bytes = 0;
-    for id in critical_ids {
-        let text = describe(records[id.as_str()]);
-        bytes += text.len();
-        if bytes > 16_000 {
-            return fallback();
-        }
-        parts.push(text);
-    }
-    let mut used = crate::context::count_tokens(&parts.join("\n\n"));
-    // Preserve every critical statement within this scope or withhold the
-    // attached compressed advice. No parent summary becomes independent proof.
-    if used > 1_200 {
-        return fallback();
-    }
-    let mut selected = critical_ids.to_vec();
-    for id in ids {
-        if selected.contains(id) {
-            continue;
-        }
-        let text = describe(records[id.as_str()]);
-        if text.len() > 16_000 {
-            continue;
-        }
-        let cost = crate::context::count_tokens(&text);
-        if used + cost > 1_200 {
-            continue;
-        }
-        selected.push(id.clone());
-        parts.push(text);
-        used += cost;
-        if selected.len() >= critical_ids.len() + 3 {
-            break;
-        }
-    }
-    let mut text = parts.join("\n\n");
-    if selected.len() < ids.len() {
-        text.push_str(&format!(
-            "\n\n{} additional original records remain available below.",
-            ids.len() - selected.len()
-        ));
-    }
-    if text.is_empty() {
-        text = format!(
-            "{} source-bound records. Complete passages exceed the compact summary budget; use the detailed records below.",
-            ids.len()
-        );
-    }
-    text.push_str("\n\nThis is an extractive documentary view; related conditions outside this concept are included during answer selection.");
-    (text, selected)
-}
-
-fn node_revision(node: &ViewNode, graph: &KnowledgeGraph) -> Result<String> {
-    let ids: BTreeSet<_> = node.knowledge_ids.iter().map(String::as_str).collect();
-    let relations: Vec<_> = graph
-        .relations
-        .iter()
-        .filter(|r| ids.contains(r.from.as_str()) || ids.contains(r.to.as_str()))
-        .collect();
-    let mut dependencies = ids;
-    for r in &relations {
-        dependencies.extend([r.from.as_str(), r.to.as_str()]);
-    }
-    let records: Vec<_> = graph
-        .knowledge
-        .iter()
-        .filter(|v| dependencies.contains(v.id.as_str()))
-        .collect();
-    let mut evidence_ids: BTreeSet<_> = records
-        .iter()
-        .flat_map(|v| v.evidence.iter().map(|e| e.id.as_str()))
-        .collect();
-    evidence_ids.extend(relations.iter().map(|r| r.evidence_id.as_str()));
-    let evidence: Vec<_> = graph
-        .evidence
-        .iter()
-        .filter(|e| evidence_ids.contains(e.id.as_str()))
-        .collect();
-    let source_ids: BTreeSet<_> = evidence
-        .iter()
-        .map(|e| e.source_revision_id.as_str())
-        .collect();
-    let sources: Vec<_> = graph
-        .source_revisions
-        .iter()
-        .filter(|s| source_ids.contains(s.id.as_str()))
-        .collect();
-    util::json_digest(&(
-        GROUPING_VERSION,
-        &node.id,
-        &node.title,
-        &node.summary,
-        &node.summary_knowledge_ids,
-        &node.summary_coverage,
-        &node.grouping_basis,
-        &node.knowledge_ids,
-        &node.critical_knowledge_ids,
-        &node.child_view_ids,
-        &node.parent_view_ids,
-        records,
-        evidence,
-        relations,
-        sources,
-    ))
+pub(super) fn refresh_node(
+    node: &mut ViewNode,
+    summaries: &Summaries<'_>,
+    dependencies: &Dependencies,
+) -> Result<()> {
+    let ids = node.knowledge_ids.iter().cloned().collect();
+    let mut updated = make_node(
+        node.id.clone(),
+        &node.kind,
+        node.title.clone(),
+        node.grouping_basis.clone(),
+        &ids,
+        summaries,
+    );
+    updated.child_view_ids = node.child_view_ids.clone();
+    updated.parent_view_ids = node.parent_view_ids.clone();
+    updated.revision = dependencies.revision(&updated)?;
+    *node = updated;
+    Ok(())
 }
 
 /// Validate containment separately from documentary relationships. The latter
 /// may legitimately contain cycles; view dependencies may not.
 pub fn validate(graph: &KnowledgeGraph) -> Result<()> {
+    validate_with_dependencies(graph, &Dependencies::new(graph)?)
+}
+
+pub(super) fn validate_with_dependencies(
+    graph: &KnowledgeGraph,
+    dependencies: &Dependencies,
+) -> Result<()> {
+    validate_inner(graph, Some(dependencies))
+}
+
+pub(super) fn validate_structure(graph: &KnowledgeGraph) -> Result<()> {
+    validate_inner(graph, None)
+}
+
+fn validate_inner(graph: &KnowledgeGraph, dependencies: Option<&Dependencies>) -> Result<()> {
     ensure!(
         graph.schema_version == ZOOM_SCHEMA_VERSION,
         "unknown zoom schema"
@@ -600,10 +547,12 @@ pub fn validate(graph: &KnowledgeGraph) -> Result<()> {
                     == node.summary_coverage.eligible_units,
             "summary coverage manifest mismatch"
         );
-        ensure!(
-            node.revision == node_revision(node, graph)?,
-            "view dependency fingerprint does not match its inputs"
-        );
+        if let Some(dependencies) = dependencies {
+            ensure!(
+                node.revision == dependencies.revision(node)?,
+                "view dependency fingerprint does not match its inputs"
+            );
+        }
         let expected_children: Vec<_> = graph
             .edges
             .iter()

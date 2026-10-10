@@ -40,6 +40,24 @@ fn record(
     kind: &str,
     text: &str,
 ) -> Record {
+    let (proposal, source, assertion, evidence) = capture(conn, path, topic, subject, kind, text);
+    let id = storage::create_unit(conn, "p", &assertion, &proposal).unwrap();
+    Record {
+        id,
+        source,
+        assertion,
+        evidence,
+    }
+}
+
+fn capture(
+    conn: &Connection,
+    path: &str,
+    topic: &str,
+    subject: &str,
+    kind: &str,
+    text: &str,
+) -> (AssertionProposal, String, String, String) {
     let document = Document {
         root_id: "docs".into(),
         root_path: "/project/docs".into(),
@@ -85,13 +103,7 @@ fn record(
         },
     )
     .unwrap();
-    let id = storage::create_unit(conn, "p", &assertion, &proposal).unwrap();
-    Record {
-        id,
-        source,
-        assertion,
-        evidence,
-    }
+    (proposal, source, assertion, evidence)
 }
 
 fn build(conn: &Connection) -> KnowledgeGraph {
@@ -421,6 +433,32 @@ fn unchanged_snapshot_has_zero_model_calls_no_writes_and_reuses_all_views() {
     assert_eq!(first.graph.revision, second.graph.revision);
     assert_eq!(second.reused_nodes, second.graph.nodes.len());
     assert_eq!(second.regenerated_nodes, 0);
+    assert!(!first.refresh.topology_reused);
+    assert!(first.refresh.layout_generation_work > 0);
+    assert_eq!(first.refresh.summaries_generated, first.graph.nodes.len());
+    assert!(second.refresh.topology_reused);
+    assert_eq!(second.refresh.layout_generation_work, 0);
+    assert_eq!(second.refresh.summaries_generated, 0);
+    assert_eq!(second.refresh.dependency_revisions_generated, 0);
+    assert_eq!(second.refresh.summaries_validated, second.graph.nodes.len());
+    assert_eq!(
+        second.refresh.dependency_revisions_validated,
+        second.graph.nodes.len()
+    );
+    assert_eq!(
+        second.refresh.records_revalidated,
+        second.graph.knowledge.len()
+    );
+    assert_eq!(
+        second.refresh.evidence_revalidated,
+        second.graph.evidence.len()
+    );
+    assert!(second.refresh.topology_validation_work > 0);
+    assert_eq!(
+        second.refresh.layout_generation_work + second.refresh.topology_validation_work,
+        second.graph.report.work_used
+    );
+    assert!(second.refresh.fallback_reason.is_none());
     assert!(!second.wrote_snapshot);
     assert_eq!(bytes, fs::read(directory.join("snapshot.json")).unwrap());
     assert_eq!(conn.total_changes(), before);
@@ -818,4 +856,772 @@ fn excessive_critical_summary_is_disclosed_without_losing_original_records() {
     assert_eq!(root.critical_knowledge_ids.len(), 2);
     assert_eq!(graph.knowledge.len(), 2);
     assert_eq!(root.summary_coverage.omitted_units, 2);
+}
+
+fn assert_matches_fresh(graph: &KnowledgeGraph, conn: &Connection) {
+    let fresh = knowledge::build(conn, &graph.options).unwrap();
+    assert_eq!(
+        serde_json::to_value(graph).unwrap(),
+        serde_json::to_value(fresh).unwrap()
+    );
+}
+
+#[test]
+fn stable_topology_refreshes_only_nodes_with_changed_source_status() {
+    let conn = database();
+    let alpha = record(
+        &conn,
+        "alpha.md",
+        "alpha",
+        "alpha component",
+        "design",
+        "Alpha retains its documented design.",
+    );
+    let beta = record(
+        &conn,
+        "beta.md",
+        "beta",
+        "beta component",
+        "design",
+        "Beta retains its independent design.",
+    );
+    storage::refresh_knowledge(&conn, "p").unwrap();
+    let temp = tempfile::tempdir().unwrap();
+    let directory = fs::canonicalize(temp.path()).unwrap().join("zoom");
+    let first = knowledge::build_cached(&conn, &ZoomOptions::default(), &directory).unwrap();
+    storage::retire_source(&conn, &alpha.source).unwrap();
+    storage::refresh_knowledge(&conn, "p").unwrap();
+    let changed = knowledge::build_cached(&conn, &ZoomOptions::default(), &directory).unwrap();
+    let affected = changed
+        .graph
+        .nodes
+        .iter()
+        .filter(|node| node.knowledge_ids.contains(&alpha.id))
+        .count();
+    assert!(changed.refresh.topology_reused);
+    assert_eq!(changed.refresh.layout_generation_work, 0);
+    assert_eq!(changed.refresh.summaries_generated, affected);
+    assert_eq!(changed.refresh.dependency_revisions_generated, affected);
+    assert!(affected > 0 && affected < changed.graph.nodes.len());
+    assert_eq!(changed.reused_nodes, changed.graph.nodes.len() - affected);
+    let beta_before = first
+        .graph
+        .nodes
+        .iter()
+        .find(|node| node.kind == "evidence" && node.knowledge_ids == [beta.id.clone()])
+        .unwrap();
+    assert_eq!(
+        changed
+            .graph
+            .nodes
+            .iter()
+            .find(|node| node.id == beta_before.id)
+            .unwrap(),
+        beta_before
+    );
+    let result = query(&changed.graph, &alpha.id);
+    assert_eq!(result.knowledge[0].support_state, "historical_only");
+    assert!(result.source_revisions.iter().all(|source| !source.current));
+    assert_matches_fresh(&changed.graph, &conn);
+    let no_op = knowledge::build_cached(&conn, &ZoomOptions::default(), &directory).unwrap();
+    assert_eq!(no_op.refresh.summaries_generated, 0);
+    assert_eq!(no_op.refresh.layout_generation_work, 0);
+    assert!(!no_op.wrote_snapshot);
+}
+
+#[test]
+fn changed_source_support_refreshes_opposite_relationship_endpoints_in_a_validated_layout() {
+    let conn = database();
+    let alpha = record(
+        &conn,
+        "alpha.md",
+        "alpha",
+        "alpha interface",
+        "decision",
+        "Alpha selects one interface.",
+    );
+    let beta = record(
+        &conn,
+        "beta.md",
+        "beta",
+        "beta interface",
+        "decision",
+        "Beta selects another interface.",
+    );
+    let gamma = record(
+        &conn,
+        "gamma.md",
+        "gamma",
+        "gamma component",
+        "design",
+        "Gamma has an independent responsibility.",
+    );
+    storage::add_relation(
+        &conn,
+        &alpha.id,
+        &beta.id,
+        "contradicts",
+        &alpha.assertion,
+        &alpha.evidence,
+    )
+    .unwrap();
+    storage::refresh_knowledge(&conn, "p").unwrap();
+    let temp = tempfile::tempdir().unwrap();
+    let directory = fs::canonicalize(temp.path()).unwrap().join("zoom");
+    let first = knowledge::build_cached(&conn, &ZoomOptions::default(), &directory).unwrap();
+    let (_, _, assertion, evidence) = capture(
+        &conn,
+        "alpha-scope.md",
+        "alpha",
+        "alpha interface",
+        "decision",
+        "Alpha selects one interface only if settlement is still pending; never repeat it after settlement.",
+    );
+    storage::assign(&conn, &assertion, &alpha.id).unwrap();
+    storage::refresh_knowledge(&conn, "p").unwrap();
+    let changed = knowledge::build_cached(&conn, &ZoomOptions::default(), &directory).unwrap();
+    assert!(changed.refresh.topology_reused);
+    assert_eq!(changed.refresh.layout_generation_work, 0);
+    let expected = changed
+        .graph
+        .nodes
+        .iter()
+        .filter(|node| {
+            node.knowledge_ids.contains(&alpha.id) || node.knowledge_ids.contains(&beta.id)
+        })
+        .count();
+    assert_eq!(changed.refresh.summaries_generated, expected);
+    assert_eq!(changed.refresh.dependency_revisions_generated, expected);
+    assert!(expected < changed.graph.nodes.len());
+    // Beta's original record did not change, but a referenced opposite endpoint
+    // gained source evidence. Its view dependency must still advance.
+    let beta_before = first
+        .graph
+        .knowledge
+        .iter()
+        .find(|record| record.id == beta.id)
+        .unwrap();
+    let beta_after = changed
+        .graph
+        .knowledge
+        .iter()
+        .find(|record| record.id == beta.id)
+        .unwrap();
+    assert_eq!(beta_before.revision_id, beta_after.revision_id);
+    for record in [&alpha, &beta] {
+        let old = first
+            .graph
+            .nodes
+            .iter()
+            .find(|node| node.kind == "evidence" && node.knowledge_ids.contains(&record.id))
+            .unwrap();
+        let new = changed
+            .graph
+            .nodes
+            .iter()
+            .find(|node| node.id == old.id)
+            .unwrap();
+        assert_ne!(old.revision, new.revision);
+    }
+    let gamma_before = first
+        .graph
+        .nodes
+        .iter()
+        .find(|node| node.kind == "evidence" && node.knowledge_ids.contains(&gamma.id))
+        .unwrap();
+    assert_eq!(
+        changed
+            .graph
+            .nodes
+            .iter()
+            .find(|node| node.id == gamma_before.id)
+            .unwrap(),
+        gamma_before
+    );
+    let result = query(&changed.graph, &beta.id);
+    assert!(result.evidence.iter().any(
+        |item| item.id == evidence && item.excerpt.contains("never repeat it after settlement")
+    ));
+    assert_matches_fresh(&changed.graph, &conn);
+}
+
+#[test]
+fn grouping_labels_and_resource_limits_invalidate_even_unchanged_memberships() {
+    let conn = database();
+    record(
+        &conn,
+        "alpha-a.md",
+        "alpha",
+        "first component",
+        "design",
+        "First component has one role.",
+    );
+    record(
+        &conn,
+        "alpha-b.md",
+        "alpha",
+        "second component",
+        "design",
+        "Second component has another role.",
+    );
+    record(
+        &conn,
+        "beta.md",
+        "beta",
+        "separate component",
+        "design",
+        "Separate component has another role.",
+    );
+    storage::refresh_knowledge(&conn, "p").unwrap();
+    let temp = tempfile::tempdir().unwrap();
+    let directory = fs::canonicalize(temp.path()).unwrap().join("zoom");
+    let first = knowledge::build_cached(&conn, &ZoomOptions::default(), &directory).unwrap();
+    let original = first
+        .graph
+        .nodes
+        .iter()
+        .find(|node| node.kind == "concept" && node.title == "alpha")
+        .unwrap();
+    conn.execute(
+        "UPDATE topics SET title='Renamed alpha' WHERE slug='alpha'",
+        [],
+    )
+    .unwrap();
+    let renamed = knowledge::build_cached(&conn, &ZoomOptions::default(), &directory).unwrap();
+    assert!(!renamed.refresh.topology_reused);
+    assert!(renamed.refresh.layout_generation_work > 0);
+    let updated = renamed
+        .graph
+        .nodes
+        .iter()
+        .find(|node| node.id == original.id)
+        .unwrap();
+    assert_eq!(updated.knowledge_ids, original.knowledge_ids);
+    assert_eq!(updated.title, "Renamed alpha");
+    assert_ne!(updated.grouping_basis, original.grouping_basis);
+    assert_matches_fresh(&renamed.graph, &conn);
+    let options = ZoomOptions {
+        max_work: ZoomOptions::default().max_work - 1,
+        ..ZoomOptions::default()
+    };
+    let limited = knowledge::build_cached(&conn, &options, &directory).unwrap();
+    assert!(!limited.refresh.topology_reused);
+    assert_eq!(
+        limited.refresh.summaries_generated,
+        limited.graph.nodes.len()
+    );
+    assert_matches_fresh(&limited.graph, &conn);
+}
+
+#[test]
+fn a_new_critical_exception_changes_leaf_priority_and_forces_a_full_refresh() {
+    let conn = database();
+    for index in 0..3 {
+        record(
+            &conn,
+            &format!("component-{index}.md"),
+            "components",
+            &format!("component {index}"),
+            "design",
+            &format!("Component {index} has a documented responsibility."),
+        );
+    }
+    storage::refresh_knowledge(&conn, "p").unwrap();
+    let temp = tempfile::tempdir().unwrap();
+    let directory = fs::canonicalize(temp.path()).unwrap().join("zoom");
+    let options = ZoomOptions {
+        max_nodes: 2,
+        max_edges: 1,
+        ..ZoomOptions::default()
+    };
+    let first = knowledge::build_cached(&conn, &options, &directory).unwrap();
+    let first_leaf = &first
+        .graph
+        .nodes
+        .iter()
+        .find(|node| node.kind == "evidence")
+        .unwrap()
+        .knowledge_ids[0];
+    let target = first
+        .graph
+        .knowledge
+        .iter()
+        .find(|record| &record.id != first_leaf)
+        .unwrap();
+    let exception = "Never retry after settlement; the apparent retry permission applies only if the operation is still unsettled.";
+    let (_, _, assertion, evidence) = capture(
+        &conn,
+        "rare-exception.md",
+        &target.topic,
+        &target.subject,
+        "design",
+        exception,
+    );
+    storage::assign(&conn, &assertion, &target.id).unwrap();
+    storage::refresh_knowledge(&conn, "p").unwrap();
+    let changed = knowledge::build_cached(&conn, &options, &directory).unwrap();
+    assert!(!changed.refresh.topology_reused);
+    assert_eq!(
+        changed.refresh.summaries_generated,
+        changed.graph.nodes.len()
+    );
+    assert!(
+        changed
+            .graph
+            .nodes
+            .iter()
+            .any(|node| node.kind == "evidence" && node.knowledge_ids == [target.id.clone()])
+    );
+    let selected = query(&changed.graph, &evidence);
+    assert!(
+        selected
+            .evidence
+            .iter()
+            .any(|item| item.id == evidence && item.excerpt == exception)
+    );
+    assert_matches_fresh(&changed.graph, &conn);
+}
+
+#[test]
+fn a_new_relationship_rebuilds_grouping_but_inventory_only_changes_reuse_every_node() {
+    let conn = database();
+    // Source inventory is published only by initialized registries, as in an
+    // actual completed project compilation.
+    storage::set_meta(&conn, "initialized", "true").unwrap();
+    let alpha = record(
+        &conn,
+        "alpha.md",
+        "alpha",
+        "alpha interface",
+        "decision",
+        "Alpha selects one interface.",
+    );
+    let beta = record(
+        &conn,
+        "beta.md",
+        "beta",
+        "beta interface",
+        "decision",
+        "Beta selects another interface.",
+    );
+    record(
+        &conn,
+        "gamma.md",
+        "gamma",
+        "gamma component",
+        "design",
+        "Gamma has a separate responsibility.",
+    );
+    storage::refresh_knowledge(&conn, "p").unwrap();
+    let temp = tempfile::tempdir().unwrap();
+    let directory = fs::canonicalize(temp.path()).unwrap().join("zoom");
+    knowledge::build_cached(&conn, &ZoomOptions::default(), &directory).unwrap();
+    storage::add_relation(
+        &conn,
+        &alpha.id,
+        &beta.id,
+        "contradicts",
+        &alpha.assertion,
+        &alpha.evidence,
+    )
+    .unwrap();
+    storage::refresh_knowledge(&conn, "p").unwrap();
+    let linked = knowledge::build_cached(&conn, &ZoomOptions::default(), &directory).unwrap();
+    assert_eq!(storage::source_heads(&conn).unwrap().len(), 3);
+    assert!(!linked.refresh.topology_reused);
+    assert!(linked.refresh.layout_generation_work > 0);
+    assert_matches_fresh(&linked.graph, &conn);
+    // Captured material without an assigned knowledge unit advances the source
+    // inventory, but it changes no eligible record or node dependency.
+    capture(
+        &conn,
+        "unassigned.md",
+        "notes",
+        "unassigned source",
+        "design",
+        "This captured note has no assigned knowledge unit.",
+    );
+    assert_eq!(storage::source_heads(&conn).unwrap().len(), 4);
+    let inventory = knowledge::build_cached(&conn, &ZoomOptions::default(), &directory).unwrap();
+    assert_ne!(inventory.graph.revision, linked.graph.revision);
+    assert!(inventory.refresh.topology_reused);
+    assert_eq!(inventory.refresh.layout_generation_work, 0);
+    assert_eq!(inventory.refresh.summaries_generated, 0);
+    assert_eq!(inventory.refresh.dependency_revisions_generated, 0);
+    assert_eq!(inventory.graph.nodes, linked.graph.nodes);
+    assert!(inventory.wrote_snapshot);
+    assert_matches_fresh(&inventory.graph, &conn);
+}
+
+fn resign_cache(value: &mut serde_json::Value) {
+    let mut graph = value.clone();
+    graph.as_object_mut().unwrap().remove("incremental");
+    graph.as_object_mut().unwrap().remove("content_digest");
+    value["content_digest"] = util::json_digest(&serde_json::json!({
+        "graph":graph, "incremental":value["incremental"],
+    }))
+    .unwrap()
+    .into();
+}
+
+#[test]
+fn recomputing_the_cache_checksum_cannot_authorize_forged_summary_or_scope() {
+    let conn = database();
+    record(
+        &conn,
+        "alpha.md",
+        "alpha",
+        "alpha component",
+        "constraint",
+        "Alpha must preserve the full settlement exception.",
+    );
+    record(
+        &conn,
+        "beta.md",
+        "beta",
+        "beta component",
+        "design",
+        "Beta has an independent responsibility.",
+    );
+    storage::refresh_knowledge(&conn, "p").unwrap();
+    let temp = tempfile::tempdir().unwrap();
+    let directory = fs::canonicalize(temp.path()).unwrap().join("zoom");
+    knowledge::build_cached(&conn, &ZoomOptions::default(), &directory).unwrap();
+    let path = directory.join("snapshot.json");
+    let original: serde_json::Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    for mutation in 0..3 {
+        let mut changed = original.clone();
+        let node = &mut changed["nodes"][0];
+        match mutation {
+            0 => {
+                node["summary"] =
+                    "Forged unsourced instruction; the exception does not apply.".into()
+            }
+            1 => node["title"] = "Forged authoritative title".into(),
+            _ => node["critical_knowledge_ids"] = serde_json::json!(["ku_forged"]),
+        }
+        resign_cache(&mut changed);
+        fs::write(&path, serde_json::to_vec(&changed).unwrap()).unwrap();
+        let repaired = knowledge::build_cached(&conn, &ZoomOptions::default(), &directory).unwrap();
+        assert!(!repaired.refresh.topology_reused);
+        assert_eq!(
+            repaired.refresh.summaries_generated,
+            repaired.graph.nodes.len()
+        );
+        if mutation == 0 {
+            assert!(
+                repaired
+                    .refresh
+                    .fallback_reason
+                    .as_deref()
+                    .unwrap()
+                    .contains("original-source plan")
+            );
+        }
+        assert_matches_fresh(&repaired.graph, &conn);
+    }
+}
+
+#[test]
+fn an_incremental_cache_cannot_mask_corrupted_authoritative_evidence() {
+    let conn = database();
+    let original = record(
+        &conn,
+        "alpha.md",
+        "alpha",
+        "alpha component",
+        "design",
+        "Alpha has a retained original source.",
+    );
+    storage::refresh_knowledge(&conn, "p").unwrap();
+    let temp = tempfile::tempdir().unwrap();
+    let directory = fs::canonicalize(temp.path()).unwrap().join("zoom");
+    knowledge::build_cached(&conn, &ZoomOptions::default(), &directory).unwrap();
+    let bytes = fs::read(directory.join("snapshot.json")).unwrap();
+    let corruption =
+        "UPDATE evidence_snapshots SET exact_excerpt='A substituted source quote' WHERE id=?1";
+    assert!(conn.execute(corruption, [&original.evidence]).is_err());
+    // Simulate damage beyond the normal immutable-storage guard in this
+    // isolated in-memory fixture. The cache must still inspect source bytes.
+    conn.execute_batch("DROP TRIGGER forbid_snapshot_update")
+        .unwrap();
+    conn.execute(corruption, [&original.evidence]).unwrap();
+    let error = knowledge::build_cached(&conn, &ZoomOptions::default(), &directory).unwrap_err();
+    assert!(error.to_string().contains("stored evidence digest"));
+    assert!(conn.is_autocommit());
+    assert_eq!(fs::read(directory.join("snapshot.json")).unwrap(), bytes);
+}
+
+#[test]
+fn rejected_partial_reuse_counts_discarded_work_before_full_rebuild() {
+    let conn = database();
+    let mut originals = Vec::new();
+    for index in 0..3 {
+        originals.push(record(
+            &conn,
+            &format!("source-{index}.md"),
+            &format!("topic-{index}"),
+            &format!("component {index}"),
+            "design",
+            &format!("Component {index} has an independent documented role."),
+        ));
+    }
+    storage::refresh_knowledge(&conn, "p").unwrap();
+    let temp = tempfile::tempdir().unwrap();
+    let directory = fs::canonicalize(temp.path()).unwrap().join("zoom");
+    let first = knowledge::build_cached(&conn, &ZoomOptions::default(), &directory).unwrap();
+    let leaves = first
+        .graph
+        .nodes
+        .iter()
+        .filter(|node| node.kind == "evidence")
+        .collect::<Vec<_>>();
+    let retired = originals
+        .iter()
+        .find(|record| leaves[0].knowledge_ids.contains(&record.id))
+        .unwrap();
+    let poison = &leaves.last().unwrap().id;
+    let path = directory.join("snapshot.json");
+    let mut raw: serde_json::Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    let node = raw["nodes"]
+        .as_array_mut()
+        .unwrap()
+        .iter_mut()
+        .find(|node| node["id"] == *poison)
+        .unwrap();
+    node["summary"] = "A forged statement in a later unchanged node.".into();
+    resign_cache(&mut raw);
+    fs::write(&path, serde_json::to_vec(&raw).unwrap()).unwrap();
+    storage::retire_source(&conn, &retired.source).unwrap();
+    storage::refresh_knowledge(&conn, "p").unwrap();
+    let repaired = knowledge::build_cached(&conn, &ZoomOptions::default(), &directory).unwrap();
+    assert!(!repaired.refresh.topology_reused);
+    assert!(repaired.refresh.summaries_generated > repaired.graph.nodes.len());
+    assert!(repaired.refresh.dependency_revisions_generated > repaired.graph.nodes.len());
+    assert!(repaired.refresh.summaries_validated > 0);
+    assert_eq!(repaired.refresh.layout_generation_work, 0);
+    assert_eq!(
+        repaired.refresh.topology_validation_work,
+        repaired.graph.report.work_used
+    );
+    assert_eq!(repaired.regenerated_nodes, repaired.graph.nodes.len());
+    assert_eq!(repaired.reused_nodes, 0);
+    assert_matches_fresh(&repaired.graph, &conn);
+}
+
+fn crossing_memberships(conn: &Connection) -> Vec<Record> {
+    [
+        ("a.md", "north east alpha"),
+        ("b.md", "north east beta"),
+        ("c.md", "north gamma"),
+        ("d.md", "east delta"),
+    ]
+    .into_iter()
+    .map(|(path, subject)| {
+        record(
+            conn,
+            path,
+            "architecture",
+            subject,
+            "design",
+            &format!("The {subject} component has a documented responsibility."),
+        )
+    })
+    .collect()
+}
+
+fn force_cached_dependency_refresh(value: &mut serde_json::Value) {
+    for dependency in value["incremental"]["record_dependencies"]
+        .as_object_mut()
+        .unwrap()
+        .values_mut()
+    {
+        *dependency = "changed dependency sentinel".into();
+    }
+}
+
+fn replace_cached_edges(value: &mut serde_json::Value, edges: Vec<knowledge::ViewEdge>) {
+    let edges = edges.into_iter().collect::<BTreeSet<_>>();
+    for node in value["nodes"].as_array_mut().unwrap() {
+        let id = node["id"].as_str().unwrap().to_owned();
+        node["parent_view_ids"] = serde_json::json!(
+            edges
+                .iter()
+                .filter(|edge| edge.child == id)
+                .map(|edge| &edge.parent)
+                .collect::<Vec<_>>()
+        );
+        node["child_view_ids"] = serde_json::json!(
+            edges
+                .iter()
+                .filter(|edge| edge.parent == id)
+                .map(|edge| &edge.child)
+                .collect::<Vec<_>>()
+        );
+    }
+    value["edges"] = serde_json::to_value(edges).unwrap();
+}
+
+#[test]
+fn a_resigned_cache_cannot_invent_warnings_or_conceal_real_truncation() {
+    let conn = database();
+    crossing_memberships(&conn);
+    storage::refresh_knowledge(&conn, "p").unwrap();
+    let options = ZoomOptions {
+        max_nodes: 2,
+        ..ZoomOptions::default()
+    };
+    let temp = tempfile::tempdir().unwrap();
+    let directory = fs::canonicalize(temp.path()).unwrap().join("zoom");
+    let first = knowledge::build_cached(&conn, &options, &directory).unwrap();
+    assert!(first.graph.report.truncated);
+    assert!(!first.graph.report.warnings.is_empty());
+    let path = directory.join("snapshot.json");
+    let original: serde_json::Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    for conceal in [false, true] {
+        let mut changed = original.clone();
+        if conceal {
+            changed["report"]["warnings"] = serde_json::json!([]);
+            changed["report"]["truncated"] = false.into();
+        } else {
+            changed["report"]["warnings"]
+                .as_array_mut()
+                .unwrap()
+                .push("An invented statement that checkout behavior was verified.".into());
+        }
+        resign_cache(&mut changed);
+        fs::write(&path, serde_json::to_vec(&changed).unwrap()).unwrap();
+        let repaired = knowledge::build_cached(&conn, &options, &directory).unwrap();
+        assert!(!repaired.refresh.topology_reused);
+        assert!(
+            repaired
+                .refresh
+                .fallback_reason
+                .as_deref()
+                .unwrap()
+                .contains("build report differs")
+        );
+        assert!(repaired.graph.report.truncated);
+        assert_eq!(repaired.graph.report.warnings, first.graph.report.warnings);
+        assert_eq!(repaired.refresh.layout_generation_work, 0);
+        assert_eq!(
+            repaired.refresh.topology_validation_work,
+            repaired.graph.report.work_used
+        );
+        assert_matches_fresh(&repaired.graph, &conn);
+    }
+}
+
+#[test]
+fn a_resigned_cache_cannot_drop_one_of_two_canonical_parents() {
+    let conn = database();
+    crossing_memberships(&conn);
+    storage::refresh_knowledge(&conn, "p").unwrap();
+    let temp = tempfile::tempdir().unwrap();
+    let directory = fs::canonicalize(temp.path()).unwrap().join("zoom");
+    let first = knowledge::build_cached(&conn, &ZoomOptions::default(), &directory).unwrap();
+    let child = first
+        .graph
+        .nodes
+        .iter()
+        .find(|node| node.parent_view_ids.len() >= 2)
+        .unwrap();
+    let parent = &child.parent_view_ids[0];
+    let edges = first
+        .graph
+        .edges
+        .iter()
+        .filter(|edge| !(edge.child == child.id && &edge.parent == parent))
+        .cloned()
+        .collect();
+    let path = directory.join("snapshot.json");
+    let mut changed: serde_json::Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    replace_cached_edges(&mut changed, edges);
+    // A valid remaining path and fresh node fingerprints used to mask the
+    // omitted parent. Neither the outer checksum nor forced refresh is proof
+    // of complete navigation.
+    force_cached_dependency_refresh(&mut changed);
+    resign_cache(&mut changed);
+    fs::write(&path, serde_json::to_vec(&changed).unwrap()).unwrap();
+    let repaired = knowledge::build_cached(&conn, &ZoomOptions::default(), &directory).unwrap();
+    assert!(!repaired.refresh.topology_reused);
+    assert!(
+        repaired
+            .refresh
+            .fallback_reason
+            .as_deref()
+            .unwrap()
+            .contains("complete canonical source layout")
+    );
+    assert_eq!(repaired.graph.edges, first.graph.edges);
+    assert_eq!(repaired.refresh.layout_generation_work, 0);
+    assert_eq!(
+        repaired.refresh.topology_validation_work,
+        repaired.graph.report.work_used
+    );
+    assert_matches_fresh(&repaired.graph, &conn);
+}
+
+#[test]
+fn a_resigned_cache_cannot_remove_a_derived_intersection_and_flatten_its_children() {
+    let conn = database();
+    let originals = crossing_memberships(&conn);
+    storage::refresh_knowledge(&conn, "p").unwrap();
+    let temp = tempfile::tempdir().unwrap();
+    let directory = fs::canonicalize(temp.path()).unwrap().join("zoom");
+    let first = knowledge::build_cached(&conn, &ZoomOptions::default(), &directory).unwrap();
+    let members = BTreeSet::from([originals[0].id.clone(), originals[1].id.clone()]);
+    let intersection = first
+        .graph
+        .nodes
+        .iter()
+        .find(|node| {
+            node.kind == "concept"
+                && node.knowledge_ids.iter().cloned().collect::<BTreeSet<_>>() == members
+        })
+        .unwrap();
+    assert_eq!(
+        intersection.grouping_basis,
+        ["concept: east", "concept: north"]
+    );
+    assert_eq!(intersection.parent_view_ids.len(), 2);
+    let mut edges = first
+        .graph
+        .edges
+        .iter()
+        .filter(|edge| edge.parent != intersection.id && edge.child != intersection.id)
+        .cloned()
+        .collect::<Vec<_>>();
+    for parent in &intersection.parent_view_ids {
+        for child in &intersection.child_view_ids {
+            edges.push(knowledge::ViewEdge {
+                parent: parent.clone(),
+                child: child.clone(),
+                kind: "contains".into(),
+            });
+        }
+    }
+    let path = directory.join("snapshot.json");
+    let mut changed: serde_json::Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    changed["nodes"]
+        .as_array_mut()
+        .unwrap()
+        .retain(|node| node["id"] != intersection.id);
+    replace_cached_edges(&mut changed, edges);
+    force_cached_dependency_refresh(&mut changed);
+    resign_cache(&mut changed);
+    fs::write(&path, serde_json::to_vec(&changed).unwrap()).unwrap();
+    let repaired = knowledge::build_cached(&conn, &ZoomOptions::default(), &directory).unwrap();
+    assert!(!repaired.refresh.topology_reused);
+    assert!(
+        repaired
+            .refresh
+            .fallback_reason
+            .as_deref()
+            .unwrap()
+            .contains("complete canonical source layout")
+    );
+    assert_eq!(repaired.graph.nodes, first.graph.nodes);
+    assert_eq!(repaired.graph.edges, first.graph.edges);
+    assert_matches_fresh(&repaired.graph, &conn);
 }

@@ -78,9 +78,33 @@ Loading is also bounded: the default build accepts at most 10,000 current knowle
 
 ## Revision-aware, disposable caching
 
-The optional cache contains derived graph data. A cache read still rebuilds and validates the graph against the current registry. Stored summary text is reusable only when it is equal to the newly derived node; keeping an old fingerprint next to changed prose is insufficient.
+The optional cache contains derived graph data and a disposable dependency index. Every read first reloads the current authoritative records, exact evidence and source revision metadata within one SQLite read snapshot. Resource preflights, original-excerpt digest checks and the graph's source snapshot identity are recomputed. A cache cannot conceal corrupt authoritative evidence or replace that evidence with its own copy.
 
-A node revision depends on its source records, evidence, source status, related endpoints and navigation membership. A new or changed source inventory also changes the whole graph's snapshot revision. Unaffected nodes can retain byte-identical contents, and a truly unchanged cache snapshot is not rewritten. This is verified reuse of derived content, not a claim that the implementation avoids all graph-building work or has a measured speed advantage.
+After that validation, Lore can reuse a stable navigation layout. Its grouping signature includes the grouping implementation version, all resource options, eligible record identities, topic and subject labels, normalized concept inputs, critical-record priority, and documentary relationship identities, kinds and endpoints. A label change that leaves the same members in a group still changes the signature, because labels determine a node's title and grouping explanation.
+
+For a matching signature, the reader rederives the complete canonical navigation plan under the same work and edge limits. This validation includes source groups, overlap intersections, all selected nearest-parent edges, the critical-priority leaf set, and the exact construction warnings and truncation status. It compares that plan with the cached layout before reusing any view values. Membership, labels, source references, critical scope and adjacency must also agree. Inputs or options that change, an incompatible cache format, or invalid cached content require a full rebuild. If validation already derived a fresh plan, the rebuild uses that plan without charging or performing the grouping work a second time.
+
+Each node's dependency revision binds its original records, exact evidence, source status and provenance, incident documentary relationships, and the original records at both relationship endpoints. Dependency indexing hashes each original source object once and reuses those digests across overlapping nodes; separate snapshot and integrity checks still process the source input. A changed opposite endpoint can therefore refresh a node even when its own knowledge revision did not change.
+
+Only nodes whose complete dependencies changed regenerate their summary strings and revision values on the stable-layout path. Reused summaries still undergo exact validation against the deterministic original-source plan, including the same token selection, complete critical statements and coverage. That validation streams the expected source fragments and checks their content; it does not accept a stored fingerprint as proof of the prose. A cache checksum catches corruption early, but it is not authentication. Recomputing the checksum after changing a summary, title, critical scope, report, derived intersection or parent edge does not make those changes valid.
+
+An unchanged read regenerates no view summaries or stored dependency revision values. It still rederives the canonical topology plan, constructs source descriptions and summary-selection plans, checks their token budgets, validates compact dependency hashes, and checks all retained source input and reused node content. Reused view values are copied into the current graph; this is not a zero-allocation path. A newly captured source with no assigned eligible knowledge can change the whole graph's snapshot revision without changing any node. Unaffected nodes retain identical contents, and a truly unchanged cache publication is not rewritten.
+
+The `build_cached` API exposes this distinction through `CacheUpdate.refresh`:
+
+| Field | Work recorded for this invocation |
+| --- | --- |
+| `topology_reused` | Whether the published graph used a validated existing layout |
+| `layout_generation_work` | Charged canonical topology planning for a full build when no validation plan is available |
+| `topology_validation_work` | Charged canonical topology planning to validate a candidate cache, including intersections and parent selection |
+| `summaries_generated` / `dependency_revisions_generated` | Node text and revision derivations actually performed |
+| `summaries_validated` / `dependency_revisions_validated` | Checks performed on node content and dependency fingerprints |
+| `records_revalidated` / `evidence_revalidated` | Authoritative originals loaded and checked for this publication |
+| `fallback_reason` | Why a full rebuild was required, when applicable |
+
+Work counters include a rejected reuse attempt before a full rebuild. A successful stable-layout refresh has zero `layout_generation_work` and nonzero `topology_validation_work` when the input requires grouping work; their sum, not either field alone, is the charged topology-planning work. A fallback can also reuse the validation plan, so it can have zero generation-planning work while regenerating every node. The separate `reused_nodes` and `regenerated_nodes` fields count nodes in the final publication. The graph's existing `report.work_used` is the canonical layout's construction work, freshly derived on every invocation; it is not a measure of total cache-read cost.
+
+This is incremental **derived-view reconstruction**. It does not make the whole request proportional to the number of changed records: source loading, snapshot hashing, canonical topology planning, graph checks and reused-summary plan validation still inspect current inputs. A change affecting a broad concept or many relationship endpoints can legitimately refresh many nodes. The implementation does not claim a measured latency improvement or skip critical conditions to improve cache or benchmark results.
 
 Cache snapshots are published atomically, limited to 128 MiB, and read through a capped reader. An ownership marker distinguishes the feature's directory from an unmanaged directory; its purge API refuses unrelated files and symlinks. The existing full-state purge remains the way to erase all Lore-managed state.
 
@@ -110,7 +134,7 @@ Embedders can use `knowledge::build`, `build_cached`, `select`, `explore`, `expl
 
 ## What the checks establish
 
-The [Knowledge Zoom tests](../tests/knowledge_zoom.rs) use a real SQLite registry and retained sources. They cover depth beyond five levels, multiple semantic parents, direct lookup despite a tiny navigation budget, rare exceptions, conflict endpoints, complete-group omission, source and relationship invalidation, extractive summaries, unchanged-cache behavior and poisoned-cache rejection.
+The [Knowledge Zoom tests](../tests/knowledge_zoom.rs) use a real SQLite registry and retained sources. They cover depth beyond five levels, multiple semantic parents, direct lookup despite a tiny navigation budget, rare exceptions, conflict endpoints, complete-group omission, source and relationship invalidation, extractive summaries, unchanged-cache behavior and poisoned-cache rejection. Incremental regressions assert zero summary/revision generation while counting canonical topology validation on no-op reads, affected-node updates through both relationship endpoints, complete fallback for changed labels/critical priority/options, source-inventory-only changes, and honest accounting for rejected partial reuse. They compare updated cached graphs with a fresh full build and verify that even a recomputed cache checksum cannot authorize forged source-derived prose.
 
 The actual [CLI checks](../tests/knowledge_zoom_cli.rs) verify original evidence, complete output budgets, provider-independent operation, exact node drill-down, unchanged-cache bytes and modification time, explicit cache bypass and an unmanaged-cache fallback that preserves user files. The [retrieval comparison](../evaluation/KNOWLEDGE_ZOOM.md) records fixture measurements against the existing flat entry point.
 

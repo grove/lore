@@ -7,7 +7,7 @@ mod cache;
 mod graph;
 mod selection;
 
-pub use cache::{CacheUpdate, build_cached, purge_cache};
+pub use cache::{CacheUpdate, RefreshWork, build_cached, purge_cache};
 pub use graph::validate;
 pub use selection::{render_markdown, select};
 
@@ -190,6 +190,22 @@ pub struct ExploreResult {
 /// Build one coherent, read-only SQLite snapshot. No schema migration, source
 /// read, network call, model invocation or authoritative write is performed.
 pub fn build(conn: &Connection, options: &ZoomOptions) -> Result<KnowledgeGraph> {
+    with_inputs(conn, options, |mut graph| {
+        let dependencies = graph::Dependencies::new(&graph)?;
+        graph::assemble(&mut graph, &dependencies)?;
+        graph::validate_with_dependencies(&graph, &dependencies)?;
+        Ok(graph)
+    })
+}
+
+/// Both the full builder and the incremental cache start from the same
+/// authoritative read snapshot. A cache can replace derived work, never this
+/// input loading, evidence checking, or resource preflight.
+fn with_inputs<T>(
+    conn: &Connection,
+    options: &ZoomOptions,
+    derive: impl FnOnce(KnowledgeGraph) -> Result<T>,
+) -> Result<T> {
     ensure!(
         (2..=65_536).contains(&options.max_nodes)
             && options.max_edges >= options.max_nodes - 1
@@ -207,7 +223,7 @@ pub fn build(conn: &Connection, options: &ZoomOptions) -> Result<KnowledgeGraph>
         "Knowledge Zoom requires a compatible compiled registry; no migration was performed"
     );
     conn.execute_batch("SAVEPOINT lore_knowledge_zoom")?;
-    let result = load_and_build(conn, options);
+    let result = load_inputs(conn, options).and_then(derive);
     if result.is_err() {
         let _ = conn.execute_batch("ROLLBACK TO lore_knowledge_zoom");
     }
@@ -217,7 +233,7 @@ pub fn build(conn: &Connection, options: &ZoomOptions) -> Result<KnowledgeGraph>
     Ok(result)
 }
 
-fn load_and_build(conn: &Connection, options: &ZoomOptions) -> Result<KnowledgeGraph> {
+fn load_inputs(conn: &Connection, options: &ZoomOptions) -> Result<KnowledgeGraph> {
     let count: usize =
         conn.query_row("SELECT count(*) FROM knowledge_current", [], |r| r.get(0))?;
     let evidence_bytes: usize = conn.query_row(
@@ -304,7 +320,7 @@ fn load_and_build(conn: &Connection, options: &ZoomOptions) -> Result<KnowledgeG
         &source_revisions,
         storage::source_heads(conn)?,
     ))?;
-    let mut graph = KnowledgeGraph {
+    Ok(KnowledgeGraph {
         schema_version: ZOOM_SCHEMA_VERSION,
         grouping_version: GROUPING_VERSION.into(),
         revision,
@@ -322,10 +338,7 @@ fn load_and_build(conn: &Connection, options: &ZoomOptions) -> Result<KnowledgeG
             work_limit: options.max_work,
             ..BuildReport::default()
         },
-    };
-    graph::assemble(&mut graph)?;
-    validate(&graph)?;
-    Ok(graph)
+    })
 }
 
 pub fn explore(conn: &Connection, options: &ExploreOptions) -> Result<ExploreResult> {
