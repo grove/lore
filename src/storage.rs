@@ -574,7 +574,7 @@ pub struct RelationRow {
     pub kind: String,
     pub active: bool,
 }
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RelationFact {
     pub id: String,
     pub from: String,

@@ -182,6 +182,27 @@ lore audit
 
 The CLI also provides `lore evidence <evidence-id>` for an exact archived passage and `lore review` for unresolved questions. `lore review show <review-id>` displays the history and evidence binding; `resolve`, `dismiss` and `reopen` accept an explicit `--reason` and optional `--actor`. These actions record a disposition, not a new project fact, and make no model calls. Specific relationship questions can also close automatically when active evidence from the same source revision establishes the named replacement; withdrawn evidence reopens them. `--config path/to/lore.yml` selects another configuration, and the global `--json` option produces machine-readable results, including argument errors. Operational errors exit with code 1, argument errors with code 2, and audit findings with code 3.
 
+## Follow project changes and investigate their implications
+
+Save a named comparison point, update the ordinary registry as project sources
+evolve, then ask what changed or how those changes affect a task:
+
+```bash
+lore baseline save joined
+lore update
+lore changes --since joined
+lore guard --since joined --task "Improve payment dispatch diagnostics"
+lore baseline remove joined
+```
+
+Change reports preserve the original before/after evidence, conditions,
+documentary relationships and imported source status. The advisory guardian
+uses the shared investigation engine and your existing host grants before
+offering source-linked guidance. Baselines are explicit local checkpoints;
+`--replace` deliberately refreshes one. Read the
+[project companion guide](docs/PROJECT_COMPANION.md) for snapshot scope, current
+relationship qualifications, complete output limits and partial-result status.
+
 ## An overview you can follow back to evidence
 
 The generated index now explains the project's major systems, documented design, decisions, future initiatives and open questions in cited paragraphs. It uses a bounded, representative selection from every topic; the detailed pages preserve the full extracted knowledge. An extra generative check reviews the overview for unsupported claims when synthesis verification is enabled. Decision links name documents rather than repeating topic titles, so two decisions on the same page appear as “ADR-027 explicitly supersedes ADR-001.” The review-history page distinguishes pending questions from retained resolutions and makes the reason for each transition inspectable.
