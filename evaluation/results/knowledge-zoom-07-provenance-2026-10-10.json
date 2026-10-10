@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-10",
+  "classification": "engineering_and_documentary_retention_evidence",
+  "baseline_production_commit": "6f4898bf1d6e0dc135a24ef792921c3d98af2c24",
+  "reviewed_selector_commit": "6798ddd2b6bb165d3902e95ec2f514fa1879872c",
+  "frozen_replay_selector_commit": "15bd446c4f67f24b0d8bc1acb02f1e77e2ed3149",
+  "commit_scope": "These commits identify production Zoom code; exact uncommitted comparator/helper and build input digests are embedded in each raw report and are committed with this evidence package.",
+  "package_version_note": "Measurements were built before the release-only Cargo version bump and accurately report package_version0.6.0. The later coverage-overflow fixes reject malformed responses/cache input; they do not change valid response ranking or encoding.",
+  "baseline_capture_note": "Only the included fixture-retention hook differs from the baseline comparator. Production baseline source is unchanged. Baseline and replay use byte-identical SQLite data, gold IDs, source inventory and registry revision.",
+  "frozen_database_sha256": "6ff2b2b328b65af775902512350ce3125083d2e6441849258ca7757b8248da55",
+  "frozen_registry_revision": "blake3:6c2f2d17988d44ee58c654dc236cb972e0743c7309f35ea79373d0b88e74a5b2",
+  "frozen_identity_checks": {
+    "database_bytes_after_replay_match_capture": true,
+    "same_gold_cases": true,
+    "same_original_source_inventory": true,
+    "same_registry_revision": true,
+    "read_only_connection": true,
+    "sqlite_changes": 0,
+    "new_logged_model_calls": 0
+  },
+  "reviewed_cases": {
+    "count": 24,
+    "repositories": 3,
+    "manifest_sha256": "8ea3a80daa703deced518119261810a215cb295826c2279865aa06a079bc0088",
+    "source_review": "separate AI engineering reviewer; not a human outcome study",
+    "holdout_status": "development/regression cases after observed failures informed selector fixes"
+  },
+  "artifact_sha256": {
+    "evaluation/results/knowledge-zoom-07-baseline-frozen-2026-10-10.json": "b20ae1a20442c445d11a3737b6c659cba62e369769a97698fc5c756eb5e5d534",
+    "evaluation/results/knowledge-zoom-07-after-frozen-2026-10-10.json": "ce6e0676eda0374457364afdee013a3c195fc32db9a579224d11f18192ff96c4",
+    "evaluation/results/knowledge-zoom-07-reviewed-2026-10-10.json": "4def29ab7ce61e6355e6ef9ee106b7ded34f00103fd205ddf934dbae15959e71",
+    "evaluation/results/knowledge-zoom-07-synthetic-2026-10-10.json": "45e848ab8bfb9d8a0adff30d0d16f6c0396fada97d1d4d6055538afb1a7cc05a",
+    "evaluation/corpora/zoom-reviewed-v1/manifest.json": "8ea3a80daa703deced518119261810a215cb295826c2279865aa06a079bc0088",
+    "evaluation/corpora/zoom-reviewed-v1/review.json": "ca5447bc08acfd06b9171dd65ee16948b031f2fbca3b62b1bf38d60b99b79779",
+    "evaluation/corpora/zoom-frozen-v1/manifest.json": "166574680e3ed225e7141c816c8780a7ad8452e0b87a5b64f83b81bd68cd2bf4",
+    "evaluation/corpora/zoom-frozen-v1/baseline-capture.patch": "e83e99541928133e3c2ec09cf1d041d267a117a419be518b056d978831cf8d7c"
+  },
+  "limits": [
+    "Synthetic and exact-source capture adapters make no actual provider requests.",
+    "Compact-vs-legacy timings run in separate measurement blocks; only within-block arms alternate.",
+    "The controlled ablation shares graph construction and validation; it does not measure removing that infrastructure.",
+    "Three local debug timing repeats do not establish population p95 or general performance.",
+    "Gold retention is not semantic truth, upstream runtime verification, model productivity or human learning.",
+    "The old October9 baseline has different generated IDs and is preserved, not treated as this exact-registry comparison."
+  ]
+}

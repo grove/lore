@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "classification": "public_synthetic_retained_registry",
+  "baseline_commit": "6f4898bf1d6e0dc135a24ef792921c3d98af2c24",
+  "registry_sha256": "6ff2b2b328b65af775902512350ce3125083d2e6441849258ca7757b8248da55",
+  "registry_bytes": 671744,
+  "encoding": "base64 of gzip (mtime=0) of SQLite database",
+  "configuration": {
+    "schema_version": 1,
+    "project": {
+      "name": "fixture"
+    },
+    "sources": {
+      "roots": [
+        {
+          "id": "docs",
+          "path": "./docs"
+        }
+      ]
+    },
+    "output": {
+      "state_dir": "./.lore",
+      "wiki_dir": "./lore"
+    },
+    "models": {
+      "generative": {
+        "enabled": false
+      }
+    },
+    "privacy": {
+      "local_only": true,
+      "allow_checkout_egress": false
+    }
+  },
+  "source_files_sha256": {
+    "cases.json": "c60f1a8676510f34a1139decf05d76ffa9b98d6ec47b48c950fb7cd4b2b69846",
+    "docs/backoff.md": "f368451dcd8ab1888e2f3caf7ec3907fe8334fd0c18a8995e49fae4280124642",
+    "docs/capacity.md": "d74805f8b39f1d320484a08c0ee3da6bd2f5bd6a39f5695473fc528de8a7b007",
+    "docs/database-01.md": "ce66474ebdfaf70f172c4cfa8d0025fc6ad64a9f79fbe587a21c1f2a34897841",
+    "docs/database-02.md": "82fbd2c35e3be42d9ff72bb3307bfac40e7c317b1caed4f6caf65a667ce3de73",
+    "docs/emergency.md": "3e04860f0fb4ed8170e749aaaaba30c6cc290cfc973472c7e0fd945e925609ab",
+    "docs/full-queue.md": "e38461fb9ae451ab7b858a1d72542dcf374fe29504c28c05d436d92b7b7b9573",
+    "docs/ledger.md": "538ba75bcb39b329ef2823035e92c591d236089e6fa5c10e6d13809ff6f0434e",
+    "docs/purpose.md": "b0ffff1a73142687888eef97d2318bca6d4c9ae95b4f33e15a42209d3b377b77",
+    "docs/refunds.md": "d6f113deec2c697dc760b9e018d0eb917cec387b14d8830b5e416f42e6bdc707",
+    "docs/release-note.md": "1bbaf77b4666c95aa9256e934456e3773eb04b2f27bdaf9dac158b4fef03d7bf",
+    "docs/security.md": "ae8ef208c47c6d82fd5316943d35ce87020af025b07a9ec396535da9c7ca5900",
+    "docs/staging-proposal.md": "5954d22de3c45bb6830e3430e74e732ae7ff35cd4083246653d81914af5dd736",
+    "registry.sqlite.gz.b64": "6880d62514803a4141c0ddc0e0b426dd1fe16fc11eaa06a85fda6e33769ca121"
+  },
+  "ingestion": "common::FakeModel; twelve explicitly authored fictional source documents; no external provider requests",
+  "limitations": [
+    "This is the exact retained registry used for matched baseline and candidate retrieval diagnostics.",
+    "The disabled-provider restoration configuration differs from the ingestion configuration; deterministic retrieval reads the same registry bytes.",
+    "The encoded database contains only public synthetic evidence, fixture model outputs and generated identifiers. No confidential project source or real provider outcome is included."
+  ]
+}

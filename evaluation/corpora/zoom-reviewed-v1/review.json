@@ -1,0 +1,234 @@
+{
+  "schema_version": 1,
+  "review_type": "independent_agent_source_gold_review",
+  "reviewer": {
+    "id": "guardian_quality",
+    "role": "Guardian work-package implementer; separate source-gold reviewer",
+    "agent": true,
+    "human": false,
+    "authored_retrieval_cases": false,
+    "implemented_retrieval_selector": false,
+    "inspected_selector_or_scored_outputs": false,
+    "independence_scope": "Separate reviewer from case author and selector implementer. This is an engineering source-gold review by an AI agent, not an independent human study or a measure of product benefit."
+  },
+  "reviewed_at_utc": "2026-10-10",
+  "manifest_sha256": "8ea3a80daa703deced518119261810a215cb295826c2279865aa06a079bc0088",
+  "method": "Read the pinned original documentation and the candidate queries, summaries, exact source quotes, critical atoms, and scope/lifecycle labels. Verified repository commit, whole-file SHA-256, line span, excerpt SHA-256, and byte-identical fixture separately. Did not inspect retrieval selector code, retrieval outputs, or scores.",
+  "corrections_requested": [
+    {
+      "case_id": "fd-full-path",
+      "issue": "Declared lines 146-148 included a blank line absent from the exact excerpt.",
+      "resolution": "Author corrected line_end to 147 and the URL fragment to L146-L147 before this final digest was reviewed.",
+      "verified": true
+    }
+  ],
+  "qualification_checks": [
+    "ripgrep default ignored/hidden/binary filtering and opt-outs; optional PCRE2, engine limits, conditional source/system library use; UTF-16 automatic detection versus explicit other encodings",
+    "fd uppercase-dependent smart case, repository condition for gitignore, -x versus -X execution, parallel/serial distinction, global-ignore paths, and complete bash/zsh shell-function requirements",
+    "jq null-input runs once on null, raw-input plus slurp special case, raw-output string condition, embedded NUL nonzero exit, -j relation to -r, ASCII conversion, nonempty NO_COLOR and -C override, and all documented exit-status exceptions"
+  ],
+  "outcomes": {
+    "cases_reviewed": 24,
+    "all_source_bindings_verified": true,
+    "all_queries_supported": true,
+    "unresolved_source_gold_issues": 0,
+    "human_review": "unmeasured",
+    "runtime_behavior": "unverified_documentary_claims",
+    "retrieval_quality": "not_evaluated_in_this_review",
+    "developer_productivity": "unmeasured"
+  },
+  "cases": [
+    {
+      "case_id": "ripgrep-filtering",
+      "excerpt_sha256": "a7db91e632dd4878bb72ba3a5b2adaf9943f270ecea7ce7572519332fa15ea36",
+      "exact_source_span_verified": true,
+      "query_supported_by_source": true,
+      "critical_conditions_and_exceptions_retained": true,
+      "scope_and_lifecycle_appropriate_for_documentary_constraint": true
+    },
+    {
+      "case_id": "ripgrep-types",
+      "excerpt_sha256": "2882e46f3952d313e9b1680e2d2b7d2f5d4ebfdceb95a792e3aad6971d352b08",
+      "exact_source_span_verified": true,
+      "query_supported_by_source": true,
+      "critical_conditions_and_exceptions_retained": true,
+      "scope_and_lifecycle_appropriate_for_documentary_constraint": true
+    },
+    {
+      "case_id": "ripgrep-pcre2",
+      "excerpt_sha256": "d1580abff4152d01562fb7b05b4b31308d6062987eab9d85a7db0d9b9b9b1fca",
+      "exact_source_span_verified": true,
+      "query_supported_by_source": true,
+      "critical_conditions_and_exceptions_retained": true,
+      "scope_and_lifecycle_appropriate_for_documentary_constraint": true
+    },
+    {
+      "case_id": "ripgrep-encoding",
+      "excerpt_sha256": "734f4f24c56af9d0eae7f544535cf8881c4246af40b64a6c94142f570cc5e39a",
+      "exact_source_span_verified": true,
+      "query_supported_by_source": true,
+      "critical_conditions_and_exceptions_retained": true,
+      "scope_and_lifecycle_appropriate_for_documentary_constraint": true
+    },
+    {
+      "case_id": "ripgrep-compressed",
+      "excerpt_sha256": "99ed273be68d4c93851efc40b0e6aca7c59022a4ba0c447e35faa0c0f34b4073",
+      "exact_source_span_verified": true,
+      "query_supported_by_source": true,
+      "critical_conditions_and_exceptions_retained": true,
+      "scope_and_lifecycle_appropriate_for_documentary_constraint": true
+    },
+    {
+      "case_id": "ripgrep-portability",
+      "excerpt_sha256": "8643448c82af35ecac10b32e2e66c705058cb945ef74047cbbe7af2eedd2caf6",
+      "exact_source_span_verified": true,
+      "query_supported_by_source": true,
+      "critical_conditions_and_exceptions_retained": true,
+      "scope_and_lifecycle_appropriate_for_documentary_constraint": true
+    },
+    {
+      "case_id": "ripgrep-search-strategy",
+      "excerpt_sha256": "6c49d03a5d59ee4049accaf01984840886ff3915cb39c50ba78361839041b66a",
+      "exact_source_span_verified": true,
+      "query_supported_by_source": true,
+      "critical_conditions_and_exceptions_retained": true,
+      "scope_and_lifecycle_appropriate_for_documentary_constraint": true
+    },
+    {
+      "case_id": "ripgrep-pcre2-linking",
+      "excerpt_sha256": "940048aef5a78498f0fe0b90d3e124a008123a4de9cdc2be2b26dab12f84dda2",
+      "exact_source_span_verified": true,
+      "query_supported_by_source": true,
+      "critical_conditions_and_exceptions_retained": true,
+      "scope_and_lifecycle_appropriate_for_documentary_constraint": true
+    },
+    {
+      "case_id": "fd-smart-case",
+      "excerpt_sha256": "99fb30c1c814217564af4771a86cbd9380849b0ce57cc8894ae1bf7fcd67cc1e",
+      "exact_source_span_verified": true,
+      "query_supported_by_source": true,
+      "critical_conditions_and_exceptions_retained": true,
+      "scope_and_lifecycle_appropriate_for_documentary_constraint": true
+    },
+    {
+      "case_id": "fd-hidden",
+      "excerpt_sha256": "2351c0a602bf575b1f128d7eba1e2ca78defc7174e4787415911702c2476eef5",
+      "exact_source_span_verified": true,
+      "query_supported_by_source": true,
+      "critical_conditions_and_exceptions_retained": true,
+      "scope_and_lifecycle_appropriate_for_documentary_constraint": true
+    },
+    {
+      "case_id": "fd-gitignore",
+      "excerpt_sha256": "08f152ad38910bac7a4286a9a17e409ec5202189f2d68b2cd1832fb95b04f8fd",
+      "exact_source_span_verified": true,
+      "query_supported_by_source": true,
+      "critical_conditions_and_exceptions_retained": true,
+      "scope_and_lifecycle_appropriate_for_documentary_constraint": true
+    },
+    {
+      "case_id": "fd-full-path",
+      "excerpt_sha256": "bfbc603a015dfeeaef675174dc86641f0045d0597115ebb406bfabd58f82eda1",
+      "exact_source_span_verified": true,
+      "query_supported_by_source": true,
+      "critical_conditions_and_exceptions_retained": true,
+      "scope_and_lifecycle_appropriate_for_documentary_constraint": true
+    },
+    {
+      "case_id": "fd-execution",
+      "excerpt_sha256": "18b248afed9eb267a90a785e9223b96d95fe67d51d2419f8913a5dbd009a6027",
+      "exact_source_span_verified": true,
+      "query_supported_by_source": true,
+      "critical_conditions_and_exceptions_retained": true,
+      "scope_and_lifecycle_appropriate_for_documentary_constraint": true
+    },
+    {
+      "case_id": "fd-serial",
+      "excerpt_sha256": "720ec85ada5a2c52f0d56eaf427d888621c538ed0fa976e944952f104c4058bb",
+      "exact_source_span_verified": true,
+      "query_supported_by_source": true,
+      "critical_conditions_and_exceptions_retained": true,
+      "scope_and_lifecycle_appropriate_for_documentary_constraint": true
+    },
+    {
+      "case_id": "fd-global-ignore",
+      "excerpt_sha256": "15862a68837738e8eedaee486ec1ba74e67896573987c271a89a35a76248e6c9",
+      "exact_source_span_verified": true,
+      "query_supported_by_source": true,
+      "critical_conditions_and_exceptions_retained": true,
+      "scope_and_lifecycle_appropriate_for_documentary_constraint": true
+    },
+    {
+      "case_id": "fd-shell-functions",
+      "excerpt_sha256": "81ad9b582b6ed54ec45ce30c38fc610ff733e1c6631054ea06945aac767b16e6",
+      "exact_source_span_verified": true,
+      "query_supported_by_source": true,
+      "critical_conditions_and_exceptions_retained": true,
+      "scope_and_lifecycle_appropriate_for_documentary_constraint": true
+    },
+    {
+      "case_id": "jq-null-input",
+      "excerpt_sha256": "197c0438f300089a45ece5b94ced4fec893b261d2bb58cfe9a2696a8e17226b2",
+      "exact_source_span_verified": true,
+      "query_supported_by_source": true,
+      "critical_conditions_and_exceptions_retained": true,
+      "scope_and_lifecycle_appropriate_for_documentary_constraint": true
+    },
+    {
+      "case_id": "jq-raw-slurp",
+      "excerpt_sha256": "51f2ae93c55e392d02e61bd8331303ae0766cc64939decb736e8b0d5c67dec88",
+      "exact_source_span_verified": true,
+      "query_supported_by_source": true,
+      "critical_conditions_and_exceptions_retained": true,
+      "scope_and_lifecycle_appropriate_for_documentary_constraint": true
+    },
+    {
+      "case_id": "jq-raw-output",
+      "excerpt_sha256": "9304eccd64c25d00239cd4e2fa9f9554d5d40d4a306b70e985bba88b141c6e24",
+      "exact_source_span_verified": true,
+      "query_supported_by_source": true,
+      "critical_conditions_and_exceptions_retained": true,
+      "scope_and_lifecycle_appropriate_for_documentary_constraint": true
+    },
+    {
+      "case_id": "jq-nul-output",
+      "excerpt_sha256": "eeaa4b36a924745fe9fadcf432f9a19518405565812eb8fc1b32e68ed8b8ccef",
+      "exact_source_span_verified": true,
+      "query_supported_by_source": true,
+      "critical_conditions_and_exceptions_retained": true,
+      "scope_and_lifecycle_appropriate_for_documentary_constraint": true
+    },
+    {
+      "case_id": "jq-join-output",
+      "excerpt_sha256": "332fe5ac8e05afd3c443026f63eaea8a0a755339699d22fe3de68521d0ce616d",
+      "exact_source_span_verified": true,
+      "query_supported_by_source": true,
+      "critical_conditions_and_exceptions_retained": true,
+      "scope_and_lifecycle_appropriate_for_documentary_constraint": true
+    },
+    {
+      "case_id": "jq-ascii-output",
+      "excerpt_sha256": "834504b6108a554224c4754fa79bc2c0ea510367117b54a0bf14d11ddf1a66a6",
+      "exact_source_span_verified": true,
+      "query_supported_by_source": true,
+      "critical_conditions_and_exceptions_retained": true,
+      "scope_and_lifecycle_appropriate_for_documentary_constraint": true
+    },
+    {
+      "case_id": "jq-color",
+      "excerpt_sha256": "553eb8555ca82310f3c66ffaab4d4d82366e1730d59344d1b02099702b558002",
+      "exact_source_span_verified": true,
+      "query_supported_by_source": true,
+      "critical_conditions_and_exceptions_retained": true,
+      "scope_and_lifecycle_appropriate_for_documentary_constraint": true
+    },
+    {
+      "case_id": "jq-exit-status",
+      "excerpt_sha256": "5bd90db0507ab3d8a9b9236272774609ed9ad1ae5b097083fd4c425194ae71ab",
+      "exact_source_span_verified": true,
+      "query_supported_by_source": true,
+      "critical_conditions_and_exceptions_retained": true,
+      "scope_and_lifecycle_appropriate_for_documentary_constraint": true
+    }
+  ]
+}
