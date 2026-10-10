@@ -38,6 +38,19 @@ jobs:
           python evaluation/decision_tasks.py prepare --output /tmp/lore-v06-decisions
           python evaluation/shared_intelligence.py prepare --cases evaluation/corpora/shared-intelligence/cases.json --output /tmp/lore-shared-intelligence
           python evaluation/adaptive_tasks.py prepare --output /tmp/lore-adaptive-coding
+          python evaluation/real_coding_corpus.py prepare --pilot --output /tmp/lore-v07-pilot
+          python evaluation/real_coding_corpus.py validate --output /tmp/lore-v07-coding-controls
+          python evaluation/adaptive_sequences.py prepare --output /tmp/lore-v07-sequences
+          python evaluation/human_onboarding.py prepare --output /tmp/lore-v07-human-pilot
+          python evaluation/guardian_longitudinal.py prepare --output /tmp/lore-v07-guardian
+          python evaluation/restore_zoom_fixture.py --output /tmp/lore-v07-frozen
+      - name: Compare the exact frozen Zoom registry (no inference)
+        if: runner.os == 'Linux'
+        env:
+          LORE_ZOOM_COMPARISON_CONFIG: /tmp/lore-v07-frozen/lore.yml
+          LORE_ZOOM_COMPARISON_CASES: /tmp/lore-v07-frozen/cases.json
+          LORE_ZOOM_COMPARISON_OUTPUT: /tmp/lore-v07-frozen-comparison.json
+        run: cargo test --locked --test knowledge_zoom_comparison measured_existing_compiled_project -- --ignored --exact
       - name: Decision and case CLI help
         run: |
           cargo run --locked -- decisions --help
