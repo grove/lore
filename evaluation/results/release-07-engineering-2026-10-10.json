@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "package_version": "0.7.0",
+  "version_files_changed": [
+    "Cargo.toml package.version",
+    "Cargo.lock package named lore"
+  ],
+  "dependency_updates": false,
+  "rust": {
+    "format_passed": true,
+    "post_edit_format_passed": true,
+    "strict_clippy_passed": true,
+    "all_targets_locked_passed": true,
+    "test_binaries_completed": 55,
+    "passed": 427,
+    "failed": 0,
+    "ignored": 3,
+    "measured": 0,
+    "filtered_out": 0,
+    "elapsed_seconds": 380.0654683139983,
+    "ignored_tests": [
+      "test local_ollama_extracts_selected_source_section ... ignored, requires local Ollama and LORE_LIVE_CONFIG/LORE_LIVE_SECTION",
+      "test openai_live_preserves_multiline_quote_constraints ... ignored, requires LORE_OPENAI_LIVE_CONFIG and its configured credential environment variable",
+      "test measured_existing_compiled_project ... ignored, requires an explicitly selected compiled project, independent gold cases and a new report path"
+    ],
+    "log_sha256": "b3668542a6e2826a592bdbd1bfd14afc013150a123e89fc32e667cbf8c02cf73"
+  },
+  "no_inference_prepare_validate": {
+    "commands": 13,
+    "passed": 13,
+    "failed": []
+  },
+  "coding_controls": {
+    "case_count": 30,
+    "correct_originals_passed": 30,
+    "wrong_controls_rejected": 60,
+    "all_controls_valid": true,
+    "inference_calls": 0
+  },
+  "cli": {
+    "commands": 11,
+    "passed": 11,
+    "reported_version": "lore 0.7.0",
+    "help_surfaces": [
+      "help",
+      "decisions-help",
+      "cases-help",
+      "baseline-help",
+      "changes-help",
+      "guard-help",
+      "review-help",
+      "context-help",
+      "onboard-help",
+      "explore-help"
+    ]
+  },
+  "retained_logs": 28,
+  "retained_logs_verified": true,
+  "evidence_scope": "Local Linux engineering gates and constructed controls; actual model and human outcomes remain unmeasured.",
+  "followup": "The full Rust gate compiled before the test-only macOS temporary-root correction. Post-edit formatting and the separate comparator under a real symlinked TMPDIR passed after that correction. Windows CI then exposed test-only CRLF/UTF-8 fixture and SQLite-handle cleanup defects. Exact-byte verification is unchanged; LF and CRLF repair inputs now run through the existing test. All 174 Python tests passed again after these corrections. Final platform CI must cover the integrated tree.",
+  "classification": "local_release_engineering_controls",
+  "python": {
+    "passed": 174,
+    "failed": 0,
+    "elapsed_seconds": 127.7,
+    "process_wall_seconds": 127.834,
+    "log_bytes": 33159,
+    "log_sha256": "07d03fcd32638ec6aa6fec8cadd0cafbf9c2f2a9040cdc02afc0d468f8ed091d",
+    "after_windows_fixture_corrections": true
+  },
+  "post_fix_symlink_tmpdir_comparator": {
+    "test": "measured_flat_direct_and_zoom_on_the_same_compiled_fixture",
+    "passed": 1,
+    "failed": 0,
+    "filtered_out": 3,
+    "elapsed_seconds": 57.86,
+    "purpose": "Exercise the macOS-style temporary-path alias after canonicalization; production symlink rejection unchanged.",
+    "reports_rewritten": false
+  },
+  "full_gate_summary_sha256": "7b1ea6efc0f029ea7db011916d7c7b113f21c1720c18d0d474963e94422393c0",
+  "cross_platform_ci": {
+    "policy": "All Linux, macOS and Windows jobs must pass on each final pull request head before merge.",
+    "receipts": "GitHub checks attached to the seven Lore0.7 release pull requests; local gates do not substitute for them."
+  },
+  "outcome_limits": {
+    "actual_model_study_attempts": 0,
+    "human_participants": 0,
+    "guardian_independent_precision": null,
+    "execution_egress_syscall_audit": "unavailable; not passed"
+  },
+  "python_before_windows_fixture_corrections": {
+    "passed": 174,
+    "failed": 0,
+    "elapsed_seconds": 129.67,
+    "log_sha256": "81c55f875265347cb52436e60cf5bece67e89ee6a7e374f54d29becf0d24e0ef"
+  },
+  "publication_content_audit": {
+    "script": "evaluation/audit_guardian_publication.py",
+    "script_sha256": "45fa47ad014015ac2fa84c07310d0f4e4cb287f65a4f7829cc0586e06d1ecfa4",
+    "receipt": "evaluation/results/guardian-debug-2026-10-10/publication-audit.json",
+    "receipt_sha256": "c27517499bba32eb45ab4d4c0f78a78e547bf015e3b1dfb1fde89bb7b3af2e1f",
+    "independent_ai_rerun_exit_code": 0,
+    "failed_checks": 0,
+    "unclassified_string_values": 0,
+    "runtime_execution_audit": false
+  }
+}

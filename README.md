@@ -4,7 +4,24 @@
 
 Projects collect their history in architecture notes, ADRs, plans, issue exports, investigations, and previous agent experiences. Understanding a subject often means piecing together several sources written at different times for different reasons. Lore is a Rust command-line application that reads your project's Markdown directories and optional native knowledge snapshots, maintains evidence-backed project understanding, and uses the decisions, constraints, history, and open questions to recommend an approach for your next task. The same knowledge powers a linked, topic-oriented Markdown wiki.
 
-**Lore 0.6 provides decision-ready project intelligence.** `lore context "Implement payment retries"` leads with one preferred approach and says whether to proceed, perform a specific check first, or resolve a material policy decision. It distinguishes exact project evidence, hypotheses, and general engineering principles. Opt-in `--inspect` reads relevant local source and tests; `--investigate` performs bounded follow-up inspections and revises the recommendation when evidence contradicts the original hypothesis. `--fast` preserves deterministic schema 2, and `--schema-version 3` retains the 0.5 contract. See [the 0.6 guide](docs/V06.md) for privacy, limits, caching, and evaluation status.
+**Lore 0.7 focuses on evidence-driven usefulness.** It improves complete-condition
+retrieval within tight token budgets, preserves restored source conditions in
+project comparisons, and adds reproducible coding, onboarding, and guardian
+evaluation protocols. Read [the 0.7 guide](docs/V07.md) for the implemented changes
+and [the release scorecard](evaluation/PRODUCT_QUALITY_07.md) for what was actually
+measured. Reviewed retrieval regressions are engineering evidence; real-model
+coding gains, human learning transfer, and independently reviewed guardian alert
+quality remain separate, unmeasured outcomes.
+
+`lore context "Implement payment retries"` continues to lead with one preferred
+approach and says whether to proceed, perform a specific check first, or resolve
+a material policy decision. It distinguishes exact project evidence, hypotheses,
+and general engineering principles. Opt-in `--inspect` reads relevant local source
+and tests; `--investigate` performs bounded follow-up inspections and revises the
+recommendation when evidence contradicts the original hypothesis. `--fast`
+preserves deterministic schema 2, and `--schema-version 3` retains the 0.5
+contract. The established default schema 4 remains available with the privacy,
+limits, and caching described in [the historical 0.6 guide](docs/V06.md).
 
 ### Experimental shared intelligence
 
@@ -70,6 +87,7 @@ lore explore
 lore explore "payment retries"
 lore explore "MAX_RETRIES"
 lore --json explore "payment retries" --max-tokens 8000
+lore --json explore "payment retries" --compact --max-tokens 1500
 lore explore --node RETURNED_VIEW_ID
 ```
 
@@ -79,6 +97,12 @@ code execution. A disposable revision-aware cache avoids rewriting unchanged
 views; `--no-cache` bypasses it. See the [Knowledge Zoom guide](docs/KNOWLEDGE_ZOOM.md)
 for direct source drill-down, grouping limits and the distinction between
 navigation and evidence authority.
+
+The optional `--compact` response uses exploration schema 2 to retain complete
+source records, original quotations, and mandatory relationship endpoints with
+less envelope overhead. It reports a budget limitation when a complete evidence
+obligation cannot fit. Plain `lore explore` retains schema 1; adaptive context
+still requires the explicit `--schema-version 5` selection.
 
 ## Vision
 
@@ -106,12 +130,24 @@ The [Knowledge Experience architecture](docs/KNOWLEDGE_EXPERIENCE_DESIGN.md) com
 
 Lore's CLI is available, but we are still validating how accurately **real inference models** understand heterogeneous project documents. The [evaluation toolkit](evaluation/README.md) includes a controlled, evolving project with reviewed source checkpoints, Lore's own documentation, and pinned public OpenWiki and LLM Wiki corpora. It can run local Ollama or explicitly authorized hosted OpenAI inference, report provenance and incremental-update checks, and produce a human review sheet. Automated fixture tests and source hashes cannot establish semantic correctness, so [the baseline](evaluation/BASELINE.md) clearly separates what is already measured from the quality and billing data we still need to collect.
 
-The [adaptive coding-task comparison](evaluation/ADAPTIVE_TASKS.md) runs matched
-original-source, legacy and schema-5 agent attempts with independent executable
-checks and explicit reuse controls. The [Knowledge Zoom comparison](evaluation/KNOWLEDGE_ZOOM.md)
-records actual synthetic retrieval results, including material condition-recall
-losses at constrained budgets. Human learning, real-model coding productivity and
-a general advantage from the graph remain separate, unestablished outcomes.
+The [Knowledge Zoom comparison](evaluation/KNOWLEDGE_ZOOM.md) preserves the
+historical constrained-budget failures and records the 0.7 regression work,
+including 24 source-pinned documentary cases with a separate AI-agent review of
+their source quotations, critical conditions, and scope. That review is an
+engineering source-gold check; it is not a human usefulness study or evidence of
+a causal graph advantage.
+
+The [adaptive coding-task comparison](evaluation/ADAPTIVE_TASKS.md) retains six
+matched configurations, independent executable checks, explicit reuse controls,
+and all repair/investigation costs. The [30 public coding candidates](evaluation/REAL_CODING_TASKS.md)
+and [12-participant onboarding protocol](evaluation/HUMAN_ONBOARDING.md) prepare
+real studies without inventing completed attempts or participants. The
+[guardian captures](evaluation/results/guardian-debug-2026-10-10/README.md)
+exercise sixty synthetic transitions per full run; both full captures failed
+strict source-integrity checks when deleted files reappeared. Targeted source
+reversion regressions passed, but longitudinal alert quality remains unmeasured.
+The [0.7 scorecard](evaluation/PRODUCT_QUALITY_07.md) keeps these evidence classes
+and outstanding outcome gates explicit.
 
 ## Why a project needs more than a summary
 
@@ -230,6 +266,14 @@ offering source-linked guidance. Baselines are explicit local checkpoints;
 `--replace` deliberately refreshes one. Read the
 [project companion guide](docs/PROJECT_COMPANION.md) for snapshot scope, current
 relationship qualifications, complete output limits and partial-result status.
+
+New checkpoints retain current evidence membership separately from immutable
+history, so a condition that changes A→B→A stays visible even when the short
+summary is unchanged. Older checkpoint checksums remain readable. Automatic
+advisory scope gives accepted constraints priority, and overlapping risk/blocker
+summaries retain all original citations and distinct actions. The guardian is an
+on-demand advisory command; an unavailable model or an empty alert list does not
+establish that the project is safe.
 
 ## An overview you can follow back to evidence
 
@@ -369,6 +413,18 @@ Deleting a source is not the same as deleting its retained history. To intention
 
 Run `cargo test --all-targets --locked` for the offline compiler, provider, database, source-boundary, retrieval, context-budget, and CLI tests. No real API credentials or installed model weights are needed for these tests. The implementation deliberately favors correctness and inspectable history over maximum throughput: source processing is sequential, candidate comparisons are exhaustive in bounded batches, and topic pages are regenerated as coherent units. These choices can make large first-time compilations expensive. The current automatic supersession guard recognizes explicit English replacement wording and predecessor references; less explicit or differently worded cases remain reviewable instead of being guessed.
 
-Lore reads local Markdown and optional native snapshots from OpenWiki, Engram, and Beads. Direct tracker connectors, bidirectional writes, runtime/deployment verification, a hosted service, and a graph editor remain outside 0.6. Optional static checkout inspection is available with explicit limits and egress safeguards. Cross-source comparisons and hybrid search use bounded candidate indexes; large-corpus recall, recommendation quality, and actual coding-task improvements still require independent evaluation. [The 0.6 coding-task evaluator](evaluation/DECISION_INTELLIGENCE.md) compares original sources, fast context, 0.5, and 0.6 using executable changes and independent review; fixture tests establish contracts, not measured model-quality gains. The architecture and remaining trade-offs are described in [DESIGN.md](DESIGN.md), while [docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md) documents the implemented behavior, recovery, provider testing, and operational limitations. Feedback grounded in a small reproducible document corpus is particularly welcome.
+Lore reads local Markdown and optional native snapshots from OpenWiki, Engram,
+and Beads. Direct tracker connectors, bidirectional writes, runtime/deployment
+verification, a hosted service, and a graph editor remain outside 0.7. Static
+checkout inspection retains explicit limits and caller-owned egress safeguards;
+Lore does not autonomously execute repository commands. Cross-source comparisons
+and hybrid search use bounded candidate indexes. Large-corpus recall, real-model
+recommendation quality, coding productivity, and human learning still require
+independent evaluation. The [historical 0.6 evaluator](evaluation/DECISION_INTELLIGENCE.md)
+and [0.7 six-arm protocol](evaluation/ADAPTIVE_TASKS.md) preserve comparable
+contracts and separate fixture results from actual product outcomes. See
+[DESIGN.md](DESIGN.md) for the architecture, [docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md)
+for operational behavior, and [the current scorecard](evaluation/PRODUCT_QUALITY_07.md)
+for measured results and limitations.
 
 Lore is inspired by [OpenWiki](https://github.com/langchain-ai/openwiki) and research on grounded generation, provenance, and incremental knowledge maintenance. It is licensed under the [Apache License 2.0](LICENSE).

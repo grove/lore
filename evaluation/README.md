@@ -1,4 +1,33 @@
-# Evaluating Lore on real projects
+# Evaluating Lore 0.7
+
+Lore 0.7 adds source-reviewed retrieval regressions and reproducible protocols
+for coding attempts, human contributions, and longitudinal guardian behavior.
+The [0.7 product guide](../docs/V07.md) explains the implemented commands. The
+[release scorecard](PRODUCT_QUALITY_07.md) records the current gates, captured
+results, and outcomes that remain unmeasured. A prepared corpus, passing checker
+control, or synthetic regression is not a completed real-model or human study.
+
+| Evaluation area | Available 0.7 evidence and protocol | Outcome boundary |
+| --- | --- | --- |
+| Knowledge retrieval | [Knowledge Zoom methods and results](KNOWLEDGE_ZOOM.md), legacy constrained-budget regressions, and 24 pinned ripgrep/fd/jq source cases with a separate AI-agent source-gold review | This checks source bindings, complete conditions, scope, and retrieval regressions. General graph benefit and broad semantic accuracy remain unestablished. |
+| Coding-agent work | [Thirty public fault-repair candidates](REAL_CODING_TASKS.md), [six matched configurations](ADAPTIVE_TASKS.md), independent checker controls, bounded repair attempts, and charged investigation/reuse | Candidate tasks are constructed debugging cases, not held-out productivity evidence. Real-model success, time, and cost gains require completed bound attempts and independent review. |
+| Intelligence changes | [Failure triage and change validation](FAILURE_TRIAGE.md), including an explicit pilot evidence requirement | An unrun or synthetic study does not justify a claim of an improved adaptive controller. |
+| Human onboarding | [Twelve-participant pilot protocol](HUMAN_ONBOARDING.md), opt-in pseudonymous records, first contribution, and distinct transfer tasks | Prepared exercises do not create participants, consent, competence, or learning-transfer results. |
+| Project guardian | [Sixty successive debug transitions across three projects](GUARDIAN_LONGITUDINAL.md), original baseline/current source captures, current-support regression, and independent review forms | Both full implementation-session captures failed source integrity; targeted reversion checks passed. Independently reviewed model alert precision and burden remain unmeasured. |
+
+The [recorded guardian evidence](results/guardian-debug-2026-10-10/README.md)
+retains all failed checks: the baseline and candidate full captures had 32 and
+15 source-integrity failures respectively, when deleted paths reappeared during
+read-command intervals. One capture includes an intermediate `.rsync-tmp` path;
+the writer was not independently identified. These are failed full integrity
+captures. No unavailable provider is scored as a successful quiet guardian.
+
+The existing default context schema 4, deterministic schema 2, and optional
+schema 3 remain compatibility controls. Shared context schema 5 is explicitly
+selected, and compact exploration schema 2 requires `--compact`. Evaluation
+does not silently promote either experimental interface into the default.
+
+## Existing shared, coding, and synthesis protocols
 
 For the explicit schema-5 shared agent experience and schema-1 human orientation,
 see [Shared intelligence and learning-transfer evaluation](SHARED_INTELLIGENCE.md).
@@ -23,13 +52,33 @@ inference charges remain unknown.
 
 For Lore 0.4's native-import scenarios and four-setup engineering-task comparison, see [Cross-source evaluation](CROSS_SOURCE.md). Its mechanical tests and preparation command run without inference. The semantic release gates require actual model runs and blind human review; bundled fixtures cannot establish measured benefit.
 
-This directory is a **reproducible evaluation harness**, not a claim that model quality has already been established. It defines four document collections: an evolving, human-curated payments project called Atlas; Lore's own documentation; and pinned revisions of the public OpenWiki and LLM Wiki repositories. External repositories are fetched only when explicitly selected and at the exact commit recorded in [targets.json](targets.json). The script copies permitted Markdown documents into an isolated workspace and never executes source-repository code or edits the original files.
+The original document-synthesis benchmark defines four collections: an evolving,
+human-curated payments project called Atlas; Lore's own documentation; and
+pinned revisions of the public OpenWiki and LLM Wiki repositories. External
+repositories are fetched only when explicitly selected and at the exact commit
+recorded in [targets.json](targets.json). That benchmark copies permitted
+Markdown documents into an isolated workspace and never executes source-repository
+code or edits the original files. Coding-task protocols separately execute an
+explicitly selected agent and independent checker in a deliberately isolated
+study environment; this is not a Lore runtime capability.
 
 The critical research question is whether real inference models turn scattered, changing project artifacts into coherent, accurate knowledge. The benchmark checks SQLite integrity, current source excerpt validity, source-specific assertion extraction, expected types/lifecycles, and known equivalence or supersession relationships. It also performs an unchanged update and verifies **zero model calls and byte-identical wiki pages**. The Atlas mutation adds an explicit replacement ADR and a reported deployment, allowing us to observe whether Lore updates the documented architectural decision without wrongly upgrading a report to independently verified production reality.
 
 ## Limits of automatic scoring
 
-The source-assertion checkpoint matcher performs **lexical substring matching** against retained evidence excerpts, not semantic entailment. A correct quotation or foreign key does not make the model's interpretation true. Two assertions can share wording while having different scope or dates, and two differently worded assertions can convey the same proposition. For this reason, every run produces a human-review worksheet. Reviewers should inspect generated prose, cited evidence IDs, historical applicability, open contradictions, and the usefulness of the information architecture, recording concrete counterexamples. The external public projects currently have structural checks but do not have reviewed gold interpretations; they must not be used to advertise semantic recall.
+The original source-assertion checkpoint matcher performs **lexical substring
+matching** against retained evidence excerpts, not semantic entailment. A correct
+quotation or foreign key does not make a model's interpretation true. Two
+assertions can share wording while having different scope or dates, and two
+differently worded assertions can convey the same proposition. Each synthesis
+run therefore produces a human-review worksheet. Reviewers should inspect
+generated prose, cited evidence IDs, historical applicability, open
+contradictions, and the information architecture, recording counterexamples.
+The original OpenWiki/LLM Wiki synthesis collections have structural checks
+without reviewed gold interpretations; they must not be used to advertise
+semantic recall. The separate 24-case 0.7 source-gold review covers its pinned
+documentary queries and conditions only, and does not establish these wider
+synthesis or human outcomes.
 
 The current Lore database logs model calls, cached calls, provider/model identifiers, task types and durations but **does not persist provider input/output tokens or actual currency charges**. The report therefore leaves billing cost as null unless you explicitly supply a measured billed amount using the --billed-cost-usd argument. Do not infer actual USD expense from the number of requests. Provider usage instrumentation should be added before drawing conclusions about relative pricing.
 
@@ -87,7 +136,7 @@ python3 evaluation/benchmark.py score \
 
 The Atlas corpus contains nine initial files, two added in the evolution phase, eleven manually selected source checkpoints, and three relation checks. These identify plausible expected behavior, but reviewers should revise gold labels that prove ambiguous and document those revisions. See [BASELINE.md](BASELINE.md) for results that have actually been measured.
 
-## A proposed gate for the next release
+## Document-synthesis quality gate
 
 Before describing Lore as validated, require no fabricated source citations in the reviewed pages, no confirmed promotion of unapproved plans into deployed facts, explicit historical preservation of superseded decisions, and correct no-op and interrupted-publication behavior. Investigate Atlas lexical and typed checkpoint coverage below roughly 90 percent, while recognizing these figures are provisional targets rather than observed results. Have at least two independent people review each real generated wiki, including whether the page hierarchy provides genuine value beyond the source files. Compare the same source revision under different models, prompts, and optional decision-model strategies, recording wall-clock time, model calls, measured billed charges, omissions, and wrong conclusions.
 

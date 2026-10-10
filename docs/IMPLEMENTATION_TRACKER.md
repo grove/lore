@@ -1,4 +1,57 @@
-# Shared project intelligence implementation tracker
+# Lore 0.7 implementation tracker
+
+Current implementation: **Lore 0.7 — evidence-driven usefulness**. The
+[0.7 guide](V07.md) describes the available commands and compatibility boundaries;
+the [release scorecard](../evaluation/PRODUCT_QUALITY_07.md) is the current record
+of integrated validation, release receipts, and measured versus unmeasured
+outcomes. This tracker preserves the earlier 0.6 evidence separately below.
+
+## 0.7 work packages and evidence
+
+The seven packages are implemented through [PRs #33–39](../evaluation/PRODUCT_QUALITY_07.md#ship-decision).
+The linked PRs carry their exact head, three-platform checks and merge receipts.
+Local integration passed **427 Rust tests** (3 explicitly ignored), **174 Python
+tests**, **13 offline preparation/validation commands**, strict lint, formatting
+and all 11 CLI checks. The scorecard separates these gates from unmeasured
+model and human outcomes.
+
+| Plan package | Implemented work | Evidence and remaining boundary |
+| --- | --- | --- |
+| #33 — Knowledge Zoom reliability | Select complete relevant evidence obligations before optional navigation; retain original conditions, history, citations, and relationship endpoints; explicit compact exploration response and budget limitations | Constrained-budget regression checks and complete JSON/Markdown budget coverage. Plain exploration schema 1 remains unchanged; schema 2 requires `--compact`. |
+| #34 — Retrieval evaluation | Frozen source cases, independently checked source bindings, exact gold conditions, and reproducible comparison/attribution | Twenty-four pinned ripgrep/fd/jq cases have a separate AI-agent source-gold review. This is retrieval regression evidence, not independent human usefulness evidence or an isolated causal graph benefit. See [methods and results](../evaluation/KNOWLEDGE_ZOOM.md). |
+| #35 — Coding-agent benchmarks | Thirty public candidate repairs, six matched configurations, independent executable checker controls, bounded repair loops, and complete cost accounting | Candidate preparation and engineering controls are available. Real-model task success, end-to-end time/cost, independent task review, and held-out outcomes remain separate gates. See [real coding tasks](../evaluation/REAL_CODING_TASKS.md). |
+| #36 — Agent intelligence improvements | Source-bound failure triage and runtime-change validation; related-task, source-change, and permission-narrowing sequence protocol | Runtime improvement claims require actual pilot failures, exact evidence, cost risk, and a holdout plan. An unrun study does not justify a speculative adaptive algorithm. See [failure triage](../evaluation/FAILURE_TRIAGE.md). |
+| #37 — Human onboarding | Counterbalanced twelve-participant protocol, explicit opt-in pseudonymous records, independently checked first contribution, and distinct learning transfer | Study infrastructure and debugging exercises are implemented; participants, first-contribution outcomes, learning transfer, and observed UX benefits remain unmeasured. See [human onboarding](../evaluation/HUMAN_ONBOARDING.md). |
+| #38 — Project guardian | Current support separate from immutable history, A→B→A condition reversion, accepted-topic priority, complete grouped risk/blocker actions, and sixty successive source transitions | Targeted reversion and compatibility checks passed. Both full actual CLI captures failed source integrity when deleted paths reappeared; no full longitudinal quality pass or independent alert-precision claim. See [protocol](../evaluation/GUARDIAN_LONGITUDINAL.md) and [captured results](../evaluation/results/guardian-debug-2026-10-10/README.md). |
+| #39 — Release validation | Integrated regression/compatibility validation, usage documentation, measured-outcome scorecard, and release preparation | Aggregate gate results and any remaining limitations are recorded in the [0.7 scorecard](../evaluation/PRODUCT_QUALITY_07.md). Engineering checks do not replace real-model or human outcomes. |
+
+Existing context schemas 2/3/4 retain their contracts. Schema 5 remains explicitly
+selected, and compact exploration is opt-in. The work reuses the retained
+registry and shared intelligence engine. It grants no repository-command
+execution authority to sources, imported records, or model responses.
+
+### Guardian regression and capture status
+
+The guardian's current-support regression preserves a restored condition after
+A→B→A even when its short summary and cumulative historical quote set remain
+unchanged. Older baseline checksums still load. Eighteen companion integration
+tests, two actual CLI tests, three advisory grouping units, two corpus/export
+tests, and twenty-eight guardian Python protocol tests passed locally. Distinct
+actions with overlapping or negated text are retained rather than erased by a
+substring deduplication.
+
+The baseline and candidate full debug captures each covered all sixty events.
+They reported 20 versus 17 no-documented-change results, respectively, but had
+32 versus 15 failed source-integrity events. Every other captured mechanical
+check passed. A candidate ten-event payments segment passed all checks; a short
+baseline capture included `.rsync-tmp/history.md` before a deleted source path
+reappeared. The writer was not independently identified. The full failures
+remain in the archived reports and block their integrity gate. Provider calls
+were zero, alert precision and recall are unmeasured, and independent syscall
+audit was unavailable. These results support targeted debugging, not a claim of
+validated longitudinal guardian usefulness.
+
+## Historical 0.6 shared-intelligence implementation
 
 Baseline: merged PR [#24](https://github.com/grove/lore/pull/24), commit
 `4197ba345de5ff7ec1bad17ab1f8349803b47783` (Lore 0.6). The design documents
@@ -16,7 +69,7 @@ describe product outcomes; this file records implementation and measured status.
 | M3 / R1–R4 | `knowledge` DAG, incremental derived views and human presentation modes | Variable depth, multiple parents, preserved conditions, direct evidence bypass, bounded source/topology validation | Existing documentary registry/retrieval and shared snapshot; no separate graph database | 28 graph tests, 4 actual CLI tests and 2 comparison/scorer tests; [96-call synthetic comparison](../evaluation/KNOWLEDGE_ZOOM.md) | Merged in [#28](https://github.com/grove/lore/pull/28); three-platform CI passed; constrained-budget comparative acceptance is not met |
 | M4 / R5–R7 | `companion` explicit baselines, consequential changes and guardian | Original historical evidence, native qualifications and advisory investigation remain source-bound and budgeted | Shared core #25, decisions/cases #27 and source manifest #29; no graph dependency | 14 companion tests and 2 actual CLI tests; immutable old support, native status, interpretation withdrawal, permission and whole-group budget regressions | Merged in [#31](https://github.com/grove/lore/pull/31); three-platform CI passed; longitudinal alert precision and burden unmeasured |
 
-## Observed baseline
+## Historical observed baseline
 
 - The exact merged baseline passed [three-platform CI](https://github.com/grove/lore/actions/runs/37998586894)
   at `4197ba345de5ff7ec1bad17ab1f8349803b47783`. This includes the full offline
@@ -33,9 +86,11 @@ describe product outcomes; this file records implementation and measured status.
 - No human onboarding study, hosted-model quality experiment or agent
   productivity comparison is implied by these results.
 
-## Integrated engineering verification — 2026-10-10
+## Historical 0.6 integrated engineering verification — 2026-10-10
 
-The combined implementation and existing-code lint cleanup passed:
+The pre-0.7 combined implementation and existing-code lint cleanup passed the
+following recorded gates. These counts are retained as historical evidence;
+current 0.7 aggregate counts belong in the release scorecard.
 
 | Gate | Recorded local result |
 | --- | --- |
@@ -103,7 +158,7 @@ configuration. Existing `privacy.local_only` and explicit `--no-inspect`
 restrictions remain ceilings. No command starts repository processes or gives
 repository text execution authority.
 
-## Product evaluation status
+## Product evaluation status and historical comparison
 
 Human learning and coding-agent outcomes are independent gates. Contract tests
 and synthetic source fixtures establish neither learning transfer nor improved
@@ -111,9 +166,13 @@ coding productivity. Real participants, independently verified changes and
 comparable model/tool budgets must be recorded before claiming those outcomes.
 No full-program completion claim is made while those gates remain unmeasured.
 
-The Knowledge Zoom comparison records a direct-ID recall gain and several losses
-in complete critical-condition coverage at a 1500-token budget. The optional
-exploration command does not replace the established flat retrieval path. These
-results do not satisfy M3's comparative acceptance gate at constrained budgets,
-and the comparison of complete entry points does not isolate a causal benefit
-from the graph alone.
+The historical Knowledge Zoom comparison recorded a direct-ID recall gain and
+several losses in complete critical-condition coverage at a 1500-token budget.
+Those 0.6 results remain available and did not satisfy the constrained-budget
+comparative gate. The 0.7 work adds complete-obligation selection, an explicit
+compact envelope, frozen regressions, and the separate 24-case source-gold
+review. The [current methods and results](../evaluation/KNOWLEDGE_ZOOM.md) and
+[scorecard](../evaluation/PRODUCT_QUALITY_07.md) distinguish that new evidence from
+the old failure record. Optional exploration still does not replace established
+flat retrieval, and comparing complete entry points does not isolate a causal
+benefit from the graph alone.
