@@ -180,12 +180,14 @@ def cited_ids(value) -> set[str]:
     return result
 
 
-def resolve_citations(binary: str, project: Path, ids: set[str], timeout: int) -> dict:
+def resolve_citations(binary: str, project: Path, ids: set[str], timeout: int,
+                      *, env: dict[str, str] | None = None) -> dict:
     failures, results = [], []
     for evidence_id in sorted(ids):
         evidence, error = None, None
         try:
-            evidence, _ = bench.subprocess_json(binary, project, "evidence", evidence_id, timeout=timeout)
+            evidence, _ = bench.subprocess_json(binary, project, "evidence", evidence_id, timeout=timeout,
+                                                **({"env": env} if env is not None else {}))
             if evidence.get("evidence_id", evidence.get("id")) != evidence_id:
                 failures.append(evidence_id)
         except ValueError as exception:
