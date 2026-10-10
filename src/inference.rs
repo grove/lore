@@ -4,21 +4,16 @@ use serde_json::Value;
 
 /// A typed Responses API reasoning effort. Model support varies; GPT-6 Luna
 /// supports every level represented here. This is not a Decisions API setting.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ReasoningEffort {
     None,
     Low,
+    #[default]
     Medium,
     High,
     Xhigh,
     Max,
-}
-
-impl Default for ReasoningEffort {
-    fn default() -> Self {
-        Self::Medium
-    }
 }
 
 use std::{
