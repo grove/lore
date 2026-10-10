@@ -93,7 +93,8 @@ def independent_reviews(root: Path, reviews: list, *, excluded=(), target_sha256
             "qualification": "Accountable declarations and review artifacts, not authenticated proof of distinct humans."}
 
 
-def validate_model_pins(registration: dict, report: dict) -> None:
+def validate_model_declarations(registration: dict) -> None:
+    """Validate declared pins without inventing observations during preflight."""
     agent, lore = registration["agent"], registration["lore"]
     for label, role in (("agent", agent), ("Lore", lore)):
         for key in ("model", "model_revision", "reasoning"):
@@ -105,6 +106,11 @@ def validate_model_pins(registration: dict, report: dict) -> None:
     if (not isinstance(tools, list) or any(not isinstance(item, str) or not item.strip() for item in tools)
             or len(tools) != len(set(tools))):
         raise ValueError("The coding agent's tools must be an explicit unique list")
+
+
+def validate_model_pins(registration: dict, report: dict) -> None:
+    validate_model_declarations(registration)
+    agent, lore = registration["agent"], registration["lore"]
     reported = {attempt["response"].get("provider_model") for sample in report["samples"]
                 for attempt in sample.get("attempts", [{"response": sample["agent_response"]}])}
     if reported != {agent["model"]}:
@@ -116,6 +122,65 @@ def validate_model_pins(registration: dict, report: dict) -> None:
         raise ValueError("Preregistered Lore configurations do not match all collected cases")
 
 
+def validate_preregistration_inputs(directory: Path, registration: dict, report: dict) -> None:
+    """Shared static gate; report carries planned inputs and limits, no samples.
+
+    Outcome assessment additionally validates observed models/configurations.
+    Passing this helper cannot turn a planned run into a completed study.
+    """
+    if registration.get("schema_version") != 1 or registration.get("protocol") != "lore-outcome-preregistration-v1":
+        raise ValueError("Unknown study preregistration format")
+    if registration.get("complete") is not True:
+        raise ValueError("Preregistration has not been completed")
+    if (type(registration.get("pilot")) is not bool or any(not isinstance(registration.get(key), str)
+            or not registration[key].strip() for key in ("study_id", "operator_id"))):
+        raise ValueError("Preregistration needs an explicit pilot flag, study identity and operator")
+    if timestamp(registration["registered_at"]) > timestamp(report["created_at"]):
+        raise ValueError("Preregistration occurred after coding outcomes were collected")
+    if registration["arms"] != report["setups"]:
+        raise ValueError("Preregistered comparison arms changed")
+    registered = {item["case_id"]: item for item in registration["cases"]}
+    if len(registered) != len(registration["cases"]) or set(registered) != {entry["case"]["id"] for entry in report["cases"]}:
+        raise ValueError("Preregistered task cohort changed")
+    if len(registered) < (6 if registration.get("pilot") is True else 30):
+        raise ValueError("Preregistered cohort is below its minimum task count")
+    projects = set()
+    for entry in report["cases"]:
+        gold = registered[entry["case"]["id"]]
+        if (gold["task_sha256"] != task_contract_sha256(entry)
+                or not entry.get("checker_files_sha256")
+                or gold.get("checker_files_sha256") != entry["checker_files_sha256"]
+                or gold["source_sha256"] != entry["source_manifest"]["sha256"]
+                or gold["source_provenance"] != source_provenance(entry) or not gold["source_provenance"]["complete"]):
+            raise ValueError("Preregistered task, checker contract or exact source pin changed")
+        authors, checkers = gold["task_authors"], gold["checker_authors"]
+        for identities in (authors, checkers):
+            if (not isinstance(identities, list) or not identities
+                    or any(not isinstance(name, str) or not name.strip() for name in identities)
+                    or len({name.strip().casefold() for name in identities}) != len(identities)):
+                raise ValueError("Task/checker authors need distinct nonempty accountable identities")
+        if {name.strip().casefold() for name in authors} & {name.strip().casefold() for name in checkers}:
+            raise ValueError("Independent nonempty task and checker authorship is required")
+        reviewed = independent_reviews(directory, gold["independent_gold_reviews"],
+            excluded=[registration["operator_id"], *authors, *checkers], target_sha256=gold["task_sha256"])
+        if not reviewed["complete"]:
+            raise ValueError(reviewed["reason"])
+        projects.add(gold["source_provenance"]["repository"])
+    if len(projects) < 3:
+        raise ValueError("Three independent upstream projects are required")
+    agent = registration["agent"]
+    validate_model_declarations(registration)
+    if agent["command_sha256"] != report["agent_command_sha256"] or agent["max_attempts"] != report["repair_policy"]["max_attempts"]:
+        raise ValueError("Preregistered command or attempt limit changed")
+    if agent["wall_time_seconds"] != report["repair_policy"]["attempt_budget_seconds"]:
+        raise ValueError("Preregistered wall-time budget changed")
+    for key in ("token_limit", "tool_call_limit"):
+        if type(agent[key]) is not int or agent[key] < 0:
+            raise ValueError("Token and tool limits must be explicitly pinned")
+    if type(agent["temperature"]) not in (int, float) or not 0 <= agent["temperature"] <= 2:
+        raise ValueError("Temperature must be pinned")
+
+
 def preregistration_status(directory: Path, report: dict) -> dict:
     path = directory / "PREREGISTRATION.json"
     if not path.is_file():
@@ -123,57 +188,8 @@ def preregistration_status(directory: Path, report: dict) -> dict:
     registration = cross.read_json(path)
     issues = []
     try:
-        if registration.get("schema_version") != 1 or registration.get("protocol") != "lore-outcome-preregistration-v1":
-            raise ValueError("Unknown study preregistration format")
-        if registration.get("complete") is not True:
-            raise ValueError("Preregistration has not been completed")
-        if (type(registration.get("pilot")) is not bool or any(not isinstance(registration.get(key), str)
-                or not registration[key].strip() for key in ("study_id", "operator_id"))):
-            raise ValueError("Preregistration needs an explicit pilot flag, study identity and operator")
-        if timestamp(registration["registered_at"]) > timestamp(report["created_at"]):
-            raise ValueError("Preregistration occurred after coding outcomes were collected")
-        if registration["arms"] != report["setups"]:
-            raise ValueError("Preregistered comparison arms changed")
-        registered = {item["case_id"]: item for item in registration["cases"]}
-        if len(registered) != len(registration["cases"]) or set(registered) != {entry["case"]["id"] for entry in report["cases"]}:
-            raise ValueError("Preregistered task cohort changed")
-        if len(registered) < (6 if registration.get("pilot") is True else 30):
-            raise ValueError("Preregistered cohort is below its minimum task count")
-        projects = set()
-        for entry in report["cases"]:
-            gold = registered[entry["case"]["id"]]
-            if (gold["task_sha256"] != task_contract_sha256(entry)
-                    or not entry.get("checker_files_sha256")
-                    or gold.get("checker_files_sha256") != entry["checker_files_sha256"]
-                    or gold["source_sha256"] != entry["source_manifest"]["sha256"]
-                    or gold["source_provenance"] != source_provenance(entry) or not gold["source_provenance"]["complete"]):
-                raise ValueError("Preregistered task, checker contract or exact source pin changed")
-            authors, checkers = gold["task_authors"], gold["checker_authors"]
-            for identities in (authors, checkers):
-                if (not isinstance(identities, list) or not identities
-                        or any(not isinstance(name, str) or not name.strip() for name in identities)
-                        or len({name.strip().casefold() for name in identities}) != len(identities)):
-                    raise ValueError("Task/checker authors need distinct nonempty accountable identities")
-            if {name.strip().casefold() for name in authors} & {name.strip().casefold() for name in checkers}:
-                raise ValueError("Independent nonempty task and checker authorship is required")
-            reviewed = independent_reviews(directory, gold["independent_gold_reviews"],
-                excluded=[registration["operator_id"], *authors, *checkers], target_sha256=gold["task_sha256"])
-            if not reviewed["complete"]:
-                raise ValueError(reviewed["reason"])
-            projects.add(gold["source_provenance"]["repository"])
-        if len(projects) < 3:
-            raise ValueError("Three independent upstream projects are required")
-        agent = registration["agent"]
+        validate_preregistration_inputs(directory, registration, report)
         validate_model_pins(registration, report)
-        if agent["command_sha256"] != report["agent_command_sha256"] or agent["max_attempts"] != report["repair_policy"]["max_attempts"]:
-            raise ValueError("Preregistered command or attempt limit changed")
-        if agent["wall_time_seconds"] != report["repair_policy"]["attempt_budget_seconds"]:
-            raise ValueError("Preregistered wall-time budget changed")
-        for key in ("token_limit", "tool_call_limit"):
-            if type(agent[key]) is not int or agent[key] < 0:
-                raise ValueError("Token and tool limits must be explicitly pinned")
-        if type(agent["temperature"]) not in (int, float) or not 0 <= agent["temperature"] <= 2:
-            raise ValueError("Temperature must be pinned")
     except (ValueError, KeyError, TypeError, OSError) as error:
         issues.append(str(error))
     return {"complete": not issues, "status": "bound_preregistered_study" if not issues else "unmeasured",

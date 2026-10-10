@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "fixture_only": true,
+  "qualification": "Public, synthetic context-revalidation controls. No coding, model-quality or time-saving outcome is claimed.",
+  "sequences": [
+    {
+      "id": "payment-accepted-adr-deep-revision",
+      "source_cases": "source-cases.json",
+      "source_case": "payments-deep-retry",
+      "task_a": "Explain the payment retry adapter, the current accepted policy, and the provider retry constant under src/payments/gateways/providers/legacy/retry_policy.py.",
+      "task_b": "Implement transient payment retries while preserving token identity. Reconcile the current accepted retry limit with the deepest provider retry constant and identify any unresolved deployment mismatch.",
+      "accepted_adr": {
+        "path": "docs/ADR-018.md",
+        "supersedes": "docs/ADR-017.md",
+        "previous_statement": "Payment processing must retry a failed charge at most three times.",
+        "replacement_statement": "Payment processing must retry a failed charge at most two times.",
+        "content": "# ADR-018: Reduce payment retries after duplicate-charge review\n\nStatus: Accepted\nDate: 2026-10-01\nSupersedes: docs/ADR-017.md\n\n## Decision\n\nPayment processing must retry a failed charge at most two times. Reuse the same idempotency token. This accepted replacement follows a duplicate-charge risk review; deployed adapters require an explicit migration and must not be silently rewritten by documentation refresh.\n"
+      },
+      "deep_revision": {
+        "path": "src/payments/gateways/providers/legacy/retry_policy.py",
+        "before": "MAX_PROVIDER_RETRIES = 5",
+        "after": "MAX_PROVIDER_RETRIES = 4"
+      }
+    }
+  ]
+}

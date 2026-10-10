@@ -10,6 +10,7 @@ import argparse
 import json
 from pathlib import Path
 import random
+import re
 import shutil
 import subprocess
 import sys
@@ -25,6 +26,39 @@ import shared_intelligence as shared
 PROTOCOL = 'adaptive-different-task-v1'
 DEFAULT = Path(__file__).resolve().parent / 'corpora/adaptive-sequences/cases.json'
 ARMS = adaptive.ADAPTIVE
+REVISION_DEFAULT = Path(__file__).resolve().parent / 'corpora/adaptive-sequences-08/cases.json'
+
+
+def phase_names(sequence: dict) -> tuple[str, ...]:
+    if 'accepted_adr' in sequence:
+        return ('task_a', 'task_b', 'accepted_adr', 'deep_revision', 'narrower_grant')
+    return ('task_a', 'task_b', 'related_revision', 'unrelated_revision', 'narrower_grant')
+
+
+def source_path(name: str) -> str:
+    name = coding.relative_file(name)
+    if name == 'lore.yml' or name.split('/')[0] in ('.lore', 'wiki', '.git'):
+        raise ValueError('Sequence revisions may change only selected primary sources')
+    return name
+
+
+def revise_text(sequence: dict, phase: str, files: dict[str, str]) -> dict[str, str]:
+    """Replay exact declared changes in preparation, execution and assessment."""
+    result = dict(files)
+    change = sequence[phase]
+    name = source_path(change['path'])
+    if phase == 'accepted_adr':
+        if name in files:
+            raise ValueError('The accepted contradictory ADR must be a new source file')
+        supersedes = source_path(change['supersedes'])
+        if files.get(supersedes, '').count(change['previous_statement']) != 1:
+            raise ValueError('The new ADR must identify an exact prior source-owned policy')
+        result[name] = change['content']
+    else:
+        if files.get(name, '').count(change['before']) != 1:
+            raise ValueError('Revision precondition must match exactly once in current source')
+        result[name] = files[name].replace(change['before'], change['after'])
+    return result
 
 
 def load_cases(path: Path) -> dict:
@@ -40,12 +74,30 @@ def load_cases(path: Path) -> dict:
         identities.add(case['id'])
         if not case.get('task_a') or not case.get('task_b') or case['task_a'] == case['task_b']:
             raise ValueError('Reuse requires two distinct tasks')
-        for phase in ('related_revision', 'unrelated_revision'):
+        revisions = phase_names(case)[2:-1]
+        if 'accepted_adr' in case:
+            change = case['accepted_adr']
+            name = source_path(change['path'])
+            if (not name.startswith('docs/') or not name.endswith('.md')
+                    or not isinstance(change['content'], str) or len(change['content'].encode('utf-8')) > 64000
+                    or not re.search(r'^Status:\s*Accepted\s*$', change['content'], re.I | re.M)
+                    or not change['previous_statement'] or not change['replacement_statement']
+                    or change['previous_statement'] == change['replacement_statement']
+                    or change['content'].count(change['replacement_statement']) != 1
+                    or change['supersedes'] not in change['content']):
+                raise ValueError('A new accepted ADR requires bound supersession and replacement statements')
+            if len(Path(source_path(case['deep_revision']['path'])).parts) < 5:
+                raise ValueError('The deep-file revision must be at least four directories below the source root')
+        elif 'deep_revision' in case:
+            raise ValueError('The 0.8 sequence requires both accepted ADR and deep-file phases')
+        for phase in revisions:
+            if phase == 'accepted_adr':
+                continue
             change = case[phase]
-            coding.relative_file(change['path'])
+            source_path(change['path'])
             if not isinstance(change['before'], str) or not change['before'] or not isinstance(change['after'], str) or change['before'] == change['after']:
                 raise ValueError('A revision must declare an exact meaningful byte replacement')
-        if case['related_revision']['path'] == case['unrelated_revision']['path']:
+        if case[revisions[0]]['path'] == case[revisions[1]]['path']:
             raise ValueError('Related and unrelated changes must affect distinct paths')
     return data
 
@@ -66,10 +118,10 @@ def prepare(output: Path, manifest: Path = DEFAULT) -> dict:
             cross.copy_snapshot(source_manifest_dir / case['overlay'], destination)
         else:
             cross.copy_snapshot(source_manifest_dir / case['source_root'], destination)
-        for phase in ('related_revision', 'unrelated_revision'):
-            change = sequence[phase]
-            if (destination / change['path']).read_bytes().decode('utf-8').count(change['before']) != 1:
-                raise ValueError('Revision precondition must match exactly once in the pinned source')
+        source_files = {name:(destination/name).read_bytes().decode('utf-8')
+                        for name in cross.fingerprint(destination)['files_sha256']}
+        for phase in phase_names(sequence)[2:-1]:
+            source_files = revise_text(sequence, phase, source_files)
         rows.append({'sequence':sequence,'case':case,'source_root':destination.relative_to(output).as_posix(),
                      'source_manifest':cross.fingerprint(destination)})
     result = {'schema_version':1,'protocol':PROTOCOL,'phase':'preparation_only','inference_calls':0,
@@ -112,7 +164,7 @@ def checks_for(record: dict, source: Path, arm: str, policy: dict) -> dict:
             and not nested.get('checkout_egress',{}).get('model_received_checkout',False)),
         'no_reuse_arm_disabled':arm!='adaptive_no_reuse' or (record['cache_before']==record['cache_after']
             and nested.get('cache_status')!='hit' and nested.get('investigation',{}).get('stop_reason')!='cache_reused'),
-        'usage_bound':record['usage']==adaptive.measured_usage(response,arm),
+        'usage_bound':record['usage']==adaptive.measured_usage(response,arm,record.get('usage_ledger')),
     })
     return result
 
@@ -122,12 +174,13 @@ def collect(binary: str, project: Path, source: Path, task: str, arm: str, polic
     cache_before=adaptive.cache_state(project)
     argv=adaptive.arguments(arm,task,policy)
     env=adaptive.environment_factory(policy)(project,'context')
-    response,seconds=bench.subprocess_json(binary,project,*argv,timeout=policy['timeout'],env=env)
+    response,seconds,usage_ledger=coding.metered_lore(binary,project,*argv,timeout=policy['timeout'],env=env)
     citations=cross.resolve_citations(binary,project,shared.response_citations(response),policy['timeout'],env=env)
     result={'task':task,'arguments':argv,'host_grants':adaptive.grant_record(project,policy),
         'project_root':str(project.resolve(strict=True)),
         'response':response,'response_sha256':cross.digest(response),'elapsed_seconds':seconds,
-        'usage':adaptive.measured_usage(response,arm),'registry_before':before,'registry_after':coding.registry_content(project),
+        'usage':adaptive.measured_usage(response,arm,usage_ledger),'usage_ledger':usage_ledger,
+        'registry_before':before,'registry_after':coding.registry_content(project),
         'sources_before':sources,'sources_after':decision.source_state(project),'source_manifest':cross.fingerprint(source),
         'cache_before':cache_before,'cache_after':adaptive.cache_state(project),'citation_integrity':citations}
     result['checks']=checks_for(result,source,arm,policy)
@@ -154,11 +207,12 @@ def run(args: argparse.Namespace) -> dict:
         config['context']={'cache':True,'inspection':{'root':'.','enabled':False}}
         cross.write_json(base/'lore.yml',config)
         env=adaptive.environment_factory(policy)(base,'preparation')
-        initialized,init_seconds=bench.subprocess_json(binary,base,'init',timeout=policy['timeout'],env=env)
+        initialized,init_seconds,initial_ledger=coding.metered_lore(binary,base,'init',timeout=policy['timeout'],env=env)
         result={'sequence_id':sequence['id'],'initialization':initialized,
                 'initialization_sha256':cross.digest(initialized),'initialization_seconds':init_seconds,
                 'initialization_overhead_seconds':max(0.0,time.monotonic()-initialization_started-init_seconds),
-                'initialization_usage':coding.usage(initialized.get('usage'),calls=cross.model_calls(initialized)),
+                'initialization_usage':coding.metering.summary_from_record(initial_ledger) or coding.usage(initialized.get('usage'),calls=cross.model_calls(initialized)),
+                'initialization_usage_ledger':initial_ledger,
                 'initialized_manifest':cross.fingerprint(base),'arms':{}}
         order=list(ARMS);rng.shuffle(order);result['arm_order']=order
         for arm in order:
@@ -166,22 +220,23 @@ def run(args: argparse.Namespace) -> dict:
             project=output/'projects'/sequence['id']/arm
             shutil.copytree(base,project)
             phases=[]
-            for phase in ('task_a','task_b','related_revision','unrelated_revision','narrower_grant'):
+            for phase in phase_names(sequence):
                 active_policy=dict(policy)
                 update=None
-                if phase in ('related_revision','unrelated_revision'):
-                    change=sequence[phase];path=project/change['path'];cross.reject_symlink_path(path)
-                    current=path.read_bytes().decode('utf-8')
-                    if current.count(change['before'])!=1:
-                        raise ValueError('A revision no longer matches its pinned source')
-                    path.write_bytes(current.replace(change['before'],change['after']).encode('utf-8'))
+                if phase in phase_names(sequence)[2:-1]:
+                    change=sequence[phase];path=project/source_path(change['path']);cross.reject_symlink_path(path)
+                    current={name:(project/name).read_bytes().decode('utf-8') for name in decision.source_state(project)}
+                    revised=revise_text(sequence,phase,current)
+                    path.parent.mkdir(parents=True,exist_ok=True)
+                    path.write_bytes(revised[change['path']].encode('utf-8'))
                     before_update=decision.source_state(project)
-                    refreshed,seconds=bench.subprocess_json(binary,project,'update',timeout=policy['timeout'],
+                    refreshed,seconds,update_ledger=coding.metered_lore(binary,project,'update',timeout=policy['timeout'],
                         env=adaptive.environment_factory(policy)(project,'revision'))
                     if decision.source_state(project)!=before_update:
                         raise ValueError('Updating knowledge changed original source bytes')
                     update={'response':refreshed,'response_sha256':cross.digest(refreshed),'elapsed_seconds':seconds,
-                            'usage':coding.usage(refreshed.get('usage'),calls=cross.model_calls(refreshed)),'change':change}
+                            'usage':coding.metering.summary_from_record(update_ledger) or coding.usage(refreshed.get('usage'),calls=cross.model_calls(refreshed)),
+                            'usage_ledger':update_ledger,'change':change}
                 if phase=='narrower_grant':
                     active_policy.update(allow_inspection=False,allow_hosted=False,allow_checkout_egress=False)
                 source=output/'phase-sources'/sequence['id']/arm/phase
@@ -213,7 +268,7 @@ def assess(directory: Path) -> dict:
     for result in report['sequences']:
         entry=entries[result['sequence_id']];sequence=entry['sequence']
         if (result['initialization_sha256']!=cross.digest(result['initialization'])
-                or result['initialization_usage']!=coding.usage(result['initialization'].get('usage'),calls=cross.model_calls(result['initialization']))
+                or result['initialization_usage']!=(coding.metering.bind_summary(result['initialization'].get('usage'),result.get('initialization_usage_ledger')) or coding.usage(result['initialization'].get('usage'),calls=cross.model_calls(result['initialization'])))
                 or result['initialized_manifest']!=cross.fingerprint(directory/'initialized'/sequence['id'])
                 or not adaptive.nonnegative(result['initialization_seconds'])
                 or not adaptive.nonnegative(result['initialization_overhead_seconds'])):
@@ -228,21 +283,21 @@ def assess(directory: Path) -> dict:
                 raise ValueError('Sequence arm location or overhead changed')
             seconds=result['initialization_seconds']+result['initialization_overhead_seconds']+result['arms'][arm]['protocol_overhead_seconds']
             usage=[result['initialization_usage']]
-            if [item['phase'] for item in phases]!=['task_a','task_b','related_revision','unrelated_revision','narrower_grant']:
+            if [item['phase'] for item in phases]!=list(phase_names(sequence)):
                 raise ValueError('Sequence phases are missing or reordered')
             expected_files=dict(entry['source_manifest']['files_sha256'])
             source_text={name:(directory/entry['source_root']/name).read_bytes().decode('utf-8') for name in expected_files}
             for item in phases:
                 phase=item['phase'];policy=dict(report['policy'])
                 if phase=='narrower_grant':policy.update(allow_inspection=False,allow_hosted=False,allow_checkout_egress=False)
-                if phase in ('related_revision','unrelated_revision'):
+                if phase in phase_names(sequence)[2:-1]:
                     change=sequence[phase]
-                    source_text[change['path']]=source_text[change['path']].replace(change['before'],change['after'])
+                    source_text=revise_text(sequence,phase,source_text)
                     import hashlib
                     expected_files[change['path']]=hashlib.sha256(source_text[change['path']].encode('utf-8')).hexdigest()
                     if item['update']['change']!=change or item['update']['response_sha256']!=cross.digest(item['update']['response']):
                         issues.append('Source revision or refresh output changed')
-                    if (item['update']['usage']!=coding.usage(item['update']['response'].get('usage'),calls=cross.model_calls(item['update']['response']))
+                    if (item['update']['usage']!=(coding.metering.bind_summary(item['update']['response'].get('usage'),item['update'].get('usage_ledger')) or coding.usage(item['update']['response'].get('usage'),calls=cross.model_calls(item['update']['response'])))
                             or not adaptive.nonnegative(item['update']['elapsed_seconds'])):
                         issues.append('Source refresh cost changed')
                 elif item['update'] is not None:
@@ -273,8 +328,13 @@ def assess(directory: Path) -> dict:
             if (left['context']['source_manifest']!=right['context']['source_manifest']
                     or left['context']['response']['capabilities']!=right['context']['response']['capabilities']):
                 issues.append(f'{sequence["id"]}: effective sources or capabilities differ between cache arms')
+    paired_totals={identity:{row['arm']:row for row in totals if row['sequence_id']==identity} for identity in entries}
+    differences=[{'sequence_id':identity,
+        'total_seconds_reuse_minus_no_reuse':arms['adaptive_reuse']['total_seconds']-arms['adaptive_no_reuse']['total_seconds'],
+        'scope':adaptive.REUSE_SCOPE} for identity,arms in paired_totals.items()]
     return {'schema_version':1,'protocol':PROTOCOL,'mechanical_contracts_passed':not issues,'issues':issues,
         'records':rows,'arm_totals':totals,'sequences':len(entries),'actual_coding_outcomes':'unmeasured',
+        'net_revalidation_comparison':differences,
         'human_outcomes':'unmeasured','fixture_only':report['fixture_only'],
         'qualification':'Exact current observations, source manifests and narrower grants are revalidated after each revision. Lack of a cache hit is not a task failure, and a cache hit is not evidence of completed work.'}
 

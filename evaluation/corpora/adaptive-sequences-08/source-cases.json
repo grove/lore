@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "fixture_only": true,
+  "held_out": false,
+  "independent_projects": false,
+  "cases": [
+    {
+      "id": "payments-deep-retry",
+      "project": "payments",
+      "base_project": "payments",
+      "overlay": "payment",
+      "task": "Complete the payment adapter while reconciling the accepted policy and the nested provider configuration.",
+      "editable_files": ["src/payment_adapter.py"],
+      "test_command": ["{python}", "{manifest}/../coding-tasks/check_tasks.py", "payments", "{workspace}"],
+      "critical_constraints": [
+        "Reuse the exact same idempotency token.",
+        "Retry only transient transport errors.",
+        "Report the accepted-policy versus deployed-code mismatch without treating a refresh as source-edit authority."
+      ]
+    }
+  ]
+}
