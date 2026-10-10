@@ -176,6 +176,7 @@ impl Fixture {
 #[derive(Clone, Copy)]
 enum Behavior {
     Valid,
+    ManyConcepts,
     UnknownEvidence,
     InventedFile,
     RuntimeClaim,
@@ -216,7 +217,11 @@ fn draft(input: &Value) -> Value {
     let record = |kind: &str| {
         records
             .iter()
-            .find(|r| r["kind"] == kind && (kind != "constraint" || r["claim"]["text"] == RULE))
+            .find(|r| {
+                r["kind"] == kind
+                    && (kind != "constraint" || r["claim"]["text"] == RULE)
+                    && (kind != "design" || r["claim"]["text"] == PURPOSE)
+            })
             .unwrap()
     };
     let design = record("design");
@@ -282,6 +287,22 @@ impl GenerativeModel for HumanModel {
             let output = if input["task"] == "human_experience" {
                 let mut output = draft(&input);
                 match self.behavior {
+                    Behavior::ManyConcepts => {
+                        let concepts = output["concepts"].as_array_mut().unwrap();
+                        for (index, record) in input["evidence"]["records"]
+                            .as_array()
+                            .unwrap()
+                            .iter()
+                            .filter(|record| {
+                                record["kind"] == "design" && record["claim"]["text"] != PURPOSE
+                            })
+                            .take(3)
+                            .enumerate()
+                        {
+                            concepts.push(json!({"id":format!("detail-{index}"),
+                                "title":format!("Dispatch detail {index}"), "description":record["claim"]}));
+                        }
+                    }
                     Behavior::UnknownEvidence => {
                         output["purpose"]["evidence_ids"] = json!(["ev_not_retained"])
                     }
@@ -355,6 +376,134 @@ async fn on01_immediate_orientation_is_shared_source_extractive_and_stateless() 
     assert_eq!(result.model_calls, 0);
     assert_eq!(before, storage::registry_revision(&fixture.conn).unwrap());
     assert!(!fixture.config.state.exists());
+}
+
+#[tokio::test]
+async fn initial_explanation_limits_concepts_without_changing_grounding_or_lessons() {
+    let fixture = Fixture::new();
+    fixture.add(
+        "workers",
+        "design",
+        "Each dispatch worker processes one accepted tenant job at a time.",
+    );
+    fixture.add(
+        "routing",
+        "design",
+        "A tenant key selects its dispatch queue.",
+    );
+    fixture.add(
+        "overflow",
+        "design",
+        "Dispatch emits Busy when a bounded queue cannot accept a job.",
+    );
+    let mut options = ExperienceOptions {
+        mode: ExperienceMode::Reference,
+        max_tokens: 32_000,
+        ..Default::default()
+    };
+    // Obtain the ordinary no-goal retrieval query through the actual, model-free
+    // reference entry point, then reuse that captured input for both presenters.
+    let reference = experience::run(&fixture.config, &fixture.conn, &options)
+        .await
+        .unwrap();
+    let task = match &reference.intelligence {
+        DecisionContextResult::Brief(result) => result.task.clone(),
+        DecisionContextResult::FastFallback(result) => result.context.task.clone(),
+    };
+    let shared = fixture.shared_task(&options.run, &task).await;
+    for generated in [false, true] {
+        let model = HumanModel::new(Behavior::ManyConcepts);
+        let model = generated.then_some(&model as &dyn GenerativeModel);
+        options.mode = ExperienceMode::Explanation;
+        options.goal = Some(task.clone());
+        options.lesson = None;
+        options.hint_level = 0;
+        let targeted = experience::build(
+            &fixture.conn,
+            &fixture.config,
+            &options,
+            shared.clone(),
+            model,
+        )
+        .await
+        .unwrap();
+        assert_eq!(targeted.orientation.concepts.len(), 5);
+        assert_eq!(targeted.omitted_items, 0);
+        options.goal = None;
+        let initial = experience::build(
+            &fixture.conn,
+            &fixture.config,
+            &options,
+            shared.clone(),
+            model,
+        )
+        .await
+        .unwrap();
+        assert_eq!(initial.orientation.concepts.len(), 3);
+        assert_eq!(initial.omitted_items, 2);
+        assert_eq!(
+            initial.generation_basis,
+            if generated {
+                GenerationBasis::ModelAssessed
+            } else {
+                GenerationBasis::DeterministicFallback
+            }
+        );
+        assert_ne!(initial.revision_key, targeted.revision_key);
+        assert_eq!(
+            serde_json::to_value(&initial.orientation.concepts).unwrap(),
+            serde_json::to_value(&targeted.orientation.concepts[..3]).unwrap()
+        );
+        assert_eq!(
+            serde_json::to_value(&initial.orientation.constraints).unwrap(),
+            serde_json::to_value(&targeted.orientation.constraints).unwrap()
+        );
+        assert_eq!(
+            serde_json::to_value(&initial.source_relationships).unwrap(),
+            serde_json::to_value(&targeted.source_relationships).unwrap()
+        );
+        assert_eq!(
+            serde_json::to_value(&initial.intelligence).unwrap(),
+            serde_json::to_value(&targeted.intelligence).unwrap()
+        );
+
+        options.mode = ExperienceMode::Tutorial;
+        let tutorial = experience::build(
+            &fixture.conn,
+            &fixture.config,
+            &options,
+            shared.clone(),
+            model,
+        )
+        .await
+        .unwrap();
+        assert_eq!(tutorial.orientation.concepts.len(), 5);
+        assert_eq!(tutorial.omitted_items, 0);
+        let lesson = tutorial.tutorial.as_ref().unwrap();
+        assert_eq!(lesson.prerequisites.concept_ids.len(), 5);
+        options.lesson = Some(lesson.revision_key.clone());
+        options.hint_level = 1;
+        let hinted = experience::build(
+            &fixture.conn,
+            &fixture.config,
+            &options,
+            shared.clone(),
+            model,
+        )
+        .await
+        .unwrap();
+        assert_eq!(hinted.orientation.concepts.len(), 5);
+        assert_eq!(
+            hinted.tutorial.as_ref().unwrap().revision_key,
+            lesson.revision_key
+        );
+        assert!(
+            !hinted
+                .warnings
+                .iter()
+                .any(|warning| warning.contains("lesson revision does not match"))
+        );
+    }
 }
 
 #[tokio::test]
