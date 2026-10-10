@@ -1,0 +1,228 @@
+{
+  "schema_version": 1,
+  "source_revision": "0ba8b17f7e63726a8d81def2b60af18573d4640c",
+  "classification": "baseline_source_permission_cost_contracts",
+  "source_pins": [
+    {
+      "path": "tests/context_cli.rs",
+      "sha256": "1965f465b9f172dc92d211ebcc61d48f3be85e832deb98a0f8112a44675a95dc"
+    },
+    {
+      "path": "tests/context_decision_cli.rs",
+      "sha256": "da9e6a0529ed5afba58d3de2cf2c75f19e0802baf2f8103fdeefb3033b199c7f"
+    },
+    {
+      "path": "tests/adaptive_context.rs",
+      "sha256": "07190d739716caeaf919510c7872f4444fd6fefc4674f40877370d14ccc65f7d"
+    },
+    {
+      "path": "tests/source_relationship_manifest.rs",
+      "sha256": "55dfeb71feb18802e62b79179a9d811c69b2db9e9e57cf4589a906962593beb3"
+    },
+    {
+      "path": "tests/investigation_memory.rs",
+      "sha256": "bedec26381c1bd950282a7983ab5e62a85b29ecb526ab3b6707e78f60f569428"
+    },
+    {
+      "path": "tests/checkout_inspection.rs",
+      "sha256": "30e0348355ddcdfcfa73f8dfebac97d6a47f3e0a5332b1b97d04601e2fb3f6e0"
+    },
+    {
+      "path": "tests/decision_runtime.rs",
+      "sha256": "fa4a76fdcfe366254bc252e0c39c4c856c45071803d66932a96d4ae091c68af0"
+    },
+    {
+      "path": "tests/project_companion_cli.rs",
+      "sha256": "0e0e0abfef856d505fdd225d8b280d9f8fc93b5fb64325083b2515e6b3af8912"
+    },
+    {
+      "path": "src/main.rs",
+      "sha256": "16993405aa6872f4d71cb9d48098572b4615f70f8fa8262e239436b6d247553c"
+    },
+    {
+      "path": "src/context/adaptive.rs",
+      "sha256": "42aa21a2073ba15cf9a81d42584f629be293531ddc17fd7d9dd98eb5e2d596be"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "502e307a3c5d799a5616cc7567d274ceba9973c035c4a51d5e5fde2072c25d96"
+    },
+    {
+      "path": "Cargo.lock",
+      "sha256": "398b08feddbde3183ad9703f308b94647a0d1b258691875f2fe807a6281cbf71"
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "fast_zero_provider",
+      "command": [
+        "--json",
+        "context",
+        "Change worker queue capacity",
+        "--max-tokens",
+        "8000",
+        "--fast"
+      ],
+      "expected": "schema 2; no model or new provider request",
+      "status": "passed",
+      "source_revision": "0ba8b17f7e63726a8d81def2b60af18573d4640c",
+      "models": null,
+      "grants": {
+        "inspection": false,
+        "hosted_egress": false,
+        "checkout_egress": false
+      },
+      "elapsed_seconds": 0.5093258869965211,
+      "artifact": {
+        "path": "contracts/schema_2.json",
+        "sha256": "eeee6ff4c074469b03c226d8b5c5b7499ce4c2f006b645dd0a818a4e182ab268"
+      }
+    },
+    {
+      "id": "explicit_schema_3",
+      "command": [
+        "--json",
+        "context",
+        "Change worker queue capacity",
+        "--max-tokens",
+        "8000",
+        "--schema-version",
+        "3",
+        "--no-inspect",
+        "--no-cache"
+      ],
+      "expected": "legacy schema 3",
+      "status": "passed",
+      "source_revision": "0ba8b17f7e63726a8d81def2b60af18573d4640c",
+      "models": null,
+      "grants": {
+        "inspection": false,
+        "hosted_egress": false,
+        "checkout_egress": false
+      },
+      "elapsed_seconds": 0.753193217999069,
+      "artifact": {
+        "path": "contracts/schema_3.json",
+        "sha256": "b22031f40eff90b125c0e6a91029724ebc1c5cdfea99a636eb9c712d51f54f16"
+      }
+    },
+    {
+      "id": "explicit_schema_4",
+      "command": [
+        "--json",
+        "context",
+        "Change worker queue capacity",
+        "--max-tokens",
+        "8000",
+        "--schema-version",
+        "4",
+        "--no-inspect",
+        "--no-cache"
+      ],
+      "expected": "legacy schema 4",
+      "status": "passed",
+      "source_revision": "0ba8b17f7e63726a8d81def2b60af18573d4640c",
+      "models": null,
+      "grants": {
+        "inspection": false,
+        "hosted_egress": false,
+        "checkout_egress": false
+      },
+      "elapsed_seconds": 0.5722114469972439,
+      "artifact": {
+        "path": "contracts/schema_4.json",
+        "sha256": "a9fd1f50cc905bd9e7e4fcf87a87bd78eac35432fafebe7cfdf574ce03af71fc"
+      }
+    },
+    {
+      "id": "explicit_schema_5",
+      "command": [
+        "--json",
+        "context",
+        "Change worker queue capacity",
+        "--max-tokens",
+        "8000",
+        "--schema-version",
+        "5",
+        "--no-inspect",
+        "--no-cache"
+      ],
+      "expected": "schema 5 host grants, whole-envelope budget",
+      "status": "passed",
+      "source_revision": "0ba8b17f7e63726a8d81def2b60af18573d4640c",
+      "models": null,
+      "grants": {
+        "inspection": false,
+        "hosted_egress": false,
+        "checkout_egress": false
+      },
+      "elapsed_seconds": 0.6917656869991333,
+      "artifact": {
+        "path": "contracts/schema_5.json",
+        "sha256": "2a2068b32ad59692cf65c560d8202c85c172711bdbcec58a04b27d0d0cb3af9e"
+      }
+    },
+    {
+      "id": "inspection_denied",
+      "command": "lore --json context TASK --schema-version 5 --no-inspect",
+      "expected": "denial wins over environment grant",
+      "status": "not_run",
+      "source_revision": "0ba8b17f7e63726a8d81def2b60af18573d4640c",
+      "models": null,
+      "grants": {
+        "inspection": false,
+        "hosted_egress": false,
+        "checkout_egress": false
+      },
+      "elapsed_seconds": null,
+      "artifact": null
+    },
+    {
+      "id": "no_unapproved_hosted",
+      "command": "lore --json context TASK --schema-version 5",
+      "expected": "no host egress grant; zero external calls",
+      "status": "not_run",
+      "source_revision": "0ba8b17f7e63726a8d81def2b60af18573d4640c",
+      "models": null,
+      "grants": {
+        "inspection": false,
+        "hosted_egress": false,
+        "checkout_egress": false
+      },
+      "elapsed_seconds": null,
+      "artifact": null
+    },
+    {
+      "id": "unknown_cost",
+      "command": "provider omits usage or billing",
+      "expected": "nullable fields remain null",
+      "status": "not_run",
+      "source_revision": "0ba8b17f7e63726a8d81def2b60af18573d4640c",
+      "models": null,
+      "grants": {
+        "inspection": false,
+        "hosted_egress": false,
+        "checkout_egress": false
+      },
+      "elapsed_seconds": null,
+      "artifact": null
+    },
+    {
+      "id": "source_restore",
+      "command": "guardian full 60-event replay",
+      "expected": "no mutations within read-command intervals; historical failures retained",
+      "status": "not_run",
+      "source_revision": "0ba8b17f7e63726a8d81def2b60af18573d4640c",
+      "models": null,
+      "grants": {
+        "inspection": false,
+        "hosted_egress": false,
+        "checkout_egress": false
+      },
+      "elapsed_seconds": null,
+      "artifact": null,
+      "historical_status": "failed",
+      "local_zero_lore_reproduction": "guardian-08-no-lore-reproduction.json"
+    }
+  ]
+}

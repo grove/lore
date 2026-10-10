@@ -1,0 +1,483 @@
+{
+  "archive_bytes": 135265,
+  "archive_filename": "guardian-08-no-lore-control.zip",
+  "archive_sha256": "a0575bba6f55dbe3b70e451f423683b6ee6d10c4a336e88ff4e0fc3d5e529f84",
+  "baseline_commit": "0ba8b17f7e63726a8d81def2b60af18573d4640c",
+  "collector_revision": "Uncommitted development collector; complete collector source was not frozen at process start. Raw hash-bound observations and unchanged fixture manifest retained.",
+  "command": "python3 evaluation/guardian_longitudinal.py control --prepared /workspace/scratch/286e1ddfee82/guardian-08-prepared --output /workspace/scratch/286e1ddfee82/guardian-08-control-yielded --observe-filesystem --dwell-ms 400",
+  "control_report_sha256": "ce2f5ae2358e3344474d059ba236e0d035f0ced650d4562126adaf111f8fb719",
+  "date": "2026-10-10",
+  "elapsed_seconds": 99.107918,
+  "enhanced_source_integrity_failure_events": 42,
+  "event_corpus_sha256": "462a2e5b6d95fd4dbac8f1640274e74977c4d80dd0a3be2341c05a3cb1a82461",
+  "events": 60,
+  "execution": "yielded exec session; independent tool calls continued during quiet intervals",
+  "experiment": "zero-Lore external source-restoration reproduction",
+  "filesystem_observer_source_sha256": "c265e4eda129e2eb01661f65cab71b615ffcc8a5a88c80ab2f7aad10a6a9c931",
+  "kernel_observer_captured_intervals": 240,
+  "kernel_observer_complete_intervals": 232,
+  "legacy_failed_event_ids": [
+    "payments-06",
+    "payments-07",
+    "payments-08",
+    "payments-09",
+    "payments-10",
+    "payments-11",
+    "payments-12",
+    "payments-13",
+    "payments-14",
+    "payments-15",
+    "payments-16",
+    "payments-17",
+    "payments-18",
+    "payments-19",
+    "payments-20",
+    "ledger-07",
+    "ledger-08",
+    "ledger-09",
+    "ledger-10",
+    "ledger-11",
+    "ledger-12",
+    "ledger-13",
+    "ledger-14",
+    "ledger-15",
+    "ledger-16",
+    "ledger-17",
+    "ledger-18",
+    "ledger-19",
+    "ledger-20",
+    "releases-10",
+    "releases-11",
+    "releases-12",
+    "releases-13",
+    "releases-14",
+    "releases-15",
+    "releases-16",
+    "releases-17",
+    "releases-18",
+    "releases-19",
+    "releases-20"
+  ],
+  "legacy_source_hash_failure_events": 40,
+  "limitations": [
+    "This identifies an external writer for this reproduction; it does not authenticate the historical 0.7 writer PID.",
+    "The .rsync-tmp and temporary-name rename sequence is consistent with a synchronizer, not an authenticated executable identity.",
+    "New directory watch gaps remain explicit; unavailable syscall auditing was not represented as passed.",
+    "A clean isolated-runner replay is still required for a Guardian reliability claim."
+  ],
+  "model_calls": 0,
+  "prepared_sha256": "50c2a69bf9d8bc7ac26c799f99b4a0231ed8b905c73cf9c888eedbab15f91e89",
+  "processes_started_by_control": 0,
+  "quiet_intervals": 240,
+  "schema_version": 1,
+  "source_writer_class": "outside Lore; no Lore subprocess ran during these restoration intervals",
+  "strong_observations": [
+    {
+      "after": {
+        "file_count": 6,
+        "files_sha256": {
+          "README.md": "c76ba1fa17e30b29cb0449d0493e287ba026aca34947b273b90029404bd2bb3b",
+          "docs/history.md": "d083e1e37dc3d5f6f6e051f99630c39e360550046a10a3e861e0093690e8925e",
+          "docs/policy.md": "e9381800bef8bad1b9da7aab927c701ed9664fa175b03b4278b1f23be946e0e4",
+          "docs/proposal.md": "bdceb00a0d1fd2e2b03b6094303da3136a974e1633f58f7d54530be9b30ca4aa",
+          "docs/work.md": "b4347eff0837859e95e1fc8472ece6ed090e7ba7219ea81396ed5b8100a76de5",
+          "src/adapter.py": "654f00e3b5b3da402b740385060bd9d9dc70e73e207404e06130605fd84b2592"
+        },
+        "sha256": "a322d387185c86034d01757945c65c10139c00dda984d20f8f48f4944590376c"
+      },
+      "before": {
+        "file_count": 5,
+        "files_sha256": {
+          "README.md": "c76ba1fa17e30b29cb0449d0493e287ba026aca34947b273b90029404bd2bb3b",
+          "docs/history.md": "d083e1e37dc3d5f6f6e051f99630c39e360550046a10a3e861e0093690e8925e",
+          "docs/policy.md": "e9381800bef8bad1b9da7aab927c701ed9664fa175b03b4278b1f23be946e0e4",
+          "docs/work.md": "b4347eff0837859e95e1fc8472ece6ed090e7ba7219ea81396ed5b8100a76de5",
+          "src/adapter.py": "654f00e3b5b3da402b740385060bd9d9dc70e73e207404e06130605fd84b2592"
+        },
+        "sha256": "5424608fb26003d2af680451703449ebc1d65feaa91ca4e39b93d7ccfa9345c1"
+      },
+      "event_id": "payments-06",
+      "filesystem_events": [
+        {
+          "category": "primary_source",
+          "directory": true,
+          "observed_seconds": 0.156131,
+          "operations": [
+            "metadata_change"
+          ],
+          "path": "docs",
+          "rename_cookie": null,
+          "writer_pid": null
+        },
+        {
+          "category": "primary_source",
+          "directory": true,
+          "observed_seconds": 0.156178,
+          "operations": [
+            "metadata_change"
+          ],
+          "path": "docs",
+          "rename_cookie": null,
+          "writer_pid": null
+        },
+        {
+          "category": "primary_source",
+          "directory": false,
+          "observed_seconds": 0.156224,
+          "operations": [
+            "create"
+          ],
+          "path": "docs/.proposal.md.nwrNPe",
+          "rename_cookie": null,
+          "writer_pid": null
+        },
+        {
+          "category": "primary_source",
+          "directory": false,
+          "observed_seconds": 0.15626,
+          "operations": [
+            "metadata_change"
+          ],
+          "path": "docs/.proposal.md.nwrNPe",
+          "rename_cookie": null,
+          "writer_pid": null
+        },
+        {
+          "category": "primary_source",
+          "directory": false,
+          "observed_seconds": 0.156295,
+          "operations": [
+            "write"
+          ],
+          "path": "docs/.proposal.md.nwrNPe",
+          "rename_cookie": null,
+          "writer_pid": null
+        },
+        {
+          "category": "primary_source",
+          "directory": false,
+          "observed_seconds": 0.156328,
+          "operations": [
+            "close_write"
+          ],
+          "path": "docs/.proposal.md.nwrNPe",
+          "rename_cookie": null,
+          "writer_pid": null
+        },
+        {
+          "category": "primary_source",
+          "directory": true,
+          "observed_seconds": 0.15636,
+          "operations": [
+            "create"
+          ],
+          "path": "docs/.rsync-tmp",
+          "rename_cookie": null,
+          "writer_pid": null
+        },
+        {
+          "category": "primary_source",
+          "directory": false,
+          "observed_seconds": 0.156491,
+          "operations": [
+            "metadata_change"
+          ],
+          "path": "docs/.proposal.md.nwrNPe",
+          "rename_cookie": null,
+          "writer_pid": null
+        },
+        {
+          "category": "primary_source",
+          "directory": false,
+          "observed_seconds": 0.156524,
+          "operations": [
+            "rename_from"
+          ],
+          "path": "docs/.proposal.md.nwrNPe",
+          "rename_cookie": 255151,
+          "writer_pid": null
+        },
+        {
+          "category": "primary_source",
+          "directory": false,
+          "observed_seconds": 0.405066,
+          "operations": [
+            "rename_from"
+          ],
+          "path": "docs/.rsync-tmp/proposal.md",
+          "rename_cookie": 255153,
+          "writer_pid": null
+        },
+        {
+          "category": "primary_source",
+          "directory": false,
+          "observed_seconds": 0.40511,
+          "operations": [
+            "rename_to"
+          ],
+          "path": "docs/proposal.md",
+          "rename_cookie": 255153,
+          "writer_pid": null
+        },
+        {
+          "category": "primary_source",
+          "directory": false,
+          "observed_seconds": 0.405137,
+          "operations": [
+            "delete_self"
+          ],
+          "path": "docs/.rsync-tmp",
+          "rename_cookie": null,
+          "writer_pid": null
+        },
+        {
+          "category": "primary_source",
+          "directory": true,
+          "observed_seconds": 0.405196,
+          "operations": [
+            "delete"
+          ],
+          "path": "docs/.rsync-tmp",
+          "rename_cookie": null,
+          "writer_pid": null
+        }
+      ],
+      "observer_complete": false,
+      "observer_gaps": [
+        "new_directory_watch_gap"
+      ],
+      "phase": "evidence control"
+    },
+    {
+      "after": {
+        "file_count": 6,
+        "files_sha256": {
+          "README.md": "e8349d03b20b3e7c31cbc514073287ac7792e6f025a5bd69045ee2f9ecff77a4",
+          "docs/.rsync-tmp/proposal.md": "6794db78a1fa44044c0269efadf946ee0a25a9c2da38ed9a7f7c4c86cd1e4e9b",
+          "docs/history.md": "124edf1dbb9ae3e7d576e1a93fa4bdb8e42d67004950b4fe566647dd323bd9c3",
+          "docs/policy.md": "21a2fd8ffa738240faaced11d6e27f948d4d101443b74a28095ef7ba02269652",
+          "docs/work.md": "b6ac98885defc836e9191106443d9842359f4f7a4812b5028b15915d8ed19e16",
+          "src/adapter.py": "b97313bd2b1185eee4c2907754c14aa44b2c13fafaa2ff989c6c7b3251f049fd"
+        },
+        "sha256": "2776db11f4ad6be81c6e29de634eb60bfc100d8ba2bee6b2379745ce2d72cdc7"
+      },
+      "before": {
+        "file_count": 5,
+        "files_sha256": {
+          "README.md": "e8349d03b20b3e7c31cbc514073287ac7792e6f025a5bd69045ee2f9ecff77a4",
+          "docs/history.md": "124edf1dbb9ae3e7d576e1a93fa4bdb8e42d67004950b4fe566647dd323bd9c3",
+          "docs/policy.md": "21a2fd8ffa738240faaced11d6e27f948d4d101443b74a28095ef7ba02269652",
+          "docs/work.md": "b6ac98885defc836e9191106443d9842359f4f7a4812b5028b15915d8ed19e16",
+          "src/adapter.py": "b97313bd2b1185eee4c2907754c14aa44b2c13fafaa2ff989c6c7b3251f049fd"
+        },
+        "sha256": "f8c8c51f494ee5c8eed0a450a88080d25364f90c6410dc099a29e1a8f02ea126"
+      },
+      "event_id": "ledger-07",
+      "filesystem_events": [
+        {
+          "category": "primary_source",
+          "directory": true,
+          "observed_seconds": 0.202522,
+          "operations": [
+            "metadata_change"
+          ],
+          "path": "docs",
+          "rename_cookie": null,
+          "writer_pid": null
+        },
+        {
+          "category": "primary_source",
+          "directory": true,
+          "observed_seconds": 0.202573,
+          "operations": [
+            "metadata_change"
+          ],
+          "path": "docs",
+          "rename_cookie": null,
+          "writer_pid": null
+        },
+        {
+          "category": "primary_source",
+          "directory": false,
+          "observed_seconds": 0.252907,
+          "operations": [
+            "create"
+          ],
+          "path": "docs/.proposal.md.cUMxPT",
+          "rename_cookie": null,
+          "writer_pid": null
+        },
+        {
+          "category": "primary_source",
+          "directory": false,
+          "observed_seconds": 0.252964,
+          "operations": [
+            "metadata_change"
+          ],
+          "path": "docs/.proposal.md.cUMxPT",
+          "rename_cookie": null,
+          "writer_pid": null
+        },
+        {
+          "category": "primary_source",
+          "directory": false,
+          "observed_seconds": 0.253007,
+          "operations": [
+            "write"
+          ],
+          "path": "docs/.proposal.md.cUMxPT",
+          "rename_cookie": null,
+          "writer_pid": null
+        },
+        {
+          "category": "primary_source",
+          "directory": false,
+          "observed_seconds": 0.253044,
+          "operations": [
+            "close_write"
+          ],
+          "path": "docs/.proposal.md.cUMxPT",
+          "rename_cookie": null,
+          "writer_pid": null
+        },
+        {
+          "category": "primary_source",
+          "directory": true,
+          "observed_seconds": 0.253079,
+          "operations": [
+            "create"
+          ],
+          "path": "docs/.rsync-tmp",
+          "rename_cookie": null,
+          "writer_pid": null
+        },
+        {
+          "category": "primary_source",
+          "directory": false,
+          "observed_seconds": 0.253242,
+          "operations": [
+            "metadata_change"
+          ],
+          "path": "docs/.proposal.md.cUMxPT",
+          "rename_cookie": null,
+          "writer_pid": null
+        },
+        {
+          "category": "primary_source",
+          "directory": false,
+          "observed_seconds": 0.253278,
+          "operations": [
+            "rename_from"
+          ],
+          "path": "docs/.proposal.md.cUMxPT",
+          "rename_cookie": 257173,
+          "writer_pid": null
+        }
+      ],
+      "observer_complete": false,
+      "observer_gaps": [
+        "new_directory_watch_gap"
+      ],
+      "phase": "guard control"
+    },
+    {
+      "after": {
+        "file_count": 6,
+        "files_sha256": {
+          "README.md": "e8349d03b20b3e7c31cbc514073287ac7792e6f025a5bd69045ee2f9ecff77a4",
+          "docs/history.md": "124edf1dbb9ae3e7d576e1a93fa4bdb8e42d67004950b4fe566647dd323bd9c3",
+          "docs/policy.md": "21a2fd8ffa738240faaced11d6e27f948d4d101443b74a28095ef7ba02269652",
+          "docs/proposal.md": "6794db78a1fa44044c0269efadf946ee0a25a9c2da38ed9a7f7c4c86cd1e4e9b",
+          "docs/work.md": "b6ac98885defc836e9191106443d9842359f4f7a4812b5028b15915d8ed19e16",
+          "src/adapter.py": "b97313bd2b1185eee4c2907754c14aa44b2c13fafaa2ff989c6c7b3251f049fd"
+        },
+        "sha256": "333f7aed972c8976d3a15268788418fe5e3562b833e965c7141887c3574d1e20"
+      },
+      "before": {
+        "file_count": 6,
+        "files_sha256": {
+          "README.md": "e8349d03b20b3e7c31cbc514073287ac7792e6f025a5bd69045ee2f9ecff77a4",
+          "docs/.rsync-tmp/proposal.md": "6794db78a1fa44044c0269efadf946ee0a25a9c2da38ed9a7f7c4c86cd1e4e9b",
+          "docs/history.md": "124edf1dbb9ae3e7d576e1a93fa4bdb8e42d67004950b4fe566647dd323bd9c3",
+          "docs/policy.md": "21a2fd8ffa738240faaced11d6e27f948d4d101443b74a28095ef7ba02269652",
+          "docs/work.md": "b6ac98885defc836e9191106443d9842359f4f7a4812b5028b15915d8ed19e16",
+          "src/adapter.py": "b97313bd2b1185eee4c2907754c14aa44b2c13fafaa2ff989c6c7b3251f049fd"
+        },
+        "sha256": "2776db11f4ad6be81c6e29de634eb60bfc100d8ba2bee6b2379745ce2d72cdc7"
+      },
+      "event_id": "ledger-07",
+      "filesystem_events": [
+        {
+          "category": "primary_source",
+          "directory": false,
+          "observed_seconds": 0.052271,
+          "operations": [
+            "rename_from"
+          ],
+          "path": "docs/.rsync-tmp/proposal.md",
+          "rename_cookie": 257175,
+          "writer_pid": null
+        },
+        {
+          "category": "primary_source",
+          "directory": false,
+          "observed_seconds": 0.052326,
+          "operations": [
+            "rename_to"
+          ],
+          "path": "docs/proposal.md",
+          "rename_cookie": 257175,
+          "writer_pid": null
+        },
+        {
+          "category": "primary_source",
+          "directory": false,
+          "observed_seconds": 0.05236,
+          "operations": [
+            "delete_self"
+          ],
+          "path": "docs/.rsync-tmp",
+          "rename_cookie": null,
+          "writer_pid": null
+        },
+        {
+          "category": "primary_source",
+          "directory": true,
+          "observed_seconds": 0.052425,
+          "operations": [
+            "delete"
+          ],
+          "path": "docs/.rsync-tmp",
+          "rename_cookie": null,
+          "writer_pid": null
+        },
+        {
+          "category": "primary_source",
+          "directory": true,
+          "observed_seconds": 0.052473,
+          "operations": [
+            "metadata_change"
+          ],
+          "path": "docs",
+          "rename_cookie": null,
+          "writer_pid": null
+        },
+        {
+          "category": "primary_source",
+          "directory": true,
+          "observed_seconds": 0.0525,
+          "operations": [
+            "metadata_change"
+          ],
+          "path": "docs",
+          "rename_cookie": null,
+          "writer_pid": null
+        }
+      ],
+      "observer_complete": true,
+      "observer_gaps": [],
+      "phase": "evidence control"
+    }
+  ],
+  "writer_process_identity": "unavailable; inotify has no writer PID and ptrace was denied"
+}

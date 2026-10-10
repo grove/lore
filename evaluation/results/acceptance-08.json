@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "release": "0.8.0",
+  "baseline_commit": "0ba8b17f7e63726a8d81def2b60af18573d4640c",
+  "release_decision": "in_progress",
+  "allowed_statuses": [
+    "passed",
+    "failed",
+    "not_run",
+    "unmeasured"
+  ],
+  "gates": {
+    "baseline": {
+      "status": "passed",
+      "artifacts": [
+        {
+          "path": "baseline-08/engineering.json",
+          "sha256": "c007457faa02c83dfbaaaa049fc4b20158ca3834833f3a5109f854f744f1ed57"
+        },
+        {
+          "path": "baseline-08/logs.zip",
+          "sha256": "a18228c4b5b6c8b703811cfef020feac3d19f3d498d30a54f213e7fc56f964f4"
+        },
+        {
+          "path": "baseline-08/benchmark-manifest.json",
+          "sha256": "0bbead8cce5379dcaf6035e43d61725a35b6509baee578921fa261339a4fa1af"
+        },
+        {
+          "path": "baseline-08/guardian-08-no-lore-reproduction.json",
+          "sha256": "a48e14c9f54f425d11fef3485458907efd33dbc60d0ae04280097484268f87d6"
+        },
+        {
+          "path": "baseline-08/guardian-08-no-lore-control.zip",
+          "sha256": "a0575bba6f55dbe3b70e451f423683b6ee6d10c4a336e88ff4e0fc3d5e529f84"
+        }
+      ],
+      "scope": "Baseline captured reproducibly, including failed local Rust launch and failed no-Lore source integrity; capture success does not relabel either gate."
+    },
+    "guardian_source_integrity": {
+      "status": "not_run",
+      "artifacts": [],
+      "scope": "Full 60-event cohorts, focused segment and repeated candidate; writer attribution/isolation"
+    },
+    "provider_usage": {
+      "status": "not_run",
+      "artifacts": [],
+      "scope": "Per-attempt optional tokens and nullable billed USD"
+    },
+    "bootstrap": {
+      "status": "not_run",
+      "artifacts": [],
+      "scope": "Read-only model-free first contact and exact evidence"
+    },
+    "adaptive_default": {
+      "status": "not_run",
+      "artifacts": [],
+      "scope": "Pinned compatibility and permission/budget regression gate"
+    },
+    "coding_harness": {
+      "status": "not_run",
+      "artifacts": [],
+      "scope": "Preflight, provenance, isolation/audit and attempt-ledger controls"
+    },
+    "human_harness": {
+      "status": "not_run",
+      "artifacts": [],
+      "scope": "Actual session/consent and contribution/transfer assessment controls"
+    },
+    "platform_matrix": {
+      "status": "not_run",
+      "artifacts": [],
+      "scope": "Integrated Linux/macOS/Windows CI"
+    },
+    "release": {
+      "status": "not_run",
+      "artifacts": [],
+      "scope": "All engineering ship gates"
+    },
+    "coding_productivity": {
+      "status": "unmeasured",
+      "artifacts": [],
+      "scope": "Actual independent outcome study required"
+    },
+    "human_contribution": {
+      "status": "unmeasured",
+      "artifacts": [],
+      "scope": "Actual independent outcome study required"
+    },
+    "human_transfer": {
+      "status": "unmeasured",
+      "artifacts": [],
+      "scope": "Actual independent outcome study required"
+    },
+    "guardian_alert_quality": {
+      "status": "unmeasured",
+      "artifacts": [],
+      "scope": "Actual independent outcome study required"
+    }
+  },
+  "actual_human_participants": 0,
+  "real_model_study_attempts": 0
+}
