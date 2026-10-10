@@ -63,6 +63,12 @@ reported as omitted from that advisory query. Supply a specific task to review
 another scope. An explicit task requests shared guidance even when the included
 comparison has no consequential changes.
 
+Accepted decisions and constraints take precedence over proposals and historical
+context when the automatic query reaches its six-topic limit. A change to an
+accepted rule's scope, lifecycle, or current support receives the highest
+priority. Labels break ties deterministically. This is a bounded selection rule;
+it does not estimate a project's risk or establish that excluded topics are safe.
+
 ## What counts as a change
 
 Documentary comparisons preserve the complete before and after states: record
@@ -77,6 +83,24 @@ exception is therefore visible even when extraction retained an unchanged short
 statement. A new source capture or a cosmetic edit outside the retained quotation
 does not by itself become a consequential policy alert. The broader
 `registry_changed` flag can still be true for such a capture.
+
+New checkpoints additionally record `current_evidence_ids`, the exact subset of
+support current when that checkpoint was saved. The existing `evidence_ids`
+continues to contain all support belonging to the immutable knowledge revision,
+including historical quotations. Semantic comparison uses each checkpoint's
+current supporting quotations when both checkpoints captured this membership.
+This makes an exception that changes from A to B and then returns to A visible,
+even if the extracted short statement stayed identical and both quotations
+remain in history. A change of citation location with an unchanged quotation
+alone does not create a material policy change.
+
+Older schema-1 checkpoint files omit `current_evidence_ids`. They remain readable
+with their original checksum; their comparisons use the previous complete-support
+semantics because historical current membership cannot be reconstructed reliably.
+Historical relationship endpoints can likewise omit this field. Saving a new
+checkpoint captures current membership for future comparisons. The reader rejects
+duplicated, unsorted, or unbound current evidence IDs; it does not remove original
+support to make a checkpoint fit.
 
 Documented supersession, reaffirmation, and other registry relationships retain
 their original witnesses and endpoints. Related original records and evidence
@@ -205,6 +229,34 @@ An empty advisory list never establishes a clean checkout. The guardian exposes
 that qualification for both source-reviewed and fallback results. Advisories do
 not enforce a merge or deployment gate; an integration must decide how to use
 the disclosed evidence, scope, omissions, and status.
+
+The guardian groups high-severity risks and material blockers that refer to the
+same changed source record or relationship. The group retains the union of their
+original evidence and observation citations, explanations, and recommended
+actions. A shared action citing several sources does not itself merge unrelated
+risks. Each explanation identifies associated change groups where the evidence
+allows that association, points to the exact named-baseline comparison, and
+states the static observations and checkout files read. A risk recommendation
+uses the shared engine's concrete `next_action`; blockers keep their explicit
+decision requirement. These are advisory summaries of the original shared
+brief. They do not make additional source claims or execute a suggested action.
+
+## Evaluating longitudinal guardian behavior
+
+[`evaluation/GUARDIAN_LONGITUDINAL.md`](../evaluation/GUARDIAN_LONGITUDINAL.md)
+defines preparation, successive real CLI replay, independent source and alert
+review, and assessment. The checked-in debug corpus contains sixty transitions
+across three synthetic projects, with twenty consequential, twenty benign, and
+twenty ambiguous labels. It exercises source reversion, unchanged summaries with
+changed exact exceptions, citation churn, scope-qualified reports, source
+deletion, and cross-source interpretation revision and withdrawal.
+
+These labels and source assertions were authored as regression fixtures. A
+disabled provider can validate source preservation, explicit baselines, complete
+evidence, output contracts, and unavailable-assessment reporting. Such a replay
+cannot establish high-severity alert precision, developer productivity, or
+independent real-project usefulness. The evaluator keeps these outcomes
+unmeasured until real assessments and independent reviews exist.
 
 ## Inspection, privacy, and local state
 

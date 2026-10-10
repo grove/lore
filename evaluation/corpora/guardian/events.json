@@ -1,0 +1,2018 @@
+{
+  "schema_version": 1,
+  "protocol": "guardian-longitudinal-v1",
+  "fixture_only": true,
+  "held_out": false,
+  "label_provenance": {
+    "status": "synthetic_debug",
+    "independent_review": false,
+    "description": "Source assertions and expected labels were authored together for regression debugging. No human reviewers or real-project outcomes are claimed."
+  },
+  "projects": [
+    {
+      "id": "payments",
+      "source_identity": {
+        "kind": "synthetic_debug_fixture",
+        "version": "guardian-events-v1"
+      },
+      "initial_revision": "payments-00",
+      "initial_files": {
+        "docs/policy.md": {
+          "text": "# Accepted production contract\n\nPayments permit at most 3 retry attempts except signed offline settlements.\n",
+          "records": [
+            {
+              "key": "main",
+              "topic": "payments",
+              "topic_title": "Payments",
+              "subject": "payment retry",
+              "statement": "The payment retry contract includes a bounded normal path and a qualified emergency exception.",
+              "quote": "Payments permit at most 3 retry attempts except signed offline settlements.",
+              "kind": "constraint",
+              "lifecycle": "accepted",
+              "scope": "production",
+              "effective_at": ""
+            }
+          ]
+        },
+        "docs/history.md": {
+          "text": "# Historical experiment\n\nA historical development replay of payment retry completed in an isolated 2025 experiment; it does not describe production.\n",
+          "records": [
+            {
+              "key": "history",
+              "topic": "payments",
+              "topic_title": "Payments",
+              "subject": "payment retry",
+              "statement": "A historical development replay of payment retry completed in an isolated 2025 experiment; it does not describe production.",
+              "quote": "A historical development replay of payment retry completed in an isolated 2025 experiment; it does not describe production.",
+              "kind": "reported_outcome",
+              "lifecycle": "completed",
+              "scope": "historical development",
+              "effective_at": ""
+            }
+          ]
+        },
+        "docs/work.md": {
+          "text": "# Staging work report\n\nA staging-only payment retry replay completed; production behavior and the emergency exception were not verified.\n",
+          "records": [
+            {
+              "key": "work",
+              "topic": "payments",
+              "topic_title": "Payments",
+              "subject": "payment retry",
+              "statement": "A staging-only payment retry replay completed; production behavior and the emergency exception were not verified.",
+              "quote": "A staging-only payment retry replay completed; production behavior and the emergency exception were not verified.",
+              "kind": "reported_outcome",
+              "lifecycle": "completed",
+              "scope": "staging",
+              "effective_at": ""
+            }
+          ]
+        },
+        "src/adapter.py": {
+          "text": "\"\"\"Synthetic payments source; the guardian never executes it.\"\"\"\nLIMIT = 3\n",
+          "records": []
+        },
+        "README.md": {
+          "text": "# Synthetic payments\n\nEvaluation source only.\n",
+          "records": []
+        }
+      },
+      "events": [
+        {
+          "id": "payments-01",
+          "sequence": 1,
+          "parent": "payments-00",
+          "revision": "payments-01",
+          "files": {},
+          "tags": [
+            "no_op"
+          ],
+          "expected": {
+            "significance": "benign",
+            "source_scope": "current production",
+            "alert_necessity": "forbidden",
+            "safe_next_step": "Keep the named baseline; no source change requires a new assessment.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "payments-02",
+          "sequence": 2,
+          "parent": "payments-01",
+          "revision": "payments-02",
+          "files": {
+            "docs/policy.md": {
+              "text": "# Accepted production contract\n\nPayments permit at most 5 retry attempts except signed offline settlements.\n",
+              "records": [
+                {
+                  "key": "main",
+                  "topic": "payments",
+                  "topic_title": "Payments",
+                  "subject": "payment retry",
+                  "statement": "The payment retry contract includes a bounded normal path and a qualified emergency exception.",
+                  "quote": "Payments permit at most 5 retry attempts except signed offline settlements.",
+                  "kind": "constraint",
+                  "lifecycle": "accepted",
+                  "scope": "production",
+                  "effective_at": ""
+                }
+              ]
+            }
+          },
+          "tags": [
+            "same_size_edit",
+            "accepted_constraint",
+            "unchanged_summary"
+          ],
+          "expected": {
+            "significance": "consequential",
+            "source_scope": "current production",
+            "alert_necessity": "required",
+            "safe_next_step": "Preserve the retry ceiling and require durable idempotency acknowledgement for the offline exception.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "payments-03",
+          "sequence": 3,
+          "parent": "payments-02",
+          "revision": "payments-03",
+          "files": {
+            "docs/proposal.md": {
+              "text": "# Staging proposal\n\nProposed staging-only payment retry experiment; this proposal does not replace the accepted production contract.\n",
+              "records": [
+                {
+                  "key": "proposal",
+                  "topic": "payments",
+                  "topic_title": "Payments",
+                  "subject": "payment retry",
+                  "statement": "Proposed staging-only payment retry experiment; this proposal does not replace the accepted production contract.",
+                  "quote": "Proposed staging-only payment retry experiment; this proposal does not replace the accepted production contract.",
+                  "kind": "proposal",
+                  "lifecycle": "proposed",
+                  "scope": "staging",
+                  "effective_at": ""
+                }
+              ]
+            }
+          },
+          "tags": [
+            "proposed_scope"
+          ],
+          "expected": {
+            "significance": "ambiguous",
+            "source_scope": "proposed staging only",
+            "alert_necessity": "optional",
+            "safe_next_step": "Keep production policy unchanged and confine any experiment to the documented staging scope.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "payments-04",
+          "sequence": 4,
+          "parent": "payments-03",
+          "revision": "payments-04",
+          "files": {
+            "docs/policy.md": {
+              "text": "# Accepted production contract\n\nPayments permit at most 5 retry attempts except signed offline settlements.\n\nEditorial navigation note.\n",
+              "records": [
+                {
+                  "key": "main",
+                  "topic": "payments",
+                  "topic_title": "Payments",
+                  "subject": "payment retry",
+                  "statement": "The payment retry contract includes a bounded normal path and a qualified emergency exception.",
+                  "quote": "Payments permit at most 5 retry attempts except signed offline settlements.",
+                  "kind": "constraint",
+                  "lifecycle": "accepted",
+                  "scope": "production",
+                  "effective_at": ""
+                }
+              ]
+            }
+          },
+          "tags": [
+            "formatting",
+            "outside_quote"
+          ],
+          "expected": {
+            "significance": "benign",
+            "source_scope": "current production",
+            "alert_necessity": "forbidden",
+            "safe_next_step": "Preserve the retry ceiling and require durable idempotency acknowledgement for the offline exception.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "payments-05",
+          "sequence": 5,
+          "parent": "payments-04",
+          "revision": "payments-05",
+          "files": {
+            "docs/policy.md": {
+              "text": "# Accepted production contract\n\nPayments permit at most 5 retry attempts except signed offline settlements after durable idempotency acknowledgement.\n",
+              "records": [
+                {
+                  "key": "main",
+                  "topic": "payments",
+                  "topic_title": "Payments",
+                  "subject": "payment retry",
+                  "statement": "The payment retry contract includes a bounded normal path and a qualified emergency exception.",
+                  "quote": "Payments permit at most 5 retry attempts except signed offline settlements after durable idempotency acknowledgement.",
+                  "kind": "constraint",
+                  "lifecycle": "accepted",
+                  "scope": "production",
+                  "effective_at": ""
+                }
+              ]
+            }
+          },
+          "tags": [
+            "rare_exception",
+            "unchanged_summary",
+            "reversion_B"
+          ],
+          "expected": {
+            "significance": "consequential",
+            "source_scope": "current production",
+            "alert_necessity": "required",
+            "safe_next_step": "Preserve the retry ceiling and require durable idempotency acknowledgement for the offline exception.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "payments-06",
+          "sequence": 6,
+          "parent": "payments-05",
+          "revision": "payments-06",
+          "files": {
+            "docs/proposal.md": null
+          },
+          "tags": [
+            "deleted_source",
+            "withdrawn_proposal"
+          ],
+          "expected": {
+            "significance": "ambiguous",
+            "source_scope": "withdrawn proposal",
+            "alert_necessity": "optional",
+            "safe_next_step": "Retain the withdrawn proposal as history; do not treat its removal as a production policy reversal.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "payments-07",
+          "sequence": 7,
+          "parent": "payments-06",
+          "revision": "payments-07",
+          "files": {
+            "docs/policy.md": {
+              "text": "\n\n# Accepted production contract\n\nPayments permit at most 5 retry attempts except signed offline settlements after durable idempotency acknowledgement.\n\nA new citation location does not change the retained rule.\n",
+              "records": [
+                {
+                  "key": "main",
+                  "topic": "payments",
+                  "topic_title": "Payments",
+                  "subject": "payment retry",
+                  "statement": "The payment retry contract includes a bounded normal path and a qualified emergency exception.",
+                  "quote": "Payments permit at most 5 retry attempts except signed offline settlements after durable idempotency acknowledgement.",
+                  "kind": "constraint",
+                  "lifecycle": "accepted",
+                  "scope": "production",
+                  "effective_at": ""
+                }
+              ]
+            }
+          },
+          "tags": [
+            "citation_churn",
+            "unchanged_quote"
+          ],
+          "expected": {
+            "significance": "benign",
+            "source_scope": "current production",
+            "alert_necessity": "forbidden",
+            "safe_next_step": "Preserve the retry ceiling and require durable idempotency acknowledgement for the offline exception.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "payments-08",
+          "sequence": 8,
+          "parent": "payments-07",
+          "revision": "payments-08",
+          "files": {
+            "docs/policy.md": {
+              "text": "# Accepted production contract\n\nPayments permit at most 5 retry attempts except signed offline settlements.\n",
+              "records": [
+                {
+                  "key": "main",
+                  "topic": "payments",
+                  "topic_title": "Payments",
+                  "subject": "payment retry",
+                  "statement": "The payment retry contract includes a bounded normal path and a qualified emergency exception.",
+                  "quote": "Payments permit at most 5 retry attempts except signed offline settlements.",
+                  "kind": "constraint",
+                  "lifecycle": "accepted",
+                  "scope": "production",
+                  "effective_at": ""
+                }
+              ]
+            }
+          },
+          "tags": [
+            "source_reversion_A",
+            "unchanged_summary",
+            "GUARD-REVERSION-001"
+          ],
+          "expected": {
+            "significance": "consequential",
+            "source_scope": "current production",
+            "alert_necessity": "required",
+            "safe_next_step": "Preserve the retry ceiling and require durable idempotency acknowledgement for the offline exception.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "payments-09",
+          "sequence": 9,
+          "parent": "payments-08",
+          "revision": "payments-09",
+          "files": {
+            "docs/history.md": null
+          },
+          "tags": [
+            "historical_only",
+            "deleted_source"
+          ],
+          "expected": {
+            "significance": "ambiguous",
+            "source_scope": "historical source withdrawn",
+            "alert_necessity": "optional",
+            "safe_next_step": "Preserve the historical experiment's qualification; its deletion establishes no current production behavior.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "payments-10",
+          "sequence": 10,
+          "parent": "payments-09",
+          "revision": "payments-10",
+          "files": {},
+          "tags": [
+            "no_op_after_history"
+          ],
+          "expected": {
+            "significance": "benign",
+            "source_scope": "current production",
+            "alert_necessity": "forbidden",
+            "safe_next_step": "Preserve the retry ceiling and require durable idempotency acknowledgement for the offline exception.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "payments-11",
+          "sequence": 11,
+          "parent": "payments-10",
+          "revision": "payments-11",
+          "files": {
+            "docs/safety.md": {
+              "text": "# Additional accepted constraint\n\nPayment diagnostics must redact complete payment tokens before persistence.\n",
+              "records": [
+                {
+                  "key": "safety",
+                  "topic": "payments",
+                  "topic_title": "Payments",
+                  "subject": "payment retry",
+                  "statement": "Payment diagnostics must redact complete payment tokens before persistence.",
+                  "quote": "Payment diagnostics must redact complete payment tokens before persistence.",
+                  "kind": "constraint",
+                  "lifecycle": "accepted",
+                  "scope": "production",
+                  "effective_at": ""
+                }
+              ]
+            }
+          },
+          "tags": [
+            "accepted_constraint",
+            "security_or_correctness"
+          ],
+          "expected": {
+            "significance": "consequential",
+            "source_scope": "current production",
+            "alert_necessity": "required",
+            "safe_next_step": "Preserve the retry ceiling and require durable idempotency acknowledgement for the offline exception.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "payments-12",
+          "sequence": 12,
+          "parent": "payments-11",
+          "revision": "payments-12",
+          "files": {
+            "docs/work.md": {
+              "text": "# Repeated staging report\n\nThe staging-only payment retry replay was repeated successfully; production and emergency behavior remain unverified.\n",
+              "records": [
+                {
+                  "key": "work",
+                  "topic": "payments",
+                  "topic_title": "Payments",
+                  "subject": "payment retry",
+                  "statement": "The staging-only payment retry replay was repeated successfully; production and emergency behavior remain unverified.",
+                  "quote": "The staging-only payment retry replay was repeated successfully; production and emergency behavior remain unverified.",
+                  "kind": "reported_outcome",
+                  "lifecycle": "completed",
+                  "scope": "staging",
+                  "effective_at": ""
+                }
+              ]
+            }
+          },
+          "tags": [
+            "scope_only",
+            "cross_source_interpretation_added"
+          ],
+          "expected": {
+            "significance": "ambiguous",
+            "source_scope": "current staging report",
+            "alert_necessity": "optional",
+            "safe_next_step": "Compare the staging report with the accepted production contract without promoting the report into production verification.",
+            "runtime_verified": false
+          },
+          "interpretation": {
+            "action": "set",
+            "pair": "policy-work",
+            "from": "work",
+            "to": "main",
+            "kind": "verification_question",
+            "reason": "The source-reported staging replay does not establish compliance with the accepted production exception.",
+            "qualifications": [
+              "Staging-only source report; no production execution or policy replacement is established."
+            ]
+          }
+        },
+        {
+          "id": "payments-13",
+          "sequence": 13,
+          "parent": "payments-12",
+          "revision": "payments-13",
+          "files": {
+            "README.md": {
+              "text": "# Synthetic payments\n\nEvaluation source only.\n\n## Navigation\n",
+              "records": []
+            }
+          },
+          "tags": [
+            "formatting",
+            "unrelated_source"
+          ],
+          "expected": {
+            "significance": "benign",
+            "source_scope": "current production",
+            "alert_necessity": "forbidden",
+            "safe_next_step": "Preserve the retry ceiling and require durable idempotency acknowledgement for the offline exception.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "payments-14",
+          "sequence": 14,
+          "parent": "payments-13",
+          "revision": "payments-14",
+          "files": {
+            "docs/incident.md": {
+              "text": "# Production discrepancy report\n\nThe source owner reports that the production payment retry path currently bypasses its accepted bound; independent runtime verification remains absent.\n",
+              "records": [
+                {
+                  "key": "incident",
+                  "topic": "payments",
+                  "topic_title": "Payments",
+                  "subject": "payment retry",
+                  "statement": "The source owner reports that the production payment retry path currently bypasses its accepted bound; independent runtime verification remains absent.",
+                  "quote": "The source owner reports that the production payment retry path currently bypasses its accepted bound; independent runtime verification remains absent.",
+                  "kind": "reported_outcome",
+                  "lifecycle": "completed",
+                  "scope": "production",
+                  "effective_at": ""
+                }
+              ]
+            }
+          },
+          "tags": [
+            "reported_constraint_discrepancy"
+          ],
+          "expected": {
+            "significance": "consequential",
+            "source_scope": "current production",
+            "alert_necessity": "required",
+            "safe_next_step": "Preserve the accepted bound and use permitted static inspection to locate the reported bypass; do not claim that the report proves runtime behavior.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "payments-15",
+          "sequence": 15,
+          "parent": "payments-14",
+          "revision": "payments-15",
+          "files": {},
+          "tags": [
+            "relationship_only",
+            "cross_source_interpretation_withdrawn"
+          ],
+          "expected": {
+            "significance": "ambiguous",
+            "source_scope": "withdrawn interpretation",
+            "alert_necessity": "optional",
+            "safe_next_step": "Drop the withdrawn interpretation from current advice while retaining both original sources and their scope; withdrawal does not establish agreement.",
+            "runtime_verified": false
+          },
+          "interpretation": {
+            "action": "withdraw",
+            "pair": "policy-work"
+          }
+        },
+        {
+          "id": "payments-16",
+          "sequence": 16,
+          "parent": "payments-15",
+          "revision": "payments-16",
+          "files": {
+            "README.md": {
+              "text": "# Synthetic payments\n\nEvaluation source only.\n\n## Reference \n",
+              "records": []
+            }
+          },
+          "tags": [
+            "same_size_editorial",
+            "unrelated_source"
+          ],
+          "expected": {
+            "significance": "benign",
+            "source_scope": "current production",
+            "alert_necessity": "forbidden",
+            "safe_next_step": "Preserve the retry ceiling and require durable idempotency acknowledgement for the offline exception.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "payments-17",
+          "sequence": 17,
+          "parent": "payments-16",
+          "revision": "payments-17",
+          "files": {
+            "docs/fail-closed.md": {
+              "text": "# Fail-closed constraint\n\nThe accepted production payment retry contract now explicitly requires fail-closed admission before any side effect; the emergency qualification remains in policy.md.\n",
+              "records": [
+                {
+                  "key": "fail-closed",
+                  "topic": "payments",
+                  "topic_title": "Payments",
+                  "subject": "payment retry",
+                  "statement": "The accepted production payment retry contract now explicitly requires fail-closed admission before any side effect; the emergency qualification remains in policy.md.",
+                  "quote": "The accepted production payment retry contract now explicitly requires fail-closed admission before any side effect; the emergency qualification remains in policy.md.",
+                  "kind": "constraint",
+                  "lifecycle": "accepted",
+                  "scope": "production",
+                  "effective_at": ""
+                }
+              ]
+            }
+          },
+          "tags": [
+            "accepted_constraint",
+            "scope_preservation"
+          ],
+          "expected": {
+            "significance": "consequential",
+            "source_scope": "current production",
+            "alert_necessity": "required",
+            "safe_next_step": "Preserve the retry ceiling and require durable idempotency acknowledgement for the offline exception.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "payments-18",
+          "sequence": 18,
+          "parent": "payments-17",
+          "revision": "payments-18",
+          "files": {},
+          "tags": [
+            "relationship_only",
+            "cross_source_interpretation_revised"
+          ],
+          "expected": {
+            "significance": "ambiguous",
+            "source_scope": "reconsidered interpretation",
+            "alert_necessity": "optional",
+            "safe_next_step": "Use the retained source qualifiers when reassessing the scope question; the interpretation alone cannot replace accepted policy.",
+            "runtime_verified": false
+          },
+          "interpretation": {
+            "action": "set",
+            "pair": "policy-work",
+            "from": "work",
+            "to": "main",
+            "kind": "verification_question",
+            "reason": "The withdrawn comparison is reconsidered as an unresolved scope question, not evidence that production behavior changed.",
+            "qualifications": [
+              "Staging-only source report; no production execution or policy replacement is established."
+            ]
+          }
+        },
+        {
+          "id": "payments-19",
+          "sequence": 19,
+          "parent": "payments-18",
+          "revision": "payments-19",
+          "files": {
+            "docs/policy.md": {
+              "text": "# Accepted production contract\n\nPayments permit at most 5 retry attempts except signed offline settlements.\n\n\n",
+              "records": [
+                {
+                  "key": "main",
+                  "topic": "payments",
+                  "topic_title": "Payments",
+                  "subject": "payment retry",
+                  "statement": "The payment retry contract includes a bounded normal path and a qualified emergency exception.",
+                  "quote": "Payments permit at most 5 retry attempts except signed offline settlements.",
+                  "kind": "constraint",
+                  "lifecycle": "accepted",
+                  "scope": "production",
+                  "effective_at": ""
+                }
+              ]
+            }
+          },
+          "tags": [
+            "formatting",
+            "trailing_newlines"
+          ],
+          "expected": {
+            "significance": "benign",
+            "source_scope": "current production",
+            "alert_necessity": "forbidden",
+            "safe_next_step": "Preserve the retry ceiling and require durable idempotency acknowledgement for the offline exception.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "payments-20",
+          "sequence": 20,
+          "parent": "payments-19",
+          "revision": "payments-20",
+          "files": {
+            "docs/safety.md": null
+          },
+          "tags": [
+            "accepted_support_withdrawal",
+            "deleted_source"
+          ],
+          "expected": {
+            "significance": "consequential",
+            "source_scope": "accepted source support withdrawn",
+            "alert_necessity": "required",
+            "safe_next_step": "Retain the accepted constraint's historical evidence and revalidate source-current support; deleting its document does not authorize a policy reversal.",
+            "runtime_verified": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "ledger",
+      "source_identity": {
+        "kind": "synthetic_debug_fixture",
+        "version": "guardian-events-v1"
+      },
+      "initial_revision": "ledger-00",
+      "initial_files": {
+        "docs/policy.md": {
+          "text": "# Accepted production contract\n\nLedger admission permits 128 pending writes except operator-authorized drain transactions.\n",
+          "records": [
+            {
+              "key": "main",
+              "topic": "ledger",
+              "topic_title": "Ledger",
+              "subject": "ledger admission",
+              "statement": "The ledger admission contract includes a bounded normal path and a qualified emergency exception.",
+              "quote": "Ledger admission permits 128 pending writes except operator-authorized drain transactions.",
+              "kind": "constraint",
+              "lifecycle": "accepted",
+              "scope": "production",
+              "effective_at": ""
+            }
+          ]
+        },
+        "docs/history.md": {
+          "text": "# Historical experiment\n\nA historical development replay of ledger admission completed in an isolated 2025 experiment; it does not describe production.\n",
+          "records": [
+            {
+              "key": "history",
+              "topic": "ledger",
+              "topic_title": "Ledger",
+              "subject": "ledger admission",
+              "statement": "A historical development replay of ledger admission completed in an isolated 2025 experiment; it does not describe production.",
+              "quote": "A historical development replay of ledger admission completed in an isolated 2025 experiment; it does not describe production.",
+              "kind": "reported_outcome",
+              "lifecycle": "completed",
+              "scope": "historical development",
+              "effective_at": ""
+            }
+          ]
+        },
+        "docs/work.md": {
+          "text": "# Staging work report\n\nA staging-only ledger admission replay completed; production behavior and the emergency exception were not verified.\n",
+          "records": [
+            {
+              "key": "work",
+              "topic": "ledger",
+              "topic_title": "Ledger",
+              "subject": "ledger admission",
+              "statement": "A staging-only ledger admission replay completed; production behavior and the emergency exception were not verified.",
+              "quote": "A staging-only ledger admission replay completed; production behavior and the emergency exception were not verified.",
+              "kind": "reported_outcome",
+              "lifecycle": "completed",
+              "scope": "staging",
+              "effective_at": ""
+            }
+          ]
+        },
+        "src/adapter.py": {
+          "text": "\"\"\"Synthetic ledger source; the guardian never executes it.\"\"\"\nLIMIT = 128\n",
+          "records": []
+        },
+        "README.md": {
+          "text": "# Synthetic ledger\n\nEvaluation source only.\n",
+          "records": []
+        }
+      },
+      "events": [
+        {
+          "id": "ledger-01",
+          "sequence": 1,
+          "parent": "ledger-00",
+          "revision": "ledger-01",
+          "files": {},
+          "tags": [
+            "no_op"
+          ],
+          "expected": {
+            "significance": "benign",
+            "source_scope": "current production",
+            "alert_necessity": "forbidden",
+            "safe_next_step": "Keep the named baseline; no source change requires a new assessment.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "ledger-02",
+          "sequence": 2,
+          "parent": "ledger-01",
+          "revision": "ledger-02",
+          "files": {
+            "docs/policy.md": {
+              "text": "# Accepted production contract\n\nLedger admission permits 256 pending writes except operator-authorized drain transactions.\n",
+              "records": [
+                {
+                  "key": "main",
+                  "topic": "ledger",
+                  "topic_title": "Ledger",
+                  "subject": "ledger admission",
+                  "statement": "The ledger admission contract includes a bounded normal path and a qualified emergency exception.",
+                  "quote": "Ledger admission permits 256 pending writes except operator-authorized drain transactions.",
+                  "kind": "constraint",
+                  "lifecycle": "accepted",
+                  "scope": "production",
+                  "effective_at": ""
+                }
+              ]
+            }
+          },
+          "tags": [
+            "same_size_edit",
+            "accepted_constraint",
+            "unchanged_summary"
+          ],
+          "expected": {
+            "significance": "consequential",
+            "source_scope": "current production",
+            "alert_necessity": "required",
+            "safe_next_step": "Keep admission bounded and check tenant acknowledgement before the operator drain exception.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "ledger-03",
+          "sequence": 3,
+          "parent": "ledger-02",
+          "revision": "ledger-03",
+          "files": {
+            "docs/proposal.md": {
+              "text": "# Staging proposal\n\nProposed staging-only ledger admission experiment; this proposal does not replace the accepted production contract.\n",
+              "records": [
+                {
+                  "key": "proposal",
+                  "topic": "ledger",
+                  "topic_title": "Ledger",
+                  "subject": "ledger admission",
+                  "statement": "Proposed staging-only ledger admission experiment; this proposal does not replace the accepted production contract.",
+                  "quote": "Proposed staging-only ledger admission experiment; this proposal does not replace the accepted production contract.",
+                  "kind": "proposal",
+                  "lifecycle": "proposed",
+                  "scope": "staging",
+                  "effective_at": ""
+                }
+              ]
+            }
+          },
+          "tags": [
+            "proposed_scope"
+          ],
+          "expected": {
+            "significance": "ambiguous",
+            "source_scope": "proposed staging only",
+            "alert_necessity": "optional",
+            "safe_next_step": "Keep production policy unchanged and confine any experiment to the documented staging scope.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "ledger-04",
+          "sequence": 4,
+          "parent": "ledger-03",
+          "revision": "ledger-04",
+          "files": {
+            "docs/policy.md": {
+              "text": "# Accepted production contract\n\nLedger admission permits 256 pending writes except operator-authorized drain transactions.\n\nEditorial navigation note.\n",
+              "records": [
+                {
+                  "key": "main",
+                  "topic": "ledger",
+                  "topic_title": "Ledger",
+                  "subject": "ledger admission",
+                  "statement": "The ledger admission contract includes a bounded normal path and a qualified emergency exception.",
+                  "quote": "Ledger admission permits 256 pending writes except operator-authorized drain transactions.",
+                  "kind": "constraint",
+                  "lifecycle": "accepted",
+                  "scope": "production",
+                  "effective_at": ""
+                }
+              ]
+            }
+          },
+          "tags": [
+            "formatting",
+            "outside_quote"
+          ],
+          "expected": {
+            "significance": "benign",
+            "source_scope": "current production",
+            "alert_necessity": "forbidden",
+            "safe_next_step": "Keep admission bounded and check tenant acknowledgement before the operator drain exception.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "ledger-05",
+          "sequence": 5,
+          "parent": "ledger-04",
+          "revision": "ledger-05",
+          "files": {
+            "docs/policy.md": {
+              "text": "# Accepted production contract\n\nLedger admission permits 256 pending writes except operator-authorized drain transactions after every tenant key is acknowledged.\n",
+              "records": [
+                {
+                  "key": "main",
+                  "topic": "ledger",
+                  "topic_title": "Ledger",
+                  "subject": "ledger admission",
+                  "statement": "The ledger admission contract includes a bounded normal path and a qualified emergency exception.",
+                  "quote": "Ledger admission permits 256 pending writes except operator-authorized drain transactions after every tenant key is acknowledged.",
+                  "kind": "constraint",
+                  "lifecycle": "accepted",
+                  "scope": "production",
+                  "effective_at": ""
+                }
+              ]
+            }
+          },
+          "tags": [
+            "rare_exception",
+            "unchanged_summary",
+            "reversion_B"
+          ],
+          "expected": {
+            "significance": "consequential",
+            "source_scope": "current production",
+            "alert_necessity": "required",
+            "safe_next_step": "Keep admission bounded and check tenant acknowledgement before the operator drain exception.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "ledger-06",
+          "sequence": 6,
+          "parent": "ledger-05",
+          "revision": "ledger-06",
+          "files": {
+            "docs/proposal.md": null
+          },
+          "tags": [
+            "deleted_source",
+            "withdrawn_proposal"
+          ],
+          "expected": {
+            "significance": "ambiguous",
+            "source_scope": "withdrawn proposal",
+            "alert_necessity": "optional",
+            "safe_next_step": "Retain the withdrawn proposal as history; do not treat its removal as a production policy reversal.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "ledger-07",
+          "sequence": 7,
+          "parent": "ledger-06",
+          "revision": "ledger-07",
+          "files": {
+            "docs/policy.md": {
+              "text": "\n\n# Accepted production contract\n\nLedger admission permits 256 pending writes except operator-authorized drain transactions after every tenant key is acknowledged.\n\nA new citation location does not change the retained rule.\n",
+              "records": [
+                {
+                  "key": "main",
+                  "topic": "ledger",
+                  "topic_title": "Ledger",
+                  "subject": "ledger admission",
+                  "statement": "The ledger admission contract includes a bounded normal path and a qualified emergency exception.",
+                  "quote": "Ledger admission permits 256 pending writes except operator-authorized drain transactions after every tenant key is acknowledged.",
+                  "kind": "constraint",
+                  "lifecycle": "accepted",
+                  "scope": "production",
+                  "effective_at": ""
+                }
+              ]
+            }
+          },
+          "tags": [
+            "citation_churn",
+            "unchanged_quote"
+          ],
+          "expected": {
+            "significance": "benign",
+            "source_scope": "current production",
+            "alert_necessity": "forbidden",
+            "safe_next_step": "Keep admission bounded and check tenant acknowledgement before the operator drain exception.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "ledger-08",
+          "sequence": 8,
+          "parent": "ledger-07",
+          "revision": "ledger-08",
+          "files": {
+            "docs/policy.md": {
+              "text": "# Accepted production contract\n\nLedger admission permits 256 pending writes except operator-authorized drain transactions.\n",
+              "records": [
+                {
+                  "key": "main",
+                  "topic": "ledger",
+                  "topic_title": "Ledger",
+                  "subject": "ledger admission",
+                  "statement": "The ledger admission contract includes a bounded normal path and a qualified emergency exception.",
+                  "quote": "Ledger admission permits 256 pending writes except operator-authorized drain transactions.",
+                  "kind": "constraint",
+                  "lifecycle": "accepted",
+                  "scope": "production",
+                  "effective_at": ""
+                }
+              ]
+            }
+          },
+          "tags": [
+            "source_reversion_A",
+            "unchanged_summary",
+            "GUARD-REVERSION-001"
+          ],
+          "expected": {
+            "significance": "consequential",
+            "source_scope": "current production",
+            "alert_necessity": "required",
+            "safe_next_step": "Keep admission bounded and check tenant acknowledgement before the operator drain exception.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "ledger-09",
+          "sequence": 9,
+          "parent": "ledger-08",
+          "revision": "ledger-09",
+          "files": {
+            "docs/history.md": null
+          },
+          "tags": [
+            "historical_only",
+            "deleted_source"
+          ],
+          "expected": {
+            "significance": "ambiguous",
+            "source_scope": "historical source withdrawn",
+            "alert_necessity": "optional",
+            "safe_next_step": "Preserve the historical experiment's qualification; its deletion establishes no current production behavior.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "ledger-10",
+          "sequence": 10,
+          "parent": "ledger-09",
+          "revision": "ledger-10",
+          "files": {},
+          "tags": [
+            "no_op_after_history"
+          ],
+          "expected": {
+            "significance": "benign",
+            "source_scope": "current production",
+            "alert_necessity": "forbidden",
+            "safe_next_step": "Keep admission bounded and check tenant acknowledgement before the operator drain exception.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "ledger-11",
+          "sequence": 11,
+          "parent": "ledger-10",
+          "revision": "ledger-11",
+          "files": {
+            "docs/safety.md": {
+              "text": "# Additional accepted constraint\n\nLedger commits must atomically update the balance and its append-only audit entry.\n",
+              "records": [
+                {
+                  "key": "safety",
+                  "topic": "ledger",
+                  "topic_title": "Ledger",
+                  "subject": "ledger admission",
+                  "statement": "Ledger commits must atomically update the balance and its append-only audit entry.",
+                  "quote": "Ledger commits must atomically update the balance and its append-only audit entry.",
+                  "kind": "constraint",
+                  "lifecycle": "accepted",
+                  "scope": "production",
+                  "effective_at": ""
+                }
+              ]
+            }
+          },
+          "tags": [
+            "accepted_constraint",
+            "security_or_correctness"
+          ],
+          "expected": {
+            "significance": "consequential",
+            "source_scope": "current production",
+            "alert_necessity": "required",
+            "safe_next_step": "Keep admission bounded and check tenant acknowledgement before the operator drain exception.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "ledger-12",
+          "sequence": 12,
+          "parent": "ledger-11",
+          "revision": "ledger-12",
+          "files": {
+            "docs/work.md": {
+              "text": "# Repeated staging report\n\nThe staging-only ledger admission replay was repeated successfully; production and emergency behavior remain unverified.\n",
+              "records": [
+                {
+                  "key": "work",
+                  "topic": "ledger",
+                  "topic_title": "Ledger",
+                  "subject": "ledger admission",
+                  "statement": "The staging-only ledger admission replay was repeated successfully; production and emergency behavior remain unverified.",
+                  "quote": "The staging-only ledger admission replay was repeated successfully; production and emergency behavior remain unverified.",
+                  "kind": "reported_outcome",
+                  "lifecycle": "completed",
+                  "scope": "staging",
+                  "effective_at": ""
+                }
+              ]
+            }
+          },
+          "tags": [
+            "scope_only",
+            "cross_source_interpretation_added"
+          ],
+          "expected": {
+            "significance": "ambiguous",
+            "source_scope": "current staging report",
+            "alert_necessity": "optional",
+            "safe_next_step": "Compare the staging report with the accepted production contract without promoting the report into production verification.",
+            "runtime_verified": false
+          },
+          "interpretation": {
+            "action": "set",
+            "pair": "policy-work",
+            "from": "work",
+            "to": "main",
+            "kind": "verification_question",
+            "reason": "The source-reported staging replay does not establish compliance with the accepted production exception.",
+            "qualifications": [
+              "Staging-only source report; no production execution or policy replacement is established."
+            ]
+          }
+        },
+        {
+          "id": "ledger-13",
+          "sequence": 13,
+          "parent": "ledger-12",
+          "revision": "ledger-13",
+          "files": {
+            "README.md": {
+              "text": "# Synthetic ledger\n\nEvaluation source only.\n\n## Navigation\n",
+              "records": []
+            }
+          },
+          "tags": [
+            "formatting",
+            "unrelated_source"
+          ],
+          "expected": {
+            "significance": "benign",
+            "source_scope": "current production",
+            "alert_necessity": "forbidden",
+            "safe_next_step": "Keep admission bounded and check tenant acknowledgement before the operator drain exception.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "ledger-14",
+          "sequence": 14,
+          "parent": "ledger-13",
+          "revision": "ledger-14",
+          "files": {
+            "docs/incident.md": {
+              "text": "# Production discrepancy report\n\nThe source owner reports that the production ledger admission path currently bypasses its accepted bound; independent runtime verification remains absent.\n",
+              "records": [
+                {
+                  "key": "incident",
+                  "topic": "ledger",
+                  "topic_title": "Ledger",
+                  "subject": "ledger admission",
+                  "statement": "The source owner reports that the production ledger admission path currently bypasses its accepted bound; independent runtime verification remains absent.",
+                  "quote": "The source owner reports that the production ledger admission path currently bypasses its accepted bound; independent runtime verification remains absent.",
+                  "kind": "reported_outcome",
+                  "lifecycle": "completed",
+                  "scope": "production",
+                  "effective_at": ""
+                }
+              ]
+            }
+          },
+          "tags": [
+            "reported_constraint_discrepancy"
+          ],
+          "expected": {
+            "significance": "consequential",
+            "source_scope": "current production",
+            "alert_necessity": "required",
+            "safe_next_step": "Preserve the accepted bound and use permitted static inspection to locate the reported bypass; do not claim that the report proves runtime behavior.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "ledger-15",
+          "sequence": 15,
+          "parent": "ledger-14",
+          "revision": "ledger-15",
+          "files": {},
+          "tags": [
+            "relationship_only",
+            "cross_source_interpretation_withdrawn"
+          ],
+          "expected": {
+            "significance": "ambiguous",
+            "source_scope": "withdrawn interpretation",
+            "alert_necessity": "optional",
+            "safe_next_step": "Drop the withdrawn interpretation from current advice while retaining both original sources and their scope; withdrawal does not establish agreement.",
+            "runtime_verified": false
+          },
+          "interpretation": {
+            "action": "withdraw",
+            "pair": "policy-work"
+          }
+        },
+        {
+          "id": "ledger-16",
+          "sequence": 16,
+          "parent": "ledger-15",
+          "revision": "ledger-16",
+          "files": {
+            "README.md": {
+              "text": "# Synthetic ledger\n\nEvaluation source only.\n\n## Reference \n",
+              "records": []
+            }
+          },
+          "tags": [
+            "same_size_editorial",
+            "unrelated_source"
+          ],
+          "expected": {
+            "significance": "benign",
+            "source_scope": "current production",
+            "alert_necessity": "forbidden",
+            "safe_next_step": "Keep admission bounded and check tenant acknowledgement before the operator drain exception.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "ledger-17",
+          "sequence": 17,
+          "parent": "ledger-16",
+          "revision": "ledger-17",
+          "files": {
+            "docs/incident.md": null
+          },
+          "tags": [
+            "source_report_withdrawn"
+          ],
+          "expected": {
+            "significance": "ambiguous",
+            "source_scope": "withdrawn production report",
+            "alert_necessity": "optional",
+            "safe_next_step": "Do not infer that withdrawing an incident report repaired the ledger; retain the accepted atomicity rule and source-history qualification.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "ledger-18",
+          "sequence": 18,
+          "parent": "ledger-17",
+          "revision": "ledger-18",
+          "files": {},
+          "tags": [
+            "relationship_only",
+            "cross_source_interpretation_revised"
+          ],
+          "expected": {
+            "significance": "ambiguous",
+            "source_scope": "reconsidered interpretation",
+            "alert_necessity": "optional",
+            "safe_next_step": "Use the retained source qualifiers when reassessing the scope question; the interpretation alone cannot replace accepted policy.",
+            "runtime_verified": false
+          },
+          "interpretation": {
+            "action": "set",
+            "pair": "policy-work",
+            "from": "work",
+            "to": "main",
+            "kind": "verification_question",
+            "reason": "The withdrawn comparison is reconsidered as an unresolved scope question, not evidence that production behavior changed.",
+            "qualifications": [
+              "Staging-only source report; no production execution or policy replacement is established."
+            ]
+          }
+        },
+        {
+          "id": "ledger-19",
+          "sequence": 19,
+          "parent": "ledger-18",
+          "revision": "ledger-19",
+          "files": {
+            "docs/policy.md": {
+              "text": "# Accepted production contract\n\nLedger admission permits 256 pending writes except operator-authorized drain transactions.\n\n\n",
+              "records": [
+                {
+                  "key": "main",
+                  "topic": "ledger",
+                  "topic_title": "Ledger",
+                  "subject": "ledger admission",
+                  "statement": "The ledger admission contract includes a bounded normal path and a qualified emergency exception.",
+                  "quote": "Ledger admission permits 256 pending writes except operator-authorized drain transactions.",
+                  "kind": "constraint",
+                  "lifecycle": "accepted",
+                  "scope": "production",
+                  "effective_at": ""
+                }
+              ]
+            }
+          },
+          "tags": [
+            "formatting",
+            "trailing_newlines"
+          ],
+          "expected": {
+            "significance": "benign",
+            "source_scope": "current production",
+            "alert_necessity": "forbidden",
+            "safe_next_step": "Keep admission bounded and check tenant acknowledgement before the operator drain exception.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "ledger-20",
+          "sequence": 20,
+          "parent": "ledger-19",
+          "revision": "ledger-20",
+          "files": {
+            "docs/safety.md": null
+          },
+          "tags": [
+            "accepted_support_withdrawal",
+            "deleted_source"
+          ],
+          "expected": {
+            "significance": "consequential",
+            "source_scope": "accepted source support withdrawn",
+            "alert_necessity": "required",
+            "safe_next_step": "Retain the accepted constraint's historical evidence and revalidate source-current support; deleting its document does not authorize a policy reversal.",
+            "runtime_verified": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "releases",
+      "source_identity": {
+        "kind": "synthetic_debug_fixture",
+        "version": "guardian-events-v1"
+      },
+      "initial_revision": "releases-00",
+      "initial_files": {
+        "docs/policy.md": {
+          "text": "# Accepted production contract\n\nRelease signatures expire after 24 hours except pinned recovery artifacts.\n",
+          "records": [
+            {
+              "key": "main",
+              "topic": "releases",
+              "topic_title": "Releases",
+              "subject": "artifact admission",
+              "statement": "The artifact admission contract includes a bounded normal path and a qualified emergency exception.",
+              "quote": "Release signatures expire after 24 hours except pinned recovery artifacts.",
+              "kind": "constraint",
+              "lifecycle": "accepted",
+              "scope": "production",
+              "effective_at": ""
+            }
+          ]
+        },
+        "docs/history.md": {
+          "text": "# Historical experiment\n\nA historical development replay of artifact admission completed in an isolated 2025 experiment; it does not describe production.\n",
+          "records": [
+            {
+              "key": "history",
+              "topic": "releases",
+              "topic_title": "Releases",
+              "subject": "artifact admission",
+              "statement": "A historical development replay of artifact admission completed in an isolated 2025 experiment; it does not describe production.",
+              "quote": "A historical development replay of artifact admission completed in an isolated 2025 experiment; it does not describe production.",
+              "kind": "reported_outcome",
+              "lifecycle": "completed",
+              "scope": "historical development",
+              "effective_at": ""
+            }
+          ]
+        },
+        "docs/work.md": {
+          "text": "# Staging work report\n\nA staging-only artifact admission replay completed; production behavior and the emergency exception were not verified.\n",
+          "records": [
+            {
+              "key": "work",
+              "topic": "releases",
+              "topic_title": "Releases",
+              "subject": "artifact admission",
+              "statement": "A staging-only artifact admission replay completed; production behavior and the emergency exception were not verified.",
+              "quote": "A staging-only artifact admission replay completed; production behavior and the emergency exception were not verified.",
+              "kind": "reported_outcome",
+              "lifecycle": "completed",
+              "scope": "staging",
+              "effective_at": ""
+            }
+          ]
+        },
+        "src/adapter.py": {
+          "text": "\"\"\"Synthetic releases source; the guardian never executes it.\"\"\"\nLIMIT = 24\n",
+          "records": []
+        },
+        "README.md": {
+          "text": "# Synthetic releases\n\nEvaluation source only.\n",
+          "records": []
+        }
+      },
+      "events": [
+        {
+          "id": "releases-01",
+          "sequence": 1,
+          "parent": "releases-00",
+          "revision": "releases-01",
+          "files": {},
+          "tags": [
+            "no_op"
+          ],
+          "expected": {
+            "significance": "benign",
+            "source_scope": "current production",
+            "alert_necessity": "forbidden",
+            "safe_next_step": "Keep the named baseline; no source change requires a new assessment.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "releases-02",
+          "sequence": 2,
+          "parent": "releases-01",
+          "revision": "releases-02",
+          "files": {
+            "docs/policy.md": {
+              "text": "# Accepted production contract\n\nRelease signatures expire after 48 hours except pinned recovery artifacts.\n",
+              "records": [
+                {
+                  "key": "main",
+                  "topic": "releases",
+                  "topic_title": "Releases",
+                  "subject": "artifact admission",
+                  "statement": "The artifact admission contract includes a bounded normal path and a qualified emergency exception.",
+                  "quote": "Release signatures expire after 48 hours except pinned recovery artifacts.",
+                  "kind": "constraint",
+                  "lifecycle": "accepted",
+                  "scope": "production",
+                  "effective_at": ""
+                }
+              ]
+            }
+          },
+          "tags": [
+            "same_size_edit",
+            "accepted_constraint",
+            "unchanged_summary"
+          ],
+          "expected": {
+            "significance": "consequential",
+            "source_scope": "current production",
+            "alert_necessity": "required",
+            "safe_next_step": "Check signature age and require the retained signer certificate for pinned recovery artifacts.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "releases-03",
+          "sequence": 3,
+          "parent": "releases-02",
+          "revision": "releases-03",
+          "files": {
+            "docs/proposal.md": {
+              "text": "# Staging proposal\n\nProposed staging-only artifact admission experiment; this proposal does not replace the accepted production contract.\n",
+              "records": [
+                {
+                  "key": "proposal",
+                  "topic": "releases",
+                  "topic_title": "Releases",
+                  "subject": "artifact admission",
+                  "statement": "Proposed staging-only artifact admission experiment; this proposal does not replace the accepted production contract.",
+                  "quote": "Proposed staging-only artifact admission experiment; this proposal does not replace the accepted production contract.",
+                  "kind": "proposal",
+                  "lifecycle": "proposed",
+                  "scope": "staging",
+                  "effective_at": ""
+                }
+              ]
+            }
+          },
+          "tags": [
+            "proposed_scope"
+          ],
+          "expected": {
+            "significance": "ambiguous",
+            "source_scope": "proposed staging only",
+            "alert_necessity": "optional",
+            "safe_next_step": "Keep production policy unchanged and confine any experiment to the documented staging scope.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "releases-04",
+          "sequence": 4,
+          "parent": "releases-03",
+          "revision": "releases-04",
+          "files": {
+            "docs/policy.md": {
+              "text": "# Accepted production contract\n\nRelease signatures expire after 48 hours except pinned recovery artifacts.\n\nEditorial navigation note.\n",
+              "records": [
+                {
+                  "key": "main",
+                  "topic": "releases",
+                  "topic_title": "Releases",
+                  "subject": "artifact admission",
+                  "statement": "The artifact admission contract includes a bounded normal path and a qualified emergency exception.",
+                  "quote": "Release signatures expire after 48 hours except pinned recovery artifacts.",
+                  "kind": "constraint",
+                  "lifecycle": "accepted",
+                  "scope": "production",
+                  "effective_at": ""
+                }
+              ]
+            }
+          },
+          "tags": [
+            "formatting",
+            "outside_quote"
+          ],
+          "expected": {
+            "significance": "benign",
+            "source_scope": "current production",
+            "alert_necessity": "forbidden",
+            "safe_next_step": "Check signature age and require the retained signer certificate for pinned recovery artifacts.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "releases-05",
+          "sequence": 5,
+          "parent": "releases-04",
+          "revision": "releases-05",
+          "files": {
+            "docs/policy.md": {
+              "text": "# Accepted production contract\n\nRelease signatures expire after 48 hours except pinned recovery artifacts with an independently retained signer certificate.\n",
+              "records": [
+                {
+                  "key": "main",
+                  "topic": "releases",
+                  "topic_title": "Releases",
+                  "subject": "artifact admission",
+                  "statement": "The artifact admission contract includes a bounded normal path and a qualified emergency exception.",
+                  "quote": "Release signatures expire after 48 hours except pinned recovery artifacts with an independently retained signer certificate.",
+                  "kind": "constraint",
+                  "lifecycle": "accepted",
+                  "scope": "production",
+                  "effective_at": ""
+                }
+              ]
+            }
+          },
+          "tags": [
+            "rare_exception",
+            "unchanged_summary",
+            "reversion_B"
+          ],
+          "expected": {
+            "significance": "consequential",
+            "source_scope": "current production",
+            "alert_necessity": "required",
+            "safe_next_step": "Check signature age and require the retained signer certificate for pinned recovery artifacts.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "releases-06",
+          "sequence": 6,
+          "parent": "releases-05",
+          "revision": "releases-06",
+          "files": {
+            "docs/proposal.md": null
+          },
+          "tags": [
+            "deleted_source",
+            "withdrawn_proposal"
+          ],
+          "expected": {
+            "significance": "ambiguous",
+            "source_scope": "withdrawn proposal",
+            "alert_necessity": "optional",
+            "safe_next_step": "Retain the withdrawn proposal as history; do not treat its removal as a production policy reversal.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "releases-07",
+          "sequence": 7,
+          "parent": "releases-06",
+          "revision": "releases-07",
+          "files": {
+            "docs/policy.md": {
+              "text": "\n\n# Accepted production contract\n\nRelease signatures expire after 48 hours except pinned recovery artifacts with an independently retained signer certificate.\n\nA new citation location does not change the retained rule.\n",
+              "records": [
+                {
+                  "key": "main",
+                  "topic": "releases",
+                  "topic_title": "Releases",
+                  "subject": "artifact admission",
+                  "statement": "The artifact admission contract includes a bounded normal path and a qualified emergency exception.",
+                  "quote": "Release signatures expire after 48 hours except pinned recovery artifacts with an independently retained signer certificate.",
+                  "kind": "constraint",
+                  "lifecycle": "accepted",
+                  "scope": "production",
+                  "effective_at": ""
+                }
+              ]
+            }
+          },
+          "tags": [
+            "citation_churn",
+            "unchanged_quote"
+          ],
+          "expected": {
+            "significance": "benign",
+            "source_scope": "current production",
+            "alert_necessity": "forbidden",
+            "safe_next_step": "Check signature age and require the retained signer certificate for pinned recovery artifacts.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "releases-08",
+          "sequence": 8,
+          "parent": "releases-07",
+          "revision": "releases-08",
+          "files": {
+            "docs/policy.md": {
+              "text": "# Accepted production contract\n\nRelease signatures expire after 48 hours except pinned recovery artifacts.\n",
+              "records": [
+                {
+                  "key": "main",
+                  "topic": "releases",
+                  "topic_title": "Releases",
+                  "subject": "artifact admission",
+                  "statement": "The artifact admission contract includes a bounded normal path and a qualified emergency exception.",
+                  "quote": "Release signatures expire after 48 hours except pinned recovery artifacts.",
+                  "kind": "constraint",
+                  "lifecycle": "accepted",
+                  "scope": "production",
+                  "effective_at": ""
+                }
+              ]
+            }
+          },
+          "tags": [
+            "source_reversion_A",
+            "unchanged_summary",
+            "GUARD-REVERSION-001"
+          ],
+          "expected": {
+            "significance": "consequential",
+            "source_scope": "current production",
+            "alert_necessity": "required",
+            "safe_next_step": "Check signature age and require the retained signer certificate for pinned recovery artifacts.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "releases-09",
+          "sequence": 9,
+          "parent": "releases-08",
+          "revision": "releases-09",
+          "files": {
+            "docs/history.md": null
+          },
+          "tags": [
+            "historical_only",
+            "deleted_source"
+          ],
+          "expected": {
+            "significance": "ambiguous",
+            "source_scope": "historical source withdrawn",
+            "alert_necessity": "optional",
+            "safe_next_step": "Preserve the historical experiment's qualification; its deletion establishes no current production behavior.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "releases-10",
+          "sequence": 10,
+          "parent": "releases-09",
+          "revision": "releases-10",
+          "files": {},
+          "tags": [
+            "no_op_after_history"
+          ],
+          "expected": {
+            "significance": "benign",
+            "source_scope": "current production",
+            "alert_necessity": "forbidden",
+            "safe_next_step": "Check signature age and require the retained signer certificate for pinned recovery artifacts.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "releases-11",
+          "sequence": 11,
+          "parent": "releases-10",
+          "revision": "releases-11",
+          "files": {
+            "docs/safety.md": {
+              "text": "# Additional accepted constraint\n\nRelease admission must reject unsigned artifacts before changing the active deployment.\n",
+              "records": [
+                {
+                  "key": "safety",
+                  "topic": "releases",
+                  "topic_title": "Releases",
+                  "subject": "artifact admission",
+                  "statement": "Release admission must reject unsigned artifacts before changing the active deployment.",
+                  "quote": "Release admission must reject unsigned artifacts before changing the active deployment.",
+                  "kind": "constraint",
+                  "lifecycle": "accepted",
+                  "scope": "production",
+                  "effective_at": ""
+                }
+              ]
+            }
+          },
+          "tags": [
+            "accepted_constraint",
+            "security_or_correctness"
+          ],
+          "expected": {
+            "significance": "consequential",
+            "source_scope": "current production",
+            "alert_necessity": "required",
+            "safe_next_step": "Check signature age and require the retained signer certificate for pinned recovery artifacts.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "releases-12",
+          "sequence": 12,
+          "parent": "releases-11",
+          "revision": "releases-12",
+          "files": {
+            "docs/work.md": {
+              "text": "# Repeated staging report\n\nThe staging-only artifact admission replay was repeated successfully; production and emergency behavior remain unverified.\n",
+              "records": [
+                {
+                  "key": "work",
+                  "topic": "releases",
+                  "topic_title": "Releases",
+                  "subject": "artifact admission",
+                  "statement": "The staging-only artifact admission replay was repeated successfully; production and emergency behavior remain unverified.",
+                  "quote": "The staging-only artifact admission replay was repeated successfully; production and emergency behavior remain unverified.",
+                  "kind": "reported_outcome",
+                  "lifecycle": "completed",
+                  "scope": "staging",
+                  "effective_at": ""
+                }
+              ]
+            }
+          },
+          "tags": [
+            "scope_only",
+            "cross_source_interpretation_added"
+          ],
+          "expected": {
+            "significance": "ambiguous",
+            "source_scope": "current staging report",
+            "alert_necessity": "optional",
+            "safe_next_step": "Compare the staging report with the accepted production contract without promoting the report into production verification.",
+            "runtime_verified": false
+          },
+          "interpretation": {
+            "action": "set",
+            "pair": "policy-work",
+            "from": "work",
+            "to": "main",
+            "kind": "verification_question",
+            "reason": "The source-reported staging replay does not establish compliance with the accepted production exception.",
+            "qualifications": [
+              "Staging-only source report; no production execution or policy replacement is established."
+            ]
+          }
+        },
+        {
+          "id": "releases-13",
+          "sequence": 13,
+          "parent": "releases-12",
+          "revision": "releases-13",
+          "files": {
+            "README.md": {
+              "text": "# Synthetic releases\n\nEvaluation source only.\n\n## Navigation\n",
+              "records": []
+            }
+          },
+          "tags": [
+            "formatting",
+            "unrelated_source"
+          ],
+          "expected": {
+            "significance": "benign",
+            "source_scope": "current production",
+            "alert_necessity": "forbidden",
+            "safe_next_step": "Check signature age and require the retained signer certificate for pinned recovery artifacts.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "releases-14",
+          "sequence": 14,
+          "parent": "releases-13",
+          "revision": "releases-14",
+          "files": {
+            "docs/incident.md": {
+              "text": "# Production discrepancy report\n\nThe source owner reports that the production artifact admission path currently bypasses its accepted bound; independent runtime verification remains absent.\n",
+              "records": [
+                {
+                  "key": "incident",
+                  "topic": "releases",
+                  "topic_title": "Releases",
+                  "subject": "artifact admission",
+                  "statement": "The source owner reports that the production artifact admission path currently bypasses its accepted bound; independent runtime verification remains absent.",
+                  "quote": "The source owner reports that the production artifact admission path currently bypasses its accepted bound; independent runtime verification remains absent.",
+                  "kind": "reported_outcome",
+                  "lifecycle": "completed",
+                  "scope": "production",
+                  "effective_at": ""
+                }
+              ]
+            }
+          },
+          "tags": [
+            "reported_constraint_discrepancy"
+          ],
+          "expected": {
+            "significance": "consequential",
+            "source_scope": "current production",
+            "alert_necessity": "required",
+            "safe_next_step": "Preserve the accepted bound and use permitted static inspection to locate the reported bypass; do not claim that the report proves runtime behavior.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "releases-15",
+          "sequence": 15,
+          "parent": "releases-14",
+          "revision": "releases-15",
+          "files": {},
+          "tags": [
+            "relationship_only",
+            "cross_source_interpretation_withdrawn"
+          ],
+          "expected": {
+            "significance": "ambiguous",
+            "source_scope": "withdrawn interpretation",
+            "alert_necessity": "optional",
+            "safe_next_step": "Drop the withdrawn interpretation from current advice while retaining both original sources and their scope; withdrawal does not establish agreement.",
+            "runtime_verified": false
+          },
+          "interpretation": {
+            "action": "withdraw",
+            "pair": "policy-work"
+          }
+        },
+        {
+          "id": "releases-16",
+          "sequence": 16,
+          "parent": "releases-15",
+          "revision": "releases-16",
+          "files": {
+            "docs/rejected.md": {
+              "text": "# Rejected proposal\n\nThe proposed artifact admission staging exception was rejected and never became production policy.\n",
+              "records": [
+                {
+                  "key": "rejected",
+                  "topic": "releases",
+                  "topic_title": "Releases",
+                  "subject": "artifact admission",
+                  "statement": "The proposed artifact admission staging exception was rejected and never became production policy.",
+                  "quote": "The proposed artifact admission staging exception was rejected and never became production policy.",
+                  "kind": "proposal",
+                  "lifecycle": "rejected",
+                  "scope": "staging",
+                  "effective_at": ""
+                }
+              ]
+            }
+          },
+          "tags": [
+            "rejected_scope"
+          ],
+          "expected": {
+            "significance": "ambiguous",
+            "source_scope": "rejected staging proposal",
+            "alert_necessity": "optional",
+            "safe_next_step": "Keep the rejected proposal historical and preserve the accepted production rule.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "releases-17",
+          "sequence": 17,
+          "parent": "releases-16",
+          "revision": "releases-17",
+          "files": {
+            "docs/fail-closed.md": {
+              "text": "# Fail-closed constraint\n\nThe accepted production artifact admission contract now explicitly requires fail-closed admission before any side effect; the emergency qualification remains in policy.md.\n",
+              "records": [
+                {
+                  "key": "fail-closed",
+                  "topic": "releases",
+                  "topic_title": "Releases",
+                  "subject": "artifact admission",
+                  "statement": "The accepted production artifact admission contract now explicitly requires fail-closed admission before any side effect; the emergency qualification remains in policy.md.",
+                  "quote": "The accepted production artifact admission contract now explicitly requires fail-closed admission before any side effect; the emergency qualification remains in policy.md.",
+                  "kind": "constraint",
+                  "lifecycle": "accepted",
+                  "scope": "production",
+                  "effective_at": ""
+                }
+              ]
+            }
+          },
+          "tags": [
+            "accepted_constraint",
+            "scope_preservation"
+          ],
+          "expected": {
+            "significance": "consequential",
+            "source_scope": "current production",
+            "alert_necessity": "required",
+            "safe_next_step": "Check signature age and require the retained signer certificate for pinned recovery artifacts.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "releases-18",
+          "sequence": 18,
+          "parent": "releases-17",
+          "revision": "releases-18",
+          "files": {},
+          "tags": [
+            "relationship_only",
+            "cross_source_interpretation_revised"
+          ],
+          "expected": {
+            "significance": "ambiguous",
+            "source_scope": "reconsidered interpretation",
+            "alert_necessity": "optional",
+            "safe_next_step": "Use the retained source qualifiers when reassessing the scope question; the interpretation alone cannot replace accepted policy.",
+            "runtime_verified": false
+          },
+          "interpretation": {
+            "action": "set",
+            "pair": "policy-work",
+            "from": "work",
+            "to": "main",
+            "kind": "verification_question",
+            "reason": "The withdrawn comparison is reconsidered as an unresolved scope question, not evidence that production behavior changed.",
+            "qualifications": [
+              "Staging-only source report; no production execution or policy replacement is established."
+            ]
+          }
+        },
+        {
+          "id": "releases-19",
+          "sequence": 19,
+          "parent": "releases-18",
+          "revision": "releases-19",
+          "files": {
+            "docs/policy.md": {
+              "text": "# Accepted production contract\n\nRelease signatures expire after 48 hours except pinned recovery artifacts.\n\n\n",
+              "records": [
+                {
+                  "key": "main",
+                  "topic": "releases",
+                  "topic_title": "Releases",
+                  "subject": "artifact admission",
+                  "statement": "The artifact admission contract includes a bounded normal path and a qualified emergency exception.",
+                  "quote": "Release signatures expire after 48 hours except pinned recovery artifacts.",
+                  "kind": "constraint",
+                  "lifecycle": "accepted",
+                  "scope": "production",
+                  "effective_at": ""
+                }
+              ]
+            }
+          },
+          "tags": [
+            "formatting",
+            "trailing_newlines"
+          ],
+          "expected": {
+            "significance": "benign",
+            "source_scope": "current production",
+            "alert_necessity": "forbidden",
+            "safe_next_step": "Check signature age and require the retained signer certificate for pinned recovery artifacts.",
+            "runtime_verified": false
+          }
+        },
+        {
+          "id": "releases-20",
+          "sequence": 20,
+          "parent": "releases-19",
+          "revision": "releases-20",
+          "files": {
+            "docs/safety.md": null
+          },
+          "tags": [
+            "accepted_support_withdrawal",
+            "deleted_source"
+          ],
+          "expected": {
+            "significance": "consequential",
+            "source_scope": "accepted source support withdrawn",
+            "alert_necessity": "required",
+            "safe_next_step": "Retain the accepted constraint's historical evidence and revalidate source-current support; deleting its document does not authorize a policy reversal.",
+            "runtime_verified": false
+          }
+        }
+      ]
+    }
+  ]
+}

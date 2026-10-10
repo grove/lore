@@ -467,6 +467,185 @@ async fn changed_exact_exception_is_visible_with_unchanged_summary_and_old_basel
     );
 }
 
+// GUARD-REVERSION-001: cumulative historical support is identical on B -> A,
+// while the source-current exception changes. This is a three-checkpoint
+// regression, not a model effectiveness experiment.
+#[tokio::test]
+async fn restored_source_condition_is_visible_after_a_b_a_with_unchanged_summary() {
+    let (_dir, config, model) = common::project();
+    common::put(
+        &config,
+        "initial.md",
+        "DECISION identity: Identity checks remain required.\n",
+    );
+    engine::update(&config, &model, None, UpdateOptions::default())
+        .await
+        .unwrap();
+    let conn = rusqlite::Connection::open(config.state.join("state.db")).unwrap();
+    let summary = "Queue admission preserves arrival order.";
+    let original = "Queue admission preserves arrival order except emergency drains.";
+    let changed = "Queue admission preserves arrival order except emergency drains after tenant acknowledgement.";
+    let (id, _) = captured_support(&config, &conn, summary, original, None);
+    for quote in [changed, original] {
+        companion::save_baseline(&config, &conn, "joined", true).unwrap();
+        let head = storage::source_heads(&conn)
+            .unwrap()
+            .into_iter()
+            .find(|head| head.path == "captured.md")
+            .unwrap();
+        for (_, (section, _)) in storage::current_chunks(&conn, &head.id).unwrap() {
+            storage::retire_section(&conn, &section).unwrap();
+        }
+        let (_, evidence) = captured_support(&config, &conn, summary, quote, Some(&id));
+        let report = companion::changes(&config, &conn, &options()).unwrap();
+        let change = report.changes.iter().find(|change| change.knowledge_id == id)
+            .expect("Restoring earlier source-current support must not disappear behind historical quotations");
+        assert_eq!(change.before.as_ref().unwrap().statement, summary);
+        assert_eq!(change.after.as_ref().unwrap().statement, summary);
+        assert_eq!(
+            change
+                .after
+                .as_ref()
+                .unwrap()
+                .current_evidence_ids
+                .as_ref()
+                .unwrap(),
+            &vec![evidence]
+        );
+        assert!(
+            report
+                .evidence
+                .iter()
+                .any(|evidence| evidence.excerpt == quote)
+        );
+    }
+    companion::save_baseline(&config, &conn, "joined", true).unwrap();
+    assert!(
+        companion::changes(&config, &conn, &options())
+            .unwrap()
+            .changes
+            .is_empty()
+    );
+}
+
+#[tokio::test]
+async fn schema_one_baselines_without_current_membership_keep_original_checksum_and_load() {
+    let (_dir, config, model) = common::project();
+    common::put(
+        &config,
+        "queue.md",
+        "DECISION queue: Queue capacity is 128.\n",
+    );
+    engine::update(&config, &model, None, UpdateOptions::default())
+        .await
+        .unwrap();
+    let conn = storage::read_only(&config.state.join("state.db")).unwrap();
+    let mut baseline = companion::save_baseline(&config, &conn, "joined", false).unwrap();
+    for record in baseline.records.values_mut() {
+        record.current_evidence_ids = None;
+    }
+    rewrite(&config, baseline);
+    let raw = fs::read_to_string(config.state.join("baselines/joined.json")).unwrap();
+    assert!(!raw.contains("current_evidence_ids"));
+    let round_trip: Baseline = serde_json::from_str(&raw).unwrap();
+    assert!(
+        round_trip
+            .records
+            .values()
+            .all(|state| state.current_evidence_ids.is_none())
+    );
+    let report = companion::changes(&config, &conn, &options()).unwrap();
+    assert!(report.changes.is_empty());
+}
+
+#[tokio::test]
+async fn captured_current_membership_cannot_name_another_revision_or_duplicate_support() {
+    let (_dir, config, model) = common::project();
+    common::put(
+        &config,
+        "queue.md",
+        "DECISION queue: Queue capacity is 128.\n",
+    );
+    engine::update(&config, &model, None, UpdateOptions::default())
+        .await
+        .unwrap();
+    let conn = storage::read_only(&config.state.join("state.db")).unwrap();
+    let baseline = companion::save_baseline(&config, &conn, "joined", false).unwrap();
+    for duplicate in [false, true] {
+        let mut edited = baseline.clone();
+        let record = edited.records.values_mut().next().unwrap();
+        record.current_evidence_ids = Some(if duplicate {
+            vec![
+                record.evidence_ids[0].clone(),
+                record.evidence_ids[0].clone(),
+            ]
+        } else {
+            vec!["ev_unrelated_source".into()]
+        });
+        rewrite(&config, edited);
+        assert!(companion::changes(&config, &conn, &options()).is_err());
+    }
+}
+
+// GUARD-SCOPE-001: high-impact scope must survive the six-topic limit even
+// when proposal names sort earlier alphabetically.
+#[tokio::test]
+async fn guardian_selects_accepted_constraints_before_alphabetical_proposal_noise() {
+    let (_dir, mut config, model) = common::project();
+    common::put(
+        &config,
+        "initial.md",
+        "DECISION identity: Identity checks remain required.\n",
+    );
+    engine::update(&config, &model, None, UpdateOptions::default())
+        .await
+        .unwrap();
+    {
+        let conn = storage::read_only(&config.state.join("state.db")).unwrap();
+        companion::save_baseline(&config, &conn, "joined", false).unwrap();
+    }
+    for index in 0..6 {
+        common::put(
+            &config,
+            &format!("proposal-{index}.md"),
+            &format!(
+                "PLAN alpha-{index}: A proposed demonstration widget {index} may change its heading.\n"
+            ),
+        );
+    }
+    common::put(
+        &config,
+        "security.md",
+        "DECISION zulu-security: Production exports must redact all identity tokens before persistence.\n",
+    );
+    engine::update(&config, &model, None, UpdateOptions::default())
+        .await
+        .unwrap();
+    config.config.models.generative.enabled = false;
+    let conn = storage::read_only(&config.state.join("state.db")).unwrap();
+    let guarded = companion::guard(
+        &config,
+        &conn,
+        &options(),
+        &RunOptions {
+            no_inspect: true,
+            no_cache: true,
+            ..Default::default()
+        },
+    )
+    .await
+    .unwrap();
+    let shared = serde_json::to_value(guarded.intelligence.unwrap()).unwrap();
+    let task = shared["intelligence"]["task"].as_str().unwrap();
+    assert!(task.contains("zulu-security"), "{task}");
+    assert!(
+        guarded
+            .warnings
+            .iter()
+            .any(|warning| warning.contains("omitted 1 other topic"))
+    );
+}
+
 fn native_work(
     config: &lore::config::ResolvedConfig,
     conn: &rusqlite::Connection,

@@ -11,7 +11,7 @@ use crate::{
         adaptive::{self, AdaptiveResult, SnapshotManifest},
         decision::{
             GenerationBasis,
-            runtime::{DecisionContextResult, RunOptions},
+            runtime::{DecisionContextResult, DecisionResult, RunOptions},
         },
         intelligence::{RiskCategory, Severity},
     },
@@ -47,6 +47,11 @@ pub struct RevisionState {
     pub scope: String,
     pub effective_at: String,
     pub evidence_ids: Vec<String>,
+    /// Current source support at this checkpoint. `None` is an older baseline
+    /// or a historical endpoint whose current membership was not captured.
+    /// The complete immutable support remains in `evidence_ids` in either case.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub current_evidence_ids: Option<Vec<String>>,
 }
 
 impl RevisionState {
@@ -64,6 +69,15 @@ impl RevisionState {
             scope: view.scope.clone(),
             effective_at: view.effective_at.clone(),
             evidence_ids: revision_evidence(conn, &view.revision_id)?,
+            current_evidence_ids: Some(
+                view.evidence
+                    .iter()
+                    .filter(|evidence| evidence.active)
+                    .map(|evidence| evidence.id.clone())
+                    .collect::<BTreeSet<_>>()
+                    .into_iter()
+                    .collect(),
+            ),
         })
     }
 }
@@ -73,9 +87,25 @@ fn revision_evidence(conn: &Connection, revision: &str) -> Result<Vec<String>> {
         .query_map([revision], |row| row.get(0))?.collect::<rusqlite::Result<_>>()?)
 }
 
-fn semantic_key(conn: &Connection, record: &RevisionState) -> Result<String> {
+fn semantic_key(
+    conn: &Connection,
+    record: &RevisionState,
+    current_support: bool,
+) -> Result<String> {
     let mut support = BTreeSet::new();
-    for id in &record.evidence_ids {
+    // GUARD-REVERSION-001: A -> B -> A can leave the cumulative historical
+    // quote set unchanged. Compare the checkpoint's current source support so
+    // restoring an earlier exception is still a meaningful change. Older
+    // baselines retain their original conservative historical comparison.
+    let evidence_ids = if current_support {
+        record
+            .current_evidence_ids
+            .as_ref()
+            .unwrap_or(&record.evidence_ids)
+    } else {
+        &record.evidence_ids
+    };
+    for id in evidence_ids {
         let evidence = storage::evidence_snapshot(conn, id)?;
         ensure!(
             evidence.digest == util::digest(&evidence.excerpt),
@@ -358,6 +388,13 @@ fn load_baseline(config: &ResolvedConfig, conn: &Connection, name: &str) -> Resu
             record.evidence_ids == revision_evidence(conn, &record.revision_id)?,
             "baseline omits or substitutes evidence from its immutable knowledge revision"
         );
+        if let Some(current) = &record.current_evidence_ids {
+            ensure!(
+                current.windows(2).all(|pair| pair[0] < pair[1])
+                    && current.iter().all(|id| record.evidence_ids.contains(id)),
+                "baseline current support is duplicated or outside its immutable knowledge revision"
+            );
+        }
         for evidence in &record.evidence_ids {
             let belongs: bool = conn.query_row(
                 "SELECT EXISTS(SELECT 1 FROM assertion_assignments a JOIN assertion_evidence e ON e.assertion_revision_id=a.assertion_revision_id WHERE a.knowledge_id=?1 AND e.evidence_id=?2)",
@@ -502,6 +539,37 @@ fn impact(record: &RevisionState) -> String {
     }
 }
 
+fn change_priority(change: &ProjectChange) -> u8 {
+    let adopted = |state: &RevisionState| {
+        state.lifecycle == "accepted" && matches!(state.kind.as_str(), "constraint" | "decision")
+    };
+    if change.before.as_ref().is_some_and(adopted) || change.after.as_ref().is_some_and(adopted) {
+        if change
+            .before
+            .as_ref()
+            .zip(change.after.as_ref())
+            .is_some_and(|(before, after)| {
+                before.scope != after.scope
+                    || before.lifecycle != after.lifecycle
+                    || before.support_state != after.support_state
+            })
+        {
+            0
+        } else {
+            1
+        }
+    } else if change.after.as_ref().is_some_and(|state| {
+        matches!(
+            state.support_state.as_str(),
+            "historical_only" | "unsupported"
+        ) || matches!(state.lifecycle.as_str(), "superseded" | "rejected")
+    }) {
+        3
+    } else {
+        2
+    }
+}
+
 pub fn changes(
     config: &ResolvedConfig,
     conn: &Connection,
@@ -569,7 +637,11 @@ pub fn changes(
         let before = baseline.records.get(&id);
         let after = current.get(&id);
         let unchanged = match (before, after) {
-            (Some(a), Some(b)) => semantic_key(conn, a)? == semantic_key(conn, b)?,
+            (Some(a), Some(b)) => {
+                let current_support =
+                    a.current_evidence_ids.is_some() && b.current_evidence_ids.is_some();
+                semantic_key(conn, a, current_support)? == semantic_key(conn, b, current_support)?
+            }
             _ => false,
         };
         if unchanged {
@@ -604,7 +676,7 @@ pub fn changes(
     changes.sort_by_key(|change| {
         let state = change.after.as_ref().or(change.before.as_ref()).unwrap();
         (
-            !matches!(state.kind.as_str(), "constraint" | "decision"),
+            change_priority(change),
             state.topic.clone(),
             change.knowledge_id.clone(),
         )
@@ -1043,6 +1115,185 @@ pub struct GuardianReport {
     pub budget: ContextBudget,
 }
 
+// GUARD-DUPLICATE-001: the shared brief can describe one change as both a risk
+// and a blocker. Group by the underlying changed record, using risk references
+// before adding the common recommended action's citations.
+fn advisory_groups(changes: &ChangeReport, evidence: &[String]) -> (BTreeSet<String>, Vec<String>) {
+    let mut keys = BTreeSet::new();
+    let mut labels = Vec::new();
+    for change in &changes.changes {
+        if change
+            .before
+            .iter()
+            .chain(&change.after)
+            .any(|state| state.evidence_ids.iter().any(|id| evidence.contains(id)))
+        {
+            keys.insert(format!("knowledge:{}", change.knowledge_id));
+            labels.push(format!("{} {}", change.change_kind, change.knowledge_id));
+        }
+    }
+    for change in &changes.imported_changes {
+        if change
+            .before
+            .iter()
+            .chain(&change.after)
+            .any(|state| evidence.contains(&state.evidence_id))
+        {
+            keys.insert(format!("imported:{}", change.observation_id));
+            labels.push(format!("changed imported source {}", change.observation_id));
+        }
+    }
+    for change in &changes.relationship_changes {
+        if change
+            .before
+            .iter()
+            .chain(&change.after)
+            .any(|state| evidence.contains(&state.evidence_id))
+        {
+            keys.insert(format!("relationship:{}", change.relationship_id));
+            labels.push(format!(
+                "changed documentary relationship {}",
+                change.relationship_id
+            ));
+        }
+    }
+    for change in &changes.cross_source_changes {
+        if change.before.iter().chain(&change.after).any(|state| {
+            state
+                .relation
+                .evidence_ids
+                .iter()
+                .any(|id| evidence.contains(id))
+        }) {
+            keys.insert(format!("interpretation:{}", change.pair_key));
+            labels.push(format!("{} {}", change.change_kind, change.pair_key));
+        }
+    }
+    (keys, labels)
+}
+
+fn merge_advisory(
+    groups: &mut Vec<(BTreeSet<String>, Advisory)>,
+    mut keys: BTreeSet<String>,
+    mut value: Advisory,
+) {
+    let mut index = 0;
+    while index < groups.len() {
+        if !keys.is_disjoint(&groups[index].0) {
+            let (other_keys, other) = groups.remove(index);
+            keys.extend(other_keys);
+            for (target, source) in [
+                (&mut value.explanation, other.explanation),
+                (&mut value.recommended_action, other.recommended_action),
+            ] {
+                // Text containment is not semantic equivalence: "do not
+                // disable checks" contains "disable checks". Keep distinct
+                // original actions and qualifications even when they overlap.
+                if *target != source {
+                    target.push_str("\n\n");
+                    target.push_str(&source);
+                }
+            }
+            value.evidence_ids.extend(other.evidence_ids);
+            value.observation_ids.extend(other.observation_ids);
+            // A merged bridge can connect a previously disjoint earlier group.
+            index = 0;
+        } else {
+            index += 1;
+        }
+    }
+    value.evidence_ids.sort();
+    value.evidence_ids.dedup();
+    value.observation_ids.sort();
+    value.observation_ids.dedup();
+    groups.push((keys, value));
+}
+
+fn reviewed_advisories(brief: &DecisionResult, changes: &ChangeReport) -> Vec<Advisory> {
+    let mut groups = Vec::new();
+    let mut insert = |explanation: String,
+                      action: String,
+                      support: &[String],
+                      observations: &[String],
+                      action_support: &[String],
+                      action_observations: &[String],
+                      knowledge: Option<&str>| {
+        let (mut keys, labels) = advisory_groups(changes, support);
+        if let Some(id) = knowledge {
+            keys.insert(format!("knowledge:{id}"));
+        }
+        if keys.is_empty() {
+            keys.extend(support.iter().map(|id| format!("evidence:{id}")));
+            keys.extend(observations.iter().map(|id| format!("observation:{id}")));
+        }
+        let changed = if labels.is_empty() {
+            "The current assessment concerns the selected change scope; no exact changed-record association was established.".into()
+        } else {
+            format!(
+                "Documented change: {}. Exact before-and-after support is available through `lore changes --since {}`.",
+                labels.join(", "),
+                changes.baseline
+            )
+        };
+        let checked = format!(
+            "Lore compared the named baseline and reviewed retained source evidence. Shared guidance contains {} static observations; this invocation read {} checkout files. No repository commands or tests were executed.",
+            brief.inspection.observations.len(),
+            brief.inspection.budget.files_read
+        );
+        merge_advisory(
+            &mut groups,
+            keys,
+            Advisory {
+                severity: "high".into(),
+                explanation: format!("{explanation}\n\n{changed}\n\n{checked}"),
+                recommended_action: action,
+                evidence_ids: support.iter().chain(action_support).cloned().collect(),
+                observation_ids: observations
+                    .iter()
+                    .chain(action_observations)
+                    .cloned()
+                    .collect(),
+            },
+        );
+    };
+    for risk in &brief.brief.risks {
+        if risk.severity == Severity::High
+            && matches!(
+                risk.category,
+                RiskCategory::AcceptedConstraint
+                    | RiskCategory::Security
+                    | RiskCategory::Destructive
+                    | RiskCategory::FinancialCorrectness
+            )
+        {
+            // GUARD-ACTION-001: the next action is the existing shared engine's
+            // concrete step, whereas preferred_approach can be broad strategy.
+            let action = &brief.brief.next_action;
+            insert(
+                risk.text.clone(),
+                action.text.clone(),
+                &risk.evidence_ids,
+                &risk.observation_ids,
+                &action.evidence_ids,
+                &action.observation_ids,
+                None,
+            );
+        }
+    }
+    for blocker in &brief.brief.material_blockers {
+        insert(
+            blocker.explanation.clone(),
+            blocker.decision_needed.clone(),
+            &blocker.evidence_ids,
+            &blocker.observation_ids,
+            &[],
+            &[],
+            Some(&blocker.knowledge_id),
+        );
+    }
+    groups.into_iter().map(|(_, advisory)| advisory).collect()
+}
+
 fn cross_source_topics(conn: &Connection) -> Result<Vec<String>> {
     let relations = imports::relationships::relations(conn)?;
     let endpoints: BTreeSet<_> = relations
@@ -1081,7 +1332,7 @@ pub async fn guard(
     let mut result = GuardianReport {
         schema_version: 1,
         baseline: options.since.clone(),
-        snapshot: changes.snapshot,
+        snapshot: changes.snapshot.clone(),
         assessment_status: "no_documented_change".into(),
         advisories: Vec::new(),
         intelligence: None,
@@ -1123,13 +1374,26 @@ pub async fn guard(
         Vec::new()
     };
     let task = options.task.clone().unwrap_or_else(|| {
-        let topics: BTreeSet<_> = changes.changes.iter().filter_map(|change| change.after.as_ref().or(change.before.as_ref()))
-            .chain(changes.related_knowledge.iter())
-            .chain(changes.cross_source_knowledge.iter())
+        // GUARD-SCOPE-001: a BTreeSet of topics used to replace materiality
+        // order with alphabetical order, hiding an accepted constraint behind
+        // six earlier proposal labels.
+        let mut topics = BTreeMap::<String, u8>::new();
+        for change in &changes.changes {
+            if let Some(state) = change.after.as_ref().or(change.before.as_ref()) {
+                let priority = change_priority(change);
+                topics.entry(state.topic.clone()).and_modify(|rank| *rank = (*rank).min(priority)).or_insert(priority);
+            }
+        }
+        for topic in changes.related_knowledge.iter().chain(&changes.cross_source_knowledge)
             .map(|state| state.topic.clone())
             .chain(changes.imported_evidence.iter().map(|source| source.record.subject.clone()))
-            .chain(relation_topics).collect();
-        let selected: Vec<_> = topics.iter().filter(|topic| topic.len() <= 512).take(6).cloned().collect();
+            .chain(relation_topics)
+        {
+            topics.entry(topic).or_insert(2);
+        }
+        let mut ranked: Vec<_> = topics.iter().filter(|(topic, _)| topic.len() <= 512).collect();
+        ranked.sort_by_key(|(topic, priority)| (**priority, topic.as_str()));
+        let selected: Vec<_> = ranked.into_iter().take(6).map(|(topic, _)| topic.clone()).collect();
         if selected.len() < topics.len() {
             result.warnings.push(format!("The bounded advisory topic selection omitted {} other topic labels. Specify a task to assess another scope; this is not a complete project audit.", topics.len()-selected.len()));
         }
@@ -1162,49 +1426,8 @@ pub async fn guard(
             if brief.brief.generation_basis == GenerationBasis::ModelAssessed =>
         {
             result.assessment_status = "source_reviewed_advisory".into();
-            for risk in &brief.brief.risks {
-                if risk.severity == Severity::High
-                    && matches!(
-                        risk.category,
-                        RiskCategory::AcceptedConstraint
-                            | RiskCategory::Security
-                            | RiskCategory::Destructive
-                            | RiskCategory::FinancialCorrectness
-                    )
-                {
-                    result.advisories.push(Advisory {
-                        severity: "high".into(),
-                        explanation: risk.text.clone(),
-                        recommended_action: brief.brief.preferred_approach.text.clone(),
-                        evidence_ids: risk
-                            .evidence_ids
-                            .iter()
-                            .chain(&brief.brief.preferred_approach.evidence_ids)
-                            .cloned()
-                            .collect::<BTreeSet<_>>()
-                            .into_iter()
-                            .collect(),
-                        observation_ids: risk
-                            .observation_ids
-                            .iter()
-                            .chain(&brief.brief.preferred_approach.observation_ids)
-                            .cloned()
-                            .collect::<BTreeSet<_>>()
-                            .into_iter()
-                            .collect(),
-                    });
-                }
-            }
+            result.advisories = reviewed_advisories(brief, &changes);
             result.warnings.push("This bounded source-reviewed advisory is not a complete audit or runtime verification. An empty advisory list does not establish that the checkout is free of material risks.".into());
-            for blocker in &brief.brief.material_blockers {
-                result.advisories.push(Advisory {
-                    severity: "high".into(),
-                    explanation: blocker.explanation.clone(),
-                    recommended_action: blocker.decision_needed.clone(),
-                    evidence_ids: blocker.evidence_ids.clone(),
-                    observation_ids: blocker.observation_ids.clone(),
-                });
-            }
         }
         _ => {
             result.assessment_status = "partial_static_guidance".into();
@@ -1261,4 +1484,104 @@ pub fn render_guard(result: &GuardianReport) -> String {
         text.push_str(&format!("\n{}\n", util::markdown_text(warning)));
     }
     text
+}
+
+#[cfg(test)]
+mod guardian_signal_tests {
+    use super::*;
+
+    fn alert(explanation: &str, action: &str, evidence: &str) -> Advisory {
+        Advisory {
+            severity: "high".into(),
+            explanation: explanation.into(),
+            recommended_action: action.into(),
+            evidence_ids: vec![evidence.into()],
+            observation_ids: vec![],
+        }
+    }
+
+    #[test]
+    fn risk_and_blocker_for_one_source_change_have_one_complete_advisory() {
+        let mut groups = Vec::new();
+        let key = BTreeSet::from(["knowledge:ku_rule".into()]);
+        merge_advisory(
+            &mut groups,
+            key.clone(),
+            alert(
+                "The changed constraint creates a risk.",
+                "Preserve the bound.",
+                "ev_rule",
+            ),
+        );
+        merge_advisory(
+            &mut groups,
+            key,
+            alert(
+                "The proposed bypass conflicts with the same constraint.",
+                "Remove the bypass before writing.",
+                "ev_bypass",
+            ),
+        );
+        assert_eq!(groups.len(), 1);
+        let merged = &groups[0].1;
+        assert!(
+            merged.explanation.contains("creates a risk")
+                && merged.explanation.contains("same constraint")
+        );
+        assert!(
+            merged.recommended_action.contains("Preserve the bound")
+                && merged.recommended_action.contains("Remove the bypass")
+        );
+        assert_eq!(merged.evidence_ids, vec!["ev_bypass", "ev_rule"]);
+    }
+
+    #[test]
+    fn an_overlap_merges_complete_groups_without_collapsing_unrelated_changes() {
+        let mut groups = Vec::new();
+        for key in ["one", "two", "unrelated"] {
+            merge_advisory(
+                &mut groups,
+                BTreeSet::from([key.into()]),
+                alert(key, key, key),
+            );
+        }
+        merge_advisory(
+            &mut groups,
+            BTreeSet::from(["one".into(), "two".into()]),
+            alert("bridge", "Preserve both conditions.", "bridge"),
+        );
+        assert_eq!(groups.len(), 2);
+        let merged = groups
+            .iter()
+            .find(|(keys, _)| keys.contains("one"))
+            .unwrap();
+        assert!(merged.0.contains("two") && !merged.0.contains("unrelated"));
+        assert_eq!(merged.1.evidence_ids.len(), 3);
+    }
+
+    #[test]
+    fn overlapping_action_text_does_not_erase_a_distinct_decision() {
+        let mut groups = Vec::new();
+        let key = BTreeSet::from(["knowledge:rule".into()]);
+        merge_advisory(
+            &mut groups,
+            key.clone(),
+            alert("First source condition.", "disable checks", "ev_first"),
+        );
+        merge_advisory(
+            &mut groups,
+            key,
+            alert(
+                "Second source condition.",
+                "do not disable checks",
+                "ev_second",
+            ),
+        );
+        assert_eq!(groups.len(), 1);
+        assert_eq!(
+            groups[0].1.recommended_action,
+            "do not disable checks\n\ndisable checks"
+        );
+        assert_eq!(groups[0].1.evidence_ids, vec!["ev_first", "ev_second"]);
+    }
 }

@@ -219,6 +219,7 @@ impl InterpretationHistory {
                     kind: row.get(3)?, lifecycle: row.get(4)?, original_lifecycle: row.get(5)?,
                     support_state: row.get(6)?, topic: row.get(7)?, subject: row.get(8)?,
                     scope: row.get(9)?, effective_at: row.get(10)?, evidence_ids: Vec::new(),
+                    current_evidence_ids: None,
                 }),
             )?;
             state.evidence_ids = conn.prepare(
