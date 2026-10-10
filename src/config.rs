@@ -287,6 +287,32 @@ impl ResolvedConfig {
         Self::resolve_impl(config, config_path, true)
     }
     fn resolve_impl(config: Config, config_path: &Path, validate_inference: bool) -> Result<Self> {
+        let base = config_path
+            .parent()
+            .context("configuration has no parent")?
+            .canonicalize()?;
+        Self::resolve_at(config, config_path, base, validate_inference)
+    }
+    /// First contact has already selected and read this normalized path through
+    /// no-follow descriptors. Keep that parent identity instead of resolving a
+    /// new canonical target between the read and source discovery.
+    pub(crate) fn resolve_read_snapshot(config: Config, config_path: &Path) -> Result<Self> {
+        ensure!(
+            config_path.is_absolute(),
+            "configuration path must be absolute"
+        );
+        let base = config_path
+            .parent()
+            .context("configuration has no parent")?
+            .to_owned();
+        Self::resolve_at(config, config_path, base, false)
+    }
+    fn resolve_at(
+        config: Config,
+        config_path: &Path,
+        base: PathBuf,
+        validate_inference: bool,
+    ) -> Result<Self> {
         ensure!(
             (1..=2).contains(&config.schema_version),
             "unsupported configuration schema_version"
@@ -301,10 +327,6 @@ impl ResolvedConfig {
                 && !config.project.name.chars().any(char::is_control),
             "project.name cannot be empty"
         );
-        let base = config_path
-            .parent()
-            .context("configuration has no parent")?
-            .canonicalize()?;
         let wiki = util::absolute(&base, &config.output.wiki_dir)?;
         let state = util::absolute(&base, &config.output.state_dir)?;
         ensure!(

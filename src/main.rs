@@ -25,8 +25,12 @@ use std::{
     about = "Understand project knowledge and get evidence-linked guidance for a task"
 )]
 struct Cli {
-    #[arg(long, global = true, default_value = "lore.yml")]
-    config: PathBuf,
+    #[arg(
+        long,
+        global = true,
+        help = "Select a configuration explicitly (otherwise use lore.yml)"
+    )]
+    config: Option<PathBuf>,
     #[arg(long, global = true, help = "Emit machine-readable JSON")]
     json: bool,
     #[command(subcommand)]
@@ -81,7 +85,7 @@ enum Command {
         #[arg(long, default_value_t = 10)]
         limit: usize,
     },
-    /// Get actionable, source-cited guidance using the configured model.
+    /// Get source-cited task guidance, including model-free first contact.
     Context {
         #[arg(value_name = "TASK", value_parser = nonempty_task)]
         task: String,
@@ -363,6 +367,7 @@ async fn run_metered(cli: Cli, meter: lore::inference::usage::UsageSession) -> R
 }
 
 async fn run(cli: Cli) -> Result<i32> {
+    let config_path = cli.config.clone().unwrap_or_else(|| "lore.yml".into());
     if let Command::Init {
         source,
         name,
@@ -370,16 +375,67 @@ async fn run(cli: Cli) -> Result<i32> {
         ..
     } = &cli.command
     {
-        bootstrap(&cli.config, source, name.as_deref())?;
+        bootstrap(&config_path, source, name.as_deref())?;
         if *configure_only {
             emit(
-                json!({"configured":true,"path":cli.config,"next":"Edit lore.yml, ensure the configured model is available, then run lore init."}),
+                json!({"configured":true,"path":config_path,"next":"Edit the configuration, ensure the configured model is available, then run lore init."}),
                 cli.json,
             )?;
             return Ok(0);
         }
     }
-    let config = if matches!(
+    let first_contact = matches!(
+        &cli.command,
+        Command::Context { .. } | Command::Onboard { .. }
+    );
+    let configuration_snapshot = if first_contact {
+        match fs::symlink_metadata(&config_path) {
+            Ok(_) => Some(lore::bootstrap::ConfigurationSnapshot::load(&config_path)?),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound && cli.config.is_none() => {
+                let root = std::env::current_dir()?;
+                let state = root.join(".lore");
+                util::reject_symlinks(&state).map_err(|e| {
+                    lore::bootstrap::error(
+                        "configuration_error",
+                        format!("Cannot inspect default Lore state safely: {e}"),
+                    )
+                })?;
+                util::reject_symlinks(&state.join("publication.json"))
+                    .and_then(|_| util::reject_symlinks(&state.join("state.db")))
+                    .map_err(|e| {
+                        lore::bootstrap::error(
+                            "configuration_error",
+                            format!("Unsafe default Lore state: {e}"),
+                        )
+                    })?;
+                ensure!(
+                    !state.join("publication.json").try_exists()?,
+                    "publication recovery is pending; restore lore.yml and run lore update before reading"
+                );
+                if state.join("state.db").try_exists()? {
+                    return Err(lore::bootstrap::error(
+                        "configuration_error",
+                        "A registry exists but lore.yml is missing. Restore its configuration or explicitly select --config before reading it.",
+                    ));
+                }
+                return first_contact_result(&cli.command, None, cli.json);
+            }
+            Err(error) => {
+                return Err(lore::bootstrap::error(
+                    "configuration_error",
+                    format!(
+                        "Cannot read selected configuration {}: {error}. Run lore init --configure-only with the intended --config path.",
+                        config_path.display()
+                    ),
+                ));
+            }
+        }
+    } else {
+        None
+    };
+    let config = if let Some(snapshot) = &configuration_snapshot {
+        Ok(snapshot.resolved().clone())
+    } else if matches!(
         &cli.command,
         Command::Context { .. }
             | Command::Evidence { .. }
@@ -392,10 +448,20 @@ async fn run(cli: Cli) -> Result<i32> {
             | Command::Changes { .. }
             | Command::Guard { .. }
     ) {
-        ResolvedConfig::load_for_read(&cli.config)
+        ResolvedConfig::load_for_read(&config_path)
     } else {
-        ResolvedConfig::load(&cli.config)
+        ResolvedConfig::load(&config_path)
     }
+    .map_err(|e| {
+        if first_contact {
+            lore::bootstrap::error(
+                "configuration_error",
+                format!("Cannot load configuration: {e:#}"),
+            )
+        } else {
+            e
+        }
+    })
     .context("load configuration (start with lore init --configure-only)")?;
     if !matches!(
         &cli.command,
@@ -410,6 +476,40 @@ async fn run(cli: Cli) -> Result<i32> {
             !publish::has_pending(&config),
             "publication recovery is pending; run lore update before reading the knowledge registry"
         );
+    }
+    if first_contact {
+        let registry = config.state.join("state.db");
+        util::reject_symlinks(&registry).map_err(|e| {
+            lore::bootstrap::error(
+                "configuration_error",
+                format!("Cannot read knowledge registry safely: {e}"),
+            )
+        })?;
+        match fs::symlink_metadata(&registry) {
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+                return first_contact_result(
+                    &cli.command,
+                    configuration_snapshot.as_ref(),
+                    cli.json,
+                );
+            }
+            Err(error) => {
+                return Err(lore::bootstrap::error(
+                    "configuration_error",
+                    format!("Cannot inspect knowledge registry: {error}"),
+                ));
+            }
+            Ok(_) => {
+                let conn = storage::read_only(&registry)?;
+                if storage::meta(&conn, "initialized")?.is_none() {
+                    return first_contact_result(
+                        &cli.command,
+                        configuration_snapshot.as_ref(),
+                        cli.json,
+                    );
+                }
+            }
+        }
     }
     match cli.command {
         Command::Init { rebuild, .. } => {
@@ -929,6 +1029,75 @@ async fn run(cli: Cli) -> Result<i32> {
     }
     Ok(0)
 }
+
+fn first_contact_result(
+    command: &Command,
+    config: Option<&lore::bootstrap::ConfigurationSnapshot>,
+    json_output: bool,
+) -> Result<i32> {
+    let (options, onboard) = match command {
+        Command::Context {
+            task,
+            paths,
+            max_tokens,
+            fast,
+            schema_version,
+            ..
+        } => {
+            if *fast || schema_version.is_some() {
+                return Err(lore::bootstrap::error(
+                    "uninitialized_project",
+                    "The selected context schema requires compiled project intelligence. Run lore init, then repeat this pinned command. Unpinned lore context TASK provides model-free source-only guidance before initialization.",
+                ));
+            }
+            (
+                ContextOptions {
+                    task: task.clone(),
+                    paths: paths.clone(),
+                    max_tokens: *max_tokens,
+                },
+                false,
+            )
+        }
+        Command::Onboard {
+            goal,
+            topic,
+            task,
+            mode,
+            paths,
+            max_tokens,
+            hint_level,
+            show_solution,
+            answer,
+            lesson,
+            activity,
+            ..
+        } => {
+            if matches!(mode, lore::experience::ExperienceMode::Tutorial)
+                || *hint_level != 0
+                || *show_solution
+                || answer.is_some()
+                || lesson.is_some()
+                || matches!(activity, lore::experience::LearningStage::Transfer)
+            {
+                return Err(lore::bootstrap::error(
+                    "uninitialized_project",
+                    "Learning activities, hints and feedback require compiled project intelligence. Run lore init first; plain lore onboard offers immediate source-only orientation.",
+                ));
+            }
+            (ContextOptions { task: task.as_ref().or(goal.as_ref()).or(topic.as_ref()).cloned().unwrap_or_else(|| "Understand the project's purpose, key concepts and local development workflow".into()), paths: paths.clone(), max_tokens: *max_tokens }, true)
+        }
+        _ => unreachable!("only first-contact commands enter this path"),
+    };
+    let root = config.map_or_else(std::env::current_dir, |c| Ok(c.resolved().base.clone()))?;
+    let result = lore::bootstrap::run(&root, config, &options, onboard)?;
+    if json_output {
+        println!("{}", serde_json::to_string(&result)?);
+    } else {
+        print!("{}", lore::bootstrap::render(&result));
+    }
+    Ok(0)
+}
 fn bootstrap(path: &Path, sources: &[PathBuf], name: Option<&str>) -> Result<()> {
     if path.exists() {
         ensure!(
@@ -1295,7 +1464,7 @@ mod tests {
     #[test]
     fn metered_dispatch_future_stays_small() {
         let cli = Cli {
-            config: PathBuf::from("missing-stack-test-config.yml"),
+            config: Some(PathBuf::from("missing-stack-test-config.yml")),
             json: true,
             command: Command::Status,
         };

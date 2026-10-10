@@ -153,7 +153,7 @@ fn missing_registry_is_an_actionable_json_error_without_initialization() {
         &cfg,
         &["--json", "context", "--fast", "Implement payment retries"],
     );
-    error(&output, 1, "operation_failed");
+    error(&output, 1, "uninitialized_project");
     let result: Value = serde_json::from_slice(&output.stdout).unwrap();
     assert!(result["error"].as_str().unwrap().contains("lore init"));
     assert_eq!(before, snapshot(&cfg.base));

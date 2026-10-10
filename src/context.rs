@@ -270,7 +270,7 @@ fn build_context_impl(
     }
 }
 
-fn validate_options(options: &ContextOptions) -> Result<()> {
+pub(crate) fn validate_options(options: &ContextOptions) -> Result<()> {
     if options.task.trim().is_empty()
         || options.task.len() > 8_000
         || options.task.chars().any(char::is_control)
