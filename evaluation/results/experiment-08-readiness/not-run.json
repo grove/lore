@@ -1,0 +1,121 @@
+{
+  "actual_coding_attempts": 0,
+  "arms": [
+    "baseline",
+    "fast",
+    "lore05",
+    "lore06",
+    "adaptive_no_reuse",
+    "adaptive_reuse"
+  ],
+  "base_commit": "9ec2b1674ebd747e5d21ca7bda6c257d91610ce7",
+  "blockers": [
+    {
+      "gate": "grants_models_and_limits",
+      "passed": false,
+      "reason": "Configure a real Lore model and pinned coding-agent identity"
+    },
+    {
+      "gate": "preregistration_record",
+      "passed": false,
+      "reason": "Preregistration, independent task/checker authors and two gold reviews per task are pending"
+    },
+    {
+      "gate": "preregistration_and_independent_gold_reviews",
+      "passed": false,
+      "reason": "Requires passing gate: grants_models_and_limits, preregistration_record"
+    },
+    {
+      "gate": "model_command_prompt_and_configuration",
+      "passed": false,
+      "reason": "Requires passing gate: grants_models_and_limits"
+    },
+    {
+      "gate": "current_contract",
+      "passed": false,
+      "reason": "Requires passing gate: grants_models_and_limits, preregistration_and_independent_gold_reviews, model_command_prompt_and_configuration"
+    },
+    {
+      "gate": "sealed_contract",
+      "passed": false,
+      "reason": "Requires passing gate: current_contract"
+    },
+    {
+      "gate": "external_readiness_record",
+      "passed": false,
+      "reason": "Required JSON artifact is missing: READINESS.json"
+    },
+    {
+      "gate": "provider_availability_and_external_runtime_egress_audit",
+      "passed": false,
+      "reason": "Requires passing gate: sealed_contract, external_readiness_record"
+    }
+  ],
+  "captures": {
+    "bytes": 10743,
+    "members_sha256": {
+      "EXPERIMENT.json": "f5b18890a1399e11090698fdee9549fc9da37cb59fea6c55bbd68af09d93b676",
+      "PREFLIGHT.json": "9859f9b218c8cf2f9ac63f0ed6ca4d3769af335a233bbaebedcd131cc4c4e66a",
+      "PREREGISTRATION.json": "0c948e8f07b3a98a0c2c5e9bd7e84df6cabf0f0af4f78970bc6800ea0c59bdf8",
+      "artifact-manifest.json": "2fb10ea7087f6c22bfc3c149a7e40631df8d8f99e9cd073440d0febf369d74cc",
+      "pilot-cases.json": "fc6abf7bef5238464a286974374dade39672f718ad5f9d9ca686f21da1ab1024",
+      "prepared.json": "eba9b0456479eb56eb39ca75a5fad25e1c6a34c528cd7794c037c4306915ae3c"
+    },
+    "path": "preflight-captures.zip",
+    "sha256": "c7e5cf32f5314fe4c78a34b5a74d8d569a47a6cc4f96cdee35ec4aa99850a48f"
+  },
+  "coding_productivity": "unmeasured",
+  "collector_files_sha256": {
+    "adaptive_tasks.py": "fd1137bb5ceb6a8a7af840ae619c3fefe33ab02bada6ee8b64a4de0c702db042",
+    "benchmark.py": "b93a9e6b3d47cc2f26499999defa42808559149e7e3776e3bf5b8c200bdba0b3",
+    "coding_agent.py": "7dd9b6a9637a9831fd37644acdc8802934e6d59a2cdf92013ec072fe4249e553",
+    "coding_tasks.py": "9cc8dc89cdea03d1f0db29d6ab7276b78d50d961a253893e8183f943a7136f43",
+    "cross_source.py": "dfede36c53f6653318f398df88de3acc86e58804314580191305fd1f360fd52e",
+    "decision_tasks.py": "702d2fbb462a06aafe30361b3587ebca9cf9a833ae2586a90bc0c50fb359ccde",
+    "experiment_08.py": "74cebe27634aa6445053e632772220037aa2e09f561f260a4aab53d8a8f08873",
+    "failure_triage.py": "95e5ab9b94e7687b4eaba1d49f520dc684d8b15a86a31486e69119ed95e96009",
+    "outcome_protocol.py": "759605e66359d74c4a32493646dc14ccee2e89fa3b2d0877b985d8f5d1d57c82",
+    "provider_usage.py": "f76d91c6c51661406d2bb0a21c536247188e9d1a726efa1dace1ad325479ce64",
+    "shared_intelligence.py": "ae4d92df85591bd2153689d00a6c50b8543ebeb1321d5099d4122b66f07d05d0"
+  },
+  "command": "python3 evaluation/experiment_08.py run /workspace/scratch/286e1ddfee82/study-08-readiness/study",
+  "command_exit_code": 2,
+  "completed_coding_assignments": 0,
+  "external_runtime_and_egress_audit": "not_supplied",
+  "held_out": false,
+  "independent_answer_reviews": 0,
+  "independent_gold_reviews": 0,
+  "launched_study_subprocesses": 0,
+  "planned_initial_assignments": 36,
+  "projects": 3,
+  "protocol": "lore-experiment-08-v1",
+  "provider_availability": "not_configured_or_verified",
+  "provider_calls": 0,
+  "public_development_candidates": true,
+  "qualification": "This records missing configured models and independent study prerequisites, not 36 failed coding tasks. No actual model or reviewer evidence was invented. Provider tokens/USD and coding outcomes are unmeasured. No retrieval/controller change is justified by this not-run artifact. Absolute paths identify the capture environment; regenerate in a fresh private directory instead of treating this as a relocatable sealed study.",
+  "recorded_at": "2026-10-10T21:38:13.516790+00:00",
+  "schema_version": 1,
+  "source_snapshots_pinned": true,
+  "status": "not_run",
+  "tasks": 6,
+  "tests": [
+    {
+      "command": "python3 -m unittest discover -s evaluation/tests -v",
+      "log_sha256": "975c2561e445ed9e336cd0a230d1d7354739df0b7b53ea650ed11fb6325f4ad3",
+      "qualification": "Full suite after launch/cohort fixes; before the final strict unexpected-field validation change.",
+      "scope": "full_python_suite",
+      "seconds": 141.775,
+      "status": "passed",
+      "tests": 204
+    },
+    {
+      "command": "python3 -m unittest discover -s evaluation/tests -p test_experiment_08.py -v",
+      "log_sha256": "0d369a488f2cdadf27434c4b0324a2e9646687b22239077a3c499858579711f6",
+      "qualification": "Final collector bytes, including the unexpected-private-field regression; labeled offline controls only.",
+      "scope": "final_wrapper_suite",
+      "seconds": 15.359,
+      "status": "passed",
+      "tests": 16
+    }
+  ]
+}

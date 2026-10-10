@@ -11,6 +11,12 @@ offline protocol doubles and actual agent/checker subprocesses; they establish
 neither real model quality nor better coding productivity. No real adaptive
 coding-agent outcome has been measured by adding this protocol.
 
+Lore 0.8 adds a [sealed preflight and retention wrapper](EXPERIMENT_08.md) around
+this runner. It checks configured providers, independent registration, external
+isolation/audit readiness and immutable command/source/model pins before launch,
+and retains every planned assignment when execution aborts. The six arms and
+post-run independent outcome gates below remain unchanged.
+
 ## Comparison arms
 
 | Arm | Context supplied to the coding agent |
