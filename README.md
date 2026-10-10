@@ -35,7 +35,59 @@ and retention-limited; `lore memory` lists available leads and `lore memory
 and [implementation tracker](docs/IMPLEMENTATION_TRACKER.md) for grants, contracts
 and the distinction between verified mechanics and unmeasured product outcomes.
 
-### Understand and learn a project
+### Start immediately, before initialization
+
+From the project directory, ask for local guidance immediately:
+
+```bash
+lore context "Change retry handling"
+lore --json context "What is QUEUE_CAPACITY?"
+lore onboard
+lore onboard --task "Improve dispatch diagnostics"
+```
+
+Without a configuration or compiled registry, these unpinned commands use an
+ephemeral `bootstrap_source_only` response. No model, account, setup questionnaire,
+network request, configuration write, cache write or source modification is
+needed. Lore reads root Markdown plus `docs/`, ADR, decision, design, RFC and
+architecture/specification directories. A valid existing configuration narrows
+that scope to its Markdown roots inside the project. Native imports and external
+configured roots remain available through the explicit `lore init` compilation
+path. Missing explicitly selected configurations, invalid configuration, denied
+paths and pending publication are errors, with no silent root substitution.
+
+Each included passage preserves its exact source text, relative path, line span
+and full-file SHA-256. The selected-source digest identifies this ephemeral
+documentary selection; it is not a retained-registry revision. Guidance leads
+with a local navigation target and says when evidence is missing. Documentation
+alone does not establish runtime behavior, accepted policy or learner mastery.
+Path hints, exact symbols, Markdown headings and relevant source fragments guide
+selection. A complete parent section and its descendants stay together with the
+document preamble, sibling exceptions, scope and history, and linked local
+sections. Ambiguous grouping retains the full document. Whole bundles that cannot
+fit are reported as omitted; included passages are never silently shortened.
+Other relevant qualifications may remain in omitted source groups, so this
+ephemeral navigation is not a complete policy assessment.
+
+Discovery honors local `.gitignore` and configured exclusions, skips symlinks,
+hidden/vendor/build/cache/generated directories and published output, and never
+scans source code merely because `--inspect` or an environment grant is present.
+It reads at most **256 files, 8 MiB total, 1 MiB per file, and eight directory
+levels**, counting configuration and local ignore bytes in the read envelope.
+Directory enumeration is additionally bounded to 16,384 entries and two seconds
+per directory. Truncation is explicit. Both the complete JSON and Markdown must
+fit `--max-tokens`; a smaller-than-envelope budget returns an actionable error.
+
+JSON uses `contract: lore.bootstrap_context` or `lore.bootstrap_onboard`,
+`schema_version: 1`, and `mode: bootstrap_source_only`. Explicit
+`--schema-version 3/4/5` and `--fast` retain their established contracts and return
+`uninitialized_project` until `lore init` succeeds. Tutorial, hint, answer and
+transfer modes likewise require compiled intelligence. `--no-inspect` and
+`--no-cache` remain compatible with the read-only documentary first-contact path.
+Run `lore init --configure-only` to create an editable configuration deliberately,
+or `lore init` when ready to compile durable project intelligence.
+
+### Understand and learn a compiled project
 
 `lore onboard` gives an immediate source-grounded orientation. It uses the same
 evidence, decisions, static observations and permission boundary as adaptive

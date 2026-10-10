@@ -1063,7 +1063,7 @@ pub(crate) fn validate_observation(observation: &CodeObservation) -> Result<()> 
     Ok(())
 }
 
-fn identity(metadata: &Metadata) -> String {
+pub(crate) fn identity(metadata: &Metadata) -> String {
     #[cfg(unix)]
     {
         use std::os::unix::fs::MetadataExt;
@@ -1075,7 +1075,7 @@ fn identity(metadata: &Metadata) -> String {
     }
 }
 
-fn revision(metadata: &Metadata) -> String {
+pub(crate) fn revision(metadata: &Metadata) -> String {
     let modified = metadata
         .modified()
         .ok()
@@ -1103,7 +1103,7 @@ fn revision(metadata: &Metadata) -> String {
 /// every component, and reads directory entries from the already opened fd.
 /// Windows holds non-write/non-delete-sharing handles to every component and
 /// rejects all reparse points, including directory junctions.
-mod safe_fs {
+pub(crate) mod safe_fs {
     use super::*;
 
     #[cfg(unix)]
