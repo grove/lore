@@ -9,10 +9,12 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+from functools import lru_cache
 import json
 import math
 from pathlib import Path, PurePosixPath
 import re
+import random
 import secrets
 import shutil
 import sqlite3
@@ -27,6 +29,8 @@ ROOT = Path(__file__).resolve().parent
 DEFAULT_CASES = ROOT / "corpora" / "coding-tasks" / "cases.json"
 SETUPS = ("baseline", "fast", "intelligent")
 MAX_RESPONSE_BYTES = 2_000_000
+MAX_ATTEMPTS = 5
+DEFAULT_REPAIR_MESSAGE = "Independent checks did not all pass. Reconsider the task and supplied project constraints."
 
 
 def hash_file(path: Path) -> str:
@@ -79,6 +83,12 @@ def load_cases(path: Path) -> dict:
             cross.selected_projects([case["base_project"]])
             if not isinstance(case.get("overlay"), str):
                 raise ValueError("Bundled coding tasks need an overlay directory")
+        feedback = case.get("repair_feedback", {})
+        if (not isinstance(feedback, dict) or len(feedback) > 50
+                or any(not isinstance(key, str) or not key or not isinstance(value, str)
+                       or not value.strip() or len(value.encode("utf-8")) > 512
+                       for key, value in feedback.items())):
+            raise ValueError("repair_feedback must contain at most 50 predetermined messages of at most 512 bytes")
     return data
 
 
@@ -90,7 +100,26 @@ def bundled_fingerprints() -> set[str]:
             base = cross.fingerprint(cross.CORPORA / case["base_project"] / "initial")
             overlay = cross.fingerprint(manifest.parent / case["overlay"])
             fingerprints.add(cross.digest(base["files_sha256"] | overlay["files_sha256"]))
+    candidates = ROOT / "corpora" / "coding-real-v1" / "manifest.json"
+    if candidates.is_file():
+        fingerprints.update(candidate_fingerprints(hash_file(candidates)))
     return fingerprints
+
+
+@lru_cache(maxsize=4)
+def candidate_fingerprints(manifest_sha256: str) -> frozenset[str]:
+    # Import lazily: the corpus builder uses this runner's source-copy contract.
+    import real_coding_corpus as real
+    manifest = real.load_manifest()
+    if hash_file(real.CORPUS / "manifest.json") != manifest_sha256:
+        raise ValueError("Public candidate manifest changed during fingerprinting")
+    known = set()
+    for task in manifest["tasks"]:
+        files = dict(manifest["projects"][task["project"]]["manifest"]["files_sha256"])
+        raw = (real.CORPUS / "upstream" / task["project"] / task["file"]).read_bytes().decode("utf-8")
+        files[task["file"]] = hashlib.sha256(real.mutate(raw, task["symbol"]).encode("utf-8")).hexdigest()
+        known.add(cross.digest(files))
+    return frozenset(known)
 
 
 def prepare(output: Path, cases_path: Path) -> dict:
@@ -114,7 +143,9 @@ def prepare(output: Path, cases_path: Path) -> dict:
         for filename in case["editable_files"]:
             if not (destination / filename).is_file():
                 raise ValueError(f"Editable file does not exist: {filename}")
+        _, checker_files = verification_command(case, destination, cases_path.parent)
         cases.append({"case": case, "source_manifest": cross.fingerprint(destination),
+                      "checker_files_sha256": checker_files,
                       "source_root": f"snapshots/{case['id']}"})
     known = bundled_fingerprints()
     recognized = sorted({entry["source_manifest"]["sha256"] for entry in cases} & known)
@@ -282,8 +313,7 @@ def invoke_json(command: list[str], cwd: Path, timeout: int, request: dict | Non
     return value, elapsed
 
 
-def execute_checks(case: dict, workspace: Path, manifest_dir: Path, timeout: int,
-                   *, env: dict[str, str] | None = None) -> tuple[dict, float]:
+def verification_command(case: dict, workspace: Path, manifest_dir: Path) -> tuple[list[str], dict]:
     replacements = {"{python}": sys.executable, "{workspace}": str(workspace), "{manifest}": str(manifest_dir)}
     command = []
     for item in case["test_command"]:
@@ -302,18 +332,50 @@ def execute_checks(case: dict, workspace: Path, manifest_dir: Path, timeout: int
     for name in case.get("verification_files", []):
         candidate = (manifest_dir / name).absolute()
         files[str(candidate)] = hash_file(candidate)
-    result, elapsed = invoke_json(command, workspace, timeout,
-                                   **({"env": env} if env is not None else {}))
-    if any(hash_file(Path(path)) != expected for path, expected in files.items()):
-        raise ValueError("Verification program changed while executing candidate code")
+    return command, files
+
+
+def validate_checker_result(result: dict, expected_contract: list | None = None) -> list:
     checks = result.get("checks")
-    if result.get("schema_version") != 1 or not isinstance(checks, list) or not checks:
+    if result.get("schema_version") != 1 or not isinstance(checks, list) or not 1 <= len(checks) <= 1000:
         raise ValueError("Test command must return nonempty schema_version: 1 checks")
     names = set()
     for check in checks:
         if not isinstance(check, dict) or not isinstance(check.get("id"), str) or not check["id"] or check["id"] in names or type(check.get("passed")) is not bool or check.get("kind") not in ("correctness", "constraint"):
             raise ValueError("Tests need unique ids, boolean passed, and correctness/constraint kind")
         names.add(check["id"])
+    contract = sorted((check["id"], check["kind"]) for check in checks)
+    if expected_contract is not None and contract != expected_contract:
+        raise ValueError("Independent checker coverage changed between attempts")
+    return contract
+
+
+def validate_checker_record(result: dict, case: dict, workspace: Path, manifest_dir: Path,
+                            expected_contract: list | None = None) -> list:
+    contract = validate_checker_result(result, expected_contract)
+    command, files = verification_command(case, workspace, manifest_dir)
+    if result.get("provenance") != {"argv": command, "files_sha256": files}:
+        raise ValueError("Checker program identities differ from the case's declared external checkers")
+    return contract
+
+
+def validate_prepared_checker(entry: dict, workspace: Path, manifest_dir: Path) -> None:
+    expected = entry.get("checker_files_sha256")
+    if expected is None:
+        return  # Historical artifacts predate preparation-time checker pins.
+    _, actual = verification_command(entry["case"], workspace, manifest_dir)
+    if not expected or actual != expected:
+        raise ValueError("External checker bytes changed after source/task preparation")
+
+
+def execute_checks(case: dict, workspace: Path, manifest_dir: Path, timeout: int,
+                   *, env: dict[str, str] | None = None) -> tuple[dict, float]:
+    command, files = verification_command(case, workspace, manifest_dir)
+    result, elapsed = invoke_json(command, workspace, timeout,
+                                   **({"env": env} if env is not None else {}))
+    if any(hash_file(Path(path)) != expected for path, expected in files.items()):
+        raise ValueError("Verification program changed while executing candidate code")
+    validate_checker_result(result)
     result["provenance"] = {"argv": command, "files_sha256": files}
     return result, elapsed
 
@@ -344,9 +406,201 @@ def agent_request(case: dict, source_files: dict, context: dict | None) -> dict:
                                   "summary": "Explain the implementation and material assumptions", "usage": "Actual model_calls/input_tokens/output_tokens/billed_cost_usd/billing_source, or null for unknown fields"}}
 
 
+def repair_policy(args: argparse.Namespace) -> dict:
+    attempts = getattr(args, "max_attempts", 1)
+    seconds = getattr(args, "attempt_budget_seconds", None) or min(86400, args.timeout * attempts * 2)
+    if type(attempts) is not int or not 1 <= attempts <= MAX_ATTEMPTS:
+        raise ValueError(f"max_attempts must be 1..{MAX_ATTEMPTS}")
+    if type(seconds) is not int or not 1 <= seconds <= 86400:
+        raise ValueError("attempt_budget_seconds must be 1..86400")
+    return {"max_attempts": attempts, "attempt_budget_seconds": seconds,
+            "feedback_policy": "predetermined-manifest-messages-v1"}
+
+
+def sanitized_feedback(case: dict, checks: dict) -> dict:
+    """Do not pass checker stdout, IDs, exceptions or answer keys to an agent."""
+    failed = [item for item in checks["checks"] if not item["passed"]]
+    messages = sorted({case.get("repair_feedback", {}).get(item["id"], DEFAULT_REPAIR_MESSAGE)
+                       for item in failed})
+    return {"independent_checks_passed": not failed, "messages": messages[:8]}
+
+
+def repair_request(case: dict, files: dict, context: dict | None, previous: dict,
+                   number: int, policy: dict) -> dict:
+    request = agent_request(case, files, context)
+    request["repair"] = {"attempt": number, "max_attempts": policy["max_attempts"],
+                         "feedback": sanitized_feedback(case, previous)}
+    return request
+
+
+def summed_coding_usage(attempts: list[dict]) -> dict:
+    result = add_usage([attempt["response"]["usage"] for attempt in attempts])
+    result["billing_source"] = "Sum of reported coding-attempt billing" if result["billed_cost_usd"] is not None else None
+    return usage(result)
+
+
+def run_attempts(command: list[str], case: dict, source_files: dict, context: dict | None,
+                 workspace: Path, output: Path, sample_id: str, manifest_dir: Path,
+                 timeout: int, policy: dict, environment) -> dict:
+    """Bounded proposal/check loop; every tested revision is retained separately.
+
+    The checker remains outside agent input. A failed process is an incomplete
+    experiment, never silently converted to a successful or scored attempt.
+    Completed attempts are checkpointed before another subprocess is invoked.
+    """
+    started = time.monotonic()
+    current, combined, attempts = dict(source_files), {}, []
+    previous, checker_contract = None, None
+    for number in range(1, policy["max_attempts"] + 1):
+        remaining = policy["attempt_budget_seconds"] - (time.monotonic() - started)
+        if remaining < 1:
+            break
+        request = (agent_request(case, current, context) if number == 1 else
+                   repair_request(case, current, context, previous, number, policy))
+        request_sha256 = cross.digest(request)
+        agent_cwd = output / "agent-runs" / sample_id / str(number)
+        agent_cwd.mkdir(parents=True)
+        invocation_path = output / "attempt-invocations" / sample_id / f"{number}.json"
+        invocation = {"number": number, "request_sha256": request_sha256, "status": "started",
+                      "stage": "agent", "elapsed_seconds": None, "usage": usage(None), "error_type": None}
+        invocation_started = time.monotonic()
+        cross.write_json(invocation_path, invocation)
+        try:
+            response, coding_seconds = invoke_json(command, agent_cwd, min(timeout, max(1, int(remaining))),
+                                                    request, **environment(workspace, "agent"))
+            invocation["stage"] = "validate_agent_response"
+            response = validate_agent_response(response, case["editable_files"])
+            invocation["usage"] = response["usage"]
+            current.update(response["files"])
+            combined.update(response["files"])
+            for filename, content in combined.items():
+                target = workspace / filename
+                cross.reject_symlink_path(target)
+                target.write_bytes(content.encode("utf-8"))
+            remaining = policy["attempt_budget_seconds"] - (time.monotonic() - started)
+            if remaining < 1:
+                raise ValueError("Attempt wall-time budget exhausted before independent verification")
+            invocation["stage"] = "verification"
+            checks, verification_seconds = execute_checks(case, workspace, manifest_dir,
+                min(timeout, max(1, int(remaining))), **environment(workspace, "verification"))
+            checker_contract = validate_checker_record(checks, case, workspace, manifest_dir, checker_contract)
+            invocation["stage"] = "source_integrity"
+            actual = cross.fingerprint(workspace)
+            expected = {name: hashlib.sha256(value.encode("utf-8")).hexdigest() for name, value in current.items()}
+            if actual["files_sha256"] != expected:
+                raise ValueError("Coding attempt or checker changed protected sources or unproposed bytes")
+            revision_root = f"attempts/{sample_id}/{number}"
+            cross.copy_snapshot(workspace, output / revision_root)
+            attempt = {"number": number, "request_sha256": request_sha256, "response": response,
+                       "response_sha256": cross.digest(response), "tests": checks,
+                       "implementation_manifest": actual, "implementation_root": revision_root,
+                       "coding_seconds": coding_seconds, "verification_seconds": verification_seconds,
+                       "feedback": sanitized_feedback(case, checks),
+                       "elapsed_seconds": round(time.monotonic() - started, 6)}
+        except (ValueError, OSError, KeyError, TypeError, subprocess.SubprocessError) as error:
+            invocation.update(status="incomplete", elapsed_seconds=time.monotonic() - invocation_started,
+                              error_type=type(error).__name__)
+            cross.write_json(invocation_path, invocation)
+            raise
+        invocation.update(status="completed", stage="verified", elapsed_seconds=time.monotonic() - invocation_started,
+                          attempt_sha256=cross.digest(attempt))
+        cross.write_json(invocation_path, invocation)
+        attempts.append(attempt)
+        cross.write_json(output / "attempt-records" / sample_id / f"{number}.json", attempt)
+        previous = checks
+        if all(check["passed"] for check in checks["checks"]):
+            break
+    if not attempts:
+        raise ValueError("No coding attempt completed inside the wall-time budget")
+    response = dict(attempts[-1]["response"])
+    response["files"] = combined
+    response["usage"] = summed_coding_usage(attempts)
+    measured = sum(item["coding_seconds"] + item["verification_seconds"] for item in attempts)
+    return {"response": response, "tests": attempts[-1]["tests"], "attempts": attempts,
+            "coding_seconds": sum(item["coding_seconds"] for item in attempts),
+            "verification_seconds": sum(item["verification_seconds"] for item in attempts),
+            "iteration_overhead_seconds": max(0.0, time.monotonic() - started - measured),
+            "stop_reason": "correct" if all(item["passed"] for item in previous["checks"]) else
+                "attempt_limit" if len(attempts) == policy["max_attempts"] else "wall_time_limit"}
+
+
+def validate_attempts(directory: Path, sample: dict, entry: dict, context: dict | None) -> None:
+    attempts, policy = sample.get("attempts"), sample.get("repair_policy")
+    if attempts is None and policy is None:
+        return  # Historical one-attempt artifacts remain assessable.
+    expected_policy = repair_policy(argparse.Namespace(timeout=1, **policy))
+    if policy != expected_policy or not isinstance(attempts, list) or not 1 <= len(attempts) <= policy["max_attempts"]:
+        raise ValueError("Invalid repair policy or attempt count")
+    snapshot = directory / entry["source_root"]
+    current = {name: (snapshot / name).read_bytes().decode("utf-8")
+               for name in entry["source_manifest"]["files_sha256"]}
+    combined, previous, elapsed, checker_contract = {}, None, 0.0, None
+    for number, attempt in enumerate(attempts, 1):
+        if previous is not None and all(check["passed"] for check in previous["checks"]):
+            raise ValueError("Attempt continued after first independently correct patch")
+        request = (agent_request(entry["case"], current, context) if number == 1 else
+                   repair_request(entry["case"], current, context, previous, number, policy))
+        if (attempt["number"] != number or attempt["request_sha256"] != cross.digest(request)
+                or attempt != cross.read_json(directory / "attempt-records" / sample["sample_id"] / f"{number}.json")
+                or attempt["response_sha256"] != cross.digest(attempt["response"])):
+            raise ValueError("Attempt request, response or retained ledger binding changed")
+        response = validate_agent_response(attempt["response"], entry["case"]["editable_files"])
+        invocation = cross.read_json(directory / "attempt-invocations" / sample["sample_id"] / f"{number}.json")
+        if (invocation.get("number") != number or invocation.get("status") != "completed"
+                or invocation.get("stage") != "verified" or invocation.get("request_sha256") != attempt["request_sha256"]
+                or invocation.get("attempt_sha256") != cross.digest(attempt)
+                or invocation.get("usage") != response["usage"] or invocation.get("error_type") is not None):
+            raise ValueError("Attempt invocation capture does not match its completed checker outcome")
+        seconds = invocation.get("elapsed_seconds")
+        if (type(seconds) not in (int, float) or not math.isfinite(seconds)
+                or seconds + 0.005 < attempt["coding_seconds"] + attempt["verification_seconds"]):
+            raise ValueError("Attempt invocation timing drops an executed stage")
+        current.update(response["files"])
+        combined.update(response["files"])
+        expected_root = f"attempts/{sample['sample_id']}/{number}"
+        expected_files = {name: hashlib.sha256(value.encode("utf-8")).hexdigest() for name, value in current.items()}
+        if (attempt["implementation_root"] != expected_root
+                or cross.fingerprint(directory / expected_root) != attempt["implementation_manifest"]
+                or attempt["implementation_manifest"]["files_sha256"] != expected_files):
+            raise ValueError("Retained attempt no longer matches the tested proposed files")
+        previous = attempt["tests"]
+        checker_contract = validate_checker_result(previous, checker_contract)
+        if sample.get("checker_manifest_dir"):
+            validate_checker_record(previous, entry["case"], directory / "implementations" / sample["sample_id"],
+                                    Path(sample["checker_manifest_dir"]), checker_contract)
+        files = previous["provenance"]["files_sha256"]
+        if not files or any(hash_file(Path(path)) != value for path, value in files.items()):
+            raise ValueError("Attempt checker revision changed")
+        if attempt["feedback"] != sanitized_feedback(entry["case"], previous):
+            raise ValueError("Repair feedback was not derived from predetermined messages")
+        for field in ("coding_seconds", "verification_seconds", "elapsed_seconds"):
+            value = attempt[field]
+            if type(value) not in (int, float) or not math.isfinite(value) or value < 0:
+                raise ValueError("Invalid coding-attempt timing")
+        if attempt["elapsed_seconds"] < elapsed:
+            raise ValueError("Attempt timestamps are not monotonic")
+        elapsed = attempt["elapsed_seconds"]
+        charged = sum(item["coding_seconds"] + item["verification_seconds"] for item in attempts[:number])
+        if elapsed + 0.005 * number < charged or elapsed > policy["attempt_budget_seconds"] + 1:
+            raise ValueError("Attempt wall time cannot contain the charged coding/checker phases")
+    final = sample["agent_response"]
+    if (final["files"] != combined or final["summary"] != attempts[-1]["response"]["summary"]
+            or final.get("provider_model") != attempts[-1]["response"].get("provider_model")
+            or final["usage"] != summed_coding_usage(attempts) or sample["tests"] != previous
+            or sample["costs"]["coding_seconds"] != sum(item["coding_seconds"] for item in attempts)
+            or sample["costs"]["verification_seconds"] != sum(item["verification_seconds"] for item in attempts)):
+        raise ValueError("Final coding result or costs drop a repair attempt")
+    passed = all(check["passed"] for check in previous["checks"])
+    expected_stop = "correct" if passed else "attempt_limit" if len(attempts) == policy["max_attempts"] else "wall_time_limit"
+    if sample["attempt_stop_reason"] != expected_stop:
+        raise ValueError("Repair stop reason does not match independent checks")
+    if sample["time_to_first_correct_seconds"] != (sample["costs"]["total_seconds"] if passed else None):
+        raise ValueError("Time to first correct patch is fabricated or drops charged phases")
+
+
 def run(args: argparse.Namespace, *, setups=SETUPS, context_collector=None,
         assessor=None, review_template=None, report_metadata=None, config_transform=None,
-        subprocess_environment=None) -> dict:
+        subprocess_environment=None, preparation_hook=None) -> dict:
     """Execute one comparison; newer protocols inject explicit policy helpers.
 
     Defaults preserve the original 0.5 runner. No module globals or monkeypatch
@@ -355,6 +609,13 @@ def run(args: argparse.Namespace, *, setups=SETUPS, context_collector=None,
     if not setups or setups[0] != "baseline" or len(set(setups)) != len(setups):
         raise ValueError("Comparison setups require baseline followed by unique context arms")
     collector = context_collector or collect_context
+    iteration_policy = repair_policy(args)
+    order_seed = getattr(args, "seed", None)
+    if order_seed is None:
+        order_seed = secrets.randbits(64)
+    if type(order_seed) is not int or not 0 <= order_seed < 2 ** 64:
+        raise ValueError("seed must be an unsigned 64-bit integer")
+    order_random = random.Random(order_seed)
 
     def environment(project, stage):
         # A newer protocol can supply grants to each child without changing
@@ -377,6 +638,8 @@ def run(args: argparse.Namespace, *, setups=SETUPS, context_collector=None,
         if config_transform:
             config_transform(preview)
     prepared = prepare(output, cases_path)
+    if preparation_hook:
+        preparation_hook(output, prepared)
     report = {"schema_version": 1, "phase": "actual_coding_tasks", "created_at": bench.now_utc(),
               "fixture_only": prepared["fixture_only"], "held_out": prepared["held_out"],
               "independent_projects": prepared["independent_projects"], "cases": prepared["cases"],
@@ -391,9 +654,13 @@ def run(args: argparse.Namespace, *, setups=SETUPS, context_collector=None,
         if "cost_scope" in report_metadata:
             report["cost_scope"] = report_metadata["cost_scope"]
     report["setups"] = list(setups)
+    report["repair_policy"] = iteration_policy
+    report["order_seed"] = order_seed
+    report["execution_order"] = []
     for entry in prepared["cases"]:
         case = entry["case"]
         snapshot = output / entry["source_root"]
+        validate_prepared_checker(entry, snapshot, cases_path.parent)
         project = output / "lore" / case["id"]
         preparation_start = time.monotonic()
         cross.copy_snapshot(snapshot, project)
@@ -408,34 +675,26 @@ def run(args: argparse.Namespace, *, setups=SETUPS, context_collector=None,
         contexts = {setup: collector(binary, project, case["task"], setup, args.timeout, args.max_tokens)
                     for setup in setups if setup != "baseline"}
         order = list(setups)
-        secrets.SystemRandom().shuffle(order)
+        order_random.shuffle(order)
+        report["execution_order"].append({"case_id": case["id"], "setups": order})
         for setup in order:
             sample_id = "sample-" + secrets.token_hex(10)
+            task_started = time.monotonic()
             workspace = output / "implementations" / sample_id
             cross.copy_snapshot(snapshot, workspace)
-            source_files = {name: (snapshot / name).read_text(encoding="utf-8")
+            source_files = {name: (snapshot / name).read_bytes().decode("utf-8")
                             for name in entry["source_manifest"]["files_sha256"]}
             context = contexts.get(setup)
             request = agent_request(case, source_files, context)
-            # A dedicated empty working directory avoids accidental exposure of
-            # answer keys through cwd. This is input discipline, not a sandbox.
-            agent_cwd = output / "agent-runs" / sample_id
-            agent_cwd.mkdir(parents=True)
-            response, coding_seconds = invoke_json(command, agent_cwd, args.timeout, request,
-                                                   **environment(workspace, "agent"))
-            response = validate_agent_response(response, case["editable_files"])
+            result = run_attempts(command, case, source_files, context, workspace, output,
+                                  sample_id, cases_path.parent, args.timeout, iteration_policy, environment)
+            response = result["response"]
+            coding_seconds, verification_seconds = result["coding_seconds"], result["verification_seconds"]
+            checks = result["tests"]
             agent_citations = cross.resolve_citations(binary, project, answer_evidence_ids(response), args.timeout,
                                                        **environment(project, "evidence"))
             if cross.fingerprint(snapshot) != entry["source_manifest"]:
                 raise ValueError("Original source snapshot changed during coding execution")
-            for filename, content in response["files"].items():
-                target = workspace / filename
-                cross.reject_symlink_path(target)
-                # Preserve the exact UTF-8 bytes bound to the answer hash;
-                # text-mode writes translate LF to CRLF on Windows.
-                target.write_bytes(content.encode("utf-8"))
-            checks, verification_seconds = execute_checks(case, workspace, cases_path.parent, args.timeout,
-                                                           **environment(workspace, "verification"))
             actual = cross.fingerprint(workspace)
             allowed = set(case["editable_files"])
             protected_sources = (set(actual["files_sha256"]) == set(entry["source_manifest"]["files_sha256"])
@@ -446,10 +705,11 @@ def run(args: argparse.Namespace, *, setups=SETUPS, context_collector=None,
             costs = {"preparation_seconds": preparation_seconds if context else 0.0,
                      "context_seconds": context["elapsed_seconds"] if context else 0.0,
                      "coding_seconds": coding_seconds, "verification_seconds": verification_seconds,
+                     "iteration_overhead_seconds": max(0.0, time.monotonic() - task_started - coding_seconds - verification_seconds),
                      "preparation_usage": preparation_usage if context else no_inference(),
                      "context_usage": context["usage"] if context else no_inference(),
                      "coding_usage": response["usage"]}
-            costs["total_seconds"] = sum(costs[field] for field in ("preparation_seconds", "context_seconds", "coding_seconds", "verification_seconds"))
+            costs["total_seconds"] = sum(costs[field] for field in ("preparation_seconds", "context_seconds", "coding_seconds", "verification_seconds", "iteration_overhead_seconds"))
             costs["total_usage"] = add_usage([costs[field] for field in ("preparation_usage", "context_usage", "coding_usage")])
             answer_path = output / "answers" / f"{sample_id}.json"
             cross.write_json(answer_path, {"summary": response["summary"], "files": response["files"]})
@@ -457,9 +717,14 @@ def run(args: argparse.Namespace, *, setups=SETUPS, context_collector=None,
                       "source_manifest": entry["source_manifest"], "source_root": entry["source_root"],
                       "configuration_sha256": cross.digest(config) if context else None,
                       "request_sha256": cross.digest(request), "agent_response": response,
+                      "source_input_utf8_bytes": sum(len(value.encode("utf-8")) for value in source_files.values()),
                       "agent_citation_integrity": agent_citations,
                       "answer_sha256": hash_file(answer_path), "implementation_manifest": actual,
                       "context": context, "costs": costs, "tests": checks,
+                      "attempts": result["attempts"], "repair_policy": iteration_policy,
+                      "checker_manifest_dir": str(cases_path.parent),
+                      "attempt_stop_reason": result["stop_reason"],
+                      "time_to_first_correct_seconds": costs["total_seconds"] if result["stop_reason"] == "correct" else None,
                       "constraints": case["critical_constraints"], "task": case["task"],
                       "retrieval_source_coverage": coverage, "protected_sources_preserved": protected_sources}
             report["samples"].append(sample)
@@ -490,6 +755,9 @@ def validate_sample(directory: Path, sample: dict, entry: dict, *, context_valid
     pass booleans cannot replace comparisons against the actual bound bytes.
     """
     identity, setup = sample["sample_id"], sample["setup"]
+    if sample.get("checker_manifest_dir"):
+        validate_prepared_checker(entry, directory / "implementations" / identity,
+                                  Path(sample["checker_manifest_dir"]))
     if (sample["source_manifest"] != entry["source_manifest"] or sample["source_root"] != entry["source_root"]
             or sample["task"] != entry["case"]["task"] or sample["constraints"] != entry["case"]["critical_constraints"]):
         raise ValueError("case task, source, or constraint binding changed")
@@ -519,10 +787,14 @@ def validate_sample(directory: Path, sample: dict, entry: dict, *, context_valid
             raise ValueError("context integrity check failed")
     elif context is not None:
         raise ValueError("baseline unexpectedly contains Lore context")
-    source_files = {name: (snapshot / name).read_text(encoding="utf-8")
+    source_files = {name: (snapshot / name).read_bytes().decode("utf-8")
                     for name in entry["source_manifest"]["files_sha256"]}
     if bind_request and sample["request_sha256"] != cross.digest(agent_request(entry["case"], source_files, context)):
         raise ValueError("coding-agent input differs from the bound task, context or original sources")
+    validate_checker_result(sample["tests"])
+    if sample.get("checker_manifest_dir"):
+        validate_checker_record(sample["tests"], entry["case"], directory / "implementations" / identity,
+                                Path(sample["checker_manifest_dir"]))
     checks = sample["tests"]["checks"]
     verification_files = sample["tests"]["provenance"]["files_sha256"]
     if not verification_files or any(hash_file(Path(path)) != expected for path, expected in verification_files.items()):
@@ -530,6 +802,7 @@ def validate_sample(directory: Path, sample: dict, entry: dict, *, context_valid
     if not checks or any(type(check.get("passed")) is not bool or check.get("kind") not in ("correctness", "constraint")
                          for check in checks):
         raise ValueError("verification checks are absent or malformed")
+    validate_attempts(directory, sample, entry, context)
     return context, checks
 
 
@@ -561,6 +834,8 @@ def assess(directory: Path) -> dict:
         try:
             entry = declared_cases[key]
             context, checks = validate_sample(directory, sample, entry)
+            if sample.get("repair_policy") != report.get("repair_policy"):
+                raise ValueError("Sample repair allowance differs from the matched study policy")
             project_sources.setdefault(sample["project"], set()).add(sample["source_manifest"]["sha256"])
             total = totals[setup]
             total["tasks"] += 1
@@ -646,6 +921,9 @@ def main(argv=None) -> int:
             command.add_argument("--agent-location", choices=("local", "hosted"), required=True)
             command.add_argument("--timeout", type=int, default=3600)
             command.add_argument("--max-tokens", type=int, default=6000)
+            command.add_argument("--max-attempts", type=int, default=1)
+            command.add_argument("--attempt-budget-seconds", type=int)
+            command.add_argument("--seed", type=int)
             bench.add_reasoning_options(command)
     assess_parser = subparsers.add_parser("assess")
     assess_parser.add_argument("run", type=Path)

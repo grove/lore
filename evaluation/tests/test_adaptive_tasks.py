@@ -318,7 +318,9 @@ class AdaptiveTaskTests(unittest.TestCase):
             self.assertFalse(result["independent_validation_complete"])
             self.assertFalse(result["all_adaptive_tasks_received_intelligence"])
             self.assertFalse(result["productivity_benefit_established"])
-            self.assertIsNone(result["iteration_outcomes"])
+            self.assertEqual(result["iteration_outcomes"]["paired_tasks"], 3)
+            self.assertTrue(all(row["arms"]["baseline"]["time_to_first_correct_seconds"] is None
+                                for row in result["iteration_outcomes"]["per_task"]))
             self.assertEqual(result["integrity_audit"]["status"], "unmeasured")
 
     def test_schema5_relationship_manifest_is_checked_against_retained_originals(self):

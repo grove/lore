@@ -1,0 +1,3513 @@
+{
+  "all_controls_valid": true,
+  "candidate_manifest_sha256": "81982c50ecd835d63f23f17ada2f0d24c0f64763ac83ac8b182939a9d29cd4f2",
+  "checker_sha256": "898ab88904c5c63c565bcf49d5bed36af6b11e04e54eab197248917f4defa579",
+  "coding_runner_sha256": "a1c9071922c87eafc295004f2fd42b36dc11236b7deb6aad35be646de540c05a",
+  "created_at": "2026-10-10T15:51:25.096511+00:00",
+  "harness_sha256": "7e7c0cd1accbcb0548c8ad35450fd1709275cfd889dc44c3c8a83cf85fd6cfc0",
+  "independent_review": "pending",
+  "inference_calls": 0,
+  "phase": "checker_controls",
+  "python_executable_sha256": "fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7",
+  "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "qualification": "Original-source and deliberately wrong control execution validates these checkers mechanically, not independent authorship or model usefulness.",
+  "real_model_outcomes": "unmeasured",
+  "records": [
+    {
+      "case_id": "boltons-slugify",
+      "controls": {
+        "constant_none": {
+          "checker_result_sha256": "cb23d64622ea0c74066f4d275822e3c9d964aafd5874cdd455628625fea643db",
+          "checks": [
+            {
+              "id": "boltons-slugify-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "boltons-slugify-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-slugify-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-slugify-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.041,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "c301912653a8d8c99eab6212aa3aea8d164ea249d8ad53c941e0558a0a5ac1e3",
+              "README.md": "125d653ce15f442d8cafb2b43b4ddc01f443807a4a782e035528cfd75c4388f9",
+              "boltons/iterutils.py": "7fb67f49dc1d895051549b523c2e21161e3c1f4e21590fa7fd09039386d08510",
+              "boltons/strutils.py": "2ee328fe4abc988a9e2fa5454eef6eed05462bffb2cd97f0dfdf4b54cd8a0327"
+            },
+            "sha256": "94f781ebc172c83118266d1a1be16be193346208673a488162fbc298d97124b7"
+          },
+          "passed": false
+        },
+        "missing": {
+          "checker_result_sha256": "cb23d64622ea0c74066f4d275822e3c9d964aafd5874cdd455628625fea643db",
+          "checks": [
+            {
+              "id": "boltons-slugify-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "boltons-slugify-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-slugify-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-slugify-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.044,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "c301912653a8d8c99eab6212aa3aea8d164ea249d8ad53c941e0558a0a5ac1e3",
+              "README.md": "125d653ce15f442d8cafb2b43b4ddc01f443807a4a782e035528cfd75c4388f9",
+              "boltons/iterutils.py": "7fb67f49dc1d895051549b523c2e21161e3c1f4e21590fa7fd09039386d08510",
+              "boltons/strutils.py": "e520f109c8f54153a21a9a504fcb638bf3802c5164649ec12f5115ba27bdbaba"
+            },
+            "sha256": "86d0ba1f512019d6518df70ddcc54f12d8ffcb5dc68385a3f9226c06cff2b4ec"
+          },
+          "passed": false
+        },
+        "original": {
+          "checker_result_sha256": "38c6ea52c25ab5aa32c7d684dec52f8c1e0fad03554bf7957827479dbe0d70f2",
+          "checks": [
+            {
+              "id": "boltons-slugify-1",
+              "kind": "correctness",
+              "passed": true
+            },
+            {
+              "id": "boltons-slugify-2",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "boltons-slugify-3",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "boltons-slugify-4",
+              "kind": "constraint",
+              "passed": true
+            }
+          ],
+          "elapsed_seconds": 0.049,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "c301912653a8d8c99eab6212aa3aea8d164ea249d8ad53c941e0558a0a5ac1e3",
+              "README.md": "125d653ce15f442d8cafb2b43b4ddc01f443807a4a782e035528cfd75c4388f9",
+              "boltons/iterutils.py": "7fb67f49dc1d895051549b523c2e21161e3c1f4e21590fa7fd09039386d08510",
+              "boltons/strutils.py": "c5ecb7efd3b2e86f92545c18d8d72193f45a1bd1d0edaf3da65868aa0e8bcdda"
+            },
+            "sha256": "fafe897f46eea381df9404a51c2bc0cd603ecef5099f7f26c658bb4a44a15b27"
+          },
+          "passed": true
+        }
+      },
+      "valid": true
+    },
+    {
+      "case_id": "boltons-ordinalize",
+      "controls": {
+        "constant_none": {
+          "checker_result_sha256": "6faddb377fc9b43dda917aeecc01f3ccde8c5972471ba8bfe9bd718695900797",
+          "checks": [
+            {
+              "id": "boltons-ordinalize-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "boltons-ordinalize-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-ordinalize-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-ordinalize-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.044,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "c301912653a8d8c99eab6212aa3aea8d164ea249d8ad53c941e0558a0a5ac1e3",
+              "README.md": "125d653ce15f442d8cafb2b43b4ddc01f443807a4a782e035528cfd75c4388f9",
+              "boltons/iterutils.py": "7fb67f49dc1d895051549b523c2e21161e3c1f4e21590fa7fd09039386d08510",
+              "boltons/strutils.py": "9ff94f8cbb8f7ee3d442e12a875472fb6b8faad92dd647c0dec087ee087924c0"
+            },
+            "sha256": "2e5c777ac70590a81cb83966722320a710aea8b1170b91f00443c61eb4c08377"
+          },
+          "passed": false
+        },
+        "missing": {
+          "checker_result_sha256": "6faddb377fc9b43dda917aeecc01f3ccde8c5972471ba8bfe9bd718695900797",
+          "checks": [
+            {
+              "id": "boltons-ordinalize-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "boltons-ordinalize-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-ordinalize-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-ordinalize-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.041,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "c301912653a8d8c99eab6212aa3aea8d164ea249d8ad53c941e0558a0a5ac1e3",
+              "README.md": "125d653ce15f442d8cafb2b43b4ddc01f443807a4a782e035528cfd75c4388f9",
+              "boltons/iterutils.py": "7fb67f49dc1d895051549b523c2e21161e3c1f4e21590fa7fd09039386d08510",
+              "boltons/strutils.py": "8282554ecb13b561cf32ac3b078310504ffc1f6f3be7ea7549a7d0971bc7e4b7"
+            },
+            "sha256": "4568fe8bda7638ed697790e6cb5ec5c95c2414b777d6049f6dae302681c58dce"
+          },
+          "passed": false
+        },
+        "original": {
+          "checker_result_sha256": "5271aa73c9baf15386b35334bff8724a8342ae4034d57935fa802c8025b3dd22",
+          "checks": [
+            {
+              "id": "boltons-ordinalize-1",
+              "kind": "correctness",
+              "passed": true
+            },
+            {
+              "id": "boltons-ordinalize-2",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "boltons-ordinalize-3",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "boltons-ordinalize-4",
+              "kind": "constraint",
+              "passed": true
+            }
+          ],
+          "elapsed_seconds": 0.05,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "c301912653a8d8c99eab6212aa3aea8d164ea249d8ad53c941e0558a0a5ac1e3",
+              "README.md": "125d653ce15f442d8cafb2b43b4ddc01f443807a4a782e035528cfd75c4388f9",
+              "boltons/iterutils.py": "7fb67f49dc1d895051549b523c2e21161e3c1f4e21590fa7fd09039386d08510",
+              "boltons/strutils.py": "c5ecb7efd3b2e86f92545c18d8d72193f45a1bd1d0edaf3da65868aa0e8bcdda"
+            },
+            "sha256": "fafe897f46eea381df9404a51c2bc0cd603ecef5099f7f26c658bb4a44a15b27"
+          },
+          "passed": true
+        }
+      },
+      "valid": true
+    },
+    {
+      "case_id": "boltons-split-punct-ws",
+      "controls": {
+        "constant_none": {
+          "checker_result_sha256": "b6005599696c3f7d8d8da7a79d6848e7a3383c5a54f67d0788125d48a6f9d08c",
+          "checks": [
+            {
+              "id": "boltons-split-punct-ws-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "boltons-split-punct-ws-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-split-punct-ws-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-split-punct-ws-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.041,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "c301912653a8d8c99eab6212aa3aea8d164ea249d8ad53c941e0558a0a5ac1e3",
+              "README.md": "125d653ce15f442d8cafb2b43b4ddc01f443807a4a782e035528cfd75c4388f9",
+              "boltons/iterutils.py": "7fb67f49dc1d895051549b523c2e21161e3c1f4e21590fa7fd09039386d08510",
+              "boltons/strutils.py": "b68923a6986afbe93cb7f5d7a9885bd1156ba8cb88a7274a85263ad2d966866c"
+            },
+            "sha256": "84f2c7d44ce1b5e86975aa74a07a87286d4b5eebb484c5336771e1d769ac62fd"
+          },
+          "passed": false
+        },
+        "missing": {
+          "checker_result_sha256": "b6005599696c3f7d8d8da7a79d6848e7a3383c5a54f67d0788125d48a6f9d08c",
+          "checks": [
+            {
+              "id": "boltons-split-punct-ws-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "boltons-split-punct-ws-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-split-punct-ws-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-split-punct-ws-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.044,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "c301912653a8d8c99eab6212aa3aea8d164ea249d8ad53c941e0558a0a5ac1e3",
+              "README.md": "125d653ce15f442d8cafb2b43b4ddc01f443807a4a782e035528cfd75c4388f9",
+              "boltons/iterutils.py": "7fb67f49dc1d895051549b523c2e21161e3c1f4e21590fa7fd09039386d08510",
+              "boltons/strutils.py": "c7fdbcd5c3f7c6806e608779400bac37a06ce6ea42f59f133482739186dfaa86"
+            },
+            "sha256": "aa95e4ae6fd41bf3bf7b3cffd475f0ba8b15d2317e11ceb23e406fe1402671fe"
+          },
+          "passed": false
+        },
+        "original": {
+          "checker_result_sha256": "d26df2db78423701fa346d0ce76f2f37b6ce30928038afda2f43a80fecf2b217",
+          "checks": [
+            {
+              "id": "boltons-split-punct-ws-1",
+              "kind": "correctness",
+              "passed": true
+            },
+            {
+              "id": "boltons-split-punct-ws-2",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "boltons-split-punct-ws-3",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "boltons-split-punct-ws-4",
+              "kind": "constraint",
+              "passed": true
+            }
+          ],
+          "elapsed_seconds": 0.044,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "c301912653a8d8c99eab6212aa3aea8d164ea249d8ad53c941e0558a0a5ac1e3",
+              "README.md": "125d653ce15f442d8cafb2b43b4ddc01f443807a4a782e035528cfd75c4388f9",
+              "boltons/iterutils.py": "7fb67f49dc1d895051549b523c2e21161e3c1f4e21590fa7fd09039386d08510",
+              "boltons/strutils.py": "c5ecb7efd3b2e86f92545c18d8d72193f45a1bd1d0edaf3da65868aa0e8bcdda"
+            },
+            "sha256": "fafe897f46eea381df9404a51c2bc0cd603ecef5099f7f26c658bb4a44a15b27"
+          },
+          "passed": true
+        }
+      },
+      "valid": true
+    },
+    {
+      "case_id": "boltons-bytes2human",
+      "controls": {
+        "constant_none": {
+          "checker_result_sha256": "54c4905fad2b523ff3a134c039b9cc1eed56e148cde996390f5dace99d7cb6a3",
+          "checks": [
+            {
+              "id": "boltons-bytes2human-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "boltons-bytes2human-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-bytes2human-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-bytes2human-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.042,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "c301912653a8d8c99eab6212aa3aea8d164ea249d8ad53c941e0558a0a5ac1e3",
+              "README.md": "125d653ce15f442d8cafb2b43b4ddc01f443807a4a782e035528cfd75c4388f9",
+              "boltons/iterutils.py": "7fb67f49dc1d895051549b523c2e21161e3c1f4e21590fa7fd09039386d08510",
+              "boltons/strutils.py": "9b0045c40a3abb37cd0885b4a3bd7a9129b6e6ea1488bfa630c93ed8ed866c43"
+            },
+            "sha256": "28157a6a29ef257241916c9280de1143718bbe97b4df562bc0a6a3e93e5546dd"
+          },
+          "passed": false
+        },
+        "missing": {
+          "checker_result_sha256": "54c4905fad2b523ff3a134c039b9cc1eed56e148cde996390f5dace99d7cb6a3",
+          "checks": [
+            {
+              "id": "boltons-bytes2human-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "boltons-bytes2human-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-bytes2human-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-bytes2human-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.043,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "c301912653a8d8c99eab6212aa3aea8d164ea249d8ad53c941e0558a0a5ac1e3",
+              "README.md": "125d653ce15f442d8cafb2b43b4ddc01f443807a4a782e035528cfd75c4388f9",
+              "boltons/iterutils.py": "7fb67f49dc1d895051549b523c2e21161e3c1f4e21590fa7fd09039386d08510",
+              "boltons/strutils.py": "bc90feb6c19acf91d57a14b5280b444b9d3c9be7800f091c82b29c9d874680c2"
+            },
+            "sha256": "473feb1341da044c8cced6d6b9a8f3e0c63feb4608ad957b2f9865b32acfab0f"
+          },
+          "passed": false
+        },
+        "original": {
+          "checker_result_sha256": "5ff53610092c8666835d91f840a92884fd2c625d6ac417872dcf81fff4b01c92",
+          "checks": [
+            {
+              "id": "boltons-bytes2human-1",
+              "kind": "correctness",
+              "passed": true
+            },
+            {
+              "id": "boltons-bytes2human-2",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "boltons-bytes2human-3",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "boltons-bytes2human-4",
+              "kind": "constraint",
+              "passed": true
+            }
+          ],
+          "elapsed_seconds": 0.042,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "c301912653a8d8c99eab6212aa3aea8d164ea249d8ad53c941e0558a0a5ac1e3",
+              "README.md": "125d653ce15f442d8cafb2b43b4ddc01f443807a4a782e035528cfd75c4388f9",
+              "boltons/iterutils.py": "7fb67f49dc1d895051549b523c2e21161e3c1f4e21590fa7fd09039386d08510",
+              "boltons/strutils.py": "c5ecb7efd3b2e86f92545c18d8d72193f45a1bd1d0edaf3da65868aa0e8bcdda"
+            },
+            "sha256": "fafe897f46eea381df9404a51c2bc0cd603ecef5099f7f26c658bb4a44a15b27"
+          },
+          "passed": true
+        }
+      },
+      "valid": true
+    },
+    {
+      "case_id": "boltons-iter-splitlines",
+      "controls": {
+        "constant_none": {
+          "checker_result_sha256": "189379c8b7f1049001d1a33bcd40a4bb7789083c5f4a73ca846d31ced18e052c",
+          "checks": [
+            {
+              "id": "boltons-iter-splitlines-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "boltons-iter-splitlines-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-iter-splitlines-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-iter-splitlines-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.049,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "c301912653a8d8c99eab6212aa3aea8d164ea249d8ad53c941e0558a0a5ac1e3",
+              "README.md": "125d653ce15f442d8cafb2b43b4ddc01f443807a4a782e035528cfd75c4388f9",
+              "boltons/iterutils.py": "7fb67f49dc1d895051549b523c2e21161e3c1f4e21590fa7fd09039386d08510",
+              "boltons/strutils.py": "6613c626c11c9065e87f7a76587babe508759b69170180ff194513b97277aab2"
+            },
+            "sha256": "352146e5832c0b01a859b92acb97e14f5bb5bca6c1c316ff4ca751dabed4a7ca"
+          },
+          "passed": false
+        },
+        "missing": {
+          "checker_result_sha256": "189379c8b7f1049001d1a33bcd40a4bb7789083c5f4a73ca846d31ced18e052c",
+          "checks": [
+            {
+              "id": "boltons-iter-splitlines-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "boltons-iter-splitlines-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-iter-splitlines-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-iter-splitlines-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.055,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "c301912653a8d8c99eab6212aa3aea8d164ea249d8ad53c941e0558a0a5ac1e3",
+              "README.md": "125d653ce15f442d8cafb2b43b4ddc01f443807a4a782e035528cfd75c4388f9",
+              "boltons/iterutils.py": "7fb67f49dc1d895051549b523c2e21161e3c1f4e21590fa7fd09039386d08510",
+              "boltons/strutils.py": "28c203850e8db2753a8c722ee4f4c42c302fc9f2c1a133ac7597ae6b735114f9"
+            },
+            "sha256": "491fa0eb26edd1271825c138e7aa97bb449555bb207033c09b6ff831eadeed14"
+          },
+          "passed": false
+        },
+        "original": {
+          "checker_result_sha256": "8e9de1c0ac33d0d2a838c590f17198757caec85e0b0fa8013affe9a01466b303",
+          "checks": [
+            {
+              "id": "boltons-iter-splitlines-1",
+              "kind": "correctness",
+              "passed": true
+            },
+            {
+              "id": "boltons-iter-splitlines-2",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "boltons-iter-splitlines-3",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "boltons-iter-splitlines-4",
+              "kind": "constraint",
+              "passed": true
+            }
+          ],
+          "elapsed_seconds": 0.045,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "c301912653a8d8c99eab6212aa3aea8d164ea249d8ad53c941e0558a0a5ac1e3",
+              "README.md": "125d653ce15f442d8cafb2b43b4ddc01f443807a4a782e035528cfd75c4388f9",
+              "boltons/iterutils.py": "7fb67f49dc1d895051549b523c2e21161e3c1f4e21590fa7fd09039386d08510",
+              "boltons/strutils.py": "c5ecb7efd3b2e86f92545c18d8d72193f45a1bd1d0edaf3da65868aa0e8bcdda"
+            },
+            "sha256": "fafe897f46eea381df9404a51c2bc0cd603ecef5099f7f26c658bb4a44a15b27"
+          },
+          "passed": true
+        }
+      },
+      "valid": true
+    },
+    {
+      "case_id": "boltons-indent",
+      "controls": {
+        "constant_none": {
+          "checker_result_sha256": "c3e9aa175ddc51ab87ca6248aaf4017fac677402f51da2c05a99336b1f729cd8",
+          "checks": [
+            {
+              "id": "boltons-indent-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "boltons-indent-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-indent-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-indent-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.045,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "c301912653a8d8c99eab6212aa3aea8d164ea249d8ad53c941e0558a0a5ac1e3",
+              "README.md": "125d653ce15f442d8cafb2b43b4ddc01f443807a4a782e035528cfd75c4388f9",
+              "boltons/iterutils.py": "7fb67f49dc1d895051549b523c2e21161e3c1f4e21590fa7fd09039386d08510",
+              "boltons/strutils.py": "02e752436d78d19f0e7bf815bff13ae0492c3e4c175c483626c7cdcfe34ce1a4"
+            },
+            "sha256": "4fb8c20baa0513792ea1b0abcf978c058a7f2b8b67d15b95d4fd1cd1a178d736"
+          },
+          "passed": false
+        },
+        "missing": {
+          "checker_result_sha256": "c3e9aa175ddc51ab87ca6248aaf4017fac677402f51da2c05a99336b1f729cd8",
+          "checks": [
+            {
+              "id": "boltons-indent-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "boltons-indent-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-indent-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-indent-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.044,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "c301912653a8d8c99eab6212aa3aea8d164ea249d8ad53c941e0558a0a5ac1e3",
+              "README.md": "125d653ce15f442d8cafb2b43b4ddc01f443807a4a782e035528cfd75c4388f9",
+              "boltons/iterutils.py": "7fb67f49dc1d895051549b523c2e21161e3c1f4e21590fa7fd09039386d08510",
+              "boltons/strutils.py": "3d0b9e420a869f8bb5f1802ac524cb1a916da9426cf2b7b3f89057b0fd6613c8"
+            },
+            "sha256": "2120f8d4686a8dfb832c33bddde3c62e46cb7be4161d54dc666b87bf07d65762"
+          },
+          "passed": false
+        },
+        "original": {
+          "checker_result_sha256": "521b230ae84a7bdc15a2337c94bbf32de1b7cacaa5e8d006dc56b38f22dc719d",
+          "checks": [
+            {
+              "id": "boltons-indent-1",
+              "kind": "correctness",
+              "passed": true
+            },
+            {
+              "id": "boltons-indent-2",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "boltons-indent-3",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "boltons-indent-4",
+              "kind": "constraint",
+              "passed": true
+            }
+          ],
+          "elapsed_seconds": 0.05,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "c301912653a8d8c99eab6212aa3aea8d164ea249d8ad53c941e0558a0a5ac1e3",
+              "README.md": "125d653ce15f442d8cafb2b43b4ddc01f443807a4a782e035528cfd75c4388f9",
+              "boltons/iterutils.py": "7fb67f49dc1d895051549b523c2e21161e3c1f4e21590fa7fd09039386d08510",
+              "boltons/strutils.py": "c5ecb7efd3b2e86f92545c18d8d72193f45a1bd1d0edaf3da65868aa0e8bcdda"
+            },
+            "sha256": "fafe897f46eea381df9404a51c2bc0cd603ecef5099f7f26c658bb4a44a15b27"
+          },
+          "passed": true
+        }
+      },
+      "valid": true
+    },
+    {
+      "case_id": "boltons-chunked-iter",
+      "controls": {
+        "constant_none": {
+          "checker_result_sha256": "96e8b54faa757ab9e54d098fbfda62944dae874ec70af4202a21195bcb0be236",
+          "checks": [
+            {
+              "id": "boltons-chunked-iter-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "boltons-chunked-iter-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-chunked-iter-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-chunked-iter-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.038,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "c301912653a8d8c99eab6212aa3aea8d164ea249d8ad53c941e0558a0a5ac1e3",
+              "README.md": "125d653ce15f442d8cafb2b43b4ddc01f443807a4a782e035528cfd75c4388f9",
+              "boltons/iterutils.py": "829cab96978c299d3ea59807ce59e4a4cdd1696eea71c84de7256283e0ad2bdf",
+              "boltons/strutils.py": "c5ecb7efd3b2e86f92545c18d8d72193f45a1bd1d0edaf3da65868aa0e8bcdda"
+            },
+            "sha256": "296bd72eedf5f135d388a7460f5752182175c8782de63d09e614b9d8635d7cb9"
+          },
+          "passed": false
+        },
+        "missing": {
+          "checker_result_sha256": "96e8b54faa757ab9e54d098fbfda62944dae874ec70af4202a21195bcb0be236",
+          "checks": [
+            {
+              "id": "boltons-chunked-iter-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "boltons-chunked-iter-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-chunked-iter-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-chunked-iter-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.039,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "c301912653a8d8c99eab6212aa3aea8d164ea249d8ad53c941e0558a0a5ac1e3",
+              "README.md": "125d653ce15f442d8cafb2b43b4ddc01f443807a4a782e035528cfd75c4388f9",
+              "boltons/iterutils.py": "4acc5f9e5bde4de061a675297b215871d8e5199be942b6721a402c0048679927",
+              "boltons/strutils.py": "c5ecb7efd3b2e86f92545c18d8d72193f45a1bd1d0edaf3da65868aa0e8bcdda"
+            },
+            "sha256": "5d1b1daa376afc6f1987156ceaafba35353a592ec7ad5b24ed69997e8d43ef52"
+          },
+          "passed": false
+        },
+        "original": {
+          "checker_result_sha256": "e78029a9cb4ff5c129a8996de139c487467e297731989d85e7e211955fbdac7b",
+          "checks": [
+            {
+              "id": "boltons-chunked-iter-1",
+              "kind": "correctness",
+              "passed": true
+            },
+            {
+              "id": "boltons-chunked-iter-2",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "boltons-chunked-iter-3",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "boltons-chunked-iter-4",
+              "kind": "constraint",
+              "passed": true
+            }
+          ],
+          "elapsed_seconds": 0.039,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "c301912653a8d8c99eab6212aa3aea8d164ea249d8ad53c941e0558a0a5ac1e3",
+              "README.md": "125d653ce15f442d8cafb2b43b4ddc01f443807a4a782e035528cfd75c4388f9",
+              "boltons/iterutils.py": "7fb67f49dc1d895051549b523c2e21161e3c1f4e21590fa7fd09039386d08510",
+              "boltons/strutils.py": "c5ecb7efd3b2e86f92545c18d8d72193f45a1bd1d0edaf3da65868aa0e8bcdda"
+            },
+            "sha256": "fafe897f46eea381df9404a51c2bc0cd603ecef5099f7f26c658bb4a44a15b27"
+          },
+          "passed": true
+        }
+      },
+      "valid": true
+    },
+    {
+      "case_id": "boltons-unique-iter",
+      "controls": {
+        "constant_none": {
+          "checker_result_sha256": "7c302c652c7d36cb06774719976f2d0fda38671bb64619b34ce5d3bbab4ea197",
+          "checks": [
+            {
+              "id": "boltons-unique-iter-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "boltons-unique-iter-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-unique-iter-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-unique-iter-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.045,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "c301912653a8d8c99eab6212aa3aea8d164ea249d8ad53c941e0558a0a5ac1e3",
+              "README.md": "125d653ce15f442d8cafb2b43b4ddc01f443807a4a782e035528cfd75c4388f9",
+              "boltons/iterutils.py": "010d741c2b7230696c43e6142e529307fd8415ed5f7d6ae5e7deb2d08e5a194b",
+              "boltons/strutils.py": "c5ecb7efd3b2e86f92545c18d8d72193f45a1bd1d0edaf3da65868aa0e8bcdda"
+            },
+            "sha256": "0ce17c9840c15eb7e5e3708a34361a8d39ae0660a8cc695947f7d8e84555d42f"
+          },
+          "passed": false
+        },
+        "missing": {
+          "checker_result_sha256": "7c302c652c7d36cb06774719976f2d0fda38671bb64619b34ce5d3bbab4ea197",
+          "checks": [
+            {
+              "id": "boltons-unique-iter-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "boltons-unique-iter-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-unique-iter-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-unique-iter-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.04,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "c301912653a8d8c99eab6212aa3aea8d164ea249d8ad53c941e0558a0a5ac1e3",
+              "README.md": "125d653ce15f442d8cafb2b43b4ddc01f443807a4a782e035528cfd75c4388f9",
+              "boltons/iterutils.py": "d3770aa62499a8f7a9f23fa618ea1f7c73c01d29b167616a446ffebcea882eed",
+              "boltons/strutils.py": "c5ecb7efd3b2e86f92545c18d8d72193f45a1bd1d0edaf3da65868aa0e8bcdda"
+            },
+            "sha256": "550b0ec11ddd486eb235de31f900e353ee178d3e718e59f248c02bb76e52cf16"
+          },
+          "passed": false
+        },
+        "original": {
+          "checker_result_sha256": "96a8c69cbd13cb5e45514189624008b46742037f1426a004e24dac2c4a3f8d6f",
+          "checks": [
+            {
+              "id": "boltons-unique-iter-1",
+              "kind": "correctness",
+              "passed": true
+            },
+            {
+              "id": "boltons-unique-iter-2",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "boltons-unique-iter-3",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "boltons-unique-iter-4",
+              "kind": "constraint",
+              "passed": true
+            }
+          ],
+          "elapsed_seconds": 0.048,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "c301912653a8d8c99eab6212aa3aea8d164ea249d8ad53c941e0558a0a5ac1e3",
+              "README.md": "125d653ce15f442d8cafb2b43b4ddc01f443807a4a782e035528cfd75c4388f9",
+              "boltons/iterutils.py": "7fb67f49dc1d895051549b523c2e21161e3c1f4e21590fa7fd09039386d08510",
+              "boltons/strutils.py": "c5ecb7efd3b2e86f92545c18d8d72193f45a1bd1d0edaf3da65868aa0e8bcdda"
+            },
+            "sha256": "fafe897f46eea381df9404a51c2bc0cd603ecef5099f7f26c658bb4a44a15b27"
+          },
+          "passed": true
+        }
+      },
+      "valid": true
+    },
+    {
+      "case_id": "boltons-bucketize",
+      "controls": {
+        "constant_none": {
+          "checker_result_sha256": "1e3ec0d41d0af6bac8ea84ba9cce1bbd2735074628822ed6d247356dce9dbc89",
+          "checks": [
+            {
+              "id": "boltons-bucketize-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "boltons-bucketize-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-bucketize-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-bucketize-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.037,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "c301912653a8d8c99eab6212aa3aea8d164ea249d8ad53c941e0558a0a5ac1e3",
+              "README.md": "125d653ce15f442d8cafb2b43b4ddc01f443807a4a782e035528cfd75c4388f9",
+              "boltons/iterutils.py": "c2fdb82a49522ff014dbd5c99d07e6653d01669368f21d1b0ee9ac3f46eb4a7f",
+              "boltons/strutils.py": "c5ecb7efd3b2e86f92545c18d8d72193f45a1bd1d0edaf3da65868aa0e8bcdda"
+            },
+            "sha256": "ecd646d1c47efe36f97110a49a9222b9298358fd04987f2344beab46041428c8"
+          },
+          "passed": false
+        },
+        "missing": {
+          "checker_result_sha256": "1e3ec0d41d0af6bac8ea84ba9cce1bbd2735074628822ed6d247356dce9dbc89",
+          "checks": [
+            {
+              "id": "boltons-bucketize-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "boltons-bucketize-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-bucketize-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-bucketize-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.037,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "c301912653a8d8c99eab6212aa3aea8d164ea249d8ad53c941e0558a0a5ac1e3",
+              "README.md": "125d653ce15f442d8cafb2b43b4ddc01f443807a4a782e035528cfd75c4388f9",
+              "boltons/iterutils.py": "2ee3bed65117499c67b3874b07f8d6d9fdd0273ecfcab6deddf15cedcc5fe029",
+              "boltons/strutils.py": "c5ecb7efd3b2e86f92545c18d8d72193f45a1bd1d0edaf3da65868aa0e8bcdda"
+            },
+            "sha256": "b67f65004c64eef5fac5fa2058ae4ebb0150682ed45d27602601f931fac30d3f"
+          },
+          "passed": false
+        },
+        "original": {
+          "checker_result_sha256": "effdf4517bae7861ab2692a144a877a5b3272d28c227d185193f9fd3e0152d25",
+          "checks": [
+            {
+              "id": "boltons-bucketize-1",
+              "kind": "correctness",
+              "passed": true
+            },
+            {
+              "id": "boltons-bucketize-2",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "boltons-bucketize-3",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "boltons-bucketize-4",
+              "kind": "constraint",
+              "passed": true
+            }
+          ],
+          "elapsed_seconds": 0.039,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "c301912653a8d8c99eab6212aa3aea8d164ea249d8ad53c941e0558a0a5ac1e3",
+              "README.md": "125d653ce15f442d8cafb2b43b4ddc01f443807a4a782e035528cfd75c4388f9",
+              "boltons/iterutils.py": "7fb67f49dc1d895051549b523c2e21161e3c1f4e21590fa7fd09039386d08510",
+              "boltons/strutils.py": "c5ecb7efd3b2e86f92545c18d8d72193f45a1bd1d0edaf3da65868aa0e8bcdda"
+            },
+            "sha256": "fafe897f46eea381df9404a51c2bc0cd603ecef5099f7f26c658bb4a44a15b27"
+          },
+          "passed": true
+        }
+      },
+      "valid": true
+    },
+    {
+      "case_id": "boltons-get-path",
+      "controls": {
+        "constant_none": {
+          "checker_result_sha256": "1760a62e6aa5122b6870d51e6cae9574b9015b90aa9914fd4e6fd1b6f2305b65",
+          "checks": [
+            {
+              "id": "boltons-get-path-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "boltons-get-path-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-get-path-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-get-path-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.037,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "c301912653a8d8c99eab6212aa3aea8d164ea249d8ad53c941e0558a0a5ac1e3",
+              "README.md": "125d653ce15f442d8cafb2b43b4ddc01f443807a4a782e035528cfd75c4388f9",
+              "boltons/iterutils.py": "d2497103edac0855ab8e88966529e71608093586d48b0b00c1687e2a261d6b9d",
+              "boltons/strutils.py": "c5ecb7efd3b2e86f92545c18d8d72193f45a1bd1d0edaf3da65868aa0e8bcdda"
+            },
+            "sha256": "61e12e993ed20b475caa04140ffe973d4723a2a03b3d4c28d819306af88225d5"
+          },
+          "passed": false
+        },
+        "missing": {
+          "checker_result_sha256": "1760a62e6aa5122b6870d51e6cae9574b9015b90aa9914fd4e6fd1b6f2305b65",
+          "checks": [
+            {
+              "id": "boltons-get-path-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "boltons-get-path-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-get-path-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "boltons-get-path-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.038,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "c301912653a8d8c99eab6212aa3aea8d164ea249d8ad53c941e0558a0a5ac1e3",
+              "README.md": "125d653ce15f442d8cafb2b43b4ddc01f443807a4a782e035528cfd75c4388f9",
+              "boltons/iterutils.py": "96f46a1586c0f46a699870a732e786dca820cec13f066bcaa118a634cd189379",
+              "boltons/strutils.py": "c5ecb7efd3b2e86f92545c18d8d72193f45a1bd1d0edaf3da65868aa0e8bcdda"
+            },
+            "sha256": "c93b61ad966a5a529dd228c42018dd152d58b243d0103d6aad15e257b0f4f24b"
+          },
+          "passed": false
+        },
+        "original": {
+          "checker_result_sha256": "f85020632c0e3020d3b187c796067272699d3707bc34800955278cfb6ce1f88b",
+          "checks": [
+            {
+              "id": "boltons-get-path-1",
+              "kind": "correctness",
+              "passed": true
+            },
+            {
+              "id": "boltons-get-path-2",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "boltons-get-path-3",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "boltons-get-path-4",
+              "kind": "constraint",
+              "passed": true
+            }
+          ],
+          "elapsed_seconds": 0.037,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "c301912653a8d8c99eab6212aa3aea8d164ea249d8ad53c941e0558a0a5ac1e3",
+              "README.md": "125d653ce15f442d8cafb2b43b4ddc01f443807a4a782e035528cfd75c4388f9",
+              "boltons/iterutils.py": "7fb67f49dc1d895051549b523c2e21161e3c1f4e21590fa7fd09039386d08510",
+              "boltons/strutils.py": "c5ecb7efd3b2e86f92545c18d8d72193f45a1bd1d0edaf3da65868aa0e8bcdda"
+            },
+            "sha256": "fafe897f46eea381df9404a51c2bc0cd603ecef5099f7f26c658bb4a44a15b27"
+          },
+          "passed": true
+        }
+      },
+      "valid": true
+    },
+    {
+      "case_id": "more-itertools-grouper",
+      "controls": {
+        "constant_none": {
+          "checker_result_sha256": "4435b3c99e801bf5ee939a2fd7170c10286506f82f3fe4412666ab3f923705a0",
+          "checks": [
+            {
+              "id": "more-itertools-grouper-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-grouper-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-grouper-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-grouper-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.042,
+          "implementation_manifest": {
+            "file_count": 3,
+            "files_sha256": {
+              "LICENSE": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46",
+              "README.rst": "6a5dad4de3ffc03544d72a70cc876e15565b250231557b566f967965d4dd1c5f",
+              "more_itertools/recipes.py": "1b311b01c68247028fa7c64e26466172bd3532a1c351309a623849a97deedafa"
+            },
+            "sha256": "b45cad5095e95c9b292493e4d02caa286d23f1ca0995aadc34d8739c19eb3acb"
+          },
+          "passed": false
+        },
+        "missing": {
+          "checker_result_sha256": "4435b3c99e801bf5ee939a2fd7170c10286506f82f3fe4412666ab3f923705a0",
+          "checks": [
+            {
+              "id": "more-itertools-grouper-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-grouper-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-grouper-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-grouper-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.042,
+          "implementation_manifest": {
+            "file_count": 3,
+            "files_sha256": {
+              "LICENSE": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46",
+              "README.rst": "6a5dad4de3ffc03544d72a70cc876e15565b250231557b566f967965d4dd1c5f",
+              "more_itertools/recipes.py": "c22200acabcb9d933ae9b2da7a92cd1590a147da556e5f17efbe6938178333db"
+            },
+            "sha256": "839425d4f3998e2f99911861586f92eb711f6a077e3b9c688caf621bcd0fa085"
+          },
+          "passed": false
+        },
+        "original": {
+          "checker_result_sha256": "13c1a1d79d66f7cd05e58da6d8a43e0cccf3759b89e137bc6b695a2ef402d1b4",
+          "checks": [
+            {
+              "id": "more-itertools-grouper-1",
+              "kind": "correctness",
+              "passed": true
+            },
+            {
+              "id": "more-itertools-grouper-2",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "more-itertools-grouper-3",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "more-itertools-grouper-4",
+              "kind": "constraint",
+              "passed": true
+            }
+          ],
+          "elapsed_seconds": 0.042,
+          "implementation_manifest": {
+            "file_count": 3,
+            "files_sha256": {
+              "LICENSE": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46",
+              "README.rst": "6a5dad4de3ffc03544d72a70cc876e15565b250231557b566f967965d4dd1c5f",
+              "more_itertools/recipes.py": "98bf2a0f8ca454a4674c99e50cb883c3d602032b2fa21b3f3a7e56f4950285e0"
+            },
+            "sha256": "af31b793f7f8a6567c2b64bbceef0bc7980a2abe6631241690af7cf7fd61ac57"
+          },
+          "passed": true
+        }
+      },
+      "valid": true
+    },
+    {
+      "case_id": "more-itertools-roundrobin",
+      "controls": {
+        "constant_none": {
+          "checker_result_sha256": "dabdb2675f6d5a61641522c8931da566dbd142456dee025b8a54fa1301022dfc",
+          "checks": [
+            {
+              "id": "more-itertools-roundrobin-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-roundrobin-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-roundrobin-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-roundrobin-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.041,
+          "implementation_manifest": {
+            "file_count": 3,
+            "files_sha256": {
+              "LICENSE": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46",
+              "README.rst": "6a5dad4de3ffc03544d72a70cc876e15565b250231557b566f967965d4dd1c5f",
+              "more_itertools/recipes.py": "d50d211ffc263b21b3feb8e44b6d5f493650a77424a6f5f071fc278ec571169d"
+            },
+            "sha256": "9062ff88555143d6b9a7855ecf613e2cee7e57cfcd5a0bf6545e8978883300bc"
+          },
+          "passed": false
+        },
+        "missing": {
+          "checker_result_sha256": "dabdb2675f6d5a61641522c8931da566dbd142456dee025b8a54fa1301022dfc",
+          "checks": [
+            {
+              "id": "more-itertools-roundrobin-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-roundrobin-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-roundrobin-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-roundrobin-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.044,
+          "implementation_manifest": {
+            "file_count": 3,
+            "files_sha256": {
+              "LICENSE": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46",
+              "README.rst": "6a5dad4de3ffc03544d72a70cc876e15565b250231557b566f967965d4dd1c5f",
+              "more_itertools/recipes.py": "a36fc7baece41982046fdd6d82a346692c7638dbd6044c5b41b568297093540d"
+            },
+            "sha256": "7d9a8cc01f8ce12494e35e90701497fadc1793a293abc7c190f6fd3e15fbf13d"
+          },
+          "passed": false
+        },
+        "original": {
+          "checker_result_sha256": "79d9b06baa66019192102ebd004ab3e6b58627a7ee400167c23d1ac98589b711",
+          "checks": [
+            {
+              "id": "more-itertools-roundrobin-1",
+              "kind": "correctness",
+              "passed": true
+            },
+            {
+              "id": "more-itertools-roundrobin-2",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "more-itertools-roundrobin-3",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "more-itertools-roundrobin-4",
+              "kind": "constraint",
+              "passed": true
+            }
+          ],
+          "elapsed_seconds": 0.042,
+          "implementation_manifest": {
+            "file_count": 3,
+            "files_sha256": {
+              "LICENSE": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46",
+              "README.rst": "6a5dad4de3ffc03544d72a70cc876e15565b250231557b566f967965d4dd1c5f",
+              "more_itertools/recipes.py": "98bf2a0f8ca454a4674c99e50cb883c3d602032b2fa21b3f3a7e56f4950285e0"
+            },
+            "sha256": "af31b793f7f8a6567c2b64bbceef0bc7980a2abe6631241690af7cf7fd61ac57"
+          },
+          "passed": true
+        }
+      },
+      "valid": true
+    },
+    {
+      "case_id": "more-itertools-unique-everseen",
+      "controls": {
+        "constant_none": {
+          "checker_result_sha256": "f393d85e4f8ce69d1db2a29e99decce92f1636b96013d78ca60b6790638f223f",
+          "checks": [
+            {
+              "id": "more-itertools-unique-everseen-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-unique-everseen-2",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "more-itertools-unique-everseen-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-unique-everseen-4",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-unique-everseen-5",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.041,
+          "implementation_manifest": {
+            "file_count": 3,
+            "files_sha256": {
+              "LICENSE": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46",
+              "README.rst": "6a5dad4de3ffc03544d72a70cc876e15565b250231557b566f967965d4dd1c5f",
+              "more_itertools/recipes.py": "b1eacacf6da3b17ccb29fccb4307bf2b269234fecd2b0b6c4cc3477b4ebd3475"
+            },
+            "sha256": "34018dfe0766e9c133ad267a71eba8d7351cd6c51afad90076ed3226b9f8173a"
+          },
+          "passed": false
+        },
+        "missing": {
+          "checker_result_sha256": "08424f4d9d990d37e8ed9a2008cf7f7be342b842a9b1b6a2859f5a718f09239d",
+          "checks": [
+            {
+              "id": "more-itertools-unique-everseen-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-unique-everseen-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-unique-everseen-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-unique-everseen-4",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-unique-everseen-5",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.043,
+          "implementation_manifest": {
+            "file_count": 3,
+            "files_sha256": {
+              "LICENSE": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46",
+              "README.rst": "6a5dad4de3ffc03544d72a70cc876e15565b250231557b566f967965d4dd1c5f",
+              "more_itertools/recipes.py": "e43550fbda83525aaf0ea92e1aab478459ddd66cc02407b6c2b83b5818dba9fd"
+            },
+            "sha256": "e46bc7fb4031cd2114f91634c76440f8cb6ea1f9415c0c7517ef1d9fab01078a"
+          },
+          "passed": false
+        },
+        "original": {
+          "checker_result_sha256": "9aad063472165236d0998777c2bf7978668a9fa4f22763f5fe77ce8c03a381da",
+          "checks": [
+            {
+              "id": "more-itertools-unique-everseen-1",
+              "kind": "correctness",
+              "passed": true
+            },
+            {
+              "id": "more-itertools-unique-everseen-2",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "more-itertools-unique-everseen-3",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "more-itertools-unique-everseen-4",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "more-itertools-unique-everseen-5",
+              "kind": "constraint",
+              "passed": true
+            }
+          ],
+          "elapsed_seconds": 0.04,
+          "implementation_manifest": {
+            "file_count": 3,
+            "files_sha256": {
+              "LICENSE": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46",
+              "README.rst": "6a5dad4de3ffc03544d72a70cc876e15565b250231557b566f967965d4dd1c5f",
+              "more_itertools/recipes.py": "98bf2a0f8ca454a4674c99e50cb883c3d602032b2fa21b3f3a7e56f4950285e0"
+            },
+            "sha256": "af31b793f7f8a6567c2b64bbceef0bc7980a2abe6631241690af7cf7fd61ac57"
+          },
+          "passed": true
+        }
+      },
+      "valid": true
+    },
+    {
+      "case_id": "more-itertools-nth-combination",
+      "controls": {
+        "constant_none": {
+          "checker_result_sha256": "9488b96b95fc944dd51a6ea63e8e866bb82b0b9c03f86edc8b2d2eec7da323d2",
+          "checks": [
+            {
+              "id": "more-itertools-nth-combination-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-nth-combination-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-nth-combination-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-nth-combination-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.041,
+          "implementation_manifest": {
+            "file_count": 3,
+            "files_sha256": {
+              "LICENSE": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46",
+              "README.rst": "6a5dad4de3ffc03544d72a70cc876e15565b250231557b566f967965d4dd1c5f",
+              "more_itertools/recipes.py": "5d08c3b94f6495cf7b7c544325b2ae63b942c97493248189855742aac4e695a4"
+            },
+            "sha256": "299a92c980c46108b9e5bc9791622505b055dabc0f57de0d9bf9e444d79a41f5"
+          },
+          "passed": false
+        },
+        "missing": {
+          "checker_result_sha256": "9488b96b95fc944dd51a6ea63e8e866bb82b0b9c03f86edc8b2d2eec7da323d2",
+          "checks": [
+            {
+              "id": "more-itertools-nth-combination-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-nth-combination-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-nth-combination-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-nth-combination-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.046,
+          "implementation_manifest": {
+            "file_count": 3,
+            "files_sha256": {
+              "LICENSE": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46",
+              "README.rst": "6a5dad4de3ffc03544d72a70cc876e15565b250231557b566f967965d4dd1c5f",
+              "more_itertools/recipes.py": "fc4f390d1e66cb23e1ed1eed0a0e25189984b67d828462fab5d0b80c963e9193"
+            },
+            "sha256": "c9dcd03cd21dd2d1375d04113fc36cc79a508fab1aa862084894741c5841ad53"
+          },
+          "passed": false
+        },
+        "original": {
+          "checker_result_sha256": "71c1006ec57352ffefa4fcdee346bf88d66afed196a9b36edfd846aba38b0943",
+          "checks": [
+            {
+              "id": "more-itertools-nth-combination-1",
+              "kind": "correctness",
+              "passed": true
+            },
+            {
+              "id": "more-itertools-nth-combination-2",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "more-itertools-nth-combination-3",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "more-itertools-nth-combination-4",
+              "kind": "constraint",
+              "passed": true
+            }
+          ],
+          "elapsed_seconds": 0.047,
+          "implementation_manifest": {
+            "file_count": 3,
+            "files_sha256": {
+              "LICENSE": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46",
+              "README.rst": "6a5dad4de3ffc03544d72a70cc876e15565b250231557b566f967965d4dd1c5f",
+              "more_itertools/recipes.py": "98bf2a0f8ca454a4674c99e50cb883c3d602032b2fa21b3f3a7e56f4950285e0"
+            },
+            "sha256": "af31b793f7f8a6567c2b64bbceef0bc7980a2abe6631241690af7cf7fd61ac57"
+          },
+          "passed": true
+        }
+      },
+      "valid": true
+    },
+    {
+      "case_id": "more-itertools-before-and-after",
+      "controls": {
+        "constant_none": {
+          "checker_result_sha256": "0478d75a3e3e2e17faef9b8de9541492ccb57729987309a9bbcef5dea14370d6",
+          "checks": [
+            {
+              "id": "more-itertools-before-and-after-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-before-and-after-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-before-and-after-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-before-and-after-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.041,
+          "implementation_manifest": {
+            "file_count": 3,
+            "files_sha256": {
+              "LICENSE": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46",
+              "README.rst": "6a5dad4de3ffc03544d72a70cc876e15565b250231557b566f967965d4dd1c5f",
+              "more_itertools/recipes.py": "bda68ed846d2a64eabc482b4d28106529d233dd9a63523d9a5c0b0a8d51aa9da"
+            },
+            "sha256": "d1ea496797b276d55e2cc9652e7a11dbc72aa2928aa141b678a0ff66e5734684"
+          },
+          "passed": false
+        },
+        "missing": {
+          "checker_result_sha256": "0478d75a3e3e2e17faef9b8de9541492ccb57729987309a9bbcef5dea14370d6",
+          "checks": [
+            {
+              "id": "more-itertools-before-and-after-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-before-and-after-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-before-and-after-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-before-and-after-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.041,
+          "implementation_manifest": {
+            "file_count": 3,
+            "files_sha256": {
+              "LICENSE": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46",
+              "README.rst": "6a5dad4de3ffc03544d72a70cc876e15565b250231557b566f967965d4dd1c5f",
+              "more_itertools/recipes.py": "c25feee63853388556a382029e3f460f3af052f78ce51e3a778ab0c93c451a17"
+            },
+            "sha256": "d557ac901bcee88fd40318964fd19968692e2c68b58fe935a7eabc2e7fe87a94"
+          },
+          "passed": false
+        },
+        "original": {
+          "checker_result_sha256": "0caa43153e7d1863208f78a629b7d88c9534b4ecd629e0534d7bfcb77940b678",
+          "checks": [
+            {
+              "id": "more-itertools-before-and-after-1",
+              "kind": "correctness",
+              "passed": true
+            },
+            {
+              "id": "more-itertools-before-and-after-2",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "more-itertools-before-and-after-3",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "more-itertools-before-and-after-4",
+              "kind": "constraint",
+              "passed": true
+            }
+          ],
+          "elapsed_seconds": 0.044,
+          "implementation_manifest": {
+            "file_count": 3,
+            "files_sha256": {
+              "LICENSE": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46",
+              "README.rst": "6a5dad4de3ffc03544d72a70cc876e15565b250231557b566f967965d4dd1c5f",
+              "more_itertools/recipes.py": "98bf2a0f8ca454a4674c99e50cb883c3d602032b2fa21b3f3a7e56f4950285e0"
+            },
+            "sha256": "af31b793f7f8a6567c2b64bbceef0bc7980a2abe6631241690af7cf7fd61ac57"
+          },
+          "passed": true
+        }
+      },
+      "valid": true
+    },
+    {
+      "case_id": "more-itertools-sliding-window",
+      "controls": {
+        "constant_none": {
+          "checker_result_sha256": "8ffb9ce90cbcc407b1ff3d41a11f6b49a9b059f50a77226c6da3514c4a35bab9",
+          "checks": [
+            {
+              "id": "more-itertools-sliding-window-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-sliding-window-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-sliding-window-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-sliding-window-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.044,
+          "implementation_manifest": {
+            "file_count": 3,
+            "files_sha256": {
+              "LICENSE": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46",
+              "README.rst": "6a5dad4de3ffc03544d72a70cc876e15565b250231557b566f967965d4dd1c5f",
+              "more_itertools/recipes.py": "88fe144069ba58f5819bddf9e0fa67de883be813a450e690eac8d0f912f7e3ad"
+            },
+            "sha256": "8cb3883c052756189c5a1262f6d8865ed0e2143969a134badacbb6e975dab66a"
+          },
+          "passed": false
+        },
+        "missing": {
+          "checker_result_sha256": "8ffb9ce90cbcc407b1ff3d41a11f6b49a9b059f50a77226c6da3514c4a35bab9",
+          "checks": [
+            {
+              "id": "more-itertools-sliding-window-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-sliding-window-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-sliding-window-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-sliding-window-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.055,
+          "implementation_manifest": {
+            "file_count": 3,
+            "files_sha256": {
+              "LICENSE": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46",
+              "README.rst": "6a5dad4de3ffc03544d72a70cc876e15565b250231557b566f967965d4dd1c5f",
+              "more_itertools/recipes.py": "5545ee7316ff863cca51ae195d2d4f1423598f9c634ca490f2e99a76cb9e106f"
+            },
+            "sha256": "2b936f89a1c1f52c326c4ee42a7d6de1bae441ab7d0f8e780484b416c5e81464"
+          },
+          "passed": false
+        },
+        "original": {
+          "checker_result_sha256": "21179c650d25098c216c0ad259cca5c5bc3eacfc489ed5fe3e3cc395132560f2",
+          "checks": [
+            {
+              "id": "more-itertools-sliding-window-1",
+              "kind": "correctness",
+              "passed": true
+            },
+            {
+              "id": "more-itertools-sliding-window-2",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "more-itertools-sliding-window-3",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "more-itertools-sliding-window-4",
+              "kind": "constraint",
+              "passed": true
+            }
+          ],
+          "elapsed_seconds": 0.048,
+          "implementation_manifest": {
+            "file_count": 3,
+            "files_sha256": {
+              "LICENSE": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46",
+              "README.rst": "6a5dad4de3ffc03544d72a70cc876e15565b250231557b566f967965d4dd1c5f",
+              "more_itertools/recipes.py": "98bf2a0f8ca454a4674c99e50cb883c3d602032b2fa21b3f3a7e56f4950285e0"
+            },
+            "sha256": "af31b793f7f8a6567c2b64bbceef0bc7980a2abe6631241690af7cf7fd61ac57"
+          },
+          "passed": true
+        }
+      },
+      "valid": true
+    },
+    {
+      "case_id": "more-itertools-all-equal",
+      "controls": {
+        "constant_none": {
+          "checker_result_sha256": "9603e521b2ea92aaf0909dd2b4532c54342bf0157b357c41f7cbe83725f6e0c6",
+          "checks": [
+            {
+              "id": "more-itertools-all-equal-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-all-equal-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-all-equal-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-all-equal-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.046,
+          "implementation_manifest": {
+            "file_count": 3,
+            "files_sha256": {
+              "LICENSE": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46",
+              "README.rst": "6a5dad4de3ffc03544d72a70cc876e15565b250231557b566f967965d4dd1c5f",
+              "more_itertools/recipes.py": "e3e631753e418c88138502cc8460f712de0b1ace26516a35217b82f37c624174"
+            },
+            "sha256": "688c04c249d5c367e798415bc86f4576e6c54744c87c71e140deeb1129bbfc54"
+          },
+          "passed": false
+        },
+        "missing": {
+          "checker_result_sha256": "9603e521b2ea92aaf0909dd2b4532c54342bf0157b357c41f7cbe83725f6e0c6",
+          "checks": [
+            {
+              "id": "more-itertools-all-equal-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-all-equal-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-all-equal-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-all-equal-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.045,
+          "implementation_manifest": {
+            "file_count": 3,
+            "files_sha256": {
+              "LICENSE": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46",
+              "README.rst": "6a5dad4de3ffc03544d72a70cc876e15565b250231557b566f967965d4dd1c5f",
+              "more_itertools/recipes.py": "76d27a7363a62a1756a66739bef4df91e1ce79aab1b15bebe32da0ecae6a9be0"
+            },
+            "sha256": "544822dabdc4fd7179a5c0160117d1da52a5d7afe1e3ae67a1af24852a436d99"
+          },
+          "passed": false
+        },
+        "original": {
+          "checker_result_sha256": "137a092d20e4648d5adfd3fc215c55bf6c5c03cd46e0754015aa398248ee3bf9",
+          "checks": [
+            {
+              "id": "more-itertools-all-equal-1",
+              "kind": "correctness",
+              "passed": true
+            },
+            {
+              "id": "more-itertools-all-equal-2",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "more-itertools-all-equal-3",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "more-itertools-all-equal-4",
+              "kind": "constraint",
+              "passed": true
+            }
+          ],
+          "elapsed_seconds": 0.046,
+          "implementation_manifest": {
+            "file_count": 3,
+            "files_sha256": {
+              "LICENSE": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46",
+              "README.rst": "6a5dad4de3ffc03544d72a70cc876e15565b250231557b566f967965d4dd1c5f",
+              "more_itertools/recipes.py": "98bf2a0f8ca454a4674c99e50cb883c3d602032b2fa21b3f3a7e56f4950285e0"
+            },
+            "sha256": "af31b793f7f8a6567c2b64bbceef0bc7980a2abe6631241690af7cf7fd61ac57"
+          },
+          "passed": true
+        }
+      },
+      "valid": true
+    },
+    {
+      "case_id": "more-itertools-partition",
+      "controls": {
+        "constant_none": {
+          "checker_result_sha256": "839cf4d3265530324f5818b56c7413fb48055bba2d8e80e798a3942ed2d8c43b",
+          "checks": [
+            {
+              "id": "more-itertools-partition-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-partition-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-partition-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-partition-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.051,
+          "implementation_manifest": {
+            "file_count": 3,
+            "files_sha256": {
+              "LICENSE": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46",
+              "README.rst": "6a5dad4de3ffc03544d72a70cc876e15565b250231557b566f967965d4dd1c5f",
+              "more_itertools/recipes.py": "7a5e64c9b34ebf0ae0476a1139395ff7817f65c7d6130c0c950a46860be7fa20"
+            },
+            "sha256": "4b2d2e55af0d417c3b6aefb2cbc0196abe2307a7ad82c09cec47d7bcacb5bc57"
+          },
+          "passed": false
+        },
+        "missing": {
+          "checker_result_sha256": "839cf4d3265530324f5818b56c7413fb48055bba2d8e80e798a3942ed2d8c43b",
+          "checks": [
+            {
+              "id": "more-itertools-partition-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-partition-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-partition-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-partition-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.048,
+          "implementation_manifest": {
+            "file_count": 3,
+            "files_sha256": {
+              "LICENSE": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46",
+              "README.rst": "6a5dad4de3ffc03544d72a70cc876e15565b250231557b566f967965d4dd1c5f",
+              "more_itertools/recipes.py": "a29ffbb3c0f516d71123e5318646b6ccbf8e9c6d3d8a877eec12efa714f4cad5"
+            },
+            "sha256": "3f58f7441bbde3db689afe841b2810aab47a6db6d4436c2d14c1af11afc5790c"
+          },
+          "passed": false
+        },
+        "original": {
+          "checker_result_sha256": "c12b5b5b98b7dfac42d3af7fa5bb7d0d1f4e55a355bbc185efc08291818b6fa6",
+          "checks": [
+            {
+              "id": "more-itertools-partition-1",
+              "kind": "correctness",
+              "passed": true
+            },
+            {
+              "id": "more-itertools-partition-2",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "more-itertools-partition-3",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "more-itertools-partition-4",
+              "kind": "constraint",
+              "passed": true
+            }
+          ],
+          "elapsed_seconds": 0.046,
+          "implementation_manifest": {
+            "file_count": 3,
+            "files_sha256": {
+              "LICENSE": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46",
+              "README.rst": "6a5dad4de3ffc03544d72a70cc876e15565b250231557b566f967965d4dd1c5f",
+              "more_itertools/recipes.py": "98bf2a0f8ca454a4674c99e50cb883c3d602032b2fa21b3f3a7e56f4950285e0"
+            },
+            "sha256": "af31b793f7f8a6567c2b64bbceef0bc7980a2abe6631241690af7cf7fd61ac57"
+          },
+          "passed": true
+        }
+      },
+      "valid": true
+    },
+    {
+      "case_id": "more-itertools-polynomial-eval",
+      "controls": {
+        "constant_none": {
+          "checker_result_sha256": "6d4fe71b316761356dab27f6dfc6223164e88edcbbaeafbb092a20130371e21f",
+          "checks": [
+            {
+              "id": "more-itertools-polynomial-eval-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-polynomial-eval-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-polynomial-eval-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-polynomial-eval-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.049,
+          "implementation_manifest": {
+            "file_count": 3,
+            "files_sha256": {
+              "LICENSE": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46",
+              "README.rst": "6a5dad4de3ffc03544d72a70cc876e15565b250231557b566f967965d4dd1c5f",
+              "more_itertools/recipes.py": "78fbe7a2e8761b60844e275a52d04845ee704f29006ed5b08c811af9b4598d2e"
+            },
+            "sha256": "956d603523c9d91ace4b56aac6a16c2e686e594a8ecd2080f40750f2ea8b0cc6"
+          },
+          "passed": false
+        },
+        "missing": {
+          "checker_result_sha256": "6d4fe71b316761356dab27f6dfc6223164e88edcbbaeafbb092a20130371e21f",
+          "checks": [
+            {
+              "id": "more-itertools-polynomial-eval-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-polynomial-eval-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-polynomial-eval-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-polynomial-eval-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.05,
+          "implementation_manifest": {
+            "file_count": 3,
+            "files_sha256": {
+              "LICENSE": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46",
+              "README.rst": "6a5dad4de3ffc03544d72a70cc876e15565b250231557b566f967965d4dd1c5f",
+              "more_itertools/recipes.py": "32d8c2ae5076607689f571285644c388b24a08e62d84c860b42642a9735ccf8d"
+            },
+            "sha256": "501b85b36ff76425048ed5185eb57d81a158a8036e6931d9be6f2d9efae23be2"
+          },
+          "passed": false
+        },
+        "original": {
+          "checker_result_sha256": "a7e1b70415ef45c46f762c75e726d9de5676339c71361087324cc125aa0973e7",
+          "checks": [
+            {
+              "id": "more-itertools-polynomial-eval-1",
+              "kind": "correctness",
+              "passed": true
+            },
+            {
+              "id": "more-itertools-polynomial-eval-2",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "more-itertools-polynomial-eval-3",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "more-itertools-polynomial-eval-4",
+              "kind": "constraint",
+              "passed": true
+            }
+          ],
+          "elapsed_seconds": 0.05,
+          "implementation_manifest": {
+            "file_count": 3,
+            "files_sha256": {
+              "LICENSE": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46",
+              "README.rst": "6a5dad4de3ffc03544d72a70cc876e15565b250231557b566f967965d4dd1c5f",
+              "more_itertools/recipes.py": "98bf2a0f8ca454a4674c99e50cb883c3d602032b2fa21b3f3a7e56f4950285e0"
+            },
+            "sha256": "af31b793f7f8a6567c2b64bbceef0bc7980a2abe6631241690af7cf7fd61ac57"
+          },
+          "passed": true
+        }
+      },
+      "valid": true
+    },
+    {
+      "case_id": "more-itertools-transpose",
+      "controls": {
+        "constant_none": {
+          "checker_result_sha256": "6e6177f1c9c756fdd16528daa3de5e8f55dc6574db325af1308a0ed667e4f0e8",
+          "checks": [
+            {
+              "id": "more-itertools-transpose-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-transpose-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-transpose-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-transpose-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.043,
+          "implementation_manifest": {
+            "file_count": 3,
+            "files_sha256": {
+              "LICENSE": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46",
+              "README.rst": "6a5dad4de3ffc03544d72a70cc876e15565b250231557b566f967965d4dd1c5f",
+              "more_itertools/recipes.py": "2d6af5c1100fdd564fba7597e438e5860057b18b70205d503ae90de1632b76f1"
+            },
+            "sha256": "11f42277ddea9e7437df87241ae4c846900e9bdb227c0f4d9fac556d9e13d148"
+          },
+          "passed": false
+        },
+        "missing": {
+          "checker_result_sha256": "6e6177f1c9c756fdd16528daa3de5e8f55dc6574db325af1308a0ed667e4f0e8",
+          "checks": [
+            {
+              "id": "more-itertools-transpose-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-transpose-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-transpose-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "more-itertools-transpose-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.046,
+          "implementation_manifest": {
+            "file_count": 3,
+            "files_sha256": {
+              "LICENSE": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46",
+              "README.rst": "6a5dad4de3ffc03544d72a70cc876e15565b250231557b566f967965d4dd1c5f",
+              "more_itertools/recipes.py": "9955e12693dd9aad6e414b98c0972ec2762f2211583d10357b329d12c1baecc2"
+            },
+            "sha256": "8be086a5a17a25bac6bdc29e5ad80a9e8fdfc77f3897b5fdc71be4d67fe09012"
+          },
+          "passed": false
+        },
+        "original": {
+          "checker_result_sha256": "7902be42a5784d3089e583b6c337c8462469d9c611f09641e6c766aa4e738b49",
+          "checks": [
+            {
+              "id": "more-itertools-transpose-1",
+              "kind": "correctness",
+              "passed": true
+            },
+            {
+              "id": "more-itertools-transpose-2",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "more-itertools-transpose-3",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "more-itertools-transpose-4",
+              "kind": "constraint",
+              "passed": true
+            }
+          ],
+          "elapsed_seconds": 0.051,
+          "implementation_manifest": {
+            "file_count": 3,
+            "files_sha256": {
+              "LICENSE": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46",
+              "README.rst": "6a5dad4de3ffc03544d72a70cc876e15565b250231557b566f967965d4dd1c5f",
+              "more_itertools/recipes.py": "98bf2a0f8ca454a4674c99e50cb883c3d602032b2fa21b3f3a7e56f4950285e0"
+            },
+            "sha256": "af31b793f7f8a6567c2b64bbceef0bc7980a2abe6631241690af7cf7fd61ac57"
+          },
+          "passed": true
+        }
+      },
+      "valid": true
+    },
+    {
+      "case_id": "python-dotenv-parse-key",
+      "controls": {
+        "constant_none": {
+          "checker_result_sha256": "0bb165777fe74b6269a4885a2b1af8efd9e01d7dd29fda0646daa592faa18797",
+          "checks": [
+            {
+              "id": "python-dotenv-parse-key-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-parse-key-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-parse-key-3",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "python-dotenv-parse-key-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.036,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "80619b7049f08c81683ad0e01f08f257a840652dd71ee83146d36658c7d2c2b9",
+              "README.md": "7d06cf7aa8278a4416873e141b5510d99bcc46bd14b440221ef46eba74009441",
+              "src/dotenv/parser.py": "d829172c88b1f10906225c4e7980cd713b29f92cd6655b93d0c090e5163376bb",
+              "src/dotenv/variables.py": "083d2a5cebefa41deae51a4140c0fda97eaf1d7ed2c96f92ba2c063054a5b74f"
+            },
+            "sha256": "4bb26b6a434f895a6485646bf21e63b35625cd160821c7470ead5f5bef0283f4"
+          },
+          "passed": false
+        },
+        "missing": {
+          "checker_result_sha256": "bcbe8564769994e92ef7327ca117b0ce3b7e6d5a5a8461f588bd00efd92521df",
+          "checks": [
+            {
+              "id": "python-dotenv-parse-key-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-parse-key-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-parse-key-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-parse-key-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.036,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "80619b7049f08c81683ad0e01f08f257a840652dd71ee83146d36658c7d2c2b9",
+              "README.md": "7d06cf7aa8278a4416873e141b5510d99bcc46bd14b440221ef46eba74009441",
+              "src/dotenv/parser.py": "3ab6304739429afa084432c1deb5bcd8f2417ce2b70ef31c612e7df7605acbf2",
+              "src/dotenv/variables.py": "083d2a5cebefa41deae51a4140c0fda97eaf1d7ed2c96f92ba2c063054a5b74f"
+            },
+            "sha256": "78133190003b46388f8a82a07e77c9b823420861d85331131b8155c419d7cd12"
+          },
+          "passed": false
+        },
+        "original": {
+          "checker_result_sha256": "a3f54846eb1fdf49215c5904bf5db81016badf0c08631724b021f8b0b7b9ae25",
+          "checks": [
+            {
+              "id": "python-dotenv-parse-key-1",
+              "kind": "correctness",
+              "passed": true
+            },
+            {
+              "id": "python-dotenv-parse-key-2",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "python-dotenv-parse-key-3",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "python-dotenv-parse-key-4",
+              "kind": "constraint",
+              "passed": true
+            }
+          ],
+          "elapsed_seconds": 0.034,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "80619b7049f08c81683ad0e01f08f257a840652dd71ee83146d36658c7d2c2b9",
+              "README.md": "7d06cf7aa8278a4416873e141b5510d99bcc46bd14b440221ef46eba74009441",
+              "src/dotenv/parser.py": "0bc1350444eeff987f2c22924400ad0b7727563798118c641cd4c0de55bd30d0",
+              "src/dotenv/variables.py": "083d2a5cebefa41deae51a4140c0fda97eaf1d7ed2c96f92ba2c063054a5b74f"
+            },
+            "sha256": "93e74bee9615c333190dfc900ed48a4677d7da0a85b31c7adeed215d0b44f9a4"
+          },
+          "passed": true
+        }
+      },
+      "valid": true
+    },
+    {
+      "case_id": "python-dotenv-parse-unquoted-value",
+      "controls": {
+        "constant_none": {
+          "checker_result_sha256": "31dfc419359608e44b4a9035579bed8510125e9aa58720fba1598f0313a018db",
+          "checks": [
+            {
+              "id": "python-dotenv-parse-unquoted-value-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-parse-unquoted-value-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-parse-unquoted-value-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-parse-unquoted-value-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.036,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "80619b7049f08c81683ad0e01f08f257a840652dd71ee83146d36658c7d2c2b9",
+              "README.md": "7d06cf7aa8278a4416873e141b5510d99bcc46bd14b440221ef46eba74009441",
+              "src/dotenv/parser.py": "4b0bc3cdce94bdb00b57ae60c39997498aed3bbbe187a317588c66af0c81c0dd",
+              "src/dotenv/variables.py": "083d2a5cebefa41deae51a4140c0fda97eaf1d7ed2c96f92ba2c063054a5b74f"
+            },
+            "sha256": "5461a92f30b686b62a733f7ddcd22db2cd0e58faf40420dae50ac31fab92fe16"
+          },
+          "passed": false
+        },
+        "missing": {
+          "checker_result_sha256": "31dfc419359608e44b4a9035579bed8510125e9aa58720fba1598f0313a018db",
+          "checks": [
+            {
+              "id": "python-dotenv-parse-unquoted-value-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-parse-unquoted-value-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-parse-unquoted-value-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-parse-unquoted-value-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.045,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "80619b7049f08c81683ad0e01f08f257a840652dd71ee83146d36658c7d2c2b9",
+              "README.md": "7d06cf7aa8278a4416873e141b5510d99bcc46bd14b440221ef46eba74009441",
+              "src/dotenv/parser.py": "e595e53865cb9fb773f85535b51fafe0df19757257e734f515da0c636839f14d",
+              "src/dotenv/variables.py": "083d2a5cebefa41deae51a4140c0fda97eaf1d7ed2c96f92ba2c063054a5b74f"
+            },
+            "sha256": "c6605192299759b48f984833724b6447d1e88b6d9d5e9d8c491172660d518380"
+          },
+          "passed": false
+        },
+        "original": {
+          "checker_result_sha256": "c7277831d1796a7ac563b9e692fe58929d0e8f1d67a6ec0eff70042fa835911b",
+          "checks": [
+            {
+              "id": "python-dotenv-parse-unquoted-value-1",
+              "kind": "correctness",
+              "passed": true
+            },
+            {
+              "id": "python-dotenv-parse-unquoted-value-2",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "python-dotenv-parse-unquoted-value-3",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "python-dotenv-parse-unquoted-value-4",
+              "kind": "constraint",
+              "passed": true
+            }
+          ],
+          "elapsed_seconds": 0.046,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "80619b7049f08c81683ad0e01f08f257a840652dd71ee83146d36658c7d2c2b9",
+              "README.md": "7d06cf7aa8278a4416873e141b5510d99bcc46bd14b440221ef46eba74009441",
+              "src/dotenv/parser.py": "0bc1350444eeff987f2c22924400ad0b7727563798118c641cd4c0de55bd30d0",
+              "src/dotenv/variables.py": "083d2a5cebefa41deae51a4140c0fda97eaf1d7ed2c96f92ba2c063054a5b74f"
+            },
+            "sha256": "93e74bee9615c333190dfc900ed48a4677d7da0a85b31c7adeed215d0b44f9a4"
+          },
+          "passed": true
+        }
+      },
+      "valid": true
+    },
+    {
+      "case_id": "python-dotenv-parse-value",
+      "controls": {
+        "constant_none": {
+          "checker_result_sha256": "413328cbd6fc60d2cf6e72fcdfba5baf41b1bf748bfd4b9f5ec35e60d2beeb39",
+          "checks": [
+            {
+              "id": "python-dotenv-parse-value-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-parse-value-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-parse-value-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-parse-value-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.034,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "80619b7049f08c81683ad0e01f08f257a840652dd71ee83146d36658c7d2c2b9",
+              "README.md": "7d06cf7aa8278a4416873e141b5510d99bcc46bd14b440221ef46eba74009441",
+              "src/dotenv/parser.py": "9a76eae3c403334a89f89ffedc745682c21d0f62ab0b85a471249a62548cd2f0",
+              "src/dotenv/variables.py": "083d2a5cebefa41deae51a4140c0fda97eaf1d7ed2c96f92ba2c063054a5b74f"
+            },
+            "sha256": "b25de1165692256e780a99ee563434df6b10a548866109b49b370bf00b67c54e"
+          },
+          "passed": false
+        },
+        "missing": {
+          "checker_result_sha256": "413328cbd6fc60d2cf6e72fcdfba5baf41b1bf748bfd4b9f5ec35e60d2beeb39",
+          "checks": [
+            {
+              "id": "python-dotenv-parse-value-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-parse-value-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-parse-value-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-parse-value-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.036,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "80619b7049f08c81683ad0e01f08f257a840652dd71ee83146d36658c7d2c2b9",
+              "README.md": "7d06cf7aa8278a4416873e141b5510d99bcc46bd14b440221ef46eba74009441",
+              "src/dotenv/parser.py": "5f20f90d30cfc3cc37689be5fcee4ba7b3ebb50cd9743d4d5ae43a0a5e38e545",
+              "src/dotenv/variables.py": "083d2a5cebefa41deae51a4140c0fda97eaf1d7ed2c96f92ba2c063054a5b74f"
+            },
+            "sha256": "3d9017fd25c203bd6163fb2c133fd235a19b5af814bafd56d8a9582a2c931602"
+          },
+          "passed": false
+        },
+        "original": {
+          "checker_result_sha256": "11da3c0e2305ab8e078f74c0f7265cadae8d0683727edf565402d67aed3119bf",
+          "checks": [
+            {
+              "id": "python-dotenv-parse-value-1",
+              "kind": "correctness",
+              "passed": true
+            },
+            {
+              "id": "python-dotenv-parse-value-2",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "python-dotenv-parse-value-3",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "python-dotenv-parse-value-4",
+              "kind": "constraint",
+              "passed": true
+            }
+          ],
+          "elapsed_seconds": 0.034,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "80619b7049f08c81683ad0e01f08f257a840652dd71ee83146d36658c7d2c2b9",
+              "README.md": "7d06cf7aa8278a4416873e141b5510d99bcc46bd14b440221ef46eba74009441",
+              "src/dotenv/parser.py": "0bc1350444eeff987f2c22924400ad0b7727563798118c641cd4c0de55bd30d0",
+              "src/dotenv/variables.py": "083d2a5cebefa41deae51a4140c0fda97eaf1d7ed2c96f92ba2c063054a5b74f"
+            },
+            "sha256": "93e74bee9615c333190dfc900ed48a4677d7da0a85b31c7adeed215d0b44f9a4"
+          },
+          "passed": true
+        }
+      },
+      "valid": true
+    },
+    {
+      "case_id": "python-dotenv-parse-binding",
+      "controls": {
+        "constant_none": {
+          "checker_result_sha256": "43dd6df1366e78311ec3965e0d9c393f0ba5f32159d4d603c7386dc187222a11",
+          "checks": [
+            {
+              "id": "python-dotenv-parse-binding-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-parse-binding-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-parse-binding-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-parse-binding-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.042,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "80619b7049f08c81683ad0e01f08f257a840652dd71ee83146d36658c7d2c2b9",
+              "README.md": "7d06cf7aa8278a4416873e141b5510d99bcc46bd14b440221ef46eba74009441",
+              "src/dotenv/parser.py": "03101f57afbaf9363abd9e111fab0bbb935774a82f72a2e1773ff3852937933f",
+              "src/dotenv/variables.py": "083d2a5cebefa41deae51a4140c0fda97eaf1d7ed2c96f92ba2c063054a5b74f"
+            },
+            "sha256": "1959a69217a80d6b1cb849903d33c41c04fccc163f17c08fe3a2ac54188ab1e3"
+          },
+          "passed": false
+        },
+        "missing": {
+          "checker_result_sha256": "43dd6df1366e78311ec3965e0d9c393f0ba5f32159d4d603c7386dc187222a11",
+          "checks": [
+            {
+              "id": "python-dotenv-parse-binding-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-parse-binding-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-parse-binding-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-parse-binding-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.038,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "80619b7049f08c81683ad0e01f08f257a840652dd71ee83146d36658c7d2c2b9",
+              "README.md": "7d06cf7aa8278a4416873e141b5510d99bcc46bd14b440221ef46eba74009441",
+              "src/dotenv/parser.py": "cc30b5eaca304fe1307189a1720bbdf4c7b18eea5b6391d87abedd57ffb35232",
+              "src/dotenv/variables.py": "083d2a5cebefa41deae51a4140c0fda97eaf1d7ed2c96f92ba2c063054a5b74f"
+            },
+            "sha256": "de611fd13a6a25132aba2e9920c55b04279bc213e502bd85f86f7b3ccf3e418d"
+          },
+          "passed": false
+        },
+        "original": {
+          "checker_result_sha256": "a50ede3dc59b2861ff038f259ef32fb3223172ece2a5f5eb19d9e513d4ab5ca9",
+          "checks": [
+            {
+              "id": "python-dotenv-parse-binding-1",
+              "kind": "correctness",
+              "passed": true
+            },
+            {
+              "id": "python-dotenv-parse-binding-2",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "python-dotenv-parse-binding-3",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "python-dotenv-parse-binding-4",
+              "kind": "constraint",
+              "passed": true
+            }
+          ],
+          "elapsed_seconds": 0.038,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "80619b7049f08c81683ad0e01f08f257a840652dd71ee83146d36658c7d2c2b9",
+              "README.md": "7d06cf7aa8278a4416873e141b5510d99bcc46bd14b440221ef46eba74009441",
+              "src/dotenv/parser.py": "0bc1350444eeff987f2c22924400ad0b7727563798118c641cd4c0de55bd30d0",
+              "src/dotenv/variables.py": "083d2a5cebefa41deae51a4140c0fda97eaf1d7ed2c96f92ba2c063054a5b74f"
+            },
+            "sha256": "93e74bee9615c333190dfc900ed48a4677d7da0a85b31c7adeed215d0b44f9a4"
+          },
+          "passed": true
+        }
+      },
+      "valid": true
+    },
+    {
+      "case_id": "python-dotenv-decode-escapes",
+      "controls": {
+        "constant_none": {
+          "checker_result_sha256": "49c9f7c083fb41387a10e835c0ee7ee1b2347fab70131a90c74627111633f52d",
+          "checks": [
+            {
+              "id": "python-dotenv-decode-escapes-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-decode-escapes-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-decode-escapes-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-decode-escapes-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.04,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "80619b7049f08c81683ad0e01f08f257a840652dd71ee83146d36658c7d2c2b9",
+              "README.md": "7d06cf7aa8278a4416873e141b5510d99bcc46bd14b440221ef46eba74009441",
+              "src/dotenv/parser.py": "ccdf30ef3346c60ed819e6a9383442e5774e0c7539c21082d58727adcb190142",
+              "src/dotenv/variables.py": "083d2a5cebefa41deae51a4140c0fda97eaf1d7ed2c96f92ba2c063054a5b74f"
+            },
+            "sha256": "41855653d3db969820a9e30e30f3e3596b77267399209216f205289ba2d7d5dd"
+          },
+          "passed": false
+        },
+        "missing": {
+          "checker_result_sha256": "49c9f7c083fb41387a10e835c0ee7ee1b2347fab70131a90c74627111633f52d",
+          "checks": [
+            {
+              "id": "python-dotenv-decode-escapes-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-decode-escapes-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-decode-escapes-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-decode-escapes-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.035,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "80619b7049f08c81683ad0e01f08f257a840652dd71ee83146d36658c7d2c2b9",
+              "README.md": "7d06cf7aa8278a4416873e141b5510d99bcc46bd14b440221ef46eba74009441",
+              "src/dotenv/parser.py": "3cff544b8e69449df4387f42d316961d32b076186fa41a27b6a0443a0666afd3",
+              "src/dotenv/variables.py": "083d2a5cebefa41deae51a4140c0fda97eaf1d7ed2c96f92ba2c063054a5b74f"
+            },
+            "sha256": "64dcf13661aae7d69554840e1a83338aff186b67fbe1607a688eceec463416ed"
+          },
+          "passed": false
+        },
+        "original": {
+          "checker_result_sha256": "99333fc8f052c4a99da9d57c1e65d50e2043bd4684c4606d82c292f1b2475948",
+          "checks": [
+            {
+              "id": "python-dotenv-decode-escapes-1",
+              "kind": "correctness",
+              "passed": true
+            },
+            {
+              "id": "python-dotenv-decode-escapes-2",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "python-dotenv-decode-escapes-3",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "python-dotenv-decode-escapes-4",
+              "kind": "constraint",
+              "passed": true
+            }
+          ],
+          "elapsed_seconds": 0.035,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "80619b7049f08c81683ad0e01f08f257a840652dd71ee83146d36658c7d2c2b9",
+              "README.md": "7d06cf7aa8278a4416873e141b5510d99bcc46bd14b440221ef46eba74009441",
+              "src/dotenv/parser.py": "0bc1350444eeff987f2c22924400ad0b7727563798118c641cd4c0de55bd30d0",
+              "src/dotenv/variables.py": "083d2a5cebefa41deae51a4140c0fda97eaf1d7ed2c96f92ba2c063054a5b74f"
+            },
+            "sha256": "93e74bee9615c333190dfc900ed48a4677d7da0a85b31c7adeed215d0b44f9a4"
+          },
+          "passed": true
+        }
+      },
+      "valid": true
+    },
+    {
+      "case_id": "python-dotenv-position-advance",
+      "controls": {
+        "constant_none": {
+          "checker_result_sha256": "7e87505e864ed05f75173f73e7872a101bbd1d4e33de3aef1abc5d9182bf83c6",
+          "checks": [
+            {
+              "id": "python-dotenv-position-advance-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-position-advance-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-position-advance-3",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "python-dotenv-position-advance-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.041,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "80619b7049f08c81683ad0e01f08f257a840652dd71ee83146d36658c7d2c2b9",
+              "README.md": "7d06cf7aa8278a4416873e141b5510d99bcc46bd14b440221ef46eba74009441",
+              "src/dotenv/parser.py": "793d785dc2929ea4ed59a619717c86d9f70e45f47c97b49533001a70dae4443c",
+              "src/dotenv/variables.py": "083d2a5cebefa41deae51a4140c0fda97eaf1d7ed2c96f92ba2c063054a5b74f"
+            },
+            "sha256": "4e87869475800c256ba967727162d487b7fa9d767ff54dacb2952ecac5e9faac"
+          },
+          "passed": false
+        },
+        "missing": {
+          "checker_result_sha256": "3a5b570ef2bd55f20f41a1ce241daa2438cbe284ae6c982eb9be9815c1f6ea6b",
+          "checks": [
+            {
+              "id": "python-dotenv-position-advance-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-position-advance-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-position-advance-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-position-advance-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.041,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "80619b7049f08c81683ad0e01f08f257a840652dd71ee83146d36658c7d2c2b9",
+              "README.md": "7d06cf7aa8278a4416873e141b5510d99bcc46bd14b440221ef46eba74009441",
+              "src/dotenv/parser.py": "6d9ed01b71d3a2758ead67ec7b76bcf90dda66741f2b82b545d6df842b2347df",
+              "src/dotenv/variables.py": "083d2a5cebefa41deae51a4140c0fda97eaf1d7ed2c96f92ba2c063054a5b74f"
+            },
+            "sha256": "1a32ec7381ebb31071e9c2df25aa24ed70fc9095657355d8953ee2472d18fc0a"
+          },
+          "passed": false
+        },
+        "original": {
+          "checker_result_sha256": "08bac5e58485ad6ec72f5a11461e014d67f9489cbe1e4d8511ca29a328b0a740",
+          "checks": [
+            {
+              "id": "python-dotenv-position-advance-1",
+              "kind": "correctness",
+              "passed": true
+            },
+            {
+              "id": "python-dotenv-position-advance-2",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "python-dotenv-position-advance-3",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "python-dotenv-position-advance-4",
+              "kind": "constraint",
+              "passed": true
+            }
+          ],
+          "elapsed_seconds": 0.036,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "80619b7049f08c81683ad0e01f08f257a840652dd71ee83146d36658c7d2c2b9",
+              "README.md": "7d06cf7aa8278a4416873e141b5510d99bcc46bd14b440221ef46eba74009441",
+              "src/dotenv/parser.py": "0bc1350444eeff987f2c22924400ad0b7727563798118c641cd4c0de55bd30d0",
+              "src/dotenv/variables.py": "083d2a5cebefa41deae51a4140c0fda97eaf1d7ed2c96f92ba2c063054a5b74f"
+            },
+            "sha256": "93e74bee9615c333190dfc900ed48a4677d7da0a85b31c7adeed215d0b44f9a4"
+          },
+          "passed": true
+        }
+      },
+      "valid": true
+    },
+    {
+      "case_id": "python-dotenv-reader-read",
+      "controls": {
+        "constant_none": {
+          "checker_result_sha256": "c808bb982dbe5fbaa43edcf167b3871b5a22972bee268917ec9a4c6aa7820b93",
+          "checks": [
+            {
+              "id": "python-dotenv-reader-read-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-reader-read-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-reader-read-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-reader-read-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.039,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "80619b7049f08c81683ad0e01f08f257a840652dd71ee83146d36658c7d2c2b9",
+              "README.md": "7d06cf7aa8278a4416873e141b5510d99bcc46bd14b440221ef46eba74009441",
+              "src/dotenv/parser.py": "e66ccd0f103e114dd8d703c0fecbb0ee8a360acc42b7b5bf80e827b4e50bed7d",
+              "src/dotenv/variables.py": "083d2a5cebefa41deae51a4140c0fda97eaf1d7ed2c96f92ba2c063054a5b74f"
+            },
+            "sha256": "bd1c87e758e94ccb5d405b2b3d2613bb1f8903dafbff5936439bf4216911af3c"
+          },
+          "passed": false
+        },
+        "missing": {
+          "checker_result_sha256": "c808bb982dbe5fbaa43edcf167b3871b5a22972bee268917ec9a4c6aa7820b93",
+          "checks": [
+            {
+              "id": "python-dotenv-reader-read-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-reader-read-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-reader-read-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-reader-read-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.044,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "80619b7049f08c81683ad0e01f08f257a840652dd71ee83146d36658c7d2c2b9",
+              "README.md": "7d06cf7aa8278a4416873e141b5510d99bcc46bd14b440221ef46eba74009441",
+              "src/dotenv/parser.py": "f974be5ab2838eeab632b19c7475066b8cbe68efb1d27d8cc1128592b2167269",
+              "src/dotenv/variables.py": "083d2a5cebefa41deae51a4140c0fda97eaf1d7ed2c96f92ba2c063054a5b74f"
+            },
+            "sha256": "e6658d5095e730ac80c500c609a9fd73525abb42d890329bed68492eb10d3b47"
+          },
+          "passed": false
+        },
+        "original": {
+          "checker_result_sha256": "2be05def54c89c5e4bc9b7c3d9b4a1e4316830b5711f702499ba3c9d27f604b8",
+          "checks": [
+            {
+              "id": "python-dotenv-reader-read-1",
+              "kind": "correctness",
+              "passed": true
+            },
+            {
+              "id": "python-dotenv-reader-read-2",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "python-dotenv-reader-read-3",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "python-dotenv-reader-read-4",
+              "kind": "constraint",
+              "passed": true
+            }
+          ],
+          "elapsed_seconds": 0.039,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "80619b7049f08c81683ad0e01f08f257a840652dd71ee83146d36658c7d2c2b9",
+              "README.md": "7d06cf7aa8278a4416873e141b5510d99bcc46bd14b440221ef46eba74009441",
+              "src/dotenv/parser.py": "0bc1350444eeff987f2c22924400ad0b7727563798118c641cd4c0de55bd30d0",
+              "src/dotenv/variables.py": "083d2a5cebefa41deae51a4140c0fda97eaf1d7ed2c96f92ba2c063054a5b74f"
+            },
+            "sha256": "93e74bee9615c333190dfc900ed48a4677d7da0a85b31c7adeed215d0b44f9a4"
+          },
+          "passed": true
+        }
+      },
+      "valid": true
+    },
+    {
+      "case_id": "python-dotenv-reader-read-regex",
+      "controls": {
+        "constant_none": {
+          "checker_result_sha256": "9efc109f9a4b0d8c43420ab44b838740bdc40fcdd14111b6f938f63c9ed91a07",
+          "checks": [
+            {
+              "id": "python-dotenv-reader-read-regex-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-reader-read-regex-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-reader-read-regex-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-reader-read-regex-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.047,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "80619b7049f08c81683ad0e01f08f257a840652dd71ee83146d36658c7d2c2b9",
+              "README.md": "7d06cf7aa8278a4416873e141b5510d99bcc46bd14b440221ef46eba74009441",
+              "src/dotenv/parser.py": "2d9fbb2b3794bc87a650abcd812df004141f892e540b8d42e564b1b11b81afc3",
+              "src/dotenv/variables.py": "083d2a5cebefa41deae51a4140c0fda97eaf1d7ed2c96f92ba2c063054a5b74f"
+            },
+            "sha256": "5182ac01297ad8ff361556208988ed0d7f56fd2112cfcadde4a193f675adf576"
+          },
+          "passed": false
+        },
+        "missing": {
+          "checker_result_sha256": "9efc109f9a4b0d8c43420ab44b838740bdc40fcdd14111b6f938f63c9ed91a07",
+          "checks": [
+            {
+              "id": "python-dotenv-reader-read-regex-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-reader-read-regex-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-reader-read-regex-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-reader-read-regex-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.044,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "80619b7049f08c81683ad0e01f08f257a840652dd71ee83146d36658c7d2c2b9",
+              "README.md": "7d06cf7aa8278a4416873e141b5510d99bcc46bd14b440221ef46eba74009441",
+              "src/dotenv/parser.py": "57fda7fdd82cb5eef3cea0e4a48ea651d43b415061f9a14c61b47803db25ad6c",
+              "src/dotenv/variables.py": "083d2a5cebefa41deae51a4140c0fda97eaf1d7ed2c96f92ba2c063054a5b74f"
+            },
+            "sha256": "ed247c6e8e8efbaa0b8e168444e9b0307ff85422e93f1573349e2505857867cc"
+          },
+          "passed": false
+        },
+        "original": {
+          "checker_result_sha256": "85b217323b0e74b76d0c309039c7b99ad03443b6e578593fff03a3b4977bd48f",
+          "checks": [
+            {
+              "id": "python-dotenv-reader-read-regex-1",
+              "kind": "correctness",
+              "passed": true
+            },
+            {
+              "id": "python-dotenv-reader-read-regex-2",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "python-dotenv-reader-read-regex-3",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "python-dotenv-reader-read-regex-4",
+              "kind": "constraint",
+              "passed": true
+            }
+          ],
+          "elapsed_seconds": 0.043,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "80619b7049f08c81683ad0e01f08f257a840652dd71ee83146d36658c7d2c2b9",
+              "README.md": "7d06cf7aa8278a4416873e141b5510d99bcc46bd14b440221ef46eba74009441",
+              "src/dotenv/parser.py": "0bc1350444eeff987f2c22924400ad0b7727563798118c641cd4c0de55bd30d0",
+              "src/dotenv/variables.py": "083d2a5cebefa41deae51a4140c0fda97eaf1d7ed2c96f92ba2c063054a5b74f"
+            },
+            "sha256": "93e74bee9615c333190dfc900ed48a4677d7da0a85b31c7adeed215d0b44f9a4"
+          },
+          "passed": true
+        }
+      },
+      "valid": true
+    },
+    {
+      "case_id": "python-dotenv-variable-resolve",
+      "controls": {
+        "constant_none": {
+          "checker_result_sha256": "d0c43189768ed668303f478dadf45719e2b9251368b539656de28374c1d39180",
+          "checks": [
+            {
+              "id": "python-dotenv-variable-resolve-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-variable-resolve-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-variable-resolve-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-variable-resolve-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.038,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "80619b7049f08c81683ad0e01f08f257a840652dd71ee83146d36658c7d2c2b9",
+              "README.md": "7d06cf7aa8278a4416873e141b5510d99bcc46bd14b440221ef46eba74009441",
+              "src/dotenv/parser.py": "0bc1350444eeff987f2c22924400ad0b7727563798118c641cd4c0de55bd30d0",
+              "src/dotenv/variables.py": "301950eacbffced3f63ac72c5ba46382faa96f4ae3919fa11eff03cd03e570bb"
+            },
+            "sha256": "0769c4b7460780dd369aee3f680ac2208926f26f4ec716ef6284c6bf137a4167"
+          },
+          "passed": false
+        },
+        "missing": {
+          "checker_result_sha256": "d0c43189768ed668303f478dadf45719e2b9251368b539656de28374c1d39180",
+          "checks": [
+            {
+              "id": "python-dotenv-variable-resolve-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-variable-resolve-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-variable-resolve-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-variable-resolve-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.042,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "80619b7049f08c81683ad0e01f08f257a840652dd71ee83146d36658c7d2c2b9",
+              "README.md": "7d06cf7aa8278a4416873e141b5510d99bcc46bd14b440221ef46eba74009441",
+              "src/dotenv/parser.py": "0bc1350444eeff987f2c22924400ad0b7727563798118c641cd4c0de55bd30d0",
+              "src/dotenv/variables.py": "1f7fb7d677c555cbd0adaccb2f6edc21aa0b04b20f5023acd63ce0ccf1c748fa"
+            },
+            "sha256": "bba2c0a375d05e9f58a8b33e73803865ab76efcbcbf13733917ada6f3c1abb5b"
+          },
+          "passed": false
+        },
+        "original": {
+          "checker_result_sha256": "28a14c55b4d07d97cb4b8643403229be728684733fdd9b1e03c557f348403223",
+          "checks": [
+            {
+              "id": "python-dotenv-variable-resolve-1",
+              "kind": "correctness",
+              "passed": true
+            },
+            {
+              "id": "python-dotenv-variable-resolve-2",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "python-dotenv-variable-resolve-3",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "python-dotenv-variable-resolve-4",
+              "kind": "constraint",
+              "passed": true
+            }
+          ],
+          "elapsed_seconds": 0.034,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "80619b7049f08c81683ad0e01f08f257a840652dd71ee83146d36658c7d2c2b9",
+              "README.md": "7d06cf7aa8278a4416873e141b5510d99bcc46bd14b440221ef46eba74009441",
+              "src/dotenv/parser.py": "0bc1350444eeff987f2c22924400ad0b7727563798118c641cd4c0de55bd30d0",
+              "src/dotenv/variables.py": "083d2a5cebefa41deae51a4140c0fda97eaf1d7ed2c96f92ba2c063054a5b74f"
+            },
+            "sha256": "93e74bee9615c333190dfc900ed48a4677d7da0a85b31c7adeed215d0b44f9a4"
+          },
+          "passed": true
+        }
+      },
+      "valid": true
+    },
+    {
+      "case_id": "python-dotenv-parse-variables",
+      "controls": {
+        "constant_none": {
+          "checker_result_sha256": "f7256446819c23e3b3efe7190b95fa3d3b8c57b220904dafedccb276b5026586",
+          "checks": [
+            {
+              "id": "python-dotenv-parse-variables-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-parse-variables-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-parse-variables-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-parse-variables-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.042,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "80619b7049f08c81683ad0e01f08f257a840652dd71ee83146d36658c7d2c2b9",
+              "README.md": "7d06cf7aa8278a4416873e141b5510d99bcc46bd14b440221ef46eba74009441",
+              "src/dotenv/parser.py": "0bc1350444eeff987f2c22924400ad0b7727563798118c641cd4c0de55bd30d0",
+              "src/dotenv/variables.py": "c4cd08648a583ea13c093f641b7e956ae0ede5cd28a7e75605e01b94a6458684"
+            },
+            "sha256": "f4953ae4068fc9e5b070b4c5f00d8bff0d565d8f5c02cb3832c25f13bfbd4a8c"
+          },
+          "passed": false
+        },
+        "missing": {
+          "checker_result_sha256": "f7256446819c23e3b3efe7190b95fa3d3b8c57b220904dafedccb276b5026586",
+          "checks": [
+            {
+              "id": "python-dotenv-parse-variables-1",
+              "kind": "correctness",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-parse-variables-2",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-parse-variables-3",
+              "kind": "constraint",
+              "passed": false
+            },
+            {
+              "id": "python-dotenv-parse-variables-4",
+              "kind": "constraint",
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.035,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "80619b7049f08c81683ad0e01f08f257a840652dd71ee83146d36658c7d2c2b9",
+              "README.md": "7d06cf7aa8278a4416873e141b5510d99bcc46bd14b440221ef46eba74009441",
+              "src/dotenv/parser.py": "0bc1350444eeff987f2c22924400ad0b7727563798118c641cd4c0de55bd30d0",
+              "src/dotenv/variables.py": "75affea89d36ea4d555fb437d4ed93851707690301d16d1415d004823512fded"
+            },
+            "sha256": "ed0e501974a5d99234c876a455a08f8f9c506a8d6810c554b446c6cc2686330e"
+          },
+          "passed": false
+        },
+        "original": {
+          "checker_result_sha256": "3fa7b621d09c1bf528a35d489db720506a8dbecdcc86b98eb8cf2bc279b3bb08",
+          "checks": [
+            {
+              "id": "python-dotenv-parse-variables-1",
+              "kind": "correctness",
+              "passed": true
+            },
+            {
+              "id": "python-dotenv-parse-variables-2",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "python-dotenv-parse-variables-3",
+              "kind": "constraint",
+              "passed": true
+            },
+            {
+              "id": "python-dotenv-parse-variables-4",
+              "kind": "constraint",
+              "passed": true
+            }
+          ],
+          "elapsed_seconds": 0.035,
+          "implementation_manifest": {
+            "file_count": 4,
+            "files_sha256": {
+              "LICENSE": "80619b7049f08c81683ad0e01f08f257a840652dd71ee83146d36658c7d2c2b9",
+              "README.md": "7d06cf7aa8278a4416873e141b5510d99bcc46bd14b440221ef46eba74009441",
+              "src/dotenv/parser.py": "0bc1350444eeff987f2c22924400ad0b7727563798118c641cd4c0de55bd30d0",
+              "src/dotenv/variables.py": "083d2a5cebefa41deae51a4140c0fda97eaf1d7ed2c96f92ba2c063054a5b74f"
+            },
+            "sha256": "93e74bee9615c333190dfc900ed48a4677d7da0a85b31c7adeed215d0b44f9a4"
+          },
+          "passed": true
+        }
+      },
+      "valid": true
+    }
+  ],
+  "schema_version": 1
+}

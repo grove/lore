@@ -13,6 +13,8 @@ import json
 import math
 from pathlib import Path
 import re
+import random
+import statistics
 import secrets
 import shutil
 import sqlite3
@@ -25,11 +27,76 @@ import coding_tasks as coding
 import cross_source as cross
 import decision_tasks as decision
 import shared_intelligence as shared
+import outcome_protocol as outcome
 
 PROTOCOL = "adaptive-coding-v1"
 ADAPTIVE = ("adaptive_no_reuse", "adaptive_reuse")
 SETUPS = (*decision.SETUPS, *ADAPTIVE)
 REUSE_SCOPE = "combined adaptive response/investigation and optional semantic cache policy; not a memory-only ablation"
+
+
+def single_review_template(sample: dict, binding: str) -> dict:
+    packet = decision.review_template(sample, binding)
+    packet["independence_target_sha256"] = cross.digest({
+        "answer_sha256": sample["answer_sha256"], "metrics_sha256": binding})
+    packet["independence_evidence"] = []
+    return packet
+
+
+def attempt_review_sample(sample: dict, attempt: dict) -> dict:
+    return {"sample_id": f"{sample['sample_id']}-attempt-{attempt['number']}",
+        "answer_sha256": cross.digest({"response_sha256": attempt["response_sha256"],
+            "implementation_manifest": attempt["implementation_manifest"]}),
+        "task": sample["task"], "constraints": sample["constraints"]}
+
+
+def review_template(sample: dict, binding: str) -> dict:
+    packet = single_review_template(sample, binding)
+    # The final review already covers the last tested implementation. Every
+    # earlier failed implementation needs its own retained, blinded review.
+    packet["earlier_attempt_reviews"] = [single_review_template(attempt_review_sample(sample, attempt), binding)
+                                         for attempt in sample.get("attempts", [])[:-1]]
+    return packet
+
+
+def answer_review_status(directory: Path, packet: dict, sample: dict, binding: str,
+                         annotations: list[dict], *, excluded=()) -> dict:
+    target = single_review_template(sample, binding)["independence_target_sha256"]
+    evidence = packet.get("independence_evidence", [])
+    if not evidence:
+        return {"complete": False, "reason": "Independent answer-review captures are pending"}
+    if packet.get("independence_target_sha256") != target:
+        raise ValueError("Independent answer review targets a different answer or study")
+    status = outcome.independent_reviews(directory, evidence, excluded=excluded, target_sha256=target)
+    if status["complete"] and set(status["reviewers"]) != {
+            annotation["reviewer"].strip().casefold() for annotation in annotations}:
+        raise ValueError("Independent answer evidence does not identify the annotation reviewers")
+    return status
+
+
+def earlier_attempt_review_status(directory: Path, packet: dict, sample: dict, binding: str,
+                                  *, excluded=()) -> dict:
+    attempts = sample.get("attempts", [])[:-1]
+    reviews = packet.get("earlier_attempt_reviews", [])
+    if not isinstance(reviews, list):
+        raise ValueError("Earlier attempt reviews must be a list")
+    if len(reviews) != len(attempts):
+        if reviews:
+            raise ValueError("Earlier attempt review count differs from the retained implementation count")
+        return {"complete": False, "pending": [f"{sample['sample_id']}-attempt-{attempt['number']}" for attempt in attempts], "outcomes": []}
+    pending, rows = [], []
+    for attempt, review in zip(attempts, reviews):
+        subject = attempt_review_sample(sample, attempt)
+        annotations = decision.validated_reviews(review, subject, binding)
+        status = (answer_review_status(directory, review, subject, binding, annotations, excluded=excluded)
+                  if annotations else {"complete": False})
+        if not status["complete"]:
+            pending.append(subject["sample_id"])
+        rows.append({"sample_id": sample["sample_id"], "attempt": attempt["number"],
+            "independent_review_complete": status["complete"],
+            "material_decision_mistakes": sum(len(item["material_decision_mistakes"]) for item in annotations) / len(annotations) if annotations else None,
+            "missed_critical_constraints": sum(len(item["missed_critical_constraints"]) for item in annotations) / len(annotations) if annotations else None})
+    return {"complete": not pending, "pending": pending, "outcomes": rows}
 
 
 def policy_from_args(args: argparse.Namespace) -> dict:
@@ -253,14 +320,39 @@ def prepare(output: Path, cases: Path) -> dict:
     report = coding.prepare(output, cases)
     report.update(adaptive_protocol=PROTOCOL, setups=list(SETUPS), reuse_scope=REUSE_SCOPE)
     cross.write_json(output / "prepared.json", report)
+    cross.write_json(output / "PREREGISTRATION.json", outcome.preregistration_template(report, arms=list(SETUPS),
+        pilot=coding.load_cases(cases).get("pilot") is True))
     return report
 
 
 def run(args: argparse.Namespace) -> dict:
     policy = policy_from_args(args)
+    seed = getattr(args, "seed", None)
+    if seed is None:
+        seed = secrets.randbits(64)
+        args.seed = seed
+    context_random = random.Random(seed ^ 0xC07E)
     output = cross.selected_path(args.output)
     environment = environment_factory(policy)
     collected = {}
+
+    def preparation_hook(destination, prepared):
+        registration_path = getattr(args, "preregistration", None)
+        if registration_path is None:
+            return
+        registration_path = cross.selected_path(registration_path)
+        registration = cross.read_json(registration_path)
+        cross.write_json(destination / "PREREGISTRATION.json", registration)
+        for case in registration.get("cases", []):
+            for review in case.get("independent_gold_reviews", []):
+                item = review["capture"]
+                outcome.capture(registration_path.parent, item)
+                name = coding.relative_file(item["path"])
+                target = destination / name
+                if target.exists() or name.split("/")[0] not in ("gold-review-captures",):
+                    raise ValueError("Preregistration captures must use distinct gold-review-captures paths")
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(registration_path.parent / name, target)
 
     def configure(config):
         config["context"] = {"cache": True, "inspection": {"root": ".", "enabled": False}}
@@ -273,7 +365,7 @@ def run(args: argparse.Namespace) -> dict:
         if key not in collected:
             collected[key] = {}
             order = list(SETUPS[1:])
-            secrets.SystemRandom().shuffle(order)
+            context_random.shuffle(order)
             original = cross.fingerprint(project)
             for index, arm in enumerate(order):
                 destination = output / "context-projects" / project.name / arm
@@ -295,13 +387,16 @@ def run(args: argparse.Namespace) -> dict:
         "context_sequence": "same-task warm-up followed by served context, before any agent or checker executes",
         "context_order": "independently shuffled per case; recorded collection_index",
         "warmup_charge": "both warm-up and served requests plus context isolation charged to every Lore arm",
-        "cost_scope": "Each Lore arm is charged full shared initialization, context-copy time, both warm-up and served context, coding execution and independent verification. Upstream snapshot creation and iterative time to correct completion are unmeasured; no preparation amortization is assumed.",
+        "cost_scope": "Each Lore arm is charged full shared initialization, context-copy time, both warm-up and served context, all coding/verification attempts and iteration overhead. Upstream snapshot creation and review labor are unmeasured; no preparation amortization is assumed.",
         "permission_scope": "Per-subprocess Lore grant environment; not sandbox enforcement of external agent or checker permissions",
-        "iteration_outcomes": "Rework loops, time to correct completion and different-task reuse remain unmeasured",
+        "repair_policy": coding.repair_policy(args),
+        "context_order_seed": seed ^ 0xC07E,
+        "iteration_outcomes": "Bounded attempts and time to first independently correct patch are recorded; different-task reuse uses its separate protocol",
         "egress_audit": "unmeasured_pending_independent_capture_review"}
     result = coding.run(args, setups=SETUPS, context_collector=collector, assessor=assess,
-                        review_template=decision.review_template, report_metadata=metadata,
-                        config_transform=configure, subprocess_environment=environment)
+                        review_template=review_template, report_metadata=metadata,
+                        config_transform=configure, subprocess_environment=environment,
+                        preparation_hook=preparation_hook)
     report = cross.read_json(output / "metrics.json")
     cross.write_json(output / "INTEGRITY_AUDIT.json", {
         "schema_version": 1, "metrics_sha256": cross.digest(report), "complete": False,
@@ -320,13 +415,81 @@ def validate_costs(sample: dict, context: dict | None) -> None:
             or costs["context_usage"] != (context["usage"] if context else coding.no_inference())
             or costs["coding_usage"] != sample["agent_response"]["usage"]
             or not math.isclose(costs["total_seconds"], sum(costs[field] for field in
-                ("preparation_seconds", "context_seconds", "coding_seconds", "verification_seconds")), abs_tol=1e-9)):
+                ("preparation_seconds", "context_seconds", "coding_seconds", "verification_seconds"))
+                + costs.get("iteration_overhead_seconds", 0.0), abs_tol=1e-9)):
         raise ValueError("Task cost drops or substitutes a recorded phase")
+    if not nonnegative(costs.get("iteration_overhead_seconds", 0.0)):
+        raise ValueError("Invalid measured iteration overhead")
     for field in ("preparation_usage", "context_usage", "coding_usage"):
         coding.usage(costs[field])
     if costs["total_usage"] != coding.add_usage([costs[field] for field in
                                                ("preparation_usage", "context_usage", "coding_usage")]):
         raise ValueError("Task usage omits a warm-up or another component")
+
+
+def paired_bootstrap(values: list[tuple[float, float]], *, statistic="difference",
+                     seed=7, resamples=2000) -> dict:
+    """Resample matched tasks, never individual arms as independent samples."""
+    if not values:
+        return {"pairs": 0, "estimate": None, "ci95": None, "small_sample": True}
+    if not 200 <= resamples <= 10000:
+        raise ValueError("Bootstrap resamples must be 200..10000")
+    def estimate(rows):
+        if statistic == "difference":
+            return statistics.mean(right - left for left, right in rows)
+        if statistic == "median_ratio":
+            denominator = statistics.median(left for left, _ in rows)
+            return statistics.median(right for _, right in rows) / denominator if denominator > 0 else None
+        raise ValueError("Unknown paired statistic")
+    rng = random.Random(seed)
+    draws = [estimate([values[rng.randrange(len(values))] for _ in values]) for _ in range(resamples)]
+    finite = sorted(value for value in draws if value is not None and math.isfinite(value))
+    interval = [finite[int((len(finite) - 1) * 0.025)], finite[int((len(finite) - 1) * 0.975)]] if len(finite) == resamples else None
+    return {"pairs": len(values), "estimate": estimate(values), "ci95": interval,
+            "small_sample": len(values) < 30, "resamples": resamples,
+            "seed": seed, "unit": "matched task", "statistic": statistic,
+            "qualification": "Percentile interval conditional on these projects/tasks; tasks within a project may be correlated."}
+
+
+def paired_outcomes(paired: dict, *, seed=7) -> dict:
+    rows = []
+    for (project, case_id), samples in sorted(paired.items()):
+        if set(samples) != set(SETUPS):
+            continue
+        arms = {}
+        for arm, sample in samples.items():
+            attempts = sample.get("attempts", [])
+            failed_constraints = sum(check["kind"] == "constraint" and not check["passed"] for check in sample["tests"]["checks"])
+            arms[arm] = {"passed": all(check["passed"] for check in sample["tests"]["checks"]),
+                "failed_constraint_checks": failed_constraints,
+                "attempts": len(attempts) or 1, "correction_loops": max(0, len(attempts) - 1),
+                "total_seconds": sample["costs"]["total_seconds"],
+                "time_to_first_correct_seconds": sample.get("time_to_first_correct_seconds"),
+                "provider_input_tokens": sample["costs"]["total_usage"]["input_tokens"],
+                "provider_output_tokens": sample["costs"]["total_usage"]["output_tokens"],
+                "billed_cost_usd": sample["costs"]["total_usage"]["billed_cost_usd"],
+                "source_input_utf8_bytes": sample.get("source_input_utf8_bytes"),
+                "context_tokens": sample["context"]["response"].get("budget", {}).get("used_tokens") if sample["context"] else 0,
+                "warmup_context_tokens": sample["context"]["warmup_response"].get("budget", {}).get("used_tokens") if sample["context"] else 0}
+        rows.append({"project": project, "case_id": case_id, "arms": arms})
+    comparisons = {}
+    for arm in SETUPS[1:]:
+        metrics = {}
+        for field, statistic in (("passed", "difference"), ("failed_constraint_checks", "difference"),
+                                 ("correction_loops", "difference"), ("total_seconds", "median_ratio"),
+                                 ("billed_cost_usd", "median_ratio")):
+            values = [(row["arms"]["baseline"][field], row["arms"][arm][field]) for row in rows
+                      if row["arms"]["baseline"][field] is not None and row["arms"][arm][field] is not None]
+            metrics[field] = paired_bootstrap(values, statistic=statistic, seed=seed)
+            metrics[field]["coverage"] = len(values) / len(rows) if rows else 0.0
+        comparisons[arm] = metrics
+    coverage = {arm: {field: {"known": sum(row["arms"][arm][field] is not None for row in rows),
+                                    "total": len(rows)}
+                      for field in ("provider_input_tokens", "provider_output_tokens", "billed_cost_usd")}
+                for arm in SETUPS}
+    return {"paired_tasks": len(rows), "per_task": rows, "baseline_comparisons": comparisons,
+            "usage_coverage": coverage,
+            "qualification": "Failed tasks remain in all-task elapsed-time outcomes. Unfinished time to correct is null, not zero; complete-case billing comparisons must not stand in for missing costs."}
 
 
 def assess(directory: Path) -> dict:
@@ -351,6 +514,13 @@ def assess(directory: Path) -> dict:
         "severe_unsupported_project_assertions": 0, "quality_sum": 0.0,
         "usage_components": []} for arm in SETUPS}
     issues, pending, identities, assignments, source_projects = [], [], set(), {}, {}
+    independent_reviews_pending, earlier_review_outcomes = [], []
+    preregistration_path = directory / "PREREGISTRATION.json"
+    preregistration = cross.read_json(preregistration_path) if preregistration_path.is_file() else {}
+    review_excluded = [preregistration.get("operator_id", "")]
+    for registered_case in preregistration.get("cases", []):
+        review_excluded.extend(registered_case.get("task_authors", []))
+        review_excluded.extend(registered_case.get("checker_authors", []))
     declared = {(entry["case"]["project"], entry["case"]["id"]): entry for entry in report["cases"]}
     known = coding.bundled_fingerprints() | cross.bundled_fingerprints()
     recognized = sorted({entry["source_manifest"]["sha256"] for entry in report["cases"]} & known)
@@ -371,6 +541,8 @@ def assess(directory: Path) -> dict:
                 return context_checks(record, task, arm, snapshot,
                                       directory / coding.relative_file(record["checkout_root"]), policy)
             context, tests = coding.validate_sample(directory, sample, entry, context_validator=validate_context, bind_request=True)
+            if sample.get("repair_policy") != report.get("repair_policy"):
+                raise ValueError("Adaptive sample repair allowance differs from the matched study policy")
             validate_costs(sample, context)
             if context:
                 project = directory / "lore" / sample["case_id"]
@@ -386,7 +558,9 @@ def assess(directory: Path) -> dict:
             if not cited <= available:
                 raise ValueError("Coding answer cites an unavailable checkout observation")
             paired.setdefault(key, {})[setup] = sample
-            source_projects.setdefault(sample["project"], set()).add(sample["source_manifest"]["sha256"])
+            pin = outcome.source_provenance(entry)
+            source_identity = f"{pin['repository']}@{pin['commit']}" if pin["complete"] else sample["source_manifest"]["sha256"]
+            source_projects.setdefault(sample["project"], set()).add(source_identity)
             total = totals[setup]
             total["tasks"] += 1
             total["passed_tasks"] += all(check["passed"] for check in tests)
@@ -406,10 +580,19 @@ def assess(directory: Path) -> dict:
                 total["retained_investigation_reuses"] += (hit and nested.get("investigation", {}).get("stop_reason") == "cache_reused"
                     and bool(nested.get("investigation", {}).get("steps")))
             path = directory / "reviews" / f"{identity}.json"
-            annotations = decision.validated_reviews(cross.read_json(path), sample, binding) if path.is_file() else []
+            packet = cross.read_json(path) if path.is_file() else {}
+            annotations = decision.validated_reviews(packet, sample, binding) if packet else []
             if not annotations:
                 pending.append(identity)
+                independent_reviews_pending.append(identity)
                 continue
+            review_status = answer_review_status(directory, packet, sample, binding, annotations,
+                                                 excluded=review_excluded)
+            if not review_status["complete"]:
+                independent_reviews_pending.append(identity)
+            earlier_reviews = earlier_attempt_review_status(directory, packet, sample, binding, excluded=review_excluded)
+            independent_reviews_pending.extend(earlier_reviews["pending"])
+            earlier_review_outcomes.extend(earlier_reviews["outcomes"])
             total["reviewed_tasks"] += 1
             for field in ("material_decision_mistakes", "missed_critical_constraints"):
                 total[field] += sum(len(annotation[field]) for annotation in annotations) / len(annotations)
@@ -433,7 +616,8 @@ def assess(directory: Path) -> dict:
             adaptive = [samples[arm]["context"]["response"] for arm in ADAPTIVE]
             if shared.snapshot_manifest(adaptive[0]) != shared.snapshot_manifest(adaptive[1]) or adaptive[0]["capabilities"] != adaptive[1]["capabilities"]:
                 raise ValueError("Adaptive policies use different snapshots or effective grants")
-            models = {sample["agent_response"].get("provider_model") for sample in samples.values()} - {None}
+            models = {attempt["response"].get("provider_model") for sample in samples.values()
+                      for attempt in sample.get("attempts", [{"response": sample["agent_response"]}])} - {None}
             if len(models) > 1:
                 raise ValueError("Coding agent reported different models across matched arms")
         except (ValueError, KeyError, TypeError) as error:
@@ -453,10 +637,14 @@ def assess(directory: Path) -> dict:
         and len(set().union(*source_projects.values())) == len(source_projects))
     adaptive_intelligent = bool(assignments) and all(totals[arm]["intelligent_tasks"] == len(assignments) for arm in ADAPTIVE)
     intelligent = adaptive_intelligent and totals["lore06"]["intelligent_tasks"] == len(assignments)
-    agent_calls = all(sample["agent_response"]["usage"]["model_calls"] is not None
-                      and sample["agent_response"]["usage"]["model_calls"] > 0 for sample in report["samples"])
-    measured = complete and reviewed and independent and intelligent and agent_calls
+    agent_calls = all(attempt["response"]["usage"]["model_calls"] is not None
+                      and attempt["response"]["usage"]["model_calls"] > 0 for sample in report["samples"]
+                      for attempt in sample.get("attempts", [{"response": sample["agent_response"]}]))
+    registration = outcome.preregistration_status(directory, report)
     audit = decision.audit_status(directory, binding)
+    independent_answers = reviewed and not independent_reviews_pending
+    measured = (complete and independent_answers and independent and intelligent and agent_calls
+                and registration["complete"] and audit["passed"])
     reuse, disabled = (totals[arm] for arm in ("adaptive_reuse", "adaptive_no_reuse"))
     comparison = {"served_context_model_calls_difference": reuse["served_context_model_calls"] - disabled["served_context_model_calls"] if complete else None,
         "served_context_seconds_difference": reuse["served_context_seconds"] - disabled["served_context_seconds"] if complete else None,
@@ -466,15 +654,20 @@ def assess(directory: Path) -> dict:
         "scope": REUSE_SCOPE, "direction": "reuse minus no_reuse, except relative mistake reduction"}
     return {"schema_version": 1, "protocol": PROTOCOL, "mechanical_contracts_passed": complete,
         "comparison_complete": complete, "human_review_complete": reviewed, "reviews_pending": pending,
+        "independent_answer_reviews_complete": independent_answers,
+        "independent_answer_reviews_pending": independent_reviews_pending,
+        "earlier_attempt_review_outcomes": earlier_review_outcomes,
         "issues": issues, "fixture_only": fixture_only, "recognized_fixture_fingerprints": recognized,
         "independent_projects": len(source_projects), "independent_validation_complete": measured,
         "all_adaptive_tasks_received_intelligence": adaptive_intelligent,
         "current_baseline_received_intelligence": bool(assignments) and totals["lore06"]["intelligent_tasks"] == len(assignments),
         "integrity_audit": audit,
+        "preregistration": registration,
         "agent_quality_status": "independently_reviewed_task_attempts" if measured else "unmeasured",
-        "productivity_benefit_established": False, "iteration_outcomes": None,
+        "productivity_benefit_established": False,
+        "iteration_outcomes": paired_outcomes(paired, seed=report.get("order_seed", 7)),
         "reuse_comparison": comparison, "setups": totals,
-        "qualification": "One attempted implementation per arm; public fixtures and offline doubles establish mechanics only. Same-task warm-up contains no solution or checker output and is fully charged. Cache hits do not establish correctness, different-task reuse, fewer correction loops, or human learning. Provider identity, tools, blinding and external process permissions need independent attestation/capture review; Lore grant environment is not a sandbox. Unknown token usage, billing and time to correct completion remain unknown."}
+        "qualification": "Bounded independently checked attempts per arm; public fixtures and offline doubles establish mechanics only. Same-task warm-up contains no solution or checker output and is fully charged. Cache hits do not establish correctness or different-task reuse. Provider identity, tools, blinding and external process permissions need independent attestation/capture review; Lore grant environment is not a sandbox. Unknown token usage and billing remain null. Failed tasks have no observed time to first correct completion."}
 
 
 def main(argv=None) -> int:
@@ -501,6 +694,10 @@ def main(argv=None) -> int:
             command.add_argument("--agent-location", choices=("local", "hosted"), required=True)
             command.add_argument("--timeout", type=int, default=3600)
             command.add_argument("--max-tokens", type=int, default=6000)
+            command.add_argument("--max-attempts", type=int, default=1)
+            command.add_argument("--attempt-budget-seconds", type=int)
+            command.add_argument("--seed", type=int)
+            command.add_argument("--preregistration", type=Path)
             bench.add_reasoning_options(command)
     command = commands.add_parser("assess")
     command.add_argument("run", type=Path)

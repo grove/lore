@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "fixture_only": true,
+  "qualification": "Synthetic public context-reuse probe; no actual coding task or human outcome is claimed.",
+  "sequences": [
+    {
+      "id": "payment-distinct-task-reuse",
+      "source_cases": "../coding-tasks/cases.json",
+      "source_case": "payments-retry",
+      "task_a": "Explain the deployed payment retry adapter and identify the scope of its idempotency guarantee.",
+      "task_b": "Implement retries for transient failures while preserving the current adapter limit and token identity.",
+      "related_revision": {
+        "path": "src/payment_adapter.py",
+        "before": "MAX_RETRIES = 5",
+        "after": "MAX_RETRIES = 4"
+      },
+      "unrelated_revision": {
+        "path": "openwiki/index.md",
+        "before": "# Project knowledge",
+        "after": "# Project reference"
+      }
+    }
+  ]
+}
