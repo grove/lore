@@ -442,6 +442,7 @@ impl GenerativeModel for FakeModel {
                 "context_decision" => {
                     if behavior == Behavior::InvalidJson {
                         return Ok(GenerationResponse {
+                            usage: None,
                             model: self.descriptor.model.clone(),
                             text: "not-json".into(),
                         });
@@ -463,6 +464,7 @@ impl GenerativeModel for FakeModel {
                 }
             };
             Ok(GenerationResponse {
+                usage: None,
                 model: self.descriptor.model.clone(),
                 text: serde_json::to_string(&output).unwrap(),
             })

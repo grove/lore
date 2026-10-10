@@ -58,7 +58,7 @@ impl GenerativeModel for Model {
             self.comparisons.fetch_add(1, Ordering::SeqCst);
             let left = input["left"]["statement"].as_str().unwrap();
             let right = input["right"]["statement"].as_str().unwrap();
-            Ok(GenerationResponse{model:self.descriptor().model.clone(),text:json!({
+            Ok(GenerationResponse{usage:None,model:self.descriptor().model.clone(),text:json!({
                 "judgment":if left==right {"consistent"} else {"potential_divergence"},
                 "same_subject":true,"compatible_scope":true,"compatible_environment":true,"compatible_revision":true,
                 "left_quote":if self.invalid_quotes.load(Ordering::SeqCst) {"Invented approval that appears in neither source."} else {left},

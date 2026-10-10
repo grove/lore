@@ -125,6 +125,7 @@ pub fn openai_decisions_response(
         answers.push(DecisionAnswer { name, value });
     }
     let result = DecisionResponse {
+        usage: Some(provider_usage(&Provider::OpenAi, raw, false)),
         model: string(raw, "model")?.into(),
         answers,
     };
@@ -190,6 +191,7 @@ pub fn systemone_response(
         });
     }
     let result = DecisionResponse {
+        usage: None,
         model: string(raw, "model")?.into(),
         answers,
     };
@@ -326,4 +328,53 @@ pub fn ollama_chat_request(r: &GenerationRequest, model: &str) -> Value {
         body["format"] = schema.clone();
     }
     body
+}
+/// Only documented token fields are accepted. JSON floats, strings, negative
+/// values and invalid totals remain unknown. These APIs do not return an
+/// invoice, so arbitrary price-looking fields are deliberately ignored.
+pub fn provider_usage(provider: &Provider, raw: &Value, embedding: bool) -> ProviderUsage {
+    use crate::inference::usage::UsageStatus;
+    let mut result = ProviderUsage::request(UsageStatus::Completed);
+    let (input, output, total, explicit_total) = match provider {
+        Provider::OpenAi => {
+            let usage = &raw["usage"];
+            (
+                usage[if embedding {
+                    "prompt_tokens"
+                } else {
+                    "input_tokens"
+                }]
+                .as_u64(),
+                if embedding && usage.is_object() {
+                    Some(0)
+                } else {
+                    usage["output_tokens"].as_u64()
+                },
+                usage["total_tokens"].as_u64(),
+                usage
+                    .get("total_tokens")
+                    .is_some_and(|value| !value.is_null()),
+            )
+        }
+        Provider::Ollama => (
+            raw["prompt_eval_count"].as_u64(),
+            if embedding && raw.get("prompt_eval_count").is_some() {
+                Some(0)
+            } else {
+                raw["eval_count"].as_u64()
+            },
+            None,
+            false,
+        ),
+        // No documented token-accounting mapping is assumed for systemone.
+        Provider::TypeSafeCandidate => (None, None, None, false),
+    };
+    result.input_tokens = input;
+    result.output_tokens = output;
+    result.total_tokens = if explicit_total {
+        total
+    } else {
+        total.or_else(|| input?.checked_add(output?))
+    };
+    result.normalized()
 }

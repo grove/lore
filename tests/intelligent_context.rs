@@ -337,6 +337,7 @@ impl GenerativeModel for ContextModel {
             }
             if matches!(self.behavior, Behavior::InvalidJson) {
                 return Ok(GenerationResponse {
+                    usage: None,
                     model: self.descriptor.model.clone(),
                     text: "not valid JSON".into(),
                 });
@@ -413,6 +414,7 @@ impl GenerativeModel for ContextModel {
                     "issues":if supported {json!([])} else {json!(["The claimed current causal explanation is not supported by these exact records."])} })
             };
             Ok(GenerationResponse {
+                usage: None,
                 model: self.descriptor.model.clone(),
                 text: output.to_string(),
             })

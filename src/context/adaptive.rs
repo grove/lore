@@ -15,7 +15,11 @@ use super::{
     },
     failure,
 };
-use crate::{config::ResolvedConfig, inference::GenerativeModel, storage, util};
+use crate::{
+    config::ResolvedConfig,
+    inference::{GenerativeModel, usage},
+    storage, util,
+};
 use anyhow::Result;
 use rusqlite::Connection;
 use serde::{Deserialize, Serialize};
@@ -111,6 +115,10 @@ pub struct AdaptiveResult {
     /// Original relationship groups survive optional schema-4 prose packing.
     #[serde(default, skip_serializing_if = "SourceRelationships::is_empty")]
     pub source_relationships: SourceRelationships,
+    /// Actual provider attempts in this invocation; prices remain unknown when
+    /// no invoice was reported. All fields count towards the output budget.
+    #[serde(default)]
+    pub usage: usage::UsageSummary,
     pub budget: ContextBudget,
 }
 
@@ -204,7 +212,9 @@ fn inner_options(
     capabilities: &Capabilities,
 ) -> Result<ContextOptions> {
     super::validate_options(options)?;
-    let overhead = count_tokens(&serde_json::to_string(&(snapshot, capabilities))?) + 192;
+    let overhead = count_tokens(&serde_json::to_string(&(snapshot, capabilities))?)
+        + 192
+        + usage::budget_overhead();
     let mut inner = options.clone();
     inner.max_tokens = options.max_tokens.checked_sub(overhead)
         .filter(|remaining| *remaining >= super::MIN_MAX_TOKENS)
@@ -309,6 +319,15 @@ pub async fn run(
     options: &ContextOptions,
     run: &RunOptions,
 ) -> Result<AdaptiveResult> {
+    usage::scoped(run_metered(config, conn, options, run)).await
+}
+
+async fn run_metered(
+    config: &ResolvedConfig,
+    conn: &Connection,
+    options: &ContextOptions,
+    run: &RunOptions,
+) -> Result<AdaptiveResult> {
     let (config, run, capabilities) = authorized_config(config, run)?;
     let snapshot_guard = ReadSnapshot::begin(conn)?;
     let result = async {
@@ -346,6 +365,17 @@ pub async fn run(
 /// it; checking only cited records would miss newly added counterevidence.
 /// The CLI's hybrid retrieval is selected separately within `run`'s snapshot.
 pub async fn build(
+    conn: &Connection,
+    config: &ResolvedConfig,
+    options: &ContextOptions,
+    selected: ContextResult,
+    model: Option<&dyn GenerativeModel>,
+    run: &RunOptions,
+) -> Result<AdaptiveResult> {
+    usage::scoped(build_metered(conn, config, options, selected, model, run)).await
+}
+
+async fn build_metered(
     conn: &Connection,
     config: &ResolvedConfig,
     options: &ContextOptions,
@@ -394,6 +424,7 @@ fn finish(
         capabilities,
         intelligence,
         source_relationships,
+        usage: usage::summary(),
         budget: ContextBudget {
             max_tokens: options.max_tokens,
             used_tokens: 0,
@@ -429,6 +460,21 @@ pub fn render(result: &AdaptiveResult) -> String {
     text.push_str(&format!(
         "\nShared project snapshot: `{}`\n\nInspection: {}. Execution: unavailable.\n",
         result.snapshot.registry_revision, result.capabilities.inspection,
+    ));
+    let requests = result
+        .usage
+        .provider_request_count
+        .map_or_else(|| "unknown".into(), |count| count.to_string());
+    let tokens = result
+        .usage
+        .total_tokens
+        .map_or_else(|| "unknown".into(), |count| count.to_string());
+    let cost = result
+        .usage
+        .billed_cost_usd
+        .map_or_else(|| "unknown".into(), |cost| format!("${cost}"));
+    text.push_str(&format!(
+        "\nProvider requests: {requests}. Provider tokens: {tokens}. Billed USD: {cost}.\n"
     ));
     text
 }

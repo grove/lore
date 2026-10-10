@@ -76,6 +76,7 @@ impl EmbeddingModel for Embeddings {
                 })
                 .collect();
             Ok(EmbeddingResponse {
+                usage: None,
                 model: self.descriptor.model.clone(),
                 embeddings,
             })

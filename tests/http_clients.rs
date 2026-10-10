@@ -686,4 +686,222 @@ async fn embedding_retries_count_as_one_logical_inference_call() {
     assert_eq!(model.embedding_calls.load(Ordering::Relaxed), 1);
     assert_eq!(model.requests.load(Ordering::Relaxed), 3);
     assert_eq!(server.requests.lock().unwrap().len(), 3);
+    let events = model.usage_events();
+    let measured = usage::UsageSummary::from_events(&events);
+    assert_eq!(events.len(), 3);
+    assert_eq!(measured.model_calls, 1);
+    assert_eq!(measured.provider_request_count, Some(3));
+    assert_eq!(measured.total_tokens, None);
+    assert_eq!(measured.billed_cost_usd, None);
+}
+
+#[tokio::test]
+async fn metering_keeps_retry_usage_refusal_and_validation_errors_without_bodies() {
+    let _serial = HTTP_FIXTURE_LOCK.lock().await;
+    let (_dir, cfg, _) = project();
+    let server = Server::new(|_, attempt| match attempt {
+        1 => (
+            503,
+            json!({"error":"PRIVATE_ERROR_BODY", "usage":{"input_tokens":11,"output_tokens":2,"total_tokens":13}}),
+        ),
+        _ => (
+            200,
+            json!({"model":"hosted-test","status":"completed","usage":{"input_tokens":31,"output_tokens":7,"total_tokens":38},
+            "output":[{"content":[{"type":"refusal","refusal":"PRIVATE_REFUSAL_BODY"}]}]}),
+        ),
+    });
+    let (config, role) = configured(&cfg, &server, "openai");
+    let model = HttpModel::new(&config, &role)
+        .unwrap()
+        .with_credential("PRIVATE_KEY".into());
+    let session = usage::UsageSession::memory();
+    let request = GenerationRequest {
+        instructions: "PRIVATE_PROMPT".into(),
+        input: "PRIVATE_SOURCE".into(),
+        schema: None,
+        reasoning_effort: None,
+    };
+    let response = session.scope(usage::generate(&model, &request)).await;
+    assert!(matches!(response, Err(ModelError::Refused)));
+    let events = session.events();
+    assert_eq!(events.len(), 2);
+    assert_eq!(events[0].usage.status, usage::UsageStatus::HttpError);
+    assert_eq!(events[1].usage.status, usage::UsageStatus::Refused);
+    let summary = session.summary();
+    assert_eq!(summary.model_calls, 1);
+    assert_eq!(summary.provider_request_count, Some(2));
+    assert_eq!(summary.input_tokens, Some(42));
+    assert_eq!(summary.output_tokens, Some(9));
+    assert_eq!(summary.total_tokens, Some(51));
+    assert_eq!(summary.billed_cost_usd, None);
+    let retained = serde_json::to_string(&events).unwrap();
+    for secret in [
+        "PRIVATE_KEY",
+        "PRIVATE_PROMPT",
+        "PRIVATE_SOURCE",
+        "PRIVATE_ERROR_BODY",
+        "PRIVATE_REFUSAL_BODY",
+    ] {
+        assert!(!retained.contains(secret));
+    }
+    let server = Server::new(|_, _| {
+        (
+            200,
+            json!({"model":"fixture-v1","done":true,
+        "message":{"content":""},"prompt_eval_count":5,"eval_count":2}),
+        )
+    });
+    let (mut config, role) = configured(&cfg, &server, "ollama");
+    config.config.processing.retry_attempts = 0;
+    let invalid = HttpModel::new(&config, &role).unwrap();
+    assert!(invalid.generate(&request).await.is_err());
+    let events = invalid.usage_events();
+    assert_eq!(events[0].usage.status, usage::UsageStatus::ValidationFailed);
+    assert_eq!(events[0].usage.total_tokens, Some(7));
+}
+
+#[tokio::test]
+async fn incomplete_and_cancelled_http_attempts_retain_unknown_cost() {
+    let _serial = HTTP_FIXTURE_LOCK.lock().await;
+    let (_dir, cfg, _) = project();
+    let server = Server::new(|_, _| {
+        thread::sleep(Duration::from_millis(300));
+        (
+            200,
+            json!({"model":"fixture-v1","done":true,"message":{"content":"late"}}),
+        )
+    });
+    let (mut config, role) = configured(&cfg, &server, "ollama");
+    config.config.processing.retry_attempts = 0;
+    let model = HttpModel::new(&config, &role).unwrap();
+    let request = GenerationRequest {
+        instructions: "Answer".into(),
+        input: "fixture".into(),
+        schema: None,
+        reasoning_effort: None,
+    };
+    let session = usage::UsageSession::memory();
+    let result = session
+        .scope(tokio::time::timeout(
+            Duration::from_millis(80),
+            usage::generate(&model, &request),
+        ))
+        .await;
+    assert!(result.is_err());
+    let events = session.events();
+    assert_eq!(events.len(), 1);
+    assert_eq!(events[0].usage.status, usage::UsageStatus::Cancelled);
+    assert_eq!(events[0].usage.provider_request_count, Some(1));
+    assert_eq!(events[0].usage.billed_cost_usd, None);
+    assert_eq!(events[0].usage.total_tokens, None);
+}
+
+#[tokio::test]
+async fn request_timeout_and_invalid_headers_have_distinct_request_counts() {
+    let _serial = HTTP_FIXTURE_LOCK.lock().await;
+    let (_dir, cfg, _) = project();
+    let server = Server::new(|_, _| {
+        thread::sleep(Duration::from_millis(1300));
+        (
+            200,
+            json!({"model":"fixture-v1","done":true,"message":{"content":"late"}}),
+        )
+    });
+    let (mut config, role) = configured(&cfg, &server, "ollama");
+    config.config.processing.retry_attempts = 0;
+    config.config.processing.timeout_seconds = 1;
+    let request = GenerationRequest {
+        instructions: "Answer".into(),
+        input: "fixture".into(),
+        schema: None,
+        reasoning_effort: None,
+    };
+    let model = HttpModel::new(&config, &role).unwrap();
+    assert!(model.generate(&request).await.is_err());
+    let events = model.usage_events();
+    assert_eq!(events.len(), 1);
+    assert_eq!(events[0].usage.status, usage::UsageStatus::TimedOut);
+    assert_eq!(events[0].usage.provider_request_count, Some(1));
+    assert_eq!(events[0].usage.billed_cost_usd, None);
+    let rejected = HttpModel::new(&config, &role)
+        .unwrap()
+        .with_credential("invalid\r\nheader".into());
+    assert!(rejected.generate(&request).await.is_err());
+    let events = rejected.usage_events();
+    assert_eq!(events.len(), 1);
+    assert_eq!(events[0].usage.status, usage::UsageStatus::Rejected);
+    assert_eq!(events[0].usage.provider_request_count, Some(0));
+    assert_eq!(events[0].usage.billed_cost_usd, Some(0.0));
+    assert_eq!(rejected.requests.load(Ordering::Relaxed), 0);
+    assert_eq!(server.requests.lock().unwrap().len(), 1);
+}
+
+#[tokio::test]
+async fn decision_refusal_keeps_optional_provider_usage() {
+    let _serial = HTTP_FIXTURE_LOCK.lock().await;
+    let (_dir, cfg, _) = project();
+    let server = Server::new(|_, _| {
+        (
+            200,
+            json!({"model":"hosted-test", "usage":{"input_tokens":9,"output_tokens":2},
+        "answers":[{"name":"check","type":"refusal"}]}),
+        )
+    });
+    let (config, role) = configured(&cfg, &server, "openai");
+    let model = HttpModel::new(&config, &role)
+        .unwrap()
+        .with_credential("test-key".into());
+    let response = model.decide(&question()).await.unwrap();
+    assert_eq!(response.answers[0].value, DecisionValue::Refusal);
+    assert_eq!(
+        response.usage.as_ref().unwrap().status,
+        usage::UsageStatus::Refused
+    );
+    let events = model.usage_events();
+    assert_eq!(events.len(), 1);
+    assert_eq!(events[0].usage.status, usage::UsageStatus::Refused);
+    assert_eq!(events[0].usage.total_tokens, Some(11));
+    assert_eq!(events[0].usage.billed_cost_usd, None);
+}
+
+#[test]
+fn provider_usage_parses_partial_counts_and_rejects_malformed_units_and_prices() {
+    use lore::provider_wire::provider_usage;
+    let valid = provider_usage(
+        &Provider::OpenAi,
+        &json!({"usage":{"input_tokens":12,"output_tokens":3,"total_tokens":15},
+        "billed_cost_usd":0.1,"billing_source":"invented"}),
+        false,
+    );
+    assert_eq!(valid.total_tokens, Some(15));
+    assert_eq!(valid.billed_cost_usd, None);
+    for malformed in [json!(-1), json!(1.2), json!("10"), json!(true)] {
+        let value = provider_usage(
+            &Provider::OpenAi,
+            &json!({"usage":{"input_tokens":malformed,"output_tokens":3}}),
+            false,
+        );
+        assert_eq!(value.input_tokens, None);
+        assert_eq!(value.output_tokens, Some(3));
+        assert_eq!(value.total_tokens, None);
+    }
+    let value = provider_usage(
+        &Provider::OpenAi,
+        &json!({"usage":{"input_tokens":12,"output_tokens":3,"total_tokens":99}}),
+        false,
+    );
+    assert_eq!(value.total_tokens, None);
+    let value = provider_usage(&Provider::Ollama, &json!({"prompt_eval_count":22}), true);
+    assert_eq!(
+        (value.input_tokens, value.output_tokens, value.total_tokens),
+        (Some(22), Some(0), Some(22))
+    );
+    let value = provider_usage(
+        &Provider::OpenAi,
+        &json!({"usage":{"prompt_tokens":22,"total_tokens":22}}),
+        true,
+    );
+    assert_eq!(value.total_tokens, Some(22));
+    let unknown = provider_usage(&Provider::Ollama, &json!({}), false);
+    assert_eq!(unknown.total_tokens, None);
 }

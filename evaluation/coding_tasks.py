@@ -12,6 +12,7 @@ import hashlib
 from functools import lru_cache
 import json
 import math
+import os
 from pathlib import Path, PurePosixPath
 import re
 import random
@@ -24,6 +25,7 @@ import time
 
 import benchmark as bench
 import cross_source as cross
+import provider_usage as metering
 
 ROOT = Path(__file__).resolve().parent
 DEFAULT_CASES = ROOT / "corpora" / "coding-tasks" / "cases.json"
@@ -167,31 +169,44 @@ def registry_content(project: Path) -> dict:
 
 
 def usage(value: dict | None, *, calls: int | None = None) -> dict:
-    value = value if isinstance(value, dict) else {}
-    result = {key: value.get(key) for key in ("model_calls", "input_tokens", "output_tokens", "billed_cost_usd", "billing_source")}
-    if calls is not None:
-        result["model_calls"] = calls
-    for key in ("model_calls", "input_tokens", "output_tokens"):
-        number = result[key]
-        if number is not None and (type(number) is not int or number < 0):
-            raise ValueError(f"Invalid measured {key}")
-    cost = result["billed_cost_usd"]
-    if cost is not None and (type(cost) not in (int, float) or not math.isfinite(cost) or cost < 0 or not isinstance(result["billing_source"], str) or not result["billing_source"].strip()):
-        raise ValueError("Measured billing requires a finite nonnegative amount and billing_source")
-    if cost is None:
-        result["billing_source"] = None
-    return result
+    return metering.normalized(value, calls=calls)
 
 
 def add_usage(values: list[dict]) -> dict:
-    """A missing component remains unknown; calls never imply dollars or tokens."""
-    return {key: sum(value[key] for value in values) if all(value.get(key) is not None for value in values) else None
-            for key in ("model_calls", "input_tokens", "output_tokens", "billed_cost_usd")}
+    return metering.add(values)
 
 
 def no_inference() -> dict:
-    return usage({"model_calls": 0, "input_tokens": 0, "output_tokens": 0,
-                  "billed_cost_usd": 0.0, "billing_source": "No inference performed"})
+    return metering.no_inference()
+
+
+def metered_lore(binary: str, project: Path, *arguments: str, timeout: int,
+                 env: dict[str, str] | None = None) -> tuple[dict, float, dict | None]:
+    """Explicit caller-owned audit output, separate from every public schema.
+
+    Older binaries and test doubles can omit this output; their accounting stays
+    unknown. A current instrumented binary's sidecar is independently checked.
+    """
+    destination = project / ".lore" / "provider-usage"
+    cross.reject_symlink_path(destination)
+    destination.mkdir(parents=True, exist_ok=True)
+    path = destination / ("invocation-" + secrets.token_hex(12) + ".json")
+    selected_env = dict(os.environ if env is None else env)
+    selected_env["LORE_USAGE_LEDGER"] = str(path.resolve())
+    response, elapsed = bench.subprocess_json(binary, project, *arguments, timeout=timeout, env=selected_env)
+    record = metering.read(path)
+    if record is not None and record["ledger"]["invocation_status"] != "completed":
+        raise ValueError("Completed Lore invocation has incomplete usage accounting")
+    metering.bind_summary(response.get("usage"), record)
+    return response, elapsed, record
+
+
+def measured_context_usage(response: dict, record: dict | None = None) -> dict:
+    measured = metering.bind_summary(response.get("usage"), record)
+    if measured is not None:
+        return measured
+    calls = cross.model_calls(response)
+    return usage(response.get("usage"), calls=calls) if calls or response.get("usage") else no_inference()
 
 
 def collect_context(binary: str, project: Path, task: str, setup: str, timeout: int, max_tokens: int) -> dict:
@@ -204,15 +219,16 @@ def collect_context(binary: str, project: Path, task: str, setup: str, timeout: 
     else:
         # Preserve the 0.5 comparison contract as 0.6 defaults to schema 4.
         arguments.extend(["--schema-version", "3"])
-    response, elapsed = bench.subprocess_json(binary, project, *arguments, timeout=timeout)
-    repeated, repeat_seconds = bench.subprocess_json(binary, project, *arguments, timeout=timeout)
+    response, elapsed, usage_ledger = metered_lore(binary, project, *arguments, timeout=timeout)
+    repeated, repeat_seconds, repeat_usage_ledger = metered_lore(binary, project, *arguments, timeout=timeout)
     citations = cross.resolve_citations(binary, project, cross.cited_ids(response) | cross.cited_ids(repeated), timeout)
     after = registry_content(project)
     result = {"response": response, "response_sha256": cross.digest(response),
             "repeat_response": repeated, "repeat_response_sha256": cross.digest(repeated),
             "elapsed_seconds": elapsed, "repeat_elapsed_seconds": repeat_seconds,
-            "usage": usage(response.get("usage"), calls=cross.model_calls(response)) if cross.model_calls(response) else no_inference(),
-            "repeat_usage": usage(repeated.get("usage"), calls=cross.model_calls(repeated)) if cross.model_calls(repeated) else no_inference(),
+            "usage": measured_context_usage(response, usage_ledger),
+            "repeat_usage": measured_context_usage(repeated, repeat_usage_ledger),
+            "usage_ledger": usage_ledger, "repeat_usage_ledger": repeat_usage_ledger,
             "mode": "fast" if setup == "fast" else response.get("mode"),
             "cache_status": response.get("cache_status"), "repeat_cache_status": repeated.get("cache_status"),
             "registry_before": before, "registry_after": after, "citation_integrity": citations,
@@ -246,6 +262,8 @@ def context_checks(record: dict, task: str, setup: str) -> dict:
         "response_contract": all(answer.get("schema_version") == schema and answer.get("task") == task
                                  and (fast or answer.get("mode") in ("intelligent", "fast_fallback")) for answer in (response, repeated)),
         "response_hashes": record["response_sha256"] == cross.digest(response) and record["repeat_response_sha256"] == cross.digest(repeated),
+        "usage_bound": record.get("usage_ledger") is None or record["usage"] == measured_context_usage(response, record["usage_ledger"]),
+        "repeat_usage_bound": record.get("repeat_usage_ledger") is None or record["repeat_usage"] == measured_context_usage(repeated, record["repeat_usage_ledger"]),
         "source_registry_preserved": cross.valid_registry(before) and cross.valid_registry(after) and before == after,
         "citations_resolve": resolver_complete(record["citation_integrity"], cross.cited_ids(response) | cross.cited_ids(repeated)),
         "fast_model_free": not fast or cross.model_calls(response) == cross.model_calls(repeated) == 0,
@@ -290,6 +308,10 @@ def validate_agent_response(response: dict, editable_files: list[str]) -> dict:
     if not isinstance(response.get("summary"), str) or not response["summary"].strip():
         raise ValueError("Agent must provide a nonempty implementation summary")
     response["usage"] = usage(response.get("usage"))
+    if response.get("usage_ledger") is not None:
+        expected = metering.validate_ledger(response["usage_ledger"])
+        if response["usage"] != usage(expected["summary"]):
+            raise ValueError("Agent usage does not equal its provider attempt ledger")
     return response
 
 
@@ -465,11 +487,25 @@ def run_attempts(command: list[str], case: dict, source_files: dict, context: di
                       "stage": "agent", "elapsed_seconds": None, "usage": usage(None), "error_type": None}
         invocation_started = time.monotonic()
         cross.write_json(invocation_path, invocation)
+        provider_path = invocation_path.with_name(f"{number}-provider-usage.json")
+        child_options = environment(workspace, "agent")
+        child_env = dict(child_options.get("env", os.environ))
+        child_env["LORE_USAGE_LEDGER"] = str(provider_path.resolve())
         try:
             response, coding_seconds = invoke_json(command, agent_cwd, min(timeout, max(1, int(remaining))),
-                                                    request, **environment(workspace, "agent"))
+                                                    request, env=child_env)
+            provider_record = metering.read(provider_path)
+            invocation["usage_ledger"] = provider_record
+            invocation["usage"] = metering.summary_from_record(provider_record) or usage(response.get("usage"))
             invocation["stage"] = "validate_agent_response"
             response = validate_agent_response(response, case["editable_files"])
+            if provider_record is not None:
+                if provider_record["ledger"]["invocation_status"] != "completed":
+                    raise ValueError("Successful agent response has incomplete provider accounting")
+                if response["usage"] != metering.summary_from_record(provider_record):
+                    raise ValueError("Agent response usage contradicts captured provider attempts")
+                if response.get("usage_ledger") is not None and response["usage_ledger"] != provider_record["ledger"]:
+                    raise ValueError("Agent response substituted a different provider ledger")
             invocation["usage"] = response["usage"]
             current.update(response["files"])
             combined.update(response["files"])
@@ -497,8 +533,16 @@ def run_attempts(command: list[str], case: dict, source_files: dict, context: di
                        "coding_seconds": coding_seconds, "verification_seconds": verification_seconds,
                        "feedback": sanitized_feedback(case, checks),
                        "elapsed_seconds": round(time.monotonic() - started, 6)}
-        except (ValueError, OSError, KeyError, TypeError, subprocess.SubprocessError) as error:
-            invocation.update(status="incomplete", elapsed_seconds=time.monotonic() - invocation_started,
+        except (ValueError, OSError, KeyError, TypeError, subprocess.SubprocessError,
+                KeyboardInterrupt, SystemExit) as error:
+            # A failed/refused/timed-out subprocess can have billed work. Read
+            # only the exact caller-selected sidecar and preserve unknowns.
+            provider_record = metering.read(provider_path)
+            if provider_record is not None:
+                invocation["usage_ledger"] = provider_record
+                invocation["usage"] = metering.summary_from_record(provider_record)
+            invocation.update(status="cancelled" if isinstance(error, (KeyboardInterrupt, SystemExit)) else "incomplete",
+                              elapsed_seconds=time.monotonic() - invocation_started,
                               error_type=type(error).__name__)
             cross.write_json(invocation_path, invocation)
             raise
@@ -513,6 +557,7 @@ def run_attempts(command: list[str], case: dict, source_files: dict, context: di
     if not attempts:
         raise ValueError("No coding attempt completed inside the wall-time budget")
     response = dict(attempts[-1]["response"])
+    response.pop("usage_ledger", None)
     response["files"] = combined
     response["usage"] = summed_coding_usage(attempts)
     measured = sum(item["coding_seconds"] + item["verification_seconds"] for item in attempts)
@@ -546,6 +591,12 @@ def validate_attempts(directory: Path, sample: dict, entry: dict, context: dict 
             raise ValueError("Attempt request, response or retained ledger binding changed")
         response = validate_agent_response(attempt["response"], entry["case"]["editable_files"])
         invocation = cross.read_json(directory / "attempt-invocations" / sample["sample_id"] / f"{number}.json")
+        captured_usage = metering.summary_from_record(invocation.get("usage_ledger"))
+        if captured_usage is not None and (captured_usage != response["usage"]
+                or invocation["usage_ledger"]["ledger"]["invocation_status"] != "completed"
+                or (response.get("usage_ledger") is not None
+                    and response["usage_ledger"] != invocation["usage_ledger"]["ledger"])):
+            raise ValueError("Attempt accounting differs from the captured provider ledger")
         if (invocation.get("number") != number or invocation.get("status") != "completed"
                 or invocation.get("stage") != "verified" or invocation.get("request_sha256") != attempt["request_sha256"]
                 or invocation.get("attempt_sha256") != cross.digest(attempt)
@@ -657,6 +708,9 @@ def run(args: argparse.Namespace, *, setups=SETUPS, context_collector=None,
     report["repair_policy"] = iteration_policy
     report["order_seed"] = order_seed
     report["execution_order"] = []
+    # A failed initialization or interrupted first sample still has a retained
+    # planned study and source/agent pins. Do not silently resume a partial run.
+    cross.write_json(output / "metrics.json", report)
     for entry in prepared["cases"]:
         case = entry["case"]
         snapshot = output / entry["source_root"]
@@ -668,15 +722,16 @@ def run(args: argparse.Namespace, *, setups=SETUPS, context_collector=None,
         if config_transform:
             config_transform(config)
         cross.write_json(project / "lore.yml", config)
-        init, _ = bench.subprocess_json(binary, project, "init", timeout=args.timeout,
+        init, _, preparation_usage_ledger = metered_lore(binary, project, "init", timeout=args.timeout,
                                         **environment(project, "preparation"))
         preparation_seconds = round(time.monotonic() - preparation_start, 3)
-        preparation_usage = usage(init.get("usage"), calls=cross.model_calls(init))
+        preparation_usage = metering.summary_from_record(preparation_usage_ledger) or usage(init.get("usage"), calls=cross.model_calls(init))
         contexts = {setup: collector(binary, project, case["task"], setup, args.timeout, args.max_tokens)
                     for setup in setups if setup != "baseline"}
         order = list(setups)
         order_random.shuffle(order)
         report["execution_order"].append({"case_id": case["id"], "setups": order})
+        cross.write_json(output / "metrics.json", report)
         for setup in order:
             sample_id = "sample-" + secrets.token_hex(10)
             task_started = time.monotonic()
@@ -686,6 +741,16 @@ def run(args: argparse.Namespace, *, setups=SETUPS, context_collector=None,
                             for name in entry["source_manifest"]["files_sha256"]}
             context = contexts.get(setup)
             request = agent_request(case, source_files, context)
+            cross.write_json(output / "sample-starts" / f"{sample_id}.json", {
+                "schema_version": 1, "sample_id": sample_id, "case_id": case["id"],
+                "project": case["project"], "setup": setup, "started_at": bench.now_utc(),
+                "request_sha256": cross.digest(request),
+                "preparation_seconds": preparation_seconds if context else 0.0,
+                "preparation_usage": preparation_usage if context else no_inference(),
+                "preparation_usage_ledger": preparation_usage_ledger if context else None,
+                "context_seconds": context["elapsed_seconds"] if context else 0.0,
+                "context_usage": context["usage"] if context else no_inference(),
+                "context": context})
             result = run_attempts(command, case, source_files, context, workspace, output,
                                   sample_id, cases_path.parent, args.timeout, iteration_policy, environment)
             response = result["response"]
@@ -707,6 +772,7 @@ def run(args: argparse.Namespace, *, setups=SETUPS, context_collector=None,
                      "coding_seconds": coding_seconds, "verification_seconds": verification_seconds,
                      "iteration_overhead_seconds": max(0.0, time.monotonic() - task_started - coding_seconds - verification_seconds),
                      "preparation_usage": preparation_usage if context else no_inference(),
+                     "preparation_usage_ledger": preparation_usage_ledger if context else None,
                      "context_usage": context["usage"] if context else no_inference(),
                      "coding_usage": response["usage"]}
             costs["total_seconds"] = sum(costs[field] for field in ("preparation_seconds", "context_seconds", "coding_seconds", "verification_seconds", "iteration_overhead_seconds"))
@@ -803,6 +869,9 @@ def validate_sample(directory: Path, sample: dict, entry: dict, *, context_valid
                          for check in checks):
         raise ValueError("verification checks are absent or malformed")
     validate_attempts(directory, sample, entry, context)
+    preparation = metering.summary_from_record(sample["costs"].get("preparation_usage_ledger"))
+    if preparation is not None and preparation != sample["costs"]["preparation_usage"]:
+        raise ValueError("Preparation usage differs from its captured provider ledger")
     return context, checks
 
 

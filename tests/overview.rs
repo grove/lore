@@ -84,7 +84,7 @@ impl GenerativeModel for BadOverview {
         Box::pin(async move {
             let input: Value = serde_json::from_str(&r.input).unwrap();
             if input["task"] == "overview" {
-                return Ok(GenerationResponse{model:"fixture".into(),text:json!({"sections":[{"heading":"Wrong","paragraphs":[{"text":"Unsupported fact.","knowledge_ids":["fabricated-unit"]}]}]}).to_string()});
+                return Ok(GenerationResponse{usage:None,model:"fixture".into(),text:json!({"sections":[{"heading":"Wrong","paragraphs":[{"text":"Unsupported fact.","knowledge_ids":["fabricated-unit"]}]}]}).to_string()});
             }
             self.model.generate(r).await
         })
@@ -152,7 +152,7 @@ impl GenerativeModel for SemanticOverview {
                         .contains("unjustified publication chronology"),
                 };
                 if objection {
-                    return Ok(GenerationResponse {
+                    return Ok(GenerationResponse { usage: None,
                         model: "fixture".into(),
                         text:json!({"supported":false,"issues":[
                             "The cited ADR identifies a date but not an established publication date.",

@@ -1052,7 +1052,7 @@ mod tests {
                 } else {
                     "potential_divergence"
                 };
-                Ok(GenerationResponse{model:self.descriptor.model.clone(),text:json!({
+                Ok(GenerationResponse{usage:None,model:self.descriptor.model.clone(),text:json!({
                     "judgment":judgment,"same_subject":true,"compatible_scope":true,"compatible_environment":true,"compatible_revision":true,
                     "left_quote":left,"right_quote":right,"reason":"The supplied statements report different concurrency limits within the specified worker scope."
                 }).to_string()})

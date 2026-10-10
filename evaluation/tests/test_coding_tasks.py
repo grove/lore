@@ -149,11 +149,11 @@ class CodingTaskTests(unittest.TestCase):
     def test_collector_explicit_fast_and_repeat_are_real_cli_paths(self):
         response = {"schema_version": 2, "task": "Implement a change", "model_calls": 0, "evidence": []}
         calls = []
-        def cli(binary, project, *arguments, timeout):
+        def cli(binary, project, *arguments, timeout, env):
             calls.append(arguments)
             return response, 0.01
-        with patch.object(coding, "registry_content", return_value=registry_fixture()), patch.object(coding.bench, "subprocess_json", side_effect=cli):
-            result = coding.collect_context("unused", Path("unused"), response["task"], "fast", 1, 1000)
+        with tempfile.TemporaryDirectory() as temporary, patch.object(coding, "registry_content", return_value=registry_fixture()), patch.object(coding.bench, "subprocess_json", side_effect=cli):
+            result = coding.collect_context("unused", Path(temporary).resolve(), response["task"], "fast", 1, 1000)
         self.assertEqual(len(calls), 2)
         self.assertTrue(all("--fast" in arguments for arguments in calls))
         self.assertTrue(all(result["checks"].values()))

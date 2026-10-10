@@ -42,6 +42,7 @@ impl GenerativeModel for CaptureModel {
                 })
                 .collect();
             Ok(GenerationResponse {
+                usage: None,
                 model: self.descriptor().model.clone(),
                 text: json!({"assertions":assertions}).to_string(),
             })

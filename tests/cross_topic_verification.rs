@@ -75,7 +75,7 @@ impl GenerativeModel for CrossTopicModel {
                     self.source_context_checks.fetch_add(1, Ordering::SeqCst);
                     if input["draft"].to_string().contains("no further detail") {
                         self.verifier_rejections.fetch_add(1, Ordering::SeqCst);
-                        return Ok(GenerationResponse {
+                        return Ok(GenerationResponse { usage: None,
                             model: "fixture".into(),
                             text: json!({"supported":false, "issues":[
                                 "The same source reports an additional policy outcome in another topic."

@@ -25,6 +25,7 @@ pub struct HttpModel {
     /// Logical embedding invocations, independent of HTTP retry attempts.
     pub embedding_calls: AtomicUsize,
     pub requests: AtomicUsize,
+    usage: usage::UsageSession,
 }
 impl HttpModel {
     pub fn new(config: &ResolvedConfig, role: &ModelRole) -> Result<Self, ModelError> {
@@ -124,6 +125,7 @@ impl HttpModel {
             local_only: config.config.privacy.local_only,
             embedding_calls: AtomicUsize::new(0),
             requests: AtomicUsize::new(0),
+            usage: usage::UsageSession::memory(),
         })
     }
     /// Explicit credential injection for embedding applications and mock tests.
@@ -156,19 +158,52 @@ impl HttpModel {
         }
         Ok(None)
     }
-    async fn send(&self, endpoint: &str, body: Option<&Value>) -> Result<Value, ModelError> {
-        let key = self.authorize()?;
-        if let Some(body) = body
-            && body.to_string().len() > self.max_context * 3
-        {
-            return Err(ModelError::InvalidRequest(
-                "request exceeds context budget".into(),
-            ));
-        }
-        let url = self
-            .base
-            .join(endpoint)
-            .map_err(|_| ModelError::InvalidRequest("invalid endpoint".into()))?;
+    /// Every inference attempt made by this client, including unsuccessful
+    /// retries. This is also available without a CLI-level usage session.
+    pub fn usage_events(&self) -> Vec<usage::UsageEvent> {
+        self.usage.events()
+    }
+
+    async fn send<T>(
+        &self,
+        endpoint: &str,
+        body: Option<&Value>,
+        operation: Option<&str>,
+        decode: impl Fn(&Value, &mut ProviderUsage) -> Result<T, ModelError>,
+    ) -> Result<T, ModelError> {
+        use usage::{Attempt, UsageStatus};
+        let call_id = usage::call_id();
+        let prepared = (|| {
+            let key = self.authorize()?;
+            if body.is_some_and(|body| body.to_string().len() > self.max_context * 3) {
+                return Err(ModelError::InvalidRequest(
+                    "request exceeds context budget".into(),
+                ));
+            }
+            let url = self
+                .base
+                .join(endpoint)
+                .map_err(|_| ModelError::InvalidRequest("invalid endpoint".into()))?;
+            Ok((key, url))
+        })();
+        let (key, url) = match prepared {
+            Ok(value) => value,
+            Err(error) => {
+                if let Some(operation) = operation {
+                    let no_request = ProviderUsage::no_request(UsageStatus::Rejected);
+                    Attempt::start(
+                        &self.descriptor,
+                        operation,
+                        &call_id,
+                        0,
+                        Some(self.usage.clone()),
+                        no_request.clone(),
+                    )?
+                    .finish(no_request, None)?;
+                }
+                return Err(error);
+            }
+        };
         for attempt in 0..=self.retries {
             let mut request = if let Some(body) = body {
                 self.client.post(url.clone()).json(body)
@@ -178,59 +213,127 @@ impl HttpModel {
             if let Some(key) = &key {
                 request = request.bearer_auth(key);
             }
-            self.requests.fetch_add(1, Ordering::Relaxed);
-            let response = request.send().await;
-            match response {
-                Err(_) if attempt < self.retries => {
-                    tokio::time::sleep(Duration::from_millis(200 * (1 << attempt))).await
-                }
+            let request = match request.build() {
+                Ok(request) => request,
                 Err(_) => {
-                    return Err(ModelError::Unavailable(
-                        "provider connection failed or timed out".into(),
+                    if let Some(operation) = operation {
+                        let no_request = ProviderUsage::no_request(UsageStatus::Rejected);
+                        Attempt::start(
+                            &self.descriptor,
+                            operation,
+                            &call_id,
+                            0,
+                            Some(self.usage.clone()),
+                            no_request.clone(),
+                        )?
+                        .finish(no_request, None)?;
+                    }
+                    return Err(ModelError::InvalidRequest(
+                        "invalid HTTP request metadata".into(),
                     ));
                 }
+            };
+            let measured = operation
+                .map(|operation| {
+                    Attempt::start(
+                        &self.descriptor,
+                        operation,
+                        &call_id,
+                        attempt + 1,
+                        Some(self.usage.clone()),
+                        ProviderUsage::request(UsageStatus::Started),
+                    )
+                })
+                .transpose()?;
+            self.requests.fetch_add(1, Ordering::Relaxed);
+            let response = self.client.execute(request).await;
+            match response {
+                Err(error) => {
+                    if let Some(measured) = measured {
+                        let status = if error.is_timeout() {
+                            UsageStatus::TimedOut
+                        } else {
+                            UsageStatus::TransportError
+                        };
+                        measured.finish(ProviderUsage::request(status), None)?;
+                    }
+                    if attempt < self.retries {
+                        tokio::time::sleep(Duration::from_millis(200 * (1 << attempt))).await;
+                    } else {
+                        return Err(ModelError::Unavailable(
+                            "provider connection failed or timed out".into(),
+                        ));
+                    }
+                }
                 Ok(mut response) => {
-                    let status = response.status();
-                    if (status == StatusCode::TOO_MANY_REQUESTS || status.is_server_error())
-                        && attempt < self.retries
-                    {
-                        let seconds = response
-                            .headers()
-                            .get("retry-after")
-                            .and_then(|v| v.to_str().ok())
-                            .and_then(|v| v.parse::<u64>().ok())
-                            .unwrap_or(1 << attempt)
-                            .min(30);
-                        tokio::time::sleep(Duration::from_secs(seconds)).await;
-                        continue;
-                    }
-                    if !status.is_success() {
-                        return Err(ModelError::Unavailable(format!(
-                            "provider HTTP {} (response body withheld)",
-                            status.as_u16()
-                        )));
-                    }
-                    let maximum = 4_000_000usize;
-                    if response
-                        .content_length()
-                        .is_some_and(|n| n > maximum as u64)
-                    {
-                        return Err(ModelError::InvalidResponse("response exceeds limit".into()));
-                    }
-                    let mut bytes = Vec::new();
-                    while let Some(chunk) =
-                        response.chunk().await.map_err(|_| ModelError::Incomplete)?
-                    {
-                        if bytes.len() + chunk.len() > maximum {
+                    let http_status = response.status();
+                    let retry_after = response
+                        .headers()
+                        .get("retry-after")
+                        .and_then(|value| value.to_str().ok())
+                        .and_then(|value| value.parse::<u64>().ok())
+                        .unwrap_or(1 << attempt)
+                        .min(30);
+                    let read = async {
+                        let maximum = 4_000_000usize;
+                        if response
+                            .content_length()
+                            .is_some_and(|length| length > maximum as u64)
+                        {
                             return Err(ModelError::InvalidResponse(
                                 "response exceeds limit".into(),
                             ));
                         }
-                        bytes.extend_from_slice(&chunk);
+                        let mut bytes = Vec::new();
+                        while let Some(chunk) =
+                            response.chunk().await.map_err(|_| ModelError::Incomplete)?
+                        {
+                            if bytes.len() + chunk.len() > maximum {
+                                return Err(ModelError::InvalidResponse(
+                                    "response exceeds limit".into(),
+                                ));
+                            }
+                            bytes.extend_from_slice(&chunk);
+                        }
+                        serde_json::from_slice::<Value>(&bytes).map_err(|_| {
+                            ModelError::InvalidResponse("provider did not return JSON".into())
+                        })
                     }
-                    return serde_json::from_slice(&bytes).map_err(|_| {
-                        ModelError::InvalidResponse("provider did not return JSON".into())
-                    });
+                    .await;
+                    let mut used = read
+                        .as_ref()
+                        .map(|raw| {
+                            provider_usage(
+                                &self.descriptor.provider,
+                                raw,
+                                operation == Some("embedding"),
+                            )
+                        })
+                        .unwrap_or_else(|_| ProviderUsage::request(UsageStatus::Incomplete));
+                    let result = if http_status.is_success() {
+                        read.and_then(|raw| decode(&raw, &mut used))
+                    } else {
+                        Err(ModelError::Unavailable(format!(
+                            "provider HTTP {} (response body withheld)",
+                            http_status.as_u16()
+                        )))
+                    };
+                    used.status = if !http_status.is_success() {
+                        UsageStatus::HttpError
+                    } else {
+                        result.as_ref().map_or_else(usage::status, |_| used.status)
+                    };
+                    if let Some(measured) = measured {
+                        measured.finish(used, Some(http_status.as_u16()))?;
+                    }
+                    if (http_status == StatusCode::TOO_MANY_REQUESTS
+                        || http_status.is_server_error())
+                        && attempt < self.retries
+                    {
+                        tokio::time::sleep(Duration::from_secs(retry_after)).await;
+                        continue;
+                    }
+                    return result;
                 }
             }
         }
@@ -239,7 +342,9 @@ impl HttpModel {
     pub async fn doctor(&self) -> Result<Value, ModelError> {
         match self.descriptor.provider {
             Provider::Ollama => {
-                let tags = self.send("api/tags", None).await?;
+                let tags = self
+                    .send("api/tags", None, None, |raw, _| Ok(raw.clone()))
+                    .await?;
                 let model = &self.descriptor.model;
                 let found = tags
                     .get("models")
@@ -261,7 +366,10 @@ impl HttpModel {
                 let encoded: String =
                     url::form_urlencoded::byte_serialize(self.descriptor.model.as_bytes())
                         .collect();
-                self.send(&format!("models/{encoded}"), None).await?;
+                self.send(&format!("models/{encoded}"), None, None, |raw, _| {
+                    Ok(raw.clone())
+                })
+                .await?;
                 Ok(
                     serde_json::json!({"provider":"openai","model":self.descriptor.model,"available":true,"note":"model listing is not an inference/Decisions eligibility test"}),
                 )
@@ -307,14 +415,16 @@ impl GenerativeModel for HttpModel {
                     ));
                 }
             };
-            let raw = self.send(endpoint, Some(&body)).await?;
-            let mut response = decode_generation(&self.descriptor.provider, &raw)?;
-            if self.descriptor.provider == Provider::OpenAi
-                && let Some(schema) = &request.schema
-            {
-                response.text = restore_openai_output(schema, &response.text)?;
-            }
-            Ok(response)
+            self.send(endpoint, Some(&body), Some("generation"), |raw, _| {
+                let mut response = decode_generation(&self.descriptor.provider, raw)?;
+                if self.descriptor.provider == Provider::OpenAi
+                    && let Some(schema) = &request.schema
+                {
+                    response.text = restore_openai_output(schema, &response.text)?;
+                }
+                Ok(response)
+            })
+            .await
         })
     }
 }
@@ -356,8 +466,10 @@ impl EmbeddingModel for HttpModel {
                     ));
                 }
             };
-            let raw = self.send(endpoint, Some(&body)).await?;
-            decode_embeddings(&self.descriptor, request, &raw)
+            self.send(endpoint, Some(&body), Some("embedding"), |raw, _| {
+                decode_embeddings(&self.descriptor, request, raw)
+            })
+            .await
         })
     }
 }
@@ -433,7 +545,11 @@ pub fn decode_embeddings(
             ));
         }
     };
-    let response = EmbeddingResponse { model, embeddings };
+    let response = EmbeddingResponse {
+        model,
+        embeddings,
+        usage: Some(provider_usage(&descriptor.provider, raw, true)),
+    };
     response.validate(request, descriptor)?;
     Ok(response)
 }
@@ -464,12 +580,23 @@ impl DecisionModel for HttpModel {
                     systemone_request(request, &self.descriptor.model)?,
                 ),
             };
-            let raw = self.send(endpoint, Some(&body)).await?;
-            if self.descriptor.provider == Provider::OpenAi {
-                openai_decisions_response(request, &raw)
-            } else {
-                systemone_response(request, &raw)
-            }
+            self.send(endpoint, Some(&body), Some("decision"), |raw, used| {
+                let mut response = if self.descriptor.provider == Provider::OpenAi {
+                    openai_decisions_response(request, raw)?
+                } else {
+                    systemone_response(request, raw)?
+                };
+                if response
+                    .answers
+                    .iter()
+                    .any(|answer| answer.value == DecisionValue::Refusal)
+                {
+                    used.status = usage::UsageStatus::Refused;
+                }
+                response.usage = Some(used.clone());
+                Ok(response)
+            })
+            .await
         })
     }
 }
@@ -552,5 +679,9 @@ pub fn decode_generation(
     if text.trim().is_empty() {
         return Err(ModelError::InvalidResponse("empty generated text".into()));
     }
-    Ok(GenerationResponse { model, text })
+    Ok(GenerationResponse {
+        model,
+        text,
+        usage: Some(provider_usage(provider, raw, false)),
+    })
 }

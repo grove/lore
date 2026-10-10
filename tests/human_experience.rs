@@ -322,6 +322,7 @@ impl GenerativeModel for HumanModel {
                     "issues":[],"feedback":feedback})
             };
             Ok(GenerationResponse {
+                usage: None,
                 model: "human-fixture".into(),
                 text: output.to_string(),
             })

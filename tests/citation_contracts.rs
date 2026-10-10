@@ -106,7 +106,7 @@ impl GenerativeModel for ContractModel {
                     if self.fail_overview.load(Ordering::SeqCst)
                         || (self.fail_first && attempt == 0)
                     {
-                        return Ok(GenerationResponse { model: "fixture".into(), text: json!({"sections":[
+                        return Ok(GenerationResponse { usage: None, model: "fixture".into(), text: json!({"sections":[
                             {"heading":"Overview","paragraphs":[{"text":"Do not persist rejected private prose.",
                                 "knowledge_ids":["ev_private_not_a_knowledge_id"]}]}]}).to_string() });
                     }
@@ -117,7 +117,7 @@ impl GenerativeModel for ContractModel {
                 }
             }
             if task == "verify_overview" && self.reject_verification.load(Ordering::SeqCst) {
-                return Ok(GenerationResponse { model:"fixture".into(), text:json!({
+                return Ok(GenerationResponse { usage: None, model:"fixture".into(), text:json!({
                     "supported":false,"issues":["The claim is not supported despite a valid citation."]
                 }).to_string() });
             }

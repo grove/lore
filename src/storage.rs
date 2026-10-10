@@ -18,7 +18,8 @@ pub const SCHEMA_V4: &str = include_str!("../migrations/0004_review_history.sql"
 pub const SCHEMA_V5: &str = include_str!("../migrations/0005_source_provenance.sql");
 pub const SCHEMA_V6: &str = include_str!("../migrations/0006_native_observations.sql");
 pub const SCHEMA_V7: &str = include_str!("../migrations/0007_cross_source.sql");
-pub const SCHEMA_VERSION: i64 = 7;
+pub const SCHEMA_V8: &str = include_str!("../migrations/0008_provider_usage.sql");
+pub const SCHEMA_VERSION: i64 = 8;
 pub fn migrate(conn: &Connection) -> rusqlite::Result<()> {
     conn.pragma_update(None, "foreign_keys", "ON")?;
     let version: i64 = conn.pragma_query_value(None, "user_version", |r| r.get(0))?;
@@ -47,12 +48,77 @@ pub fn migrate(conn: &Connection) -> rusqlite::Result<()> {
         if version < 7 {
             conn.execute_batch(SCHEMA_V7)?;
         }
+        if version < 8 {
+            conn.execute_batch(SCHEMA_V8)?;
+        }
         Ok(())
     })();
     if result.is_err() {
         let _ = conn.execute_batch("ROLLBACK");
     }
     result
+}
+
+pub fn save_provider_usage(
+    conn: &Connection,
+    run: &str,
+    events: &[crate::inference::usage::UsageEvent],
+) -> Result<()> {
+    use crate::inference::usage::UsageSummary;
+    conn.execute(
+        "INSERT INTO provider_usage_runs VALUES(?1,?2)",
+        params![
+            run,
+            serde_json::to_string(&UsageSummary::from_events(events))?
+        ],
+    )?;
+    for (ordinal, event) in events.iter().enumerate() {
+        conn.execute(
+            "INSERT INTO provider_usage_events VALUES(?1,?2,?3,?4)",
+            params![event.id, run, ordinal as i64, serde_json::to_string(event)?],
+        )?;
+    }
+    Ok(())
+}
+
+/// None means the run predates metering, including a migrated 0.7 run. An empty
+/// measured ledger is a different state and can safely aggregate to zero.
+pub fn provider_usage(
+    conn: &Connection,
+    run: &str,
+) -> Result<Option<Vec<crate::inference::usage::UsageEvent>>> {
+    let exists: bool = conn.query_row(
+        "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE name='provider_usage_runs')",
+        [],
+        |row| row.get(0),
+    )?;
+    if !exists {
+        return Ok(None);
+    }
+    let recorded: Option<String> = conn
+        .query_row(
+            "SELECT summary_json FROM provider_usage_runs WHERE run_id=?1",
+            [run],
+            |row| row.get(0),
+        )
+        .optional()?;
+    let Some(recorded) = recorded else {
+        return Ok(None);
+    };
+    let mut statement = conn
+        .prepare("SELECT event_json FROM provider_usage_events WHERE run_id=?1 ORDER BY ordinal")?;
+    let events = statement
+        .query_map([run], |row| row.get::<_, String>(0))?
+        .collect::<rusqlite::Result<Vec<_>>>()?
+        .into_iter()
+        .map(|json| serde_json::from_str(&json))
+        .collect::<serde_json::Result<Vec<_>>>()?;
+    ensure!(
+        serde_json::from_str::<crate::inference::usage::UsageSummary>(&recorded)?
+            == crate::inference::usage::UsageSummary::from_events(&events),
+        "provider usage summary does not match its events"
+    );
+    Ok(Some(events))
 }
 pub fn read_only(path: &Path) -> Result<Connection> {
     util::reject_symlinks(path)?;
