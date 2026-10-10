@@ -875,9 +875,12 @@ fn causal_ablation(
     // Retain cold population and validated replay costs; never present the warm
     // selection as if the source/graph preparation had been free.
     let cache = tempfile::tempdir().unwrap();
+    // macOS temporary paths can start with the /var -> /private/var alias.
+    // Resolve this newly created fixture root without relaxing cache validation.
+    let cache_root = cache.path().canonicalize().unwrap();
     let mut cache_samples = Vec::new();
     for repeat in 0..REPEATS {
-        let path = cache.path().join(format!("sample-{repeat}"));
+        let path = cache_root.join(format!("sample-{repeat}"));
         let start = Instant::now();
         let cold =
             knowledge::build_cached(conn, &knowledge::ZoomOptions::default(), &path).unwrap();
