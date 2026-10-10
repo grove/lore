@@ -1,0 +1,568 @@
+{
+  "schema_version": 1,
+  "classification": "source_pinned_agent_authored_retrieval_cases",
+  "authorship": {
+    "author": "implementation-session-root",
+    "derived_from": "upstream documentary text before running the new selector",
+    "independent_of_selector": true
+  },
+  "review": {
+    "status": "pending_independent_review",
+    "reviewers": [],
+    "human_reviewed": false
+  },
+  "limits": {
+    "max_cases": 96,
+    "max_source_bytes": 1048576
+  },
+  "measurement_limits": [
+    "Documentary retention, not upstream runtime verification.",
+    "No extraction-model efficacy measurement: exact upstream excerpts are compiled with a deterministic capture adapter.",
+    "No coding-productivity or human-learning outcomes."
+  ],
+  "projects": [
+    {
+      "id": "ripgrep",
+      "repository": "BurntSushi/ripgrep",
+      "commit": "3fce3b5bb0236da2df6d99672afb8a719642eca7",
+      "upstream_source_sha256": "945622d974f65e4e141ef9726c948c2640eebd222c5b101afb6445728283921e",
+      "upstream_source_path": "README.md",
+      "license_notices": [
+        "ripgrep/COPYING.txt",
+        "ripgrep/LICENSE-MIT.txt",
+        "ripgrep/UNLICENSE.txt"
+      ],
+      "cases": [
+        {
+          "id": "ripgrep-filtering",
+          "query": "Find ignored, hidden and binary files with ripgrep; what default filtering must be disabled?",
+          "source": "ripgrep/filtering.md",
+          "upstream_path": "README.md",
+          "line_start": 122,
+          "line_end": 127,
+          "upstream_url": "https://github.com/BurntSushi/ripgrep/blob/3fce3b5bb0236da2df6d99672afb8a719642eca7/README.md#L122-L127",
+          "excerpt_sha256": "a7db91e632dd4878bb72ba3a5b2adaf9943f270ecea7ce7572519332fa15ea36",
+          "statement": "Like other tools specialized to code search, ripgrep defaults to [recursive search](GUIDE.md#recursive-search) and does [automatic filtering](GUIDE.md#automatic-filtering). Namely, ripgrep won't search files ignored by your `.gitignore`/`.ignore`/`.rgignore` files, it won't search hidden files and it won't search binary files. Automatic filtering can be disabled with `rg -uuu`.",
+          "quote": "* Like other tools specialized to code search, ripgrep defaults to\n  [recursive search](GUIDE.md#recursive-search) and does [automatic\n  filtering](GUIDE.md#automatic-filtering). Namely, ripgrep won't search files\n  ignored by your `.gitignore`/`.ignore`/`.rgignore` files, it won't search\n  hidden files and it won't search binary files. Automatic filtering can be\n  disabled with `rg -uuu`.",
+          "kind": "constraint",
+          "lifecycle": "active",
+          "scope": "documented CLI behavior",
+          "topic": "ripgrep",
+          "subject": "filtering",
+          "budgets": [
+            1500,
+            8000
+          ]
+        },
+        {
+          "id": "ripgrep-types",
+          "query": "Search Python files while excluding JavaScript using ripgrep file types.",
+          "source": "ripgrep/types.md",
+          "upstream_path": "README.md",
+          "line_start": 128,
+          "line_end": 131,
+          "upstream_url": "https://github.com/BurntSushi/ripgrep/blob/3fce3b5bb0236da2df6d99672afb8a719642eca7/README.md#L128-L131",
+          "excerpt_sha256": "2882e46f3952d313e9b1680e2d2b7d2f5d4ebfdceb95a792e3aad6971d352b08",
+          "statement": "ripgrep can [search specific types of files](GUIDE.md#manual-filtering-file-types). For example, `rg -tpy foo` limits your search to Python files and `rg -Tjs foo` excludes JavaScript files from your search. ripgrep can be taught about new file types with custom matching rules.",
+          "quote": "* ripgrep can [search specific types of files](GUIDE.md#manual-filtering-file-types).\n  For example, `rg -tpy foo` limits your search to Python files and `rg -Tjs\n  foo` excludes JavaScript files from your search. ripgrep can be taught about\n  new file types with custom matching rules.",
+          "kind": "constraint",
+          "lifecycle": "active",
+          "scope": "documented CLI behavior",
+          "topic": "ripgrep",
+          "subject": "types",
+          "budgets": [
+            1500,
+            8000
+          ]
+        },
+        {
+          "id": "ripgrep-pcre2",
+          "query": "Use look-around and backreferences: which regex engine must be enabled?",
+          "source": "ripgrep/pcre2.md",
+          "upstream_path": "README.md",
+          "line_start": 136,
+          "line_end": 141,
+          "upstream_url": "https://github.com/BurntSushi/ripgrep/blob/3fce3b5bb0236da2df6d99672afb8a719642eca7/README.md#L136-L141",
+          "excerpt_sha256": "d1580abff4152d01562fb7b05b4b31308d6062987eab9d85a7db0d9b9b9b1fca",
+          "statement": "ripgrep has optional support for switching its regex engine to use PCRE2. Among other things, this makes it possible to use look-around and backreferences in your patterns, which are not supported in ripgrep's default regex engine. PCRE2 support can be enabled with `-P/--pcre2` (use PCRE2 always) or `--auto-hybrid-regex` (use PCRE2 only if needed). An alternative syntax is provided via the `--engine (default|pcre2|auto)` option.",
+          "quote": "* ripgrep has optional support for switching its regex engine to use PCRE2.\n  Among other things, this makes it possible to use look-around and\n  backreferences in your patterns, which are not supported in ripgrep's default\n  regex engine. PCRE2 support can be enabled with `-P/--pcre2` (use PCRE2\n  always) or `--auto-hybrid-regex` (use PCRE2 only if needed). An alternative\n  syntax is provided via the `--engine (default|pcre2|auto)` option.",
+          "kind": "constraint",
+          "lifecycle": "active",
+          "scope": "documented CLI behavior",
+          "topic": "ripgrep",
+          "subject": "pcre2",
+          "budgets": [
+            1500,
+            8000
+          ]
+        },
+        {
+          "id": "ripgrep-encoding",
+          "query": "Search a Shift_JIS file; when does encoding need to be specified?",
+          "source": "ripgrep/encoding.md",
+          "upstream_path": "README.md",
+          "line_start": 144,
+          "line_end": 147,
+          "upstream_url": "https://github.com/BurntSushi/ripgrep/blob/3fce3b5bb0236da2df6d99672afb8a719642eca7/README.md#L144-L147",
+          "excerpt_sha256": "734f4f24c56af9d0eae7f544535cf8881c4246af40b64a6c94142f570cc5e39a",
+          "statement": "ripgrep supports [searching files in text encodings](GUIDE.md#file-encoding) other than UTF-8, such as UTF-16, latin-1, GBK, EUC-JP, Shift_JIS and more. (Some support for automatically detecting UTF-16 is provided. Other text encodings must be specifically specified with the `-E/--encoding` flag.)",
+          "quote": "* ripgrep supports [searching files in text encodings](GUIDE.md#file-encoding)\n  other than UTF-8, such as UTF-16, latin-1, GBK, EUC-JP, Shift_JIS and more.\n  (Some support for automatically detecting UTF-16 is provided. Other text\n  encodings must be specifically specified with the `-E/--encoding` flag.)",
+          "kind": "constraint",
+          "lifecycle": "active",
+          "scope": "documented CLI behavior",
+          "topic": "ripgrep",
+          "subject": "encoding",
+          "budgets": [
+            1500,
+            8000
+          ]
+        },
+        {
+          "id": "ripgrep-compressed",
+          "query": "Search inside gzip and zstandard compressed files.",
+          "source": "ripgrep/compressed.md",
+          "upstream_path": "README.md",
+          "line_start": 148,
+          "line_end": 149,
+          "upstream_url": "https://github.com/BurntSushi/ripgrep/blob/3fce3b5bb0236da2df6d99672afb8a719642eca7/README.md#L148-L149",
+          "excerpt_sha256": "99ed273be68d4c93851efc40b0e6aca7c59022a4ba0c447e35faa0c0f34b4073",
+          "statement": "ripgrep supports searching files compressed in a common format (brotli, bzip2, gzip, lz4, lzma, xz, or zstandard) with the `-z/--search-zip` flag.",
+          "quote": "* ripgrep supports searching files compressed in a common format (brotli,\n  bzip2, gzip, lz4, lzma, xz, or zstandard) with the `-z/--search-zip` flag.",
+          "kind": "constraint",
+          "lifecycle": "active",
+          "scope": "documented CLI behavior",
+          "topic": "ripgrep",
+          "subject": "compressed",
+          "budgets": [
+            1500,
+            8000
+          ]
+        },
+        {
+          "id": "ripgrep-portability",
+          "query": "Can a POSIX script depend on ripgrep being ubiquitous and standards conforming?",
+          "source": "ripgrep/portability.md",
+          "upstream_path": "README.md",
+          "line_start": 172,
+          "line_end": 174,
+          "upstream_url": "https://github.com/BurntSushi/ripgrep/blob/3fce3b5bb0236da2df6d99672afb8a719642eca7/README.md#L172-L174",
+          "excerpt_sha256": "8643448c82af35ecac10b32e2e66c705058cb945ef74047cbbe7af2eedd2caf6",
+          "statement": "You need a portable and ubiquitous tool. While ripgrep works on Windows, macOS and Linux, it is not ubiquitous and it does not conform to any standard such as POSIX. The best tool for this job is good old grep.",
+          "quote": "* You need a portable and ubiquitous tool. While ripgrep works on Windows,\n  macOS and Linux, it is not ubiquitous and it does not conform to any\n  standard such as POSIX. The best tool for this job is good old grep.",
+          "kind": "constraint",
+          "lifecycle": "active",
+          "scope": "documented CLI behavior",
+          "topic": "ripgrep",
+          "subject": "portability",
+          "budgets": [
+            1500,
+            8000
+          ]
+        },
+        {
+          "id": "ripgrep-search-strategy",
+          "query": "How are memory maps versus incremental buffers chosen for a large directory?",
+          "source": "ripgrep/search-strategy.md",
+          "upstream_path": "README.md",
+          "line_start": 198,
+          "line_end": 201,
+          "upstream_url": "https://github.com/BurntSushi/ripgrep/blob/3fce3b5bb0236da2df6d99672afb8a719642eca7/README.md#L198-L201",
+          "excerpt_sha256": "6c49d03a5d59ee4049accaf01984840886ff3915cb39c50ba78361839041b66a",
+          "statement": "It supports searching with either memory maps or by searching incrementally with an intermediate buffer. The former is better for single files and the latter is better for large directories. ripgrep chooses the best searching strategy for you automatically.",
+          "quote": "* It supports searching with either memory maps or by searching incrementally\n  with an intermediate buffer. The former is better for single files and the\n  latter is better for large directories. ripgrep chooses the best searching\n  strategy for you automatically.",
+          "kind": "constraint",
+          "lifecycle": "active",
+          "scope": "documented search implementation",
+          "topic": "ripgrep",
+          "subject": "search-strategy",
+          "budgets": [
+            1500,
+            8000
+          ]
+        },
+        {
+          "id": "ripgrep-pcre2-linking",
+          "query": "Force static PCRE2 linking even when the system library exists.",
+          "source": "ripgrep/pcre2-linking.md",
+          "upstream_path": "README.md",
+          "line_start": 483,
+          "line_end": 489,
+          "upstream_url": "https://github.com/BurntSushi/ripgrep/blob/3fce3b5bb0236da2df6d99672afb8a719642eca7/README.md#L483-L489",
+          "excerpt_sha256": "940048aef5a78498f0fe0b90d3e124a008123a4de9cdc2be2b26dab12f84dda2",
+          "statement": "Enabling the PCRE2 feature works with a stable Rust compiler and will attempt to automatically find and link with your system's PCRE2 library via `pkg-config`. If one doesn't exist, then ripgrep will build PCRE2 from source using your system's C compiler and then statically link it into the final executable. Static linking can be forced even when there is an available PCRE2 system library by either building ripgrep with the MUSL target or by setting `PCRE2_SYS_STATIC=1`.",
+          "quote": "Enabling the PCRE2 feature works with a stable Rust compiler and will\nattempt to automatically find and link with your system's PCRE2 library via\n`pkg-config`. If one doesn't exist, then ripgrep will build PCRE2 from source\nusing your system's C compiler and then statically link it into the final\nexecutable. Static linking can be forced even when there is an available PCRE2\nsystem library by either building ripgrep with the MUSL target or by setting\n`PCRE2_SYS_STATIC=1`.",
+          "kind": "constraint",
+          "lifecycle": "active",
+          "scope": "documented build configuration",
+          "topic": "ripgrep",
+          "subject": "pcre2-linking",
+          "budgets": [
+            1500,
+            8000
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fd",
+      "repository": "sharkdp/fd",
+      "commit": "14dcd92fb76ca0ebc2e82671a275f67c790d25fc",
+      "upstream_source_sha256": "9c4547aa703c8bf329c862b30053cf138024fb9265dc23541604e9b056dd5811",
+      "upstream_source_path": "README.md",
+      "license_notices": [
+        "fd/LICENSE-MIT.txt",
+        "fd/LICENSE-APACHE.txt"
+      ],
+      "cases": [
+        {
+          "id": "fd-smart-case",
+          "query": "Explain when fd switches from case-insensitive to case-sensitive search.",
+          "source": "fd/smart-case.md",
+          "upstream_path": "README.md",
+          "line_start": 22,
+          "line_end": 24,
+          "upstream_url": "https://github.com/sharkdp/fd/blob/14dcd92fb76ca0ebc2e82671a275f67c790d25fc/README.md#L22-L24",
+          "excerpt_sha256": "99fb30c1c814217564af4771a86cbd9380849b0ce57cc8894ae1bf7fcd67cc1e",
+          "statement": "Smart case: the search is case-insensitive by default. It switches to case-sensitive if the pattern contains an uppercase character[\\*](http://vimdoc.sourceforge.net/htmldoc/options.html#'smartcase').",
+          "quote": "* Smart case: the search is case-insensitive by default. It switches to\n  case-sensitive if the pattern contains an uppercase\n  character[\\*](http://vimdoc.sourceforge.net/htmldoc/options.html#'smartcase').",
+          "kind": "constraint",
+          "lifecycle": "active",
+          "scope": "documented CLI behavior",
+          "topic": "fd",
+          "subject": "smart-case",
+          "budgets": [
+            1500,
+            8000
+          ]
+        },
+        {
+          "id": "fd-hidden",
+          "query": "Find hidden files and directories with fd.",
+          "source": "fd/hidden.md",
+          "upstream_path": "README.md",
+          "line_start": 125,
+          "line_end": 126,
+          "upstream_url": "https://github.com/sharkdp/fd/blob/14dcd92fb76ca0ebc2e82671a275f67c790d25fc/README.md#L125-L126",
+          "excerpt_sha256": "2351c0a602bf575b1f128d7eba1e2ca78defc7174e4787415911702c2476eef5",
+          "statement": "By default, *fd* does not search hidden directories and does not show hidden files in the search results. To disable this behavior, we can use the `-H` (or `--hidden`) option:",
+          "quote": "By default, *fd* does not search hidden directories and does not show hidden files in the\nsearch results. To disable this behavior, we can use the `-H` (or `--hidden`) option:",
+          "kind": "constraint",
+          "lifecycle": "active",
+          "scope": "documented CLI behavior",
+          "topic": "fd",
+          "subject": "hidden",
+          "budgets": [
+            1500,
+            8000
+          ]
+        },
+        {
+          "id": "fd-gitignore",
+          "query": "Search folders ignored by .gitignore while inside a Git repository.",
+          "source": "fd/gitignore.md",
+          "upstream_path": "README.md",
+          "line_start": 133,
+          "line_end": 135,
+          "upstream_url": "https://github.com/sharkdp/fd/blob/14dcd92fb76ca0ebc2e82671a275f67c790d25fc/README.md#L133-L135",
+          "excerpt_sha256": "08f152ad38910bac7a4286a9a17e409ec5202189f2d68b2cd1832fb95b04f8fd",
+          "statement": "If we work in a directory that is a Git repository (or includes Git repositories), *fd* does not search folders (and does not show files) that match one of the `.gitignore` patterns. To disable this behavior, we can use the `-I` (or `--no-ignore`) option:",
+          "quote": "If we work in a directory that is a Git repository (or includes Git repositories), *fd* does not\nsearch folders (and does not show files) that match one of the `.gitignore` patterns. To disable\nthis behavior, we can use the `-I` (or `--no-ignore`) option:",
+          "kind": "constraint",
+          "lifecycle": "active",
+          "scope": "documented CLI behavior",
+          "topic": "fd",
+          "subject": "gitignore",
+          "budgets": [
+            1500,
+            8000
+          ]
+        },
+        {
+          "id": "fd-full-path",
+          "query": "Match the full file path rather than only the filename.",
+          "source": "fd/full-path.md",
+          "upstream_path": "README.md",
+          "line_start": 146,
+          "line_end": 147,
+          "upstream_url": "https://github.com/sharkdp/fd/blob/14dcd92fb76ca0ebc2e82671a275f67c790d25fc/README.md#L146-L147",
+          "excerpt_sha256": "bfbc603a015dfeeaef675174dc86641f0045d0597115ebb406bfabd58f82eda1",
+          "statement": "By default, *fd* only matches the filename of each file. However, using the `--full-path` or `-p` option, you can match against the full path.",
+          "quote": "By default, *fd* only matches the filename of each file. However, using the `--full-path` or `-p` option,\nyou can match against the full path.",
+          "kind": "constraint",
+          "lifecycle": "active",
+          "scope": "documented CLI behavior",
+          "topic": "fd",
+          "subject": "full-path",
+          "budgets": [
+            1500,
+            8000
+          ]
+        },
+        {
+          "id": "fd-execution",
+          "query": "Run one command for every result or a single command with all results.",
+          "source": "fd/execution.md",
+          "upstream_path": "README.md",
+          "line_start": 159,
+          "line_end": 160,
+          "upstream_url": "https://github.com/sharkdp/fd/blob/14dcd92fb76ca0ebc2e82671a275f67c790d25fc/README.md#L159-L160",
+          "excerpt_sha256": "18b248afed9eb267a90a785e9223b96d95fe67d51d2419f8913a5dbd009a6027",
+          "statement": "The `-x`/`--exec` option runs an external command *for each of the search results* (in parallel). * The `-X`/`--exec-batch` option launches the external command once, with *all search results as arguments*.",
+          "quote": "* The `-x`/`--exec` option runs an external command *for each of the search results* (in parallel).\n* The `-X`/`--exec-batch` option launches the external command once, with *all search results as arguments*.",
+          "kind": "constraint",
+          "lifecycle": "active",
+          "scope": "documented CLI behavior",
+          "topic": "fd",
+          "subject": "execution",
+          "budgets": [
+            1500,
+            8000
+          ]
+        },
+        {
+          "id": "fd-serial",
+          "query": "Run external commands serially instead of in parallel.",
+          "source": "fd/serial.md",
+          "upstream_path": "README.md",
+          "line_start": 240,
+          "line_end": 241,
+          "upstream_url": "https://github.com/sharkdp/fd/blob/14dcd92fb76ca0ebc2e82671a275f67c790d25fc/README.md#L240-L241",
+          "excerpt_sha256": "720ec85ada5a2c52f0d56eaf427d888621c538ed0fa976e944952f104c4058bb",
+          "statement": "For `-x`/`--exec`, you can control the number of parallel jobs by using the `-j`/`--threads` option. Use `--threads=1` for serial execution.",
+          "quote": "For `-x`/`--exec`, you can control the number of parallel jobs by using the `-j`/`--threads` option.\nUse `--threads=1` for serial execution.",
+          "kind": "constraint",
+          "lifecycle": "active",
+          "scope": "documented CLI behavior",
+          "topic": "fd",
+          "subject": "serial",
+          "budgets": [
+            1500,
+            8000
+          ]
+        },
+        {
+          "id": "fd-global-ignore",
+          "query": "Where are global ignore files located on Windows and Linux?",
+          "source": "fd/global-ignore.md",
+          "upstream_path": "README.md",
+          "line_start": 274,
+          "line_end": 276,
+          "upstream_url": "https://github.com/sharkdp/fd/blob/14dcd92fb76ca0ebc2e82671a275f67c790d25fc/README.md#L274-L276",
+          "excerpt_sha256": "15862a68837738e8eedaee486ec1ba74e67896573987c271a89a35a76248e6c9",
+          "statement": "If you want `fd` to ignore these patterns globally, you can put them in `fd`'s global ignore file. This is usually located in `~/.config/fd/ignore` in macOS or Linux, and `%APPDATA%\\fd\\ignore` in Windows.",
+          "quote": "If you want `fd` to ignore these patterns globally, you can put them in `fd`'s global ignore file.\nThis is usually located in `~/.config/fd/ignore` in macOS or Linux, and `%APPDATA%\\fd\\ignore` in\nWindows.",
+          "kind": "constraint",
+          "lifecycle": "active",
+          "scope": "documented CLI behavior",
+          "topic": "fd",
+          "subject": "global-ignore",
+          "budgets": [
+            1500,
+            8000
+          ]
+        },
+        {
+          "id": "fd-shell-functions",
+          "query": "Use shell functions with fd -x, preserving the documented shell-specific requirements.",
+          "source": "fd/shell-functions.md",
+          "upstream_path": "README.md",
+          "line_start": 441,
+          "line_end": 445,
+          "upstream_url": "https://github.com/sharkdp/fd/blob/14dcd92fb76ca0ebc2e82671a275f67c790d25fc/README.md#L441-L445",
+          "excerpt_sha256": "81ad9b582b6ed54ec45ce30c38fc610ff733e1c6631054ea06945aac767b16e6",
+          "statement": "Shell `alias`es and shell functions can not be used for command execution via `fd -x` or `fd -X`. In `zsh`, you can make the alias global via `alias -g myalias=\"…\"`. In `bash`, you can use `export -f my_function` to make available to child processes. You would still need to call `fd -x bash -c 'my_function \"$1\"' bash`. For other use cases or shells, use a (temporary) shell script.",
+          "quote": "Shell `alias`es and shell functions can not be used for command execution via `fd -x` or\n`fd -X`. In `zsh`, you can make the alias global via `alias -g myalias=\"…\"`. In `bash`,\nyou can use `export -f my_function` to make available to child processes. You would still\nneed to call `fd -x bash -c 'my_function \"$1\"' bash`. For other use cases or shells, use\na (temporary) shell script.",
+          "kind": "constraint",
+          "lifecycle": "active",
+          "scope": "documented CLI behavior",
+          "topic": "fd",
+          "subject": "shell-functions",
+          "budgets": [
+            1500,
+            8000
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jq",
+      "repository": "jqlang/jq",
+      "commit": "b904884b94ca48e025a12697ab172711e6c134d8",
+      "upstream_source_sha256": "e4af56ccf8f7d1165bf02cdb44c32ab8847810df5dd36504cb6fd8c8c94783f4",
+      "upstream_source_path": "docs/content/manual/dev/manual.yml",
+      "license_notices": [
+        "jq/COPYING.txt"
+      ],
+      "cases": [
+        {
+          "id": "jq-null-input",
+          "query": "Construct JSON from scratch without reading any input.",
+          "source": "jq/null-input.md",
+          "upstream_path": "docs/content/manual/dev/manual.yml",
+          "line_start": 113,
+          "line_end": 117,
+          "upstream_url": "https://github.com/jqlang/jq/blob/b904884b94ca48e025a12697ab172711e6c134d8/docs/content/manual/dev/manual.yml#L113-L117",
+          "excerpt_sha256": "197c0438f300089a45ece5b94ced4fec893b261d2bb58cfe9a2696a8e17226b2",
+          "statement": "`--null-input` / `-n`: Don't read any input at all. Instead, the filter is run once using `null` as the input. This is useful when using jq as a simple calculator or to construct JSON data from scratch.",
+          "quote": "      * `--null-input` / `-n`:\n\n        Don't read any input at all. Instead, the filter is run once\n        using `null` as the input. This is useful when using jq as a\n        simple calculator or to construct JSON data from scratch.",
+          "kind": "constraint",
+          "lifecycle": "active",
+          "scope": "documented CLI behavior",
+          "topic": "jq",
+          "subject": "null-input",
+          "budgets": [
+            1500,
+            8000
+          ]
+        },
+        {
+          "id": "jq-raw-slurp",
+          "query": "Read raw input lines; what changes when --slurp is combined with --raw-input?",
+          "source": "jq/raw-slurp.md",
+          "upstream_path": "docs/content/manual/dev/manual.yml",
+          "line_start": 119,
+          "line_end": 124,
+          "upstream_url": "https://github.com/jqlang/jq/blob/b904884b94ca48e025a12697ab172711e6c134d8/docs/content/manual/dev/manual.yml#L119-L124",
+          "excerpt_sha256": "51f2ae93c55e392d02e61bd8331303ae0766cc64939decb736e8b0d5c67dec88",
+          "statement": "`--raw-input` / `-R`: Don't parse the input as JSON. Instead, each line of text is passed to the filter as a string. If combined with `--slurp`, then the entire input is passed to the filter as a single long string.",
+          "quote": "      * `--raw-input` / `-R`:\n\n        Don't parse the input as JSON. Instead, each line of text is\n        passed to the filter as a string. If combined with `--slurp`,\n        then the entire input is passed to the filter as a single long\n        string.",
+          "kind": "constraint",
+          "lifecycle": "active",
+          "scope": "documented CLI behavior",
+          "topic": "jq",
+          "subject": "raw-slurp",
+          "budgets": [
+            1500,
+            8000
+          ]
+        },
+        {
+          "id": "jq-raw-output",
+          "query": "When does --raw-output print unquoted text instead of JSON?",
+          "source": "jq/raw-output.md",
+          "upstream_path": "docs/content/manual/dev/manual.yml",
+          "line_start": 138,
+          "line_end": 143,
+          "upstream_url": "https://github.com/jqlang/jq/blob/b904884b94ca48e025a12697ab172711e6c134d8/docs/content/manual/dev/manual.yml#L138-L143",
+          "excerpt_sha256": "9304eccd64c25d00239cd4e2fa9f9554d5d40d4a306b70e985bba88b141c6e24",
+          "statement": "`--raw-output` / `-r`: With this option, if the filter's result is a string then it will be written directly to standard output rather than being formatted as a JSON string with quotes. This can be useful for making jq filters talk to non-JSON-based systems.",
+          "quote": "      * `--raw-output` / `-r`:\n\n        With this option, if the filter's result is a string then it\n        will be written directly to standard output rather than being\n        formatted as a JSON string with quotes. This can be useful for\n        making jq filters talk to non-JSON-based systems.",
+          "kind": "constraint",
+          "lifecycle": "active",
+          "scope": "documented CLI behavior",
+          "topic": "jq",
+          "subject": "raw-output",
+          "budgets": [
+            1500,
+            8000
+          ]
+        },
+        {
+          "id": "jq-nul-output",
+          "query": "Use NUL-separated output and account for a value that contains NUL.",
+          "source": "jq/nul-output.md",
+          "upstream_path": "docs/content/manual/dev/manual.yml",
+          "line_start": 145,
+          "line_end": 149,
+          "upstream_url": "https://github.com/jqlang/jq/blob/b904884b94ca48e025a12697ab172711e6c134d8/docs/content/manual/dev/manual.yml#L145-L149",
+          "excerpt_sha256": "eeaa4b36a924745fe9fadcf432f9a19518405565812eb8fc1b32e68ed8b8ccef",
+          "statement": "`--raw-output0`: Like `-r` but jq will print NUL instead of newline after each output. This can be useful when the values being output can contain newlines. When the output value contains NUL, jq exits with non-zero code.",
+          "quote": "      * `--raw-output0`:\n\n        Like `-r` but jq will print NUL instead of newline after each output.\n        This can be useful when the values being output can contain newlines.\n        When the output value contains NUL, jq exits with non-zero code.",
+          "kind": "constraint",
+          "lifecycle": "active",
+          "scope": "documented CLI behavior",
+          "topic": "jq",
+          "subject": "nul-output",
+          "budgets": [
+            1500,
+            8000
+          ]
+        },
+        {
+          "id": "jq-join-output",
+          "query": "Produce raw output without a newline after each result.",
+          "source": "jq/join-output.md",
+          "upstream_path": "docs/content/manual/dev/manual.yml",
+          "line_start": 151,
+          "line_end": 153,
+          "upstream_url": "https://github.com/jqlang/jq/blob/b904884b94ca48e025a12697ab172711e6c134d8/docs/content/manual/dev/manual.yml#L151-L153",
+          "excerpt_sha256": "332fe5ac8e05afd3c443026f63eaea8a0a755339699d22fe3de68521d0ce616d",
+          "statement": "`--join-output` / `-j`: Like `-r` but jq won't print a newline after each output.",
+          "quote": "      * `--join-output` / `-j`:\n\n        Like `-r` but jq won't print a newline after each output.",
+          "kind": "constraint",
+          "lifecycle": "active",
+          "scope": "documented CLI behavior",
+          "topic": "jq",
+          "subject": "join-output",
+          "budgets": [
+            1500,
+            8000
+          ]
+        },
+        {
+          "id": "jq-ascii-output",
+          "query": "Force non-ASCII Unicode characters into ASCII escape sequences.",
+          "source": "jq/ascii-output.md",
+          "upstream_path": "docs/content/manual/dev/manual.yml",
+          "line_start": 155,
+          "line_end": 161,
+          "upstream_url": "https://github.com/jqlang/jq/blob/b904884b94ca48e025a12697ab172711e6c134d8/docs/content/manual/dev/manual.yml#L155-L161",
+          "excerpt_sha256": "834504b6108a554224c4754fa79bc2c0ea510367117b54a0bf14d11ddf1a66a6",
+          "statement": "`--ascii-output` / `-a`: jq usually outputs non-ASCII Unicode codepoints as UTF-8, even if the input specified them as escape sequences (like \"\\u03bc\"). Using this option, you can force jq to produce pure ASCII output with every non-ASCII character replaced with the equivalent escape sequence.",
+          "quote": "      * `--ascii-output` / `-a`:\n\n        jq usually outputs non-ASCII Unicode codepoints as UTF-8, even\n        if the input specified them as escape sequences (like\n        \"\\u03bc\"). Using this option, you can force jq to produce pure\n        ASCII output with every non-ASCII character replaced with the\n        equivalent escape sequence.",
+          "kind": "constraint",
+          "lifecycle": "active",
+          "scope": "documented CLI behavior",
+          "topic": "jq",
+          "subject": "ascii-output",
+          "budgets": [
+            1500,
+            8000
+          ]
+        },
+        {
+          "id": "jq-color",
+          "query": "Force colored JSON with NO_COLOR set and explain default terminal behavior.",
+          "source": "jq/color.md",
+          "upstream_path": "docs/content/manual/dev/manual.yml",
+          "line_start": 166,
+          "line_end": 173,
+          "upstream_url": "https://github.com/jqlang/jq/blob/b904884b94ca48e025a12697ab172711e6c134d8/docs/content/manual/dev/manual.yml#L166-L173",
+          "excerpt_sha256": "553eb8555ca82310f3c66ffaab4d4d82366e1730d59344d1b02099702b558002",
+          "statement": "`--color-output` / `-C` and `--monochrome-output` / `-M`: By default, jq outputs colored JSON if writing to a terminal. You can force it to produce color even if writing to a pipe or a file using `-C`, and disable color with `-M`. When the `NO_COLOR` environment variable is not empty, jq disables colored output by default, but you can enable it by `-C`.",
+          "quote": "\n      * `--color-output` / `-C` and `--monochrome-output` / `-M`:\n\n        By default, jq outputs colored JSON if writing to a\n        terminal. You can force it to produce color even if writing to\n        a pipe or a file using `-C`, and disable color with `-M`.\n        When the `NO_COLOR` environment variable is not empty, jq disables\n        colored output by default, but you can enable it by `-C`.",
+          "kind": "constraint",
+          "lifecycle": "active",
+          "scope": "documented CLI behavior",
+          "topic": "jq",
+          "subject": "color",
+          "budgets": [
+            1500,
+            8000
+          ]
+        },
+        {
+          "id": "jq-exit-status",
+          "query": "Use --exit-status: distinguish false, null, no output, usage error and compile error.",
+          "source": "jq/exit-status.md",
+          "upstream_path": "docs/content/manual/dev/manual.yml",
+          "line_start": 279,
+          "line_end": 286,
+          "upstream_url": "https://github.com/jqlang/jq/blob/b904884b94ca48e025a12697ab172711e6c134d8/docs/content/manual/dev/manual.yml#L279-L286",
+          "excerpt_sha256": "5bd90db0507ab3d8a9b9236272774609ed9ad1ae5b097083fd4c425194ae71ab",
+          "statement": "`--exit-status` / `-e`: Sets the exit status of jq to 0 if the last output value was neither `false` nor `null`, 1 if the last output value was either `false` or `null`, or 4 if no valid result was ever produced. Normally jq exits with 2 if there was any usage problem or system error, 3 if there was a jq program compile error, or 0 if the jq program ran.",
+          "quote": "      * `--exit-status` / `-e`:\n\n        Sets the exit status of jq to 0 if the last output value was\n        neither `false` nor `null`, 1 if the last output value was\n        either `false` or `null`, or 4 if no valid result was ever\n        produced.  Normally jq exits with 2 if there was any usage\n        problem or system error, 3 if there was a jq program compile\n        error, or 0 if the jq program ran.",
+          "kind": "constraint",
+          "lifecycle": "active",
+          "scope": "documented CLI behavior",
+          "topic": "jq",
+          "subject": "exit-status",
+          "budgets": [
+            1500,
+            8000
+          ]
+        }
+      ]
+    }
+  ]
+}

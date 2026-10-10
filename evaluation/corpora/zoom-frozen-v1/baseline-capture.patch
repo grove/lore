@@ -1,0 +1,20 @@
+diff --git a/tests/knowledge_zoom_comparison.rs b/tests/knowledge_zoom_comparison.rs
+index e664ecc..05efe95 100644
+--- a/tests/knowledge_zoom_comparison.rs
++++ b/tests/knowledge_zoom_comparison.rs
+@@ -923,6 +923,15 @@ async fn measured_flat_direct_and_zoom_on_the_same_compiled_fixture() {
+     report["scorer_negative_probes"] = json!({"source_revision_digest": "rejected", "embedded_evidence_activity": "rejected", "relation_witness_id": "rejected", "relation_endpoint_id": "rejected", "summary_original_reference": "rejected", "unmeasured_validation_retrieval_calls": 1});
+     report["registry_bytes_unchanged"] = json!(true);
+     save_if_requested(&report);
++    if let Some(capture) = std::env::var_os("LORE_ZOOM_CAPTURE_MANIFEST") {
++        fs::write(&capture, serde_json::to_string_pretty(&json!({
++            "config": config.base.join("lore.yml"), "cases": cases,
++            "baseline_commit": "6f4898bf1d6e0dc135a24ef792921c3d98af2c24",
++            "capture_note": "Only this fixture-retention hook differs from the pinned baseline comparator; retrieval code is unchanged."
++        })).unwrap()).unwrap();
++        fs::write(config.base.join("cases.json"), serde_json::to_string_pretty(&cases).unwrap()).unwrap();
++        let _retained = _temp.keep();
++    }
+ }
+ 
+ #[test]

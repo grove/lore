@@ -3,6 +3,8 @@
 //! Passing this test establishes no superiority or human comprehension benefit.
 
 mod common;
+#[path = "common/zoom_source_corpus.rs"]
+mod source_corpus;
 
 use anyhow::{Result, ensure};
 use lore::{
@@ -124,12 +126,12 @@ fn original_records(conn: &Connection) -> BTreeMap<String, Value> {
 }
 
 fn validate_cases(conn: &Connection, cases: &[QueryCase], originals: &BTreeMap<String, Value>) {
-    assert!(!cases.is_empty() && cases.len() <= 16);
+    assert!(!cases.is_empty() && cases.len() <= 96);
     let mut names = BTreeSet::new();
     for case in cases {
         assert!(!case.id.is_empty() && names.insert(&case.id));
         assert!(!case.query.trim().is_empty() && case.query.len() <= 8_000);
-        assert!(!case.budgets.is_empty() && case.budgets.len() <= 4);
+        assert!(!case.budgets.is_empty() && case.budgets.len() <= 5);
         assert!(
             case.budgets
                 .iter()
@@ -263,6 +265,22 @@ fn validate_manifest(
     let mut source_revision_count = 0;
     let mut summary_reference_count = 0;
     if let Arm::Zoom = arm {
+        for fact in &facts {
+            if ids.contains(fact.from.as_str()) || ids.contains(fact.to.as_str()) {
+                ensure!(
+                    relations.iter().any(|r| r["id"] == fact.id),
+                    "selected documentary endpoint lost its relationship witness"
+                );
+            }
+        }
+        for evidence in value["evidence"].as_array().unwrap() {
+            let id = evidence["id"].as_str().unwrap_or("");
+            let original = storage::evidence_snapshot(conn, id)?;
+            ensure!(
+                *evidence == serde_json::to_value(original)?,
+                "source snapshot or historical revision was substituted"
+            );
+        }
         for record in &returned {
             let id = record["id"].as_str().unwrap();
             ensure!(
@@ -270,6 +288,12 @@ fn validate_manifest(
                 "embedded knowledge revision, source metadata or relationship text differs from original"
             );
             embedded_evidence_count += record["evidence"].as_array().unwrap().len();
+            for reference in record["evidence"].as_array().unwrap() {
+                ensure!(
+                    evidence_ids.contains(reference["id"].as_str().unwrap_or("")),
+                    "original source reference is missing from manifest"
+                );
+            }
         }
         let source_heads = storage::source_heads(conn)?;
         let revisions = value["source_revisions"].as_array().unwrap();
@@ -586,6 +610,298 @@ fn measure(
     )
 }
 
+/// Score the v2 wire format against independent registry originals after lossless
+/// resolution. The resolved object is never used for its wire token accounting.
+fn score_compact(
+    conn: &Connection,
+    output: &knowledge::CompactExploreResult,
+    case: &QueryCase,
+    originals: &BTreeMap<String, Value>,
+) -> Value {
+    let cli_json = serde_json::to_string(output).unwrap() + "\n";
+    let markdown = knowledge::render_compact_markdown(output).unwrap();
+    let json_tokens = context::count_tokens(&cli_json);
+    let markdown_tokens = context::count_tokens(&markdown);
+    let complete_tokens = json_tokens.max(markdown_tokens);
+    assert!(complete_tokens <= output.used_tokens && output.used_tokens <= output.max_tokens);
+    assert_eq!(output.model_calls, 0);
+    let resolved = output.resolve().unwrap();
+    let value = serde_json::to_value(&resolved).unwrap();
+    let scores = score(conn, Arm::Zoom, &value, case, originals);
+    let complete = scores["exact_knowledge_id_recall"]["missing_ids"]
+        .as_array()
+        .unwrap()
+        .is_empty()
+        && scores["original_source_evidence_recall"]["missing_ids"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+        && scores["complete_critical_condition_recall"]["missing_ids"]
+            .as_array()
+            .unwrap()
+            .is_empty();
+    json!({
+        "status": output.status, "schema_version": output.schema_version,
+        "retrieval": output.retrieval, "model_calls": output.model_calls,
+        "output": {
+            "cli_json_tokens": json_tokens, "cli_json_bytes": cli_json.len(),
+            "markdown_tokens": markdown_tokens, "markdown_bytes": markdown.len(),
+            "complete_cli_tokens": complete_tokens, "reported_used_tokens": output.used_tokens,
+            "max_tokens": output.max_tokens,
+            "cli_json_digest": util::digest(&cli_json), "markdown_digest": util::digest(&markdown),
+        },
+        "scores": scores,
+        "complete_factual_answer_retained": if case.expected_knowledge_ids.is_empty() { Value::Null } else { json!(complete) },
+        "navigation": {"returned_nodes": output.nodes.len(), "returned_edges": output.edges.len(), "human_navigation_utility": null},
+        "omissions": {"coverage": output.coverage, "critical_groups_omitted": output.critical_groups_omitted},
+        "warnings": output.warnings,
+    })
+}
+
+fn aggregate_repeats(outputs: Vec<Value>, times: Vec<u64>) -> Value {
+    assert!(!outputs.is_empty());
+    assert!(
+        outputs.iter().all(|output| *output == outputs[0]),
+        "unchanged inputs changed output"
+    );
+    let mut sorted = times.clone();
+    sorted.sort_unstable();
+    let percentile = |p: usize| sorted[(p * sorted.len()).div_ceil(100).saturating_sub(1)];
+    json!({
+        "result": outputs[0], "elapsed_retrieval_us": times,
+        "median_elapsed_retrieval_us": percentile(50), "p95_elapsed_retrieval_us": percentile(95),
+        "identical_outputs_across_repeats": true,
+        "uncertainty": "Three local repeats describe variation; p95 is a sample maximum, not a reliable population estimate."
+    })
+}
+
+fn compact_comparison(
+    conn: &Connection,
+    cases: &[QueryCase],
+    originals: &BTreeMap<String, Value>,
+) -> Value {
+    let mut measurements = Vec::new();
+    for case in cases {
+        for &budget in &case.budgets {
+            let options = ExploreOptions {
+                query: case.query.clone(),
+                max_tokens: budget,
+                ..ExploreOptions::default()
+            };
+            let mut outputs = Vec::new();
+            let mut times = Vec::new();
+            for _ in 0..REPEATS {
+                let start = Instant::now();
+                let output = knowledge::explore_compact(conn, &options);
+                times.push(u64::try_from(start.elapsed().as_micros()).unwrap());
+                outputs.push(match output {
+                    Ok(output) => score_compact(conn, &output, case, originals),
+                    Err(error) => json!({"status":"error", "error":error.to_string()}),
+                });
+            }
+            measurements.push(json!({"case_id":case.id,"max_tokens":budget,"knowledge_zoom_compact":aggregate_repeats(outputs,times)}));
+        }
+    }
+    json!({"schema_version":2,"selection":"explicit compact public entry point", "measurements":measurements})
+}
+
+/// An independently constructed mandatory v1 payload with no navigation,
+/// summaries or optional warnings. This measures canonical schema-1 overhead;
+/// it is not a claim that arbitrary reordering of JSON has the same token count.
+fn mandatory_v1_payloads(
+    conn: &Connection,
+    cases: &[QueryCase],
+    originals: &BTreeMap<String, Value>,
+) -> Value {
+    let facts = storage::relation_facts(conn).unwrap();
+    let heads = storage::source_heads(conn).unwrap();
+    let mut measurements = Vec::new();
+    for case in cases {
+        let mut ids: BTreeSet<String> = case
+            .critical_conditions
+            .iter()
+            .map(|c| c.knowledge_id.clone())
+            .collect();
+        if ids.is_empty() {
+            ids.extend(case.expected_knowledge_ids.iter().cloned());
+        }
+        if ids.is_empty() {
+            continue;
+        }
+        loop {
+            let before = ids.len();
+            for relation in &facts {
+                if ids.contains(&relation.from) || ids.contains(&relation.to) {
+                    ids.insert(relation.from.clone());
+                    ids.insert(relation.to.clone());
+                }
+            }
+            if ids.len() == before {
+                break;
+            }
+        }
+        let relations: Vec<knowledge::EvidenceRelation> = facts
+            .iter()
+            .filter(|r| ids.contains(&r.from) && ids.contains(&r.to))
+            .map(|r| serde_json::from_value(serde_json::to_value(r).unwrap()).unwrap())
+            .collect();
+        let knowledge: Vec<lore::domain::KnowledgeView> = ids
+            .iter()
+            .map(|id| serde_json::from_value(originals[id].clone()).unwrap())
+            .collect();
+        let evidence_ids: BTreeSet<_> = knowledge
+            .iter()
+            .flat_map(|record| record.evidence.iter().map(|e| e.id.clone()))
+            .chain(relations.iter().map(|r| r.evidence_id.clone()))
+            .collect();
+        let evidence: Vec<_> = evidence_ids
+            .iter()
+            .map(|id| storage::evidence_snapshot(conn, id).unwrap())
+            .collect();
+        let revisions: BTreeSet<_> = evidence
+            .iter()
+            .map(|e| e.source_revision_id.as_str())
+            .collect();
+        let source_revisions=revisions.into_iter().map(|id| {
+            let (source_id,path,digest):(String,String,String)=conn.query_row("SELECT source_id,observed_path,content_digest FROM source_revisions WHERE id=?1",[id],|r|Ok((r.get(0)?,r.get(1)?,r.get(2)?))).unwrap();
+            let provenance=storage::source_provenance(conn,id).unwrap();
+            knowledge::SourceRevision{id:id.into(),source_id,root_id:provenance.root_id,observed_path:path,content_digest:digest,current:heads.iter().any(|head|head.revision==id)}
+        }).collect();
+        let mut payload = ExploreResult {
+            schema_version: 1,
+            snapshot_revision: storage::registry_revision(conn).unwrap(),
+            query: case.query.clone(),
+            selected_node_id: None,
+            retrieval: "direct_reference".into(),
+            status: "partial".into(),
+            model_calls: 0,
+            nodes: Vec::new(),
+            edges: Vec::new(),
+            knowledge,
+            evidence,
+            relations,
+            source_revisions,
+            coverage: knowledge::Coverage {
+                eligible_units: ids.len(),
+                included_units: ids.len(),
+                omitted_units: 0,
+                omission_reasons: Vec::new(),
+            },
+            critical_groups_omitted: 0,
+            navigation_truncated: true,
+            max_tokens: 100_000,
+            used_tokens: 100_000,
+            warnings: Vec::new(),
+        };
+        let value = serde_json::to_value(&payload).unwrap();
+        validate_manifest(conn, Arm::Zoom, &value, originals).unwrap();
+        // Use the v1 implementation's actual pretty-JSON/Markdown reservation.
+        let json_tokens = context::count_tokens(&(serde_json::to_string(&payload).unwrap() + "\n"));
+        let pretty_tokens =
+            context::count_tokens(&(serde_json::to_string_pretty(&payload).unwrap() + "\n"));
+        let markdown_tokens = context::count_tokens(&knowledge::render_markdown(&payload));
+        payload.used_tokens = pretty_tokens.max(markdown_tokens);
+        measurements.push(json!({"case_id":case.id,"critical_original_ids":ids,"required_relation_count":payload.relations.len(),
+            "canonical_compact_json_tokens":json_tokens,"canonical_pretty_json_tokens":pretty_tokens,
+            "portable_markdown_tokens":markdown_tokens,"v1_reservation_tokens":payload.used_tokens,
+            "fits_1500_canonical_v1":payload.used_tokens<=1500,
+            "method":"Exact gold critical originals plus all documentary endpoints/witnesses and revision provenance; all optional navigation/summary/warnings removed; metadata numeric widths reserved. Gold comes from the case manifest, not selection bundles."}));
+    }
+    json!(measurements)
+}
+
+/// All originals form a fixed, query-independent candidate pool. Both arms use
+/// the same compact packer, schema, source validator and bundle requirements.
+/// Only graph-derived ranking and navigation are enabled in the treatment arm.
+fn causal_ablation(
+    conn: &Connection,
+    cases: &[QueryCase],
+    originals: &BTreeMap<String, Value>,
+) -> Value {
+    let candidates: Vec<_> = originals.keys().cloned().collect();
+    let mut measurements = Vec::new();
+    for (case_index, case) in cases.iter().enumerate() {
+        for &budget in &case.budgets {
+            let options = ExploreOptions {
+                query: case.query.clone(),
+                max_tokens: budget,
+                ..ExploreOptions::default()
+            };
+            let mut outputs: [Vec<Value>; 2] = [Vec::new(), Vec::new()];
+            let mut times: [Vec<u64>; 2] = [Vec::new(), Vec::new()];
+            for repeat in 0..REPEATS {
+                for index in if (case_index + repeat) % 2 == 0 {
+                    [0, 1]
+                } else {
+                    [1, 0]
+                } {
+                    let mode = if index == 0 {
+                        knowledge::SelectionMode::DirectOnly
+                    } else {
+                        knowledge::SelectionMode::GraphGuided
+                    };
+                    let start = Instant::now();
+                    let graph = knowledge::build(conn, &knowledge::ZoomOptions::default()).unwrap();
+                    let output =
+                        knowledge::select_compact_controlled(&graph, &options, &candidates, mode);
+                    times[index].push(u64::try_from(start.elapsed().as_micros()).unwrap());
+                    outputs[index].push(match output {
+                        Ok(output) => score_compact(conn, &output, case, originals),
+                        Err(error) => json!({"status":"error","error":error.to_string()}),
+                    });
+                }
+            }
+            let [direct, graph] = outputs;
+            let [direct_times, graph_times] = times;
+            let direct = aggregate_repeats(direct, direct_times);
+            let graph = aggregate_repeats(graph, graph_times);
+            let delta = |pointer: &str| -> Value {
+                match (
+                    graph.pointer(pointer).and_then(Value::as_i64),
+                    direct.pointer(pointer).and_then(Value::as_i64),
+                ) {
+                    (Some(g), Some(d)) => json!(g - d),
+                    _ => Value::Null,
+                }
+            };
+            measurements.push(json!({"case_id":case.id,"max_tokens":budget,
+                "graph_minus_direct":{
+                    "complete_conditions_retained":delta("/result/scores/complete_critical_condition_recall/retained"),
+                    "whole_output_tokens":delta("/result/output/complete_cli_tokens"),
+                    "median_elapsed_us":delta("/median_elapsed_retrieval_us")},
+                "direct_only":direct,"graph_guided":graph}));
+        }
+    }
+    // Retain cold population and validated replay costs; never present the warm
+    // selection as if the source/graph preparation had been free.
+    let cache = tempfile::tempdir().unwrap();
+    let mut cache_samples = Vec::new();
+    for repeat in 0..REPEATS {
+        let path = cache.path().join(format!("sample-{repeat}"));
+        let start = Instant::now();
+        let cold =
+            knowledge::build_cached(conn, &knowledge::ZoomOptions::default(), &path).unwrap();
+        let cold_us = start.elapsed().as_micros();
+        let start = Instant::now();
+        let replay =
+            knowledge::build_cached(conn, &knowledge::ZoomOptions::default(), &path).unwrap();
+        let replay_us = start.elapsed().as_micros();
+        assert_eq!(
+            serde_json::to_value(&cold.graph).unwrap(),
+            serde_json::to_value(&replay.graph).unwrap()
+        );
+        cache_samples.push(json!({"cold_population_us":cold_us,"validated_replay_us":replay_us,"cold_plus_replay_us":cold_us+replay_us,"refresh":replay.refresh}));
+    }
+    json!({
+        "comparison":"causal_graph_ordering_and_navigation_ablation",
+        "candidate_ids":candidates,"candidate_digest":util::json_digest(&json!(candidates)).unwrap(),
+        "common_work":"Both arms load and validate the same source graph before selection. This isolates the effect of using graph ranking/navigation, not the hypothetical cost of removing graph construction.",
+        "timing_scope":"Full common graph build/validation plus controlled compact selection; tokenizer initialized; disk/SQLite caches uncontrolled.",
+        "changed_variable":"SelectionMode only", "gold_used_as_candidates":false,
+        "measurements":measurements,"graph_cache_cost_samples":cache_samples,
+    })
+}
+
 fn comparison(conn: &Connection, cases: &[QueryCase], classification: &str) -> Value {
     conn.execute_batch("SAVEPOINT independent_zoom_comparison")
         .unwrap();
@@ -629,6 +945,9 @@ fn comparison(conn: &Connection, cases: &[QueryCase], classification: &str) -> V
             measurements.push(json!({"case_id": case.id, "query": case.query, "max_tokens": budget, "flat_direct": arms[0], "knowledge_zoom": arms[1]}));
         }
     }
+    let compact_operational = compact_comparison(conn, cases, &originals);
+    let graph_ablation = causal_ablation(conn, cases, &originals);
+    let mandatory_v1_payloads = mandatory_v1_payloads(conn, cases, &originals);
     let logged_after: u64 = conn
         .query_row("SELECT count(*) FROM model_calls", [], |r| r.get(0))
         .unwrap();
@@ -639,7 +958,7 @@ fn comparison(conn: &Connection, cases: &[QueryCase], classification: &str) -> V
     conn.execute_batch("RELEASE independent_zoom_comparison")
         .unwrap();
     json!({
-        "schema_version": 1,
+        "schema_version": 2,
         "measurement_classification": classification,
         "package_version": env!("CARGO_PKG_VERSION"),
         "build": {
@@ -649,6 +968,7 @@ fn comparison(conn: &Connection, cases: &[QueryCase], classification: &str) -> V
             "source_digests": {
                 "tests/knowledge_zoom_comparison.rs": util::digest(include_str!("knowledge_zoom_comparison.rs")),
                 "tests/common/mod.rs": util::digest(include_str!("common/mod.rs")),
+                "tests/common/zoom_source_corpus.rs": util::digest(include_str!("common/zoom_source_corpus.rs")),
                 "src/context.rs": util::digest(include_str!("../src/context.rs")),
                 "src/context/retrieval.rs": util::digest(include_str!("../src/context/retrieval.rs")),
                 "src/knowledge.rs": util::digest(include_str!("../src/knowledge.rs")),
@@ -657,6 +977,7 @@ fn comparison(conn: &Connection, cases: &[QueryCase], classification: &str) -> V
                 "src/knowledge/graph/reuse.rs": util::digest(include_str!("../src/knowledge/graph/reuse.rs")),
                 "src/knowledge/graph/summary.rs": util::digest(include_str!("../src/knowledge/graph/summary.rs")),
                 "src/knowledge/selection.rs": util::digest(include_str!("../src/knowledge/selection.rs")),
+                "src/knowledge/compact.rs": util::digest(include_str!("../src/knowledge/compact.rs")),
                 "src/storage.rs": util::digest(include_str!("../src/storage.rs")),
                 "Cargo.lock": util::digest(include_str!("../Cargo.lock")),
             },
@@ -674,8 +995,64 @@ fn comparison(conn: &Connection, cases: &[QueryCase], classification: &str) -> V
         "new_logged_model_calls": logged_after - logged_before,
         "sqlite_changes": conn.total_changes() - changes_before,
         "measurements": measurements,
+        "compact_operational": compact_operational,
+        "graph_ablation": graph_ablation,
+        "mandatory_v1_payload_measurements": mandatory_v1_payloads,
         "interpretation": "synthetic or annotated-registry retrieval diagnostics; no latency threshold, superiority assertion, semantic-accuracy score or measured human learning outcome",
     })
+}
+
+/// These are regression assertions on independently authored bundled gold, not
+/// an assertion that an arbitrary caller's project or a graph is superior.
+fn assert_compact_condition_regressions(report: &Value, required_complete: &[&str]) {
+    let compact = report["compact_operational"]["measurements"]
+        .as_array()
+        .unwrap();
+    for id in required_complete {
+        assert!(
+            compact.iter().any(|row| row["case_id"] == *id),
+            "missing required regression case {id}"
+        );
+    }
+    for row in report["measurements"].as_array().unwrap() {
+        let matching: Vec<_> = compact
+            .iter()
+            .filter(|candidate| {
+                candidate["case_id"] == row["case_id"]
+                    && candidate["max_tokens"] == row["max_tokens"]
+            })
+            .collect();
+        assert_eq!(matching.len(), 1);
+        let output = &matching[0]["knowledge_zoom_compact"]["result"];
+        assert_ne!(output["status"], "error");
+        let direct = &row["flat_direct"]["result"]["scores"]["complete_critical_condition_recall"];
+        let selected = &output["scores"]["complete_critical_condition_recall"];
+        assert_eq!(selected["expected"], direct["expected"]);
+        assert!(
+            selected["retained"].as_u64().unwrap() >= direct["retained"].as_u64().unwrap(),
+            "compact Zoom lost a complete critical condition retained by flat: {} at {} tokens",
+            row["case_id"],
+            row["max_tokens"]
+        );
+        let direct_missing = direct["missing_ids"].as_array().unwrap();
+        assert!(
+            selected["missing_ids"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .all(|id| direct_missing.contains(id)),
+            "compact Zoom substituted a different condition for one previously retained by flat: {} at {} tokens",
+            row["case_id"],
+            row["max_tokens"]
+        );
+        if required_complete.contains(&row["case_id"].as_str().unwrap()) {
+            assert_eq!(
+                selected["retained"], selected["expected"],
+                "required complete conditions missing: {} at {} tokens",
+                row["case_id"], row["max_tokens"]
+            );
+        }
+    }
 }
 
 fn save_if_requested(report: &Value) {
@@ -844,6 +1221,17 @@ fn check_manifest_scorer_rejections(conn: &Connection) {
             "/nodes/0/summary_knowledge_ids",
             json!(["k_not_in_this_registry"]),
         ),
+        ("/knowledge/0/lifecycle", json!("proposed")),
+        ("/knowledge/0/scope", json!("changed scope")),
+        (
+            "/knowledge/0/statement",
+            json!("A shortened rule without its qualifications."),
+        ),
+        ("/relations", json!([])),
+        (
+            "/evidence/0/source_revision_id",
+            json!("historical-unrelated-revision"),
+        ),
     ] {
         let mut altered = original.clone();
         *altered.pointer_mut(pointer).unwrap() = corrupted;
@@ -852,6 +1240,29 @@ fn check_manifest_scorer_rejections(conn: &Connection) {
             "independent scorer accepted mutation at {pointer}"
         );
     }
+    let case = fixture_cases(conn)
+        .into_iter()
+        .find(|case| case.id == "documented_disagreement")
+        .unwrap();
+    let mut compact = knowledge::explore_compact(
+        conn,
+        &ExploreOptions {
+            query: case.query.clone(),
+            max_tokens: 8_000,
+            ..ExploreOptions::default()
+        },
+    )
+    .unwrap();
+    compact.max_tokens = 512;
+    compact.used_tokens = 512;
+    assert!(context::count_tokens(&serde_json::to_string(&compact).unwrap()) > compact.max_tokens);
+    assert!(
+        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            score_compact(conn, &compact, &case, &originals)
+        }))
+        .is_err(),
+        "independent scorer trusted understated tokens on an oversized response"
+    );
 }
 
 #[tokio::test]
@@ -902,6 +1313,14 @@ async fn measured_flat_direct_and_zoom_on_the_same_compiled_fixture() {
     let conn = storage::read_only(&database).unwrap();
     let cases = fixture_cases(&conn);
     let mut report = comparison(&conn, &cases, "synthetic_diagnostic_compiled_fixture");
+    assert_compact_condition_regressions(
+        &report,
+        &[
+            "capacity_with_rare_exception",
+            "future_scope",
+            "documented_disagreement",
+        ],
+    );
     check_manifest_scorer_rejections(&conn);
     for row in report["measurements"]
         .as_array()
@@ -920,7 +1339,7 @@ async fn measured_flat_direct_and_zoom_on_the_same_compiled_fixture() {
     assert_eq!(bytes_before, fs::read(&database).unwrap());
     assert!(!config.state.join("knowledge-zoom").exists());
     report["fixture_ingestion"] = json!({"model": "common::FakeModel", "calls_excluded_from_retrieval": calls_before, "provider_requests": 0, "source_documents": 12});
-    report["scorer_negative_probes"] = json!({"source_revision_digest": "rejected", "embedded_evidence_activity": "rejected", "relation_witness_id": "rejected", "relation_endpoint_id": "rejected", "summary_original_reference": "rejected", "unmeasured_validation_retrieval_calls": 1});
+    report["scorer_negative_probes"] = json!({"source_revision_digest": "rejected", "embedded_evidence_activity": "rejected", "relation_witness_id": "rejected", "relation_endpoint_id": "rejected", "summary_original_reference": "rejected", "accepted_to_proposed": "rejected", "scope": "rejected", "shortened_qualified_statement": "rejected", "removed_relation_manifest": "rejected", "unrelated_historical_revision": "rejected", "oversized_response_with_understated_tokens": "rejected", "manifest_mutations_rejected": 10, "budget_mutations_rejected": 1, "unmeasured_validation_retrieval_calls": 2});
     report["registry_bytes_unchanged"] = json!(true);
     save_if_requested(&report);
 }

@@ -7,9 +7,9 @@
 | Flat/direct | `context::build_context` | Deterministic lexical and recorded-relationship retrieval, source resolution, complete-response packing |
 | Knowledge Zoom | `knowledge::explore` | The same direct candidate substrate, a fresh documentary graph build and validation, cross-level selection, source resolution, complete-response packing |
 
-This is an actual retrieval comparison. The default corpus is a **synthetic diagnostic fixture** compiled through the ordinary update engine with `tests/common::FakeModel`. It does not measure inference quality, human comprehension, learning transfer or coding outcomes. There is no assertion that either arm must have better recall, smaller output or lower latency.
+This is an actual retrieval comparison. The default corpus is a **synthetic diagnostic fixture** compiled through the ordinary update engine with `tests/common::FakeModel`. It does not measure inference quality, human comprehension, learning transfer or coding outcomes. The 0.7 regression gate requires compact Zoom to preserve the critical conditions that flat retrieval retains and all three documented constrained-budget failures. It does not require graph superiority or lower latency.
 
-The default test creates twelve documents in a temporary project, compiles the registry, and runs eight hand-authored query cases at 1,500 and 8,000 tokens. Each arm runs three times per case and budget: 96 measured calls in total. Cases cover an exact original ID, exact symbol, exact source path, capacity changes with a rare exception, conceptual orientation, an explicitly proposed change, a documented disagreement with its original relationship witness, and an identifier absent from the fixture. One additional unmeasured retrieval supplies a real response for deliberate scorer-corruption probes.
+The synthetic test creates twelve documents in a temporary project, compiles the registry, and runs eight hand-authored query cases at 1,500 and 8,000 tokens. Each arm runs three times per case and budget: the original operational comparison still makes 96 measured calls. The 0.7 extension adds 48 public compact calls and 96 controlled-ablation calls, plus separate graph-cache measurements and two unmeasured validation retrievals. Cases cover an exact original ID, exact symbol, exact source path, capacity changes with a rare exception, conceptual orientation, an explicitly proposed change, a documented disagreement with its original relationship witness, and an identifier absent from the fixture. The same test target also runs the separate 24-case, three-repository source corpus described below.
 
 ## Run the bounded fixture
 
@@ -51,7 +51,7 @@ Each successful response is checked independently of the graph validator. Every 
 
 Documentary relation objects are compared with the registry's original relation facts, including their source witnesses. Both endpoints and the witness must be present in the result. Zoom's full original-record object is compared with the retained record, including embedded evidence metadata and its current/historical flag. Source-revision digests, paths, status and roots are checked directly against stored revisions and **revision-specific captured provenance**; the manifest must exactly cover the returned evidence revisions. Summary knowledge IDs must resolve to selected originals, and the quoted original statements and qualifications must be present. Displayed navigation-edge endpoints must be present. These checks verify reference integrity and extractive retention, not the semantic quality of grouping or the truth of arbitrary prose.
 
-Before saving a synthetic report, the harness corrupts a real returned source-revision digest, flips an embedded evidence activity flag, invents a relation witness and endpoint, and invents a summary reference. The independent checker must reject each mutation even though unaffected top-level evidence snapshots remain intact. The report records these probes and the number of relation witnesses, embedded evidence records, source revisions and summary references actually checked.
+Before saving a synthetic report, the harness corrupts a real returned source-revision digest, flips an embedded evidence activity flag, invents a relation witness and endpoint, invents a summary reference, changes lifecycle and scope, shortens a qualified statement, removes the relation manifest, and substitutes an unrelated historical revision. All ten manifest mutations must fail. An eleventh probe inflates an actual compact response while falsely understating its used tokens. The whole-output budget check must reject it. These probes deliberately catch validator panics; with `--nocapture`, an expected caught assertion can appear in the log while the test still passes. The report records the probes and the relation witnesses, embedded evidence records, source revisions and summary references actually checked.
 
 Recall is a **retention measurement for the supplied gold set**, not semantic truth. The fixture model mechanically assigns its declared type and lifecycle and uses a default `production` scope. Literal staging and future-intent qualifications remain in the original statements. This controlled fixture does not test whether a real extraction model chose the right labels.
 
@@ -61,7 +61,7 @@ An empty gold set has a `null` recall fraction, not a perfect score. The absent-
 
 Timing starts immediately before each retrieval call and stops when it returns. It excludes fixture compilation, independent citation scoring, report construction and report-file writing. The entry points' own token counting and packing remain included. Both arms bypass derived caches. Zoom's fresh full graph build and validation are therefore part of its time, and the comparison does not claim incremental graph-cache speed.
 
-This compares **complete public entry points**, not an isolated graph ablation. The entry points differ in identifier handling, candidate selection, conservative condition grouping, manifests and presentation overhead. A recall difference cannot be attributed solely to DAG structure. For example, an exact stored ID may be supported by one entry point without being a searchable task term in the other.
+The original `measurements` section compares **complete public entry points**. The entry points differ in identifier handling, candidate selection, condition grouping, manifests and presentation overhead. A recall difference there cannot be attributed solely to DAG structure. For example, an exact stored ID may be supported by one entry point without being a searchable task term in the other. The separate `graph_ablation` section in 0.7 controls candidates, obligation closure, compact schema and packing; its narrower interpretation is described below.
 
 The embedded tokenizer is initialized before timing. Arm order alternates by case and repeat. SQLite and operating-system page caches remain uncontrolled; these are not cold-cache measurements. Three repeats show local variation but do not establish a robust latency distribution. The report records the build profile, OS, architecture, relevant compiled source digests, dependency lockfile digest, retained source inventory and registry revision. Temporary paths, timestamps and generated IDs differ across independent fixture compilations; compare source content digests and case definitions before treating runs as comparable.
 
@@ -137,8 +137,157 @@ LORE_ZOOM_COMPARISON_OUTPUT=/absolute/new-zoom-comparison.json \
   measured_existing_compiled_project -- --ignored --exact --nocapture
 ```
 
-The harness rejects unknown gold IDs, duplicated case names or expected IDs, and critical text or qualifications that disagree with the selected registry. It accepts at most 16 cases, four budgets per case, 128 required knowledge IDs and evidence IDs per case, 5,000 current registry records and 32 MiB of retained evidence text. The case file is capped at 256 KiB. All calls run under one SQLite read snapshot, so both arms see the same compiled inputs even if another process later publishes new project data.
+The harness rejects unknown gold IDs, duplicated case names or expected IDs, and critical text or qualifications that disagree with the selected registry. It accepts at most 96 cases, five budgets per case, 128 required knowledge IDs and evidence IDs per case, 5,000 current registry records and 32 MiB of retained evidence text. The case file is capped at 256 KiB. All calls run under one SQLite read snapshot, so both arms see the same compiled inputs even if another process later publishes new project data.
 
 Reports include the selected source inventory, original IDs and full gold conditions. Keep the output in a location appropriate for the selected project. Native import observations may occupy space in direct context, but the current Zoom graph organizes documentary knowledge; this scorer evaluates documentary records only. Include that difference when designing real tasks and interpreting recall or output size. Projects without independently reviewed gold cases can supply descriptive timing and output-size observations, but not a reviewed completeness score.
 
 No real-project, real-model or human-learning result is implied by the bundled synthetic run. Preserve separate reports for any such measurements, with the reviewed case manifest and exact build identity.
+
+## 0.7 controlled comparison and reviewed regression corpus
+
+The 0.7 harness retains the original flat/schema-1 comparison and adds two
+separate measurements. `compact_operational` calls the public schema-2 compact
+entry point. `graph_ablation` supplies **every original candidate**, never the
+gold answer set, to `select_compact_controlled` under `DirectOnly` and
+`GraphGuided`. Both modes share the exact candidate digest, required documentary
+closure, compact output schema, token limit and whole-response packer. The
+controlled change is graph ordering and optional navigation.
+
+The legacy flat/schema-1 arms alternate within their measurement block. The
+public compact arm runs in a separate later block, followed by the controlled
+ablation, whose two arms also alternate. Compact-versus-legacy elapsed times are
+therefore descriptive comparisons of separate blocks, not an interleaved
+three-arm timing experiment. The paired graph/direct timing deltas below come
+from the controlled ablation.
+
+Both controlled arms build and validate the same graph as common setup. This
+isolates the effect of ordering/navigation; it is **not** a graph-free total-cost
+comparison. The operational measurements separately charge full uncached graph
+construction. `graph_cache_cost_samples` retains three cold population and
+validated replay samples, their sum, and the actual reuse/validation counters.
+Graph construction is never hidden by timing only selection. Each compact arm
+retains all three samples, p50 and p95. With three observations the reported p95
+is the sample maximum, not a reliable population tail estimate. Filesystem and
+SQLite page caches remain uncontrolled.
+
+The independent `mandatory_v1_payload_measurements` constructs exact gold
+critical originals, all required documentary relation endpoints and witnesses,
+and original revision provenance. It removes optional navigation and records
+compact JSON, pretty JSON, portable Markdown and schema-1 reservation costs.
+Metadata numeric widths are reserved. This measures a **canonical schema-1
+payload containing mandatory evidence** with optional summaries and warnings
+removed; it is not a mathematical lower bound for every possible encoding.
+In particular, normalized schema 2 can fit evidence that the repeated schema-1
+envelope cannot. An impossible schema-1 payload remains a limitation; it is never
+scored as a retained condition.
+
+### Source pins and review
+
+The [manifest](corpora/zoom-reviewed-v1/manifest.json) contains eight exact
+documentary cases from each of three public projects, with upstream paths,
+line spans, full excerpts, source digests and explicit critical qualifications:
+
+| Project | Pinned commit | Cases |
+| --- | --- | ---: |
+| ripgrep | `3fce3b5bb0236da2df6d99672afb8a719642eca7` | 8 |
+| fd | `14dcd92fb76ca0ebc2e82671a275f67c790d25fc` | 8 |
+| jq | `b904884b94ca48e025a12697ab172711e6c134d8` | 8 |
+
+The manifest SHA-256 is
+`8ea3a80daa703deced518119261810a215cb295826c2279865aa06a079bc0088`.
+The [review capture](corpora/zoom-reviewed-v1/review.json) binds that exact
+manifest. A separate AI engineering reviewer checked every quotation, upstream
+locator and query qualification without inspecting selector outputs. This is
+an independent source review within the implementation session, **not** an
+independent human study. Its findings were corrected before final measurement.
+
+These cases exposed option/path tokenization, acronym dependency and relevance
+ranking defects, so the final corpus is **development/regression gold**, not an
+unseen holdout. The 24 source cases principally cover documented current rules,
+exceptions and unrelated noise. Separate synthetic and Rust tests cover exact
+original IDs, proposals, historical transitions, relation witnesses, withdrawals
+and multiple-parent navigation; those dimensions are not all independently
+represented in the three-project documentary set.
+
+Exact excerpts are compiled through the ordinary update engine by a deterministic
+capture adapter. Provider requests are zero. The test checks the bundled excerpt
+digests, declared commit format and binding between the manifest and review
+receipt, then validates returned records/revisions directly against the compiled
+registry. Verification against complete upstream files and line spans is recorded
+in the separate source-review receipt; the test does not fetch upstream commits.
+It does not test a real extraction model, upstream executable behavior, human
+navigation utility or coding success.
+
+### Recorded reviewed results
+
+The [dated raw report](results/knowledge-zoom-07-reviewed-2026-10-10.json) contains
+three complete per-project reports. There are 720 timed retrieval calls across
+the original comparison, public compact response and controlled ablation, plus
+separate graph-cache measurements. All returned evidence and token checks pass,
+and every result reports zero retrieval model calls.
+
+| Budget | Flat complete critical cases | Schema-1 Zoom | Compact schema-2 Zoom |
+| --- | ---: | ---: | ---: |
+| 1,500 | 23 / 24 | 17 / 24 | 24 / 24 |
+| 8,000 | 24 / 24 | 24 / 24 | 24 / 24 |
+
+Each case has one independently specified complete statement with its original
+kind, lifecycle, scope and qualifications. A full critical score does not mean
+all otherwise relevant material fits: compact responses can correctly retain
+the gold condition and still report partial coverage. Schema 1 is preserved
+for compatibility and still has envelope/selection limitations even when the
+canonical gold-only payload is feasible. `--compact` is explicit.
+
+The controlled arms retained the same required critical conditions in all 48
+case/budget pairs. Graph ordering/navigation added a median **41.5 tokens** and
+**34.14 ms** at 1,500 tokens, and **1,933.5 tokens** and **146.67 ms** at 8,000.
+These are medians of paired per-case differences in this debug Linux run.
+There is **no measured graph-induced critical-recall advantage** here. The new
+selector limits mandatory evidence closure to applicable conditions and
+documentary dependencies, then packs complete support before navigation. Graph
+membership is only the final relevance tie-breaker; it cannot remove original
+candidates or turn topic membership into a mandatory evidence group. Callers
+explicitly choose `lore explore` for navigation, and this result does not promote
+it over the existing context path or change defaults. The retention improvements
+support the condition grouping, ranking and compact packing changes, not a claim
+that graph guidance caused the gains. Human navigation utility remains `null`.
+
+Retain a new reviewed report with:
+
+```sh
+LORE_ZOOM_REVIEWED_OUTPUT=/absolute/new-reviewed-report.json \
+  cargo test --locked --test knowledge_zoom_comparison \
+  source_corpus::measured_source_pinned_three_repository_cases -- --exact
+```
+
+The [focused replay](../tests/knowledge_zoom_reviewed.rs) rechecks all 24
+unchanged conditions at 1,500 tokens without timing repeats. It complements,
+and does not replace, the full raw report and causal comparison.
+
+### Reproduce the same baseline registry
+
+The [frozen synthetic fixture](corpora/zoom-frozen-v1/README.md) includes the exact
+public synthetic SQLite bytes, twelve authored sources and eight gold cases
+captured at baseline commit `6f4898bf1d6e0dc135a24ef792921c3d98af2c24`.
+Its decoded database SHA-256 is
+`6ff2b2b328b65af775902512350ce3125083d2e6441849258ca7757b8248da55`.
+The restoration tool validates every source and database digest, refuses an
+existing destination, and writes a provider-disabled portable configuration.
+Do not run `lore update` before comparison: the purpose is to reuse identical
+compiled originals, IDs and source revisions.
+
+```sh
+python evaluation/restore_zoom_fixture.py --output /tmp/lore-07-frozen
+LORE_ZOOM_COMPARISON_CONFIG=/tmp/lore-07-frozen/lore.yml \
+LORE_ZOOM_COMPARISON_CASES=/tmp/lore-07-frozen/cases.json \
+LORE_ZOOM_COMPARISON_OUTPUT=/tmp/new-frozen-comparison.json \
+  cargo test --locked --test knowledge_zoom_comparison \
+  measured_existing_compiled_project -- --ignored --exact
+```
+
+The [baseline capture](results/knowledge-zoom-07-baseline-frozen-2026-10-10.json)
+and [0.7 replay](results/knowledge-zoom-07-after-frozen-2026-10-10.json) use that
+same registry. The earlier October 9 report remains unchanged; its separately
+generated UUIDs affect tight packing and it must not be substituted for this
+matched baseline. The [release scorecard](PRODUCT_QUALITY_07.md) records the
+matched outcomes, source/build provenance, artifact digests and limitations.

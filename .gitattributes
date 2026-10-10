@@ -1,3 +1,9 @@
 # OpenWiki Claims pageVersion hashes the exact Markdown bytes. Preserve fixture
 # bytes on Windows as well as Unix so a checkout cannot invalidate provenance.
 evaluation/corpora/cross-source/** -text
+# The reviewed retrieval excerpts and public coding snapshots bind exact UTF-8
+# bytes to upstream source and checker identities on all supported platforms.
+evaluation/corpora/zoom-reviewed-v1/** -text
+evaluation/corpora/zoom-frozen-v1/** -text
+evaluation/corpora/coding-real-v1/** -text
+evaluation/corpora/guardian/** -text
