@@ -1,4 +1,5 @@
 """The matched baseline fixture retains exact bytes and rejects changed inputs."""
+from contextlib import closing
 import hashlib
 import json
 from pathlib import Path
@@ -20,7 +21,8 @@ class RetainedFixtureTests(unittest.TestCase):
             data = (output / ".lore/state.db").read_bytes()
             self.assertEqual(hashlib.sha256(data).hexdigest(), result["registry_sha256"])
             self.assertEqual(result["provider_calls"], 0)
-            with sqlite3.connect(output / ".lore/state.db") as connection:
+            # SQLite's transaction context manager does not close its file handle.
+            with closing(sqlite3.connect(output / ".lore/state.db")) as connection:
                 self.assertEqual(connection.execute("PRAGMA integrity_check").fetchone()[0], "ok")
                 self.assertEqual(connection.execute("SELECT count(*) FROM knowledge_current").fetchone()[0], 12)
             self.assertEqual(len(json.loads((output / "cases.json").read_text())), 8)
