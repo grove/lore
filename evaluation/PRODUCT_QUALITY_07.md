@@ -78,6 +78,11 @@ closes its SQLite handle before temporary-directory cleanup. These changes prese
 the production verifier and all frozen evidence bytes; final platform CI covers
 the corrected fixtures. The integrated Python suite passed again after these
 changes: 174 tests in 127.700 seconds; the dated receipt retains both runs.
+A later [guardian fixture portability check](results/guardian-portability-2026-10-10.json)
+resolves newly allocated temporary roots before constructing captures. All 28
+guardian tests pass both normally and through an actual symlinked temporary root,
+including the unchanged source-symlink rejection test. This postdates the local
+174-test receipt; final platform CI covers the complete corrected tree.
 
 ## #33 — Frozen tight-budget regressions
 
@@ -380,3 +385,4 @@ does not convert its failed source-integrity observations into successful runs.
 | [Publication-content audit](results/guardian-debug-2026-10-10/publication-audit.json) | `c27517499bba32eb45ab4d4c0f78a78e547bf015e3b1dfb1fde89bb7b3af2e1f` |
 | [Publication verifier](audit_guardian_publication.py) | `45fa47ad014015ac2fa84c07310d0f4e4cb287f65a4f7829cc0586e06d1ecfa4` |
 | [Integrated engineering receipt](results/release-07-engineering-2026-10-10.json) | `56c92041c784da06797b68298dd8caea2a6e304cb72bdac5e99b7922b06f5045` |
+| [Guardian fixture portability](results/guardian-portability-2026-10-10.json) | `31e0a3828d694a5300e9730f706db084e443eb5cb83ad713eab6554d307f6081` |

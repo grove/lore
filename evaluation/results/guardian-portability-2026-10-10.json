@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-10",
+  "classification": "engineering_portability_regression",
+  "test_file": "evaluation/tests/test_guardian_longitudinal.py",
+  "test_file_sha256": "e34c7059f04b2c48915328fbc62b574b9d05879d078446097347fa068f7eb8cd",
+  "failed_ci_run": "https://github.com/grove/lore/actions/runs/38071331168",
+  "failed_job": "https://github.com/grove/lore/actions/runs/38071331168/job/114269171591",
+  "observed_failure": "13 macOS guardian-fixture errors: the trusted TemporaryDirectory parent passed through /var, correctly rejected by the production symlink guard.",
+  "change": "Resolve each newly allocated trusted temporary root before constructing fixture paths. Production symlink/integrity checks and all test assertions remain unchanged.",
+  "command": "python3 -m unittest discover -s evaluation/tests -p test_guardian_longitudinal.py -v",
+  "symlinked_method": "Run the same suite with TMPDIR set to an actual symlink to a fresh temporary directory; independently probe that Python creates its temporary path through the alias before starting the suite.",
+  "runs": [
+    {
+      "mode": "normal",
+      "tests_passed": 28,
+      "tests_failed": 0,
+      "exit_code": 0,
+      "wall_seconds": 0.57425,
+      "unittest_summary": [
+        "Ran 28 tests in 0.456s",
+        "OK"
+      ],
+      "temporary_parent_is_symlink": false,
+      "temporary_path_differs_from_canonical": false,
+      "log_bytes": 5383,
+      "log_sha256": "f0b54217c3c6d8046928e1e8817d4094c80894fa6554318f88eed3b858f7066a"
+    },
+    {
+      "mode": "symlinked",
+      "tests_passed": 28,
+      "tests_failed": 0,
+      "exit_code": 0,
+      "wall_seconds": 0.618562,
+      "unittest_summary": [
+        "Ran 28 tests in 0.497s",
+        "OK"
+      ],
+      "temporary_parent_is_symlink": true,
+      "temporary_path_differs_from_canonical": true,
+      "log_bytes": 5383,
+      "log_sha256": "7cfbb5970362667a1831ba2a66b54db84fa4fa25d38ec2e6b31d0d1de0e19757"
+    }
+  ],
+  "existing_source_symlink_rejection_test_passed_in_both_modes": true,
+  "original_verification_receipt_sha256": "0f5b2d347798c90f98cda7f30356645610a4ec00bbb53bb2d6b29801b68f887d",
+  "raw_guardian_artifacts_unchanged": {
+    "captures.zip": "79abc6eb8809010d46b2dc4ed9d3e00320b4adff3a804f896515f5d10cac06cf",
+    "summary.json": "d6ba68605d684b69787c0e848533b43945cb6b3799481e89a19b66c4dcf32422",
+    "source-integrity-failures.json": "2ed15700e8ee56a966997f912195c129029c51304859a4deddd053ce221e64b6",
+    "README.md": "648f4b050e14bbdfe4c47384ce1addbb8b88563a2ac5570ca1ac3edb0cbe98c4"
+  },
+  "limits": "These are 28 engineering tests repeated under two filesystem conditions. They do not establish real-model or human outcomes, guardian alert quality, or an execution/egress audit. The full 174-test local Python receipt predates this test-only correction; final integrated three-platform CI remains required."
+}
