@@ -17,13 +17,21 @@ import experiment_08 as experiment
 import outcome_protocol as outcome
 import test_experiment_08 as fixtures
 import test_codex_agent as doubles
+import test_decision_task_intake_09 as intake_fixtures
+import shutil
 
 
 @unittest.skipUnless(os.name == "posix", "Sealed live execution requires the private POSIX runner")
 class CodexProtocolTests(unittest.TestCase):
     def bundle(self, root):
         helper = fixtures.StudyPreflightTests()
-        bundle = helper.bundle(root)
+        independent = root / "independent"
+        independent.mkdir()
+        manifest = intake_fixtures.reviewed_fixture(independent)
+        bundle = helper.bundle(root, cases_manifest=manifest)
+        for name in ("DECISION_INTAKE.json", "controls.json"):
+            shutil.copyfile(independent / name, bundle / name)
+        shutil.copytree(independent / "authorship", bundle / "authorship")
         (bundle / "SEAL.json").unlink()
         (bundle / "READINESS.json").unlink()
         args = doubles.fake(root)
@@ -102,9 +110,9 @@ class CodexProtocolTests(unittest.TestCase):
 
     def test_exact_pins_pass_read_only_offline_preflight(self):
         with tempfile.TemporaryDirectory() as temporary:
-            with patch.object(subprocess, "Popen", side_effect=AssertionError("Sealing/inspection launched child")):
-                bundle, _ = self.bundle(Path(temporary).resolve())
-                before = cross.fingerprint(bundle)
+            bundle, _ = self.bundle(Path(temporary).resolve())
+            before = cross.fingerprint(bundle)
+            with patch.object(subprocess, "Popen", side_effect=AssertionError("Inspection launched child")):
                 value = experiment.preflight(bundle)
             self.assertTrue(value["preflight_passed"], value["blockers"])
             self.assertEqual(value["initial_assignments"], 36)

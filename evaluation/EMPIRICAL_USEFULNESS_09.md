@@ -122,3 +122,10 @@ does not authenticate people or make a CLI model flag into backend evidence.
 Offline fixtures exercise this contract and the actual proposal/checker loop,
 including wrong answers and retained timeouts. They establish compatibility,
 never model availability, independence, productivity or release eligibility.
+
+Independent task preparation and author handoff are specified in
+[DECISION_TASK_AUTHORING_09.md](DECISION_TASK_AUTHORING_09.md). Codex sealing
+requires a completed, hash-bound `DECISION_INTAKE.json`; the public restoration
+and decision fixtures cannot pass that intake by relabeling or renaming files.
+Supporting decision documents retain original upstream bytes even if marked
+editable. Capture review still requires actual independent people.
