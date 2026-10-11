@@ -17,6 +17,8 @@ const CSS: &str = include_str!("visualize/assets/style.css");
 const JS: &str = include_str!("visualize/assets/app.js");
 const MAX_REQUEST: usize = 4096;
 const MAX_PAGE: usize = 4_000_000;
+const MAX_SEARCH_TEXT: usize = 64_000;
+const MAX_SEARCH_TOTAL: usize = 2_000_000;
 const MAX_CONNECTIONS: usize = 30_000;
 
 pub struct Viewer {
@@ -73,7 +75,7 @@ impl Viewer {
             "/api/site" | "/api/page" | "/api/concept" | "/api/record" => {
                 let (pages, graph) = self.data()?;
                 let value = match route {
-                    "/api/site" => site(&self.config, &pages, &graph),
+                    "/api/site" => site(&self.config, &pages, &graph)?,
                     "/api/page" => {
                         let id = query_id(query)?;
                         ensure!(pages.contains_key(&id), "unknown published page");
@@ -191,11 +193,29 @@ fn site(
     config: &ResolvedConfig,
     pages: &BTreeMap<String, storage::StoredPage>,
     graph: &knowledge::KnowledgeGraph,
-) -> Value {
+) -> Result<Value> {
     let ids: BTreeSet<_> = pages.keys().cloned().collect();
     let mut page_nodes = Vec::new();
     let mut page_edges = Vec::new();
+    let mut search_remaining = MAX_SEARCH_TOTAL;
+    let mut search_truncated = false;
     for (id, page) in pages.iter().take(600) {
+        let source = util::read_limited(&publish::page_path(&config.wiki, id)?, MAX_PAGE)?;
+        ensure!(
+            util::digest(&source) == page.output_digest,
+            "published page changed during read"
+        );
+        let text = Parser::new(&source)
+            .filter_map(|event| match event {
+                Event::Text(text) | Event::Code(text) => Some(text.to_string()),
+                _ => None,
+            })
+            .collect::<Vec<_>>()
+            .join(" ");
+        let limit = MAX_SEARCH_TEXT.min(search_remaining);
+        let search_text: String = text.chars().take(limit).collect();
+        search_remaining = search_remaining.saturating_sub(search_text.chars().count());
+        search_truncated |= text.chars().count() > limit;
         let title = Path::new(id)
             .file_name()
             .and_then(|name| name.to_str())
@@ -203,23 +223,26 @@ fn site(
             .strip_suffix(".md")
             .unwrap_or(id)
             .replace(['-', '_'], " ");
-        page_nodes.push(json!({"id":id,"title":if id=="index.md" {"Project overview".to_string()} else {title},"kind":"page","summary":page.path}));
-    }
-    let selected: BTreeSet<_> = page_nodes.iter().filter_map(|p| p["id"].as_str()).collect();
-    for id in &selected {
-        if let Ok(source) =
-            util::read_limited(&publish::page_path(&config.wiki, id).unwrap(), MAX_PAGE)
-        {
-            for target in page_links(&source, id, &ids) {
-                if selected.contains(target.as_str()) {
-                    page_edges.push(json!({"source":id,"target":target}));
-                }
-            }
+        page_nodes.push(json!({"id":id,"title":if id=="index.md" {"Project overview".to_string()} else {title},"kind":"page","summary":page.path,"search_text":search_text}));
+        for target in page_links(&source, id, &ids) {
+            page_edges.push(json!({"source":id,"target":target}));
         }
     }
+    let selected: BTreeSet<_> = page_nodes.iter().filter_map(|p| p["id"].as_str()).collect();
+    page_edges.retain(|edge| selected.contains(edge["target"].as_str().unwrap()));
     let mut concepts = Vec::new();
-    for n in graph.nodes.iter().take(400) {
-        concepts.push(json!({"id":n.id,"title":n.title,"kind":n.kind,"summary":n.summary}));
+    for n in graph
+        .nodes
+        .iter()
+        .filter(|node| useful_concept(node))
+        .take(400)
+    {
+        let title = if let Some((subject, _)) = n.title.split_once(" + ") {
+            format!("{subject}: related records")
+        } else {
+            n.title.clone()
+        };
+        concepts.push(json!({"id":n.id,"title":title,"kind":n.kind,"summary":n.summary}));
     }
     let cids: BTreeSet<_> = concepts.iter().filter_map(|c| c["id"].as_str()).collect();
     let concept_edges: Vec<_> = graph
@@ -228,7 +251,11 @@ fn site(
         .filter(|e| cids.contains(e.parent.as_str()) && cids.contains(e.child.as_str()))
         .map(|e| json!({"source":e.parent,"target":e.child}))
         .collect();
-    let decisions: Vec<_> = graph.knowledge.iter().filter(|v| matches!(v.kind.as_str(),"decision"|"constraint"|"proposal"|"risk")).take(300).map(|v| json!({"id":v.id,"title":v.subject,"kind":v.kind,"lifecycle":v.lifecycle,"summary":v.statement})).collect();
+    let decisions: Vec<_> = graph.knowledge.iter().filter(|v| matches!(v.kind.as_str(),"decision"|"constraint"|"proposal"|"risk")).take(300).map(|v| {
+        let evidence = v.evidence.iter().find(|e| e.active).or_else(|| v.evidence.first());
+        let source = evidence.map(|e| format!("{}{}", e.path, e.line_start.map(|line|format!(":{line}")).unwrap_or_default())).unwrap_or_default();
+        json!({"id":v.id,"title":v.subject,"kind":v.kind,"lifecycle":v.lifecycle,"summary":v.statement,"topic_title":v.topic_title,"scope":v.scope,"support_state":v.support_state,"source":source})
+    }).collect();
     let dids: BTreeSet<_> = decisions.iter().filter_map(|d| d["id"].as_str()).collect();
     let decision_edges: Vec<_> = graph
         .relations
@@ -237,20 +264,58 @@ fn site(
         .map(|r| json!({"source":r.from,"target":r.to,"kind":r.kind,"active":r.active}))
         .collect();
     let mut warnings = graph.report.warnings.clone();
+    if search_truncated {
+        warnings
+            .push("Wiki search text is bounded; some page content is omitted from search".into());
+    }
     if pages.len() > 600 {
         warnings.push("Only the first 600 wiki pages are shown".into());
     }
-    if graph.nodes.len() > 400 {
+    let visible_concepts = graph
+        .nodes
+        .iter()
+        .filter(|node| useful_concept(node))
+        .count();
+    if visible_concepts > 400 {
         warnings.push("Concept graph is limited to 400 visible nodes".into());
+    }
+    if visible_concepts < graph.nodes.len() {
+        warnings.push(format!(
+            "{} low-signal concept groupings are hidden; original records remain available",
+            graph.nodes.len() - visible_concepts
+        ));
     }
     if graph.report.truncated {
         warnings.push(
             "Knowledge Zoom reports truncated navigation; use lore explore for details".into(),
         );
     }
-    json!({"project":config.config.project.name,"revision":graph.revision,"pages":page_nodes,"page_edges":page_edges,
+    Ok(
+        json!({"project":config.config.project.name,"revision":graph.revision,"pages":page_nodes,"page_edges":page_edges,
         "concepts":concepts,"concept_edges":concept_edges,"decisions":decisions,"decision_edges":decision_edges,
-        "warnings":warnings,"source_write":false,"model_calls":0})
+        "warnings":warnings,"source_write":false,"model_calls":0}),
+    )
+}
+fn useful_concept(node: &knowledge::ViewNode) -> bool {
+    const LOW_SIGNAL: &[&str] = &[
+        "before",
+        "after",
+        "when",
+        "not",
+        "changing",
+        "handling",
+        "writes",
+        "limit",
+        "attempt",
+        "attempts",
+        "production",
+        "pre",
+    ];
+    node.kind != "concept"
+        || node
+            .title
+            .split(" · ")
+            .any(|term| !LOW_SIGNAL.contains(&term.to_lowercase().as_str()))
 }
 fn page_links(source: &str, current: &str, ids: &BTreeSet<String>) -> Vec<String> {
     let mut out = BTreeSet::new();

@@ -1,4 +1,31 @@
 mod common;
+
+#[tokio::test]
+async fn workflow_topics_route_to_same_source_steps_without_repeating_citation_caveats() {
+    let (_dir, config, model) = common::project();
+    common::put(
+        &config,
+        "runbook.md",
+        "DECISION incident-runbook: Active procedure for the service.\nDECISION charge-processing: Reuse the stable idempotency key.\nDECISION refund-reconciliation: Check unknown outcomes read-only.\n",
+    );
+    lore::engine::update(
+        &config,
+        &model,
+        None,
+        lore::engine::UpdateOptions::default(),
+    )
+    .await
+    .unwrap();
+    let conn = lore::storage::read_only(&config.state.join("state.db")).unwrap();
+    let pages = lore::storage::pages(&conn).unwrap();
+    let page = &pages["topics/incident-runbook.md"].content;
+    assert!(page.contains("More from the same sources"));
+    assert!(page.contains("(charge-processing.md)"));
+    assert!(page.contains("(refund-reconciliation.md)"));
+    assert!(page.contains("no procedure record assigned"));
+    assert!(!page.contains("This says what was written"));
+    assert!(!page.contains("*Recorded decision.*"));
+}
 use common::*;
 use lore::{
     engine::{self, UpdateOptions, UpdateProgress},

@@ -98,6 +98,11 @@ async fn exact_relationship_reviews_resolve_and_withdrawn_evidence_reopens() {
         .unwrap();
     drop(conn);
     let before = fs::read(cfg.wiki.join("reviews.md")).unwrap();
+    let text = std::str::from_utf8(&before).unwrap();
+    assert!(text.contains("Affected topic:"));
+    assert!(text.contains("(topics/ledger.md)"));
+    assert!(text.contains("Review ID: `review_"));
+    assert!(!text.contains("## review_"));
     assert!(
         engine::update(&cfg, &model, None, UpdateOptions::default())
             .await

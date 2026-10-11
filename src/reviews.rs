@@ -465,14 +465,60 @@ pub fn status_block(conn: &Connection) -> Result<String> {
 }
 pub fn page(conn: &Connection) -> Result<storage::StoredPage> {
     let items = list(conn, true)?;
+    let knowledge = if modern(conn)? {
+        storage::views(conn)?
+    } else {
+        vec![]
+    };
     let mut text = String::from(
         "# Review queue and history\n\n[Project overview](index.md)\n\nReviews track uncertainty, not project truth. Resolve or dismiss a queue item only after inspecting its evidence. Human dispositions do not change assertions, documented conflicts, or source snapshots.\n\n",
     );
     for item in &items {
+        let related = knowledge
+            .iter()
+            .filter(|unit| {
+                item.target_unit_id.as_ref() == Some(&unit.id)
+                    || item
+                        .assertion_revision_id
+                        .as_ref()
+                        .is_some_and(|assertion| {
+                            unit.evidence
+                                .iter()
+                                .any(|evidence| evidence.assertion_id == *assertion)
+                        })
+            })
+            .collect::<Vec<_>>();
+        let category = match item.category.as_deref() {
+            Some("ambiguity") => "Ambiguous source reconciliation",
+            Some("conflict") => "Conflicting documentary claims",
+            Some("replacement") => "Decision replacement needs review",
+            Some("reaffirmation") => "Decision reaffirmation needs review",
+            Some("relationship") => "Source relationship needs review",
+            _ => "Evidence needs review",
+        };
+        let title = related
+            .first()
+            .map(|unit| format!("{category}: {}", unit.subject))
+            .unwrap_or_else(|| category.into());
         text.push_str(&format!(
-            "## {} — {}\n\n{}\n\n",
-            item.id,
+            "## {} — {}\n\nInspect the original evidence and source-specific records before recording a disposition.\n\n",
+            util::markdown_text(&title),
             item.status,
+        ));
+        let topics = related
+            .iter()
+            .map(|unit| (&unit.topic, &unit.topic_title))
+            .collect::<BTreeSet<_>>();
+        for (topic, title) in topics {
+            util::safe_slug(topic)?;
+            text.push_str(&format!(
+                "Affected topic: [{}](topics/{topic}.md).\n\n",
+                util::markdown_text(title)
+            ));
+        }
+        text.push_str(&format!(
+            "Review ID: `{}`\n\nRecorded reason: {}\n\n",
+            item.id,
             util::markdown_text(&item.reason)
         ));
         for event in events(conn, &item.id)? {

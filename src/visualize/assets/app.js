@@ -5,7 +5,7 @@
    always inserted using textContent. No external scripts or network calls. */
 const $ = (id) => document.getElementById(id);
 const state = {
-  site: null, mode: "pages", selected: null, search: "", points: [], edges: [],
+  site: null, mode: "pages", selected: null, selections: {}, search: "", points: [], edges: [],
   zoom: 1, panX: 0, panY: 0, drag: null, hovered: null, sequence: 0,
 };
 const canvas = $("graph");
@@ -64,11 +64,22 @@ function connections() {
   if (!state.site) return [];
   return state.site[{pages:"page_edges",concepts:"concept_edges",decisions:"decision_edges"}[state.mode]] || [];
 }
+function searchTerms(value) {
+  return String(value || "").toLocaleLowerCase().replace(/\b([a-z]+)ies\b/g, "$1y").replace(/\b([a-z]{3,})ency\b/g, "$1ent");
+}
 function matches(item) {
-  const q = state.search.toLocaleLowerCase().trim();
-  if (!q) return true;
-  return [item.title, item.summary, item.kind, item.lifecycle, item.id]
-    .some(value => String(value || "").toLocaleLowerCase().includes(q));
+  const terms = searchTerms(state.search).trim().split(/\s+/).filter(Boolean);
+  const text = searchTerms([item.title, item.summary, item.search_text, item.kind, item.lifecycle, item.id].join(" "));
+  return terms.every(term => text.includes(term));
+}
+function searchExcerpt(item) {
+  const text = item.search_text || item.summary || "";
+  const term = searchTerms(state.search).trim().split(/\s+/)[0];
+  if (!term) return "";
+  const match = Array.from(text.matchAll(/\S+/g)).find(word => searchTerms(word[0]).includes(term));
+  if (!match) return "";
+  const start = text.lastIndexOf(" ", Math.max(0, match.index - 45)) + 1;
+  return (start ? "..." : "") + text.slice(start, start + 160) + (text.length > start + 160 ? "..." : "");
 }
 function renderList() {
   const items = $("items");
@@ -77,7 +88,21 @@ function renderList() {
   found.sort((a, b) => titleOrder.compare(a.title, b.title) || a.id.localeCompare(b.id));
   $("list-title").textContent = labels[state.mode];
   $("list-count").textContent = found.length + (found.length !== current().length ? "/" + current().length : "");
+  const groups = new Map();
   for (const item of found) {
+    let container = items;
+    if (state.mode === "decisions") {
+      const title = item.topic_title || "Other records";
+      if (!groups.has(title)) {
+        const group = node("details", "record-group");
+        group.open = found.some(record => (record.topic_title || "Other records") === title && record.id === state.selected);
+        const count = found.filter(record => (record.topic_title || "Other records") === title).length;
+        group.append(node("summary", null, title + " (" + count + " records)"));
+        items.append(group);
+        groups.set(title, group);
+      }
+      container = groups.get(title);
+    }
     const button = node("button", "item" + (item.id === state.selected ? " active" : ""));
     button.type = "button";
     button.dataset.id = item.id;
@@ -87,9 +112,14 @@ function renderList() {
     const body = node("span");
     body.append(node("span", "name", item.title));
     body.append(node("span", "detail", item.lifecycle || item.kind || item.id));
+    if (state.mode === "decisions") {
+      body.append(node("span", "detail", item.source + " · " + (item.support_state === "historical_only" ? "older source" : item.support_state === "current_documentary_support" ? "current source" : item.support_state.replaceAll("_", " "))));
+    }
+    const excerpt = searchExcerpt(item);
+    if (excerpt) body.append(node("span", "detail search-excerpt", excerpt));
     button.append(body);
     button.addEventListener("click", () => select(item.id));
-    items.append(button);
+    container.append(button);
   }
   if (!found.length) items.append(node("p", "item-note", "Nothing matches. Try a different search."));
 }
@@ -255,8 +285,12 @@ function appendEvidence(parent, records) {
     const source=[evidence.root_id,evidence.path].filter(Boolean).join(":");
     const line=evidence.line_start ? " · lines "+evidence.line_start+(evidence.line_end && evidence.line_end !== evidence.line_start ? "–"+evidence.line_end:""):"";
     card.append(node("div","source",source+line));
-    card.append(node("p",null,evidence.excerpt || "No stored excerpt in this record."));
-    const info=node("div","item-note",(evidence.active?"Current supporting source · ":"Historical supporting source · ")+(evidence.id||""));
+    card.append(node("blockquote","source-excerpt",evidence.excerpt || "No stored excerpt in this record."));
+    const info=node("div","item-note",evidence.active?"Current supporting source":"Historical supporting source");
+    const details=node("details","evidence-details");
+    details.append(node("summary",null,"Evidence details"));
+    details.append(node("code",null,evidence.id || "No evidence ID"));
+    card.append(details);
     card.append(info);parent.append(card);
   }
 }
@@ -271,7 +305,13 @@ function addRelations(parent, relations, records) {
     const button=node("button","inline-link",records?.find(record=>record.id===ref)?.title||ref);
     button.addEventListener("click",()=>select(ref));
     row.append(button);wrap.append(row);
-    wrap.append(node("p",null,(rel.active?"Current documentary relation. ":"Historical documentary relation. ")+(rel.evidence_id?"Evidence: "+rel.evidence_id:"")));
+    wrap.append(node("p",null,rel.active?"Current documentary relation":"Historical documentary relation"));
+    if(rel.evidence_id){
+      const details=node("details","evidence-details");
+      details.append(node("summary",null,"Evidence details"));
+      details.append(node("code",null,rel.evidence_id));
+      wrap.append(details);
+    }
     parent.append(wrap);
   }
 }
@@ -281,6 +321,7 @@ async function select(id, updateHistory=true, anchor="") {
   const hash="#"+key+"="+encodeURIComponent(id)+(anchor?"&anchor="+encodeURIComponent(anchor):"");
   if(updateHistory && location.hash!==hash)history.pushState(null,"",hash);
   state.selected=id;
+  state.selections[state.mode]=id;
   const generation=++state.sequence;
   renderList();paint();
   const item=current().find(x=>x.id===id);
@@ -294,12 +335,13 @@ async function select(id, updateHistory=true, anchor="") {
     if(generation!==state.sequence)return;
     const selected=item || {title:data.record.subject,kind:data.record.kind,lifecycle:data.record.lifecycle};
     reset(body);
-    body.append(node("h2","doc-title",selected.title));
-    const caps=node("div");
-    caps.append(pill(selected.kind||state.mode));
-    if(selected.lifecycle)caps.append(pill(selected.lifecycle));
-    body.append(caps);
-    if(state.mode!=="decisions" && selected.summary)body.append(node("p","doc-desc",selected.summary));
+    if(state.mode!=="pages"){
+      body.append(node("h2","doc-title",selected.title));
+      const caps=node("div");
+      caps.append(pill(selected.kind||state.mode));
+      if(selected.lifecycle)caps.append(pill(selected.lifecycle));
+      body.append(caps);
+    }
     if(state.mode==="pages"){
       const holder=node("article","reader-markdown");
       // Sanitized on the server (raw HTML is escaped; dangerous link/image schemes disabled).
@@ -339,7 +381,7 @@ async function select(id, updateHistory=true, anchor="") {
     } else {
       const record=data.record;
       body.append(node("p",null,record.statement));
-      body.append(node("div","item-note","Subject: "+record.subject+" · Scope: "+record.scope+" · Support: "+record.support_state));
+      body.append(node("div","item-note","Scope: "+record.scope+" · "+record.support_state.replaceAll("_"," ")));
       body.append(node("div","evidence-label","Original supporting evidence"));
       appendEvidence(body,record.evidence);
       addRelations(body,data.relations,data.related_records);
@@ -361,10 +403,11 @@ function setMode(mode, selectDefault=true){
     t.classList.toggle("active",chosen);
     t.setAttribute("aria-selected",chosen?"true":"false");
   }
-  $("search").value="";state.search="";
+  $("search").value=state.search;
   renderList();layout();
-  const preferred=mode==="pages"?current().find(p=>p.id==="index.md"):null;
-  if(selectDefault && (preferred || current().length))select((preferred||current()[0]).id);
+  const remembered=current().find(item=>item.id===state.selections[mode] && matches(item));
+  const preferred=remembered || (mode==="pages"?current().find(p=>p.id==="index.md" && matches(p)):null) || current().find(matches);
+  if(selectDefault && preferred)select(preferred.id);
   else {reset($("reader-body"));$("reader-body").append(node("p","item-note","No material in this view."));}
 }
 for(const t of document.querySelectorAll(".tab")) t.addEventListener("click",()=>setMode(t.dataset.mode));
@@ -386,6 +429,16 @@ function restoreRoute(){
 window.addEventListener("popstate",restoreRoute);
 window.addEventListener("hashchange",restoreRoute);
 $("theme").addEventListener("click",()=>{document.documentElement.classList.toggle("light");paint()});
+$("toggle-graph").addEventListener("click",()=>{
+  const pane=$("graph-pane");
+  pane.hidden=!pane.hidden;
+  document.querySelector(".workspace").classList.toggle("reading",pane.hidden);
+  const label=pane.hidden?"Show graph":"Hide graph";
+  $("toggle-graph").setAttribute("aria-expanded",String(!pane.hidden));
+  $("toggle-graph").setAttribute("aria-label",label);
+  $("toggle-graph").title=label;
+  if(!pane.hidden)layout();
+});
 $("refresh").addEventListener("click",()=>loadSite(true));
 async function loadSite(refresh=false){
   try{

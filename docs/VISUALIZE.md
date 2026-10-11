@@ -14,14 +14,18 @@ If startup reports an edited or missing generated page, preserve any edits you n
 The three browser views are:
 
 - **Wiki:** source-checked generated Markdown pages, represented as connected page links. The reader displays citations as numbered notes with readable source locations, suppresses raw HTML and images, and only makes recognized internal Markdown page links clickable.
-- **Concepts:** reuses Lore's existing Knowledge Zoom navigation DAG. Groupings are derived, not accepted architectural decisions. Select a concept to inspect bounded underlying original records and their quoted evidence.
-- **Decisions:** accepted/proposed/withdrawn decision and constraint records, with source evidence and documentary relationship edges. Relationship edges preserve current vs historical status. An incident report never becomes runtime verification.
+- **Concepts:** reuses Lore's existing Knowledge Zoom navigation DAG, hiding low-signal term groupings without deleting underlying records. Groupings are derived, not accepted architectural decisions. Select a concept to inspect bounded underlying original records and their quoted evidence.
+- **Decisions:** accepted/proposed/withdrawn decision and constraint records, grouped by topic in the sidebar. Each source-specific record remains individually selectable, with its scope, support status, evidence and documentary relationship edges. Relationship edges preserve current vs historical status. An incident report never becomes runtime verification.
 
-Search filters the current list and graph. Nodes can be selected through the sidebar (accessible without a mouse), or by click in the interactive graph. Drag to pan; wheel/buttons zoom. The graph is a representation of a **bounded set**, not evidence of all possible project relationships. The snapshot identifier and warning/omission notices describe its version and limits.
+The reader opens with the graph hidden. Use the graph button in the top bar to show or hide it. Search matches titles and bounded wiki body text, displays matching excerpts, and handles simple variants such as "retry" and "retries". The query stays in place when switching views. Nodes can be selected through the sidebar (accessible without a mouse), or by click in the interactive graph. Drag to pan; wheel/buttons zoom. The graph is a representation of a **bounded set**, not evidence of all possible project relationships. The snapshot identifier and warning/omission notices describe its version and limits.
 
 **Freshness:** Press ↻ to reread the published wiki and registry. This does **not** run `lore update`. Run `lore status`, and an independently authorized `lore update` when source documents change. Pending publication, modified generated output, invalid registry state or unsafe paths stop the reader rather than claiming current or complete knowledge. Output preserves documentary/proposal/derived distinctions.
 
 **Limits:** The viewer caps displayed wiki pages at 600, navigation concepts at 400, and decision records at 300; the canvas draws the first 200 per view. A concept's evidence pane shows up to 24 records and reports the number omitted. Knowledge Zoom's existing input/graph limits apply independently, including its record/byte budgets. There is no filesystem URL: endpoints are fixed paths, and page/record IDs must match the previously validated registry. Additional detail is available through `lore explore`, `lore evidence`, `lore decisions`, and the original wiki files.
+
+Wiki search includes at most 64,000 text characters per page and 2,000,000 across the site. A warning reports omitted search content. This limits search coverage, not the pages available to read. Evidence IDs remain available in expandable details.
+
+On the next page regeneration, topics link to other records from the same source documents, workflow-named pages without assigned procedure records report that coverage gap, and identical paragraphs combine their citations. These presentation changes do not merge knowledge records or refresh an existing publication when the viewer reloads.
 
 **No automatic watcher:** The reader reloads on request, rather than polling or running a background filesystem watcher. A read-only public static export or hosted deployment is not implemented.
 

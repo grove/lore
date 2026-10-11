@@ -13,9 +13,9 @@
     <header class="topbar">
       <div class="brand"><span class="brand-icon" aria-hidden="true">✧</span><span>lore</span><span class="brand-dot">/</span><span class="brand-sub">atlas</span></div>
       <div class="top-meta"><span class="local"><span class="live-dot"></span> Local · Read only</span><span class="divider-vert"></span><span id="revision" class="revision" title="Versioned knowledge snapshot">—</span></div>
-      <div class="top-actions"><button id="refresh" class="icon-btn" title="Reload published wiki and knowledge" aria-label="Reload knowledge">↻</button><button id="theme" class="icon-btn" title="Switch theme" aria-label="Switch theme">◐</button></div>
+      <div class="top-actions"><button id="toggle-graph" class="icon-btn" title="Show graph" aria-label="Show graph" aria-expanded="false" aria-controls="graph-pane">⌗</button><button id="refresh" class="icon-btn" title="Reload published wiki and knowledge" aria-label="Reload knowledge">↻</button><button id="theme" class="icon-btn" title="Switch theme" aria-label="Switch theme">◐</button></div>
     </header>
-    <div class="workspace">
+    <div class="workspace reading">
       <aside class="nav">
         <div class="nav-top">
           <div class="eyebrow">PROJECT INTELLIGENCE</div>
@@ -32,7 +32,7 @@
         <div id="items" class="items" role="navigation" aria-label="Knowledge items"></div>
         <div class="nav-footer"><span>Original evidence stays authoritative</span><span class="small-moon">✦</span></div>
       </aside>
-      <main class="graph-pane" aria-label="Interactive knowledge graph">
+      <main id="graph-pane" class="graph-pane" aria-label="Interactive knowledge graph" hidden>
         <div class="graph-head">
           <div><div class="eyebrow" id="graph-eyebrow">CONNECTED KNOWLEDGE</div><h2 id="graph-title">Wiki relationships</h2></div>
           <span id="graph-count" class="graph-count">—</span>

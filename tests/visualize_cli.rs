@@ -43,6 +43,14 @@ async fn viewer_serves_citation_support_and_named_related_records_read_only() {
         );
         let rendered = read_json(&format!("/api/page?id={id}"));
         let html = rendered["html"].as_str().unwrap();
+        let search_text = page["search_text"].as_str().unwrap();
+        assert!(search_text.chars().count() <= 64_000);
+        if html.contains("MySQL") {
+            assert!(search_text.contains("MySQL"));
+        }
+        if html.contains("PostgreSQL") {
+            assert!(search_text.contains("PostgreSQL"));
+        }
         assert!(!html.contains("about:blank"));
         if html.contains("footnote-definition") {
             assert!(html.contains("supporting source"), "{html}");
@@ -54,6 +62,10 @@ async fn viewer_serves_citation_support_and_named_related_records_read_only() {
         .iter()
         .find(|record| record["summary"].as_str().unwrap().contains("PostgreSQL"))
         .unwrap();
+    assert!(decision["topic_title"].is_string());
+    assert!(decision["scope"].is_string());
+    assert!(decision["support_state"].is_string());
+    assert!(decision["source"].as_str().unwrap().contains("ADR-002.md"));
     let record = read_json(&format!(
         "/api/record?id={}",
         decision["id"].as_str().unwrap()
