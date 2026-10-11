@@ -1,0 +1,16 @@
+{
+  "command": [
+    "cargo",
+    "test",
+    "--all-targets",
+    "--locked"
+  ],
+  "source_revision": "3ba498d5ed71fc2e0051b6a2428430f484b55df5",
+  "status": "passed",
+  "passed": 472,
+  "failed": 0,
+  "ignored": 3,
+  "targets": 57,
+  "log_sha256": "5d2e92e87220cdcc54b8a90a1e6012daac99fdc1e85864106334be301af1bc47",
+  "scope": "macOS host run, mock loopback providers only"
+}

@@ -1,0 +1,148 @@
+{
+  "binary_sha256": "b03ed11fba330546d19183db88a1a0591445fbd418d48c689f16ed844d568409",
+  "cases": [
+    {
+      "arguments": [
+        "--json",
+        "context",
+        "Change worker queue capacity",
+        "--max-tokens",
+        "8000",
+        "--fast"
+      ],
+      "case_id": "schema_2",
+      "elapsed_seconds": 0.05590195907279849,
+      "exit_code": 0,
+      "response": "schema_2.json",
+      "response_bytes": 7233,
+      "response_sha256": "eeee6ff4c074469b03c226d8b5c5b7499ce4c2f006b645dd0a818a4e182ab268",
+      "schema_version": 2,
+      "source_and_state_unchanged": true,
+      "source_revision": "cf5a1022097ce0e07853b5e49ecea3c435304936",
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "valid_json": true
+    },
+    {
+      "arguments": [
+        "--json",
+        "context",
+        "Change worker queue capacity",
+        "--max-tokens",
+        "8000",
+        "--schema-version",
+        "3",
+        "--no-inspect",
+        "--no-cache"
+      ],
+      "case_id": "schema_3",
+      "elapsed_seconds": 0.07218591589480639,
+      "exit_code": 0,
+      "response": "schema_3.json",
+      "response_bytes": 7397,
+      "response_sha256": "b22031f40eff90b125c0e6a91029724ebc1c5cdfea99a636eb9c712d51f54f16",
+      "schema_version": 3,
+      "source_and_state_unchanged": true,
+      "source_revision": "cf5a1022097ce0e07853b5e49ecea3c435304936",
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "valid_json": true
+    },
+    {
+      "arguments": [
+        "--json",
+        "context",
+        "Change worker queue capacity",
+        "--max-tokens",
+        "8000",
+        "--schema-version",
+        "4",
+        "--no-inspect",
+        "--no-cache"
+      ],
+      "case_id": "schema_4",
+      "elapsed_seconds": 0.06523645808920264,
+      "exit_code": 0,
+      "response": "schema_4.json",
+      "response_bytes": 9106,
+      "response_sha256": "1a1c5b393c6a3adf30658949e2c0ec2cc8700c7f5a2976c40b40c41444fd2db7",
+      "schema_version": 4,
+      "source_and_state_unchanged": true,
+      "source_revision": "cf5a1022097ce0e07853b5e49ecea3c435304936",
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "valid_json": true
+    },
+    {
+      "arguments": [
+        "--json",
+        "context",
+        "Change worker queue capacity",
+        "--max-tokens",
+        "8000",
+        "--schema-version",
+        "5",
+        "--no-inspect",
+        "--no-cache"
+      ],
+      "case_id": "schema_5",
+      "elapsed_seconds": 0.06697704177349806,
+      "exit_code": 0,
+      "response": "schema_5.json",
+      "response_bytes": 9724,
+      "response_sha256": "15a1ae9d0640c205bd5ad26f73519834a446fd4510daf53e90938193bec3841e",
+      "schema_version": 5,
+      "source_and_state_unchanged": true,
+      "source_revision": "cf5a1022097ce0e07853b5e49ecea3c435304936",
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "valid_json": true
+    },
+    {
+      "arguments": [
+        "--json",
+        "context",
+        "Change worker queue capacity",
+        "--max-tokens",
+        "8000",
+        "--no-inspect",
+        "--no-cache"
+      ],
+      "case_id": "default",
+      "elapsed_seconds": 0.06836633291095495,
+      "exit_code": 0,
+      "response": "default.json",
+      "response_bytes": 9724,
+      "response_sha256": "76955fddaa0aff6d1a64fefc6b2c489974daf96f7ba9b6a03f1cb4df22616caf",
+      "schema_version": 5,
+      "source_and_state_unchanged": true,
+      "source_revision": "cf5a1022097ce0e07853b5e49ecea3c435304936",
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "valid_json": true
+    }
+  ],
+  "classification": "offline_contract_controls",
+  "fixture_manifest_sha256": "166574680e3ed225e7141c816c8780a7ad8452e0b87a5b64f83b81bd68cd2bf4",
+  "grants": {
+    "checkout_egress": false,
+    "hosted_egress": false,
+    "inspection": false
+  },
+  "harness_sha256": "93becde99354548af1c79be87fa102b9134d125f282a928fcc04ec54968f3c93",
+  "models": {
+    "enabled": false,
+    "identity": null
+  },
+  "provider_calls": 0,
+  "qualification": "Frozen public-registry compatibility controls, not a productivity or model-quality study.",
+  "schema_version": 1,
+  "source_and_state_sha256": "43e9cf9a440898cd3a9b6caa87d41ea73f7a2246e66cf1f5354d9d727e8cec9e",
+  "source_revision": "cf5a1022097ce0e07853b5e49ecea3c435304936",
+  "status": "passed"
+}

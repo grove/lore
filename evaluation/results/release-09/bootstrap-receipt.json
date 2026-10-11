@@ -1,0 +1,9 @@
+{
+  "source_revision": "cf5a1022097ce0e07853b5e49ecea3c435304936",
+  "status": "passed",
+  "binary_sha256": "b03ed11fba330546d19183db88a1a0591445fbd418d48c689f16ed844d568409",
+  "response_sha256": "3a5ad4eeb139a50e92be17bbf384001a9e97279e911e13d8f5696f6f9eb7e0f2",
+  "byte_identical_to_baseline": true,
+  "source_and_state_unchanged": true,
+  "provider_calls": 0
+}

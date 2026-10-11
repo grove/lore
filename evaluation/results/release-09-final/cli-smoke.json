@@ -1,0 +1,64 @@
+{
+  "source_revision": "1d38442733a344fb3b022cea8b600257044f99ee",
+  "binary_sha256": "54512f9e6d46953c35b4d6a8184f100a28970e021e3bb5f793ee0b25f4fd3a2b",
+  "checks": [
+    {
+      "argv": [
+        "--version"
+      ],
+      "exit_code": 0,
+      "output_sha256": "ea4591f4e69cc7c8a6428722ebcce024d3971f3bacfef9948b483113cd122d57"
+    },
+    {
+      "argv": [
+        "context",
+        "--help"
+      ],
+      "exit_code": 0,
+      "output_sha256": "df4835f1a98bbb2ca273f990a7ae983fdca97758bcf8d2a6b8958f381adc1ba7"
+    },
+    {
+      "argv": [
+        "review",
+        "--help"
+      ],
+      "exit_code": 0,
+      "output_sha256": "f6b364a7f9dbdea54484f270fd837d568045c5246c1ba86feecec44413fd00ce"
+    },
+    {
+      "argv": [
+        "review",
+        "adjudicate",
+        "--help"
+      ],
+      "exit_code": 0,
+      "output_sha256": "658a4d1454db0a03ad7f7facfd98013846556507c6c2e97459f976e3741207a3"
+    },
+    {
+      "argv": [
+        "integrate",
+        "--help"
+      ],
+      "exit_code": 0,
+      "output_sha256": "82a33aec9f35b6749582be786679389d91f0832b9c5b79ea05dff6f56b3747b7"
+    },
+    {
+      "argv": [
+        "feedback",
+        "--help"
+      ],
+      "exit_code": 0,
+      "output_sha256": "5e3604447f042553c32d01c3cab43e3736b2e270104c5d6c89543ac6c927f1e6"
+    },
+    {
+      "argv": [
+        "feedback",
+        "draft",
+        "--help"
+      ],
+      "exit_code": 0,
+      "output_sha256": "9456f64245b070b747fa5f9428987969c3293ca47d5dc84007f28b9f224d0c57"
+    }
+  ],
+  "status": "passed"
+}

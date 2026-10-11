@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "classification": "offline_engineering_verification",
+  "version": "0.9.0-rc.1",
+  "source_revision": "cf5a1022097ce0e07853b5e49ecea3c435304936",
+  "code_objects": {
+    "src": "06146b33e7d6bfb119e3afcbf4494e393cee0d00",
+    "tests": "30a55b1c109aa955e64f2bdfd6759c7bb0c497d9",
+    "migrations": "46894edf79798d6b01f68f338434025dfd8c201e",
+    "Cargo.toml": "9fe11ac77a765f06d89aa8ad32906c3beea5c509",
+    "Cargo.lock": "2c312e9f9670900cce63e1b99fd4fb7f73ff2a9c",
+    ".github/workflows/ci.yml": "bb0a2fe4fdf238333fcc5cfb11079947b1e220ed",
+    ".github/workflows/guardian-integrity.yml": "6efd6cbd6ffbdbe0183b46a6bb091b12c4ca16b1",
+    "evaluation/corpora": "fb1e90079a66616b6ce9ead90f24f57eac7e5bf5",
+    "evaluation/tests": "e6bd8d1c45ae19d3258b5941e5e369b1673c8066",
+    "evaluation/adaptive_sequences.py": "cdac66a2dac4cfc0feb464a8679be8719a92e5ad",
+    "evaluation/adaptive_tasks.py": "3a52e02f67b355c0b37b2080eddd365a888d3d5d",
+    "evaluation/audit_guardian_publication.py": "164a89225f08ef0fd0a68b258127b88cf336f20f",
+    "evaluation/benchmark.py": "5bce8d1aa6529451b9f658ee7e1d8fb229850756",
+    "evaluation/capture_contracts_08.py": "d8bd1b26105d99ee24dd88951bd6e2ba292ccbc1",
+    "evaluation/coding_agent.py": "d4531b58f66a52e894c3908459b3ab7b417d24e7",
+    "evaluation/coding_tasks.py": "9b7eed7771a5b0311a6f7fe327dd130a557f54d7",
+    "evaluation/compare_runs.py": "77896bb406e748d27ec45cbc417f9efd8d7c01dc",
+    "evaluation/cross_source.py": "eb47b6a1a4e69a8eb96b5907c1a61159163bcf9f",
+    "evaluation/decision_tasks.py": "064ba6fea5123eeaf4a7e1a5d9497fd074254a50",
+    "evaluation/decision_work_09.py": "b21a4933359389b80b902c1de3b11148c0901629",
+    "evaluation/experiment_08.py": "32d24460886a663be87327b997b19a3bcbba769a",
+    "evaluation/failure_triage.py": "a055cba706320647a703a8a6f85fc22d3b812925",
+    "evaluation/guardian_integrity.py": "56a4e9dc0182a552a7eefe5eee95be01cfbeb5b0",
+    "evaluation/guardian_integrity_gate.py": "f41e7d0952170f570ad7707baa7089d0d1e6f127",
+    "evaluation/guardian_longitudinal.py": "36676c8fef82ca12f415e96ceb98abac0dbeb463",
+    "evaluation/human_onboarding.py": "4908d6f195a5926bde155d4496c971da561af071",
+    "evaluation/outcome_protocol.py": "e00e7c65ec22d91be5073c219cba5f439b88e4e2",
+    "evaluation/provider_usage.py": "cf2567e85dea3d2188e352a5730ceca4721c9894",
+    "evaluation/real_coding_checks.py": "aeaa60358c8395361bbd38dd34c30e763638a22c",
+    "evaluation/real_coding_corpus.py": "e6a0699f3a2e6314b896c51d9766058c778b1885",
+    "evaluation/relationship_scoring.py": "795775aa1f82ed9f80df4a239e7d820153a08fd0",
+    "evaluation/restore_zoom_fixture.py": "650c865d21cae60a348b977908ca1b24aa14d009",
+    "evaluation/shared_intelligence.py": "f5a1c171a9bce53b0d50ea3217e372ae43165cb8",
+    "evaluation/suite.py": "a28c51da39fcf2953a58eab915b590d01749be2d"
+  },
+  "rust": {
+    "passed": 497,
+    "failed": 0,
+    "ignored": 3,
+    "targets": 60
+  },
+  "python": {
+    "passed": 239,
+    "failed": 0,
+    "skipped": 1,
+    "total": 240,
+    "skip_reason": "Linux kernel observer unavailable on macOS; Linux CI executes it"
+  },
+  "fmt": "passed",
+  "clippy": "passed",
+  "release_build": "passed",
+  "release_cli_smoke": "passed",
+  "frozen_contracts": "passed",
+  "bootstrap": "passed",
+  "ignored_rust": [
+    "local Ollama live extraction (explicit local model prerequisite)",
+    "OpenAI live extraction (explicit credential/authorization prerequisite)",
+    "selected external compiled-project comparison (separate CI fixture gate)"
+  ],
+  "real_model_evaluation_attempts": 0,
+  "provider_cost_usd": null,
+  "prior_failures": [
+    {
+      "package": 4,
+      "source": "https://github.com/grove/lore/actions/runs/38131373937",
+      "reason": "A new regression incorrectly assumed one fallback enum variant. Corrected the assertion to check actual non-reference mode, preserving the semantic assertion; reran focused tests and CI."
+    },
+    {
+      "package": 7,
+      "reason": "Sandbox blocked existing bootstrap mock loopback listener. Host rerun passed all 51 affected tests."
+    }
+  ],
+  "qualification": "Local receipts bind cf5a102 source. The final evidence-only commit retains these code objects. Exact final PR and main checks are recorded by GitHub, not inferred from this local capture."
+}

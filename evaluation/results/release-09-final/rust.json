@@ -1,0 +1,13 @@
+{
+  "command": [
+    "cargo",
+    "test",
+    "--all-targets",
+    "--locked"
+  ],
+  "source_revision": "1d38442733a344fb3b022cea8b600257044f99ee",
+  "exit_code": 0,
+  "status": "passed",
+  "elapsed_seconds": 334.593,
+  "log_sha256": "328c78f9a8ed0de4f166342d3c0fa17327f175f56ea908673201063e064631c9"
+}
