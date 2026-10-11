@@ -83,7 +83,7 @@ def configuration(args) -> dict:
             "schema_sha256": coding.hash_file(SCHEMA),
             "prompt_sha256": hashlib.sha256(PROMPT.encode("utf-8")).hexdigest(),
             "flags": list(REQUIRED_FLAGS), "config": list(CONFIG),
-            "environment_policy_sha256": cross.digest(ENV_KEYS)}
+            "environment_policy_sha256": cross.digest({"inherited": ENV_KEYS, "CODEX_HOME": "fresh_private_directory"})}
 
 
 def visible_request(request: dict) -> dict:
@@ -272,6 +272,9 @@ def generate(args, request) -> dict:
     env = child_environment()
     with tempfile.TemporaryDirectory(prefix="lore-codex-proposal-") as temporary:
         directory = Path(temporary).resolve()
+        home = directory / "codex-home"
+        home.mkdir(mode=0o700)
+        env["CODEX_HOME"] = str(home)
         probe(args, directory, env)  # No ledger writes for rejected CLI preflight.
         schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
         # shortcut: strict schemas name every editable file, revisit for large sparse proposals.

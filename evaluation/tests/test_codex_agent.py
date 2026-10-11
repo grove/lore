@@ -40,7 +40,8 @@ def fake(root, stream=None, *, suffix="", help_text=None, version="codex-cli 0.1
         "assert sys.argv[sys.argv.index('--sandbox') + 1] == 'read-only'\n" +
         "assert '--dangerously-bypass-approvals-and-sandbox' not in sys.argv\n" +
         "assert json.loads(data.split('Untrusted task data:\\n')[1])['files']['README.md'] == 'Original documentation'\n" +
-        "assert all(not key.startswith(('LORE_', 'CODEX_')) or key == 'CODEX_API_KEY' for key in __import__('os').environ)\n" +
+        "assert all(not key.startswith(('LORE_', 'CODEX_')) or key in ('CODEX_API_KEY', 'CODEX_HOME') for key in __import__('os').environ)\n" +
+        "assert __import__('pathlib').Path(__import__('os').environ['CODEX_HOME']).is_dir()\n" +
         f"for event in {stream if stream is not None else events()!r}: print(json.dumps(event), flush=True)\n" + suffix,
         encoding="utf-8")
     path.chmod(0o700)

@@ -70,8 +70,10 @@ python3 evaluation/codex_agent.py \
 
 The executable, fixed prompt (`codex_agent.PROMPT`), schema, flags and environment
 scrub policy are pinned. Version/help probes use no inference. Each invocation
-uses a fresh private directory, read-only CLI sandbox, disabled tools and no
-workspace/user rules, profile or resumed session. These flags do not establish
+uses a fresh private directory and `CODEX_HOME`, read-only CLI sandbox, disabled tools and no
+workspace/user rules, profile or resumed session. Credentials must be supplied
+privately through `OPENAI_API_KEY` or `CODEX_API_KEY`; existing login stores are
+not copied into the study. These flags do not establish
 OS isolation, managed configuration enforcement, egress limits or spending
 authorization; independently authenticated worker captures are still required.
 
