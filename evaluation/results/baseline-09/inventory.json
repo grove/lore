@@ -1,0 +1,14 @@
+{
+  "bootstrap-receipt.json": "ae02f210422a93a742659e5cb976265a8550c194e6cfb9385c40e55296736a01",
+  "bootstrap.json": "3a5ad4eeb139a50e92be17bbf384001a9e97279e911e13d8f5696f6f9eb7e0f2",
+  "coding-preflight.json": "0c0214ad28a5ff41a78fda5c7f83774521d5985f87050e3ae7c2243a88fa0997",
+  "compatibility-comparison.json": "66af06af373ea614cf783192d02ac24b7753daa202e0a9c5005ee964a489add9",
+  "contracts/contracts.json": "d801ecf565db36663489c634e92c16568cb86cce2202a24a165e85e02cce2f38",
+  "contracts/default.json": "ddb9ce8ef6eb20c1c40d189b2a9d19e0803c5fcd70e4e4061f490a4588a088e0",
+  "contracts/schema_2.json": "eeee6ff4c074469b03c226d8b5c5b7499ce4c2f006b645dd0a818a4e182ab268",
+  "contracts/schema_3.json": "b22031f40eff90b125c0e6a91029724ebc1c5cdfea99a636eb9c712d51f54f16",
+  "contracts/schema_4.json": "9f87cd609ba13558ad745a32c8018f179875388f9593c634299d3b72fcaa4355",
+  "contracts/schema_5.json": "c1484d604c62785803f4ae990bf00697f34b85141eaf83a7137cf6fe5828ceb1",
+  "human-readiness.json": "52cbc3b38140c726dd3ea83f29cf315536e41f3028842caee59fed29b76205a1",
+  "local-checks.json": "8713c310fcf01d541324182310f70ae1930657ce949e51cb49a07287aabad05f"
+}

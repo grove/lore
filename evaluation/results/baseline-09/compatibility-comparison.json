@@ -1,0 +1,38 @@
+[
+  {
+    "case": "schema_2",
+    "prior_sha256": "eeee6ff4c074469b03c226d8b5c5b7499ce4c2f006b645dd0a818a4e182ab268",
+    "new_sha256": "eeee6ff4c074469b03c226d8b5c5b7499ce4c2f006b645dd0a818a4e182ab268",
+    "different_fields": []
+  },
+  {
+    "case": "schema_3",
+    "prior_sha256": "b22031f40eff90b125c0e6a91029724ebc1c5cdfea99a636eb9c712d51f54f16",
+    "new_sha256": "b22031f40eff90b125c0e6a91029724ebc1c5cdfea99a636eb9c712d51f54f16",
+    "different_fields": []
+  },
+  {
+    "case": "schema_4",
+    "prior_sha256": "2224e5d27bd586300ac387242b0bb5f3eec05fee87884c43ab4266cca52d3727",
+    "new_sha256": "9f87cd609ba13558ad745a32c8018f179875388f9593c634299d3b72fcaa4355",
+    "different_fields": [
+      "/investigation/budget/elapsed_ms"
+    ]
+  },
+  {
+    "case": "schema_5",
+    "prior_sha256": "25bd031eedf04dfa934693e406610519f0339ebab8866bb962e7d4437e20c2e1",
+    "new_sha256": "c1484d604c62785803f4ae990bf00697f34b85141eaf83a7137cf6fe5828ceb1",
+    "different_fields": [
+      "/intelligence/investigation/budget/elapsed_ms"
+    ]
+  },
+  {
+    "case": "default",
+    "prior_sha256": "5092567e7bd749e9aaa08b2ae3ecc7f7a68d39d6c8a3fe554da4a65ed044a224",
+    "new_sha256": "ddb9ce8ef6eb20c1c40d189b2a9d19e0803c5fcd70e4e4061f490a4588a088e0",
+    "different_fields": [
+      "/intelligence/investigation/budget/elapsed_ms"
+    ]
+  }
+]

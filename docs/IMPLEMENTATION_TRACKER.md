@@ -1,5 +1,13 @@
 # Lore implementation tracker
 
+## 0.9 work in progress
+
+Follow the [eight-package plan](V09_IMPLEMENTATION_PLAN.md) in package order.
+Current gates and empirical blockers are in the [0.9 scorecard](../evaluation/PRODUCT_QUALITY_09.md)
+and [machine ledger](../evaluation/results/acceptance-09.json).
+Stable 0.9 requires an authentic six-task/six-arm decision-dependent pilot;
+engineering completion alone permits only a release candidate.
+
 ## 0.8 implementation and release gate
 
 The [0.8 implementation plan](V08_IMPLEMENTATION_PLAN.md) begins at
