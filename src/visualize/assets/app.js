@@ -12,6 +12,7 @@ const canvas = $("graph");
 const ctx = canvas.getContext("2d");
 const labels = { pages: "Wiki pages", concepts: "Knowledge concepts", decisions: "Decisions & constraints" };
 const graphTitles = { pages: "Wiki relationships", concepts: "Concept connections", decisions: "Decision history & evidence" };
+const conceptTitleOrder = new Intl.Collator(undefined, { sensitivity: "accent" });
 let noticeTimer = null;
 
 function notice(message) {
@@ -73,6 +74,9 @@ function renderList() {
   const items = $("items");
   reset(items);
   const found = current().filter(matches);
+  if (state.mode === "concepts") {
+    found.sort((a, b) => conceptTitleOrder.compare(a.title, b.title) || a.id.localeCompare(b.id));
+  }
   $("list-title").textContent = labels[state.mode];
   $("list-count").textContent = found.length + (found.length !== current().length ? "/" + current().length : "");
   for (const item of found) {
@@ -299,11 +303,13 @@ async function select(id) {
         row.append(pill(record.scope));
         const button=node("button","inline-link","View original support");
         button.addEventListener("click",()=>{
-          const area=button.parentNode.querySelector(".nested-evidence");
+          const area=row.querySelector(".nested-evidence");
           if(area){area.remove();button.textContent="View original support";}
           else {const div=node("div","nested-evidence");appendEvidence(div,record.evidence);row.append(div);button.textContent="Hide support";}
         });
-        row.append(node("div")).lastChild.append(button);
+        const actions=node("div");
+        actions.append(button);
+        row.append(actions);
         body.append(row);
       }
       if(data.omitted)body.append(node("div","warning",data.omitted+" additional records omitted from this bounded reader. Use lore explore or lore evidence for complete retrieval."));

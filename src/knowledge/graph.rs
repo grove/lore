@@ -102,6 +102,11 @@ pub(super) fn derive_layout(graph: &KnowledgeGraph) -> Layout {
         cursor += 1;
     }
     let leaf_count = graph.knowledge.len().min(available_nodes - groups.len());
+    let record_titles: BTreeMap<_, _> = graph
+        .knowledge
+        .iter()
+        .map(|record| (record.id.as_str(), record.subject.as_str()))
+        .collect();
     let mut nodes = vec![LayoutNode {
         id: graph.root_id.clone(),
         kind: "project",
@@ -111,7 +116,7 @@ pub(super) fn derive_layout(graph: &KnowledgeGraph) -> Layout {
     }];
     for group in groups.values() {
         let member_key = group.ids.iter().cloned().collect::<Vec<_>>().join("\n");
-        let title = group_title(&group.labels);
+        let title = group_title(&group.labels, &group.ids, &record_titles);
         nodes.push(LayoutNode {
             id: stable_id("members", &member_key),
             kind: "concept",
@@ -309,7 +314,11 @@ fn seed_groups(
     groups
 }
 
-fn group_title(labels: &BTreeSet<String>) -> String {
+fn group_title(
+    labels: &BTreeSet<String>,
+    ids: &BTreeSet<String>,
+    record_titles: &BTreeMap<&str, &str>,
+) -> String {
     let title = labels
         .iter()
         .find(|label| label.starts_with("topic: "))
@@ -323,10 +332,57 @@ fn group_title(labels: &BTreeSet<String>) -> String {
                 .collect::<Vec<_>>()
                 .join(" · ")
         });
-    if title.is_empty() {
-        "Documented relationship".into()
-    } else {
-        title
+    if !title.is_empty() {
+        return title;
+    }
+
+    let subjects: BTreeSet<_> = ids
+        .iter()
+        .filter_map(|id| record_titles.get(id.as_str()).copied())
+        .filter(|subject| !subject.trim().is_empty())
+        .collect();
+    let mut subjects = subjects.into_iter();
+    match (subjects.next(), subjects.next()) {
+        (Some(first), Some(second)) => {
+            let mut title = format!("{first} + {second}");
+            let remaining = subjects.count();
+            if remaining > 0 {
+                title.push_str(&format!(" + {remaining} more"));
+            }
+            title
+        }
+        (Some(subject), None) => format!("Related: {subject}"),
+        (None, _) => "Documented relationship".into(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn relationship_only_groups_are_labeled_from_member_subjects() {
+        let labels = BTreeSet::from(["documented supports: relation-1".to_string()]);
+        let record_titles = BTreeMap::from([
+            ("a", "Refund reconciliation"),
+            ("b", "Duplicate charge incident"),
+            ("c", "Runbook handling"),
+            ("d", "Charge submission"),
+        ]);
+        let first = group_title(
+            &labels,
+            &BTreeSet::from(["a".into(), "b".into()]),
+            &record_titles,
+        );
+        let second = group_title(
+            &labels,
+            &BTreeSet::from(["c".into(), "d".into()]),
+            &record_titles,
+        );
+
+        assert_eq!(first, "Duplicate charge incident + Refund reconciliation");
+        assert_eq!(second, "Charge submission + Runbook handling");
+        assert_ne!(first, second);
     }
 }
 
