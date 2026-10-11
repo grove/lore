@@ -1,14 +1,24 @@
 //! Offline beginner-course smoke checks against the shipped classroom files.
 //! No provider, model, network request or registry compilation is required.
 use serde_json::Value;
-use std::{fs, path::{Path, PathBuf}, process::Command};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    process::Command,
+};
 
 fn classroom() -> (tempfile::TempDir, PathBuf) {
     let temp = tempfile::tempdir().expect("temporary classroom");
     let root = temp.path().join("classroom");
     let source = Path::new(env!("CARGO_MANIFEST_DIR")).join("examples/tutorial-project");
     fs::create_dir_all(root.join("docs")).unwrap();
-    for name in ["README.md", "docs/ADR-001.md", "docs/RFC-002.md", "docs/runbook.md", "docs/INC-014.md"] {
+    for name in [
+        "README.md",
+        "docs/ADR-001.md",
+        "docs/RFC-002.md",
+        "docs/runbook.md",
+        "docs/INC-014.md",
+    ] {
         let destination = root.join(name);
         fs::copy(source.join(name), &destination).unwrap();
     }
@@ -25,7 +35,11 @@ fn invoke(root: &Path, args: &[&str]) -> Value {
         .env_remove("LORE_USAGE_LEDGER")
         .output()
         .expect("CLI invocation");
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     serde_json::from_slice(&output.stdout).expect("JSON response")
 }
 
@@ -35,7 +49,10 @@ fn zero_setup_classroom_onboard_and_context_do_not_write_or_call_models() {
     let before = fs::read_dir(&root).unwrap().count();
     for (args, contract) in [
         (vec!["--json", "onboard"], "lore.bootstrap_onboard"),
-        (vec!["--json", "context", "Can production attempts increase to five?"], "lore.bootstrap_context"),
+        (
+            vec!["--json", "context", "Can production attempts increase to five?"],
+            "lore.bootstrap_context",
+        ),
     ] {
         let v = invoke(&root, &args);
         assert_eq!(v["contract"], contract);
@@ -57,15 +74,21 @@ fn course_codex_integration_is_an_explicit_write_only() {
     assert_eq!(first["contract"], "lore.agent_integration");
     assert_eq!(first["source_write"], false);
     assert!(!root.join("AGENTS.md").exists());
+
     let applied = invoke(&root, &["--json", "integrate", "codex", "--apply"]);
     assert_eq!(applied["source_write"], true);
     let instructions = fs::read_to_string(root.join("AGENTS.md")).unwrap();
     assert!(instructions.contains("## Lore project context"));
+
     let repeated = invoke(&root, &["--json", "integrate", "codex", "--apply"]);
     assert_eq!(repeated["source_write"], false);
     assert!(!root.join("lore.yml").exists());
     assert!(!root.join(".lore").exists());
-    let removal = invoke(&root, &["--json", "integrate", "codex", "--remove", "--apply"]);
+
+    let removal = invoke(
+        &root,
+        &["--json", "integrate", "codex", "--remove", "--apply"],
+    );
     assert_eq!(removal["source_write"], true);
     assert_eq!(fs::read_to_string(root.join("AGENTS.md")).unwrap(), "");
 }
