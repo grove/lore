@@ -1,5 +1,10 @@
 # Evaluating Lore 0.8
 
+For the 0.9 engineering workflow and the still-unrun independent coding study,
+start with [Empirical usefulness](EMPIRICAL_USEFULNESS_09.md). Read-only status
+delegates to the existing sealed protocol; public controls do not establish
+model usefulness or authorize stable 0.9.
+
 Lore 0.8 adds source-only first contact, the adaptive context default, nullable
 per-attempt provider usage, a controlled Guardian integrity gate and stricter
 coding/human study preparation and retention. The [0.8 product guide](../docs/V08.md)

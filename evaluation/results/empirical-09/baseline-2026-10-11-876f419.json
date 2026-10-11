@@ -1,0 +1,159 @@
+{
+  "arm_protocol": "adaptive-coding-v1",
+  "arms": [
+    "baseline",
+    "fast",
+    "lore05",
+    "lore06",
+    "adaptive_no_reuse",
+    "adaptive_reuse"
+  ],
+  "baseline_status": "passed_after_supported_environment_verification",
+  "checks": [
+    {
+      "argv": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "argv": [
+        "cargo",
+        "clippy",
+        "--all-targets",
+        "--locked",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "log_sha256": "26e38fbcc54fd2568666936c86c4c808c5d09686cc31f67c932a5043ec9c9145"
+    },
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--all-targets",
+        "--locked"
+      ],
+      "exit_code": 101,
+      "log_sha256": "b82f16de638679f321fda812b7dab4d690768add37b9477abef9f97578efc6d3"
+    },
+    {
+      "argv": [
+        "/Users/grove/.local/bin/python3.12",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "evaluation/tests",
+        "-v"
+      ],
+      "exit_code": 0,
+      "log_sha256": "f10f27465a3573d881c3ebc6f13ec00c65adf705f6c65e01dacd871b286e0830"
+    },
+    {
+      "argv": [
+        "cargo",
+        "build",
+        "--release",
+        "--locked"
+      ],
+      "exit_code": 0,
+      "log_sha256": "4b89c9e2a052a31ec01130e53573abc2bfcb27d0c71eee4d7109b6a18bca9e25"
+    },
+    {
+      "argv": [
+        "/Users/grove/projects/lore/target/release/lore",
+        "--version"
+      ],
+      "exit_code": 0,
+      "log_sha256": "ea4591f4e69cc7c8a6428722ebcce024d3971f3bacfef9948b483113cd122d57"
+    },
+    {
+      "argv": [
+        "/Users/grove/projects/lore/target/release/lore",
+        "context",
+        "--help"
+      ],
+      "exit_code": 0,
+      "log_sha256": "f0a08a0f5906de3ca372830fc45e61857f79be6f3df99345c371816f464fd9c2"
+    },
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--all-targets",
+        "--locked"
+      ],
+      "execution": "host_local_loopback_fixtures",
+      "exit_code": 0,
+      "log_sha256": "2f9faa7184971bf7b4a8a4ee65e645a2b20373dfc27443a7f1061a0bd5ef2f76"
+    }
+  ],
+  "ci_checks": {
+    "guardian": "https://github.com/grove/lore/actions/runs/38171089255",
+    "platforms": [
+      "ubuntu-latest",
+      "macos-latest",
+      "windows-latest"
+    ],
+    "status": "passed",
+    "tests": "https://github.com/grove/lore/actions/runs/38171089240"
+  },
+  "classification": "engineering_baseline",
+  "coding_productivity": "unmeasured",
+  "collector_files_sha256": {
+    "adaptive_tasks.py": "fd1137bb5ceb6a8a7af840ae619c3fefe33ab02bada6ee8b64a4de0c702db042",
+    "benchmark.py": "b93a9e6b3d47cc2f26499999defa42808559149e7e3776e3bf5b8c200bdba0b3",
+    "coding_agent.py": "7dd9b6a9637a9831fd37644acdc8802934e6d59a2cdf92013ec072fe4249e553",
+    "coding_tasks.py": "43beea8959efd0230a31e864a9d3a12029c70677118aa5478f9870dde3f2f298",
+    "cross_source.py": "dfede36c53f6653318f398df88de3acc86e58804314580191305fd1f360fd52e",
+    "decision_tasks.py": "2ffee5132d9e6e0a86aaa948709696fa81df1ef284fd61e92b05ae8a6d1ae908",
+    "experiment_08.py": "74cebe27634aa6445053e632772220037aa2e09f561f260a4aab53d8a8f08873",
+    "failure_triage.py": "95e5ab9b94e7687b4eaba1d49f520dc684d8b15a86a31486e69119ed95e96009",
+    "outcome_protocol.py": "759605e66359d74c4a32493646dc14ccee2e89fa3b2d0877b985d8f5d1d57c82",
+    "provider_usage.py": "f76d91c6c51661406d2bb0a21c536247188e9d1a726efa1dace1ad325479ce64",
+    "shared_intelligence.py": "ae4d92df85591bd2153689d00a6c50b8543ebeb1321d5099d4122b66f07d05d0"
+  },
+  "experiment_protocol": "lore-experiment-08-v1",
+  "external_blockers": [
+    "Independent decision tasks and checker authors",
+    "Two gold and blinded outcome reviewers",
+    "Authenticated model availability and backend revision",
+    "OS isolation and egress enforcement/capture",
+    "Explicit finite inference spending authorization"
+  ],
+  "holdout": "blocked_external",
+  "lore_binary_sha256": "2af26887d7d39e581fe5ac7fb811f81aac1446027bb641204be94a560771f3f0",
+  "minimum_holdout_initial_assignments": 180,
+  "minimum_holdout_tasks": 30,
+  "model_calls": 0,
+  "pilot": "blocked_external",
+  "pilot_initial_assignments": 36,
+  "pilot_tasks": 6,
+  "public_corpus_sha256": {
+    "coding-real-v1": "a919be05be8120ba109471a5ab00ce1d90ee8380ce05ea90c054a721939d06c3",
+    "decision-work-09": "1839210dedb6f519b2a7a46b7750884162ffe3496cd9fef15012837157e40c1a"
+  },
+  "python_tests_run": 242,
+  "python_tests_skipped": 1,
+  "python_tests_tree_sha256": "77c12e0ae77784e0402c07e6899ae4c36bfa5faab7fb3bdb503b87ef76a4e2c5",
+  "python_version": "3.12.14",
+  "release_status": "0.9.0-rc.1",
+  "rust_tests_passed": 515,
+  "rust_version": "rustc 1.99.0 (b940084d7 2026-09-28) (Homebrew)",
+  "sandbox_diagnostic": "The sandboxed Rust run could not bind a local loopback fixture. The retained host offline rerun passed; no product change was needed.",
+  "schema_version": 1,
+  "source_revision": "876f419ffb6aa46d27ae08422a8f3724e9366072",
+  "source_tree": "79e7c30f73aaeecb02d2b345f5c8a5513f51d946",
+  "stabilization_pr": "https://github.com/grove/lore/pull/58",
+  "test_tree_sha256": "9fd738fece1da65365f119e6aae58ffbfc7cdb3f4ba6ff265dc62468ed7e2afd",
+  "verified_pr_head": "e3e2db9673bb9322d25133c17a2ea075e9899897",
+  "verified_pr_source_tree_matches_baseline": true
+}
