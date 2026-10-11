@@ -356,36 +356,6 @@ fn group_title(
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn relationship_only_groups_are_labeled_from_member_subjects() {
-        let labels = BTreeSet::from(["documented supports: relation-1".to_string()]);
-        let record_titles = BTreeMap::from([
-            ("a", "Refund reconciliation"),
-            ("b", "Duplicate charge incident"),
-            ("c", "Runbook handling"),
-            ("d", "Charge submission"),
-        ]);
-        let first = group_title(
-            &labels,
-            &BTreeSet::from(["a".into(), "b".into()]),
-            &record_titles,
-        );
-        let second = group_title(
-            &labels,
-            &BTreeSet::from(["c".into(), "d".into()]),
-            &record_titles,
-        );
-
-        assert_eq!(first, "Duplicate charge incident + Refund reconciliation");
-        assert_eq!(second, "Charge submission + Runbook handling");
-        assert_ne!(first, second);
-    }
-}
-
 fn make_node(
     id: String,
     kind: &str,
@@ -651,4 +621,34 @@ fn validate_inner(graph: &KnowledgeGraph, dependencies: Option<&Dependencies>) -
     }
     ensure!(visited == nodes.len(), "cyclic view containment");
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn relationship_only_groups_are_labeled_from_member_subjects() {
+        let labels = BTreeSet::from(["documented supports: relation-1".to_string()]);
+        let record_titles = BTreeMap::from([
+            ("a", "Refund reconciliation"),
+            ("b", "Duplicate charge incident"),
+            ("c", "Runbook handling"),
+            ("d", "Charge submission"),
+        ]);
+        let first = group_title(
+            &labels,
+            &BTreeSet::from(["a".into(), "b".into()]),
+            &record_titles,
+        );
+        let second = group_title(
+            &labels,
+            &BTreeSet::from(["c".into(), "d".into()]),
+            &record_titles,
+        );
+
+        assert_eq!(first, "Duplicate charge incident + Refund reconciliation");
+        assert_eq!(second, "Charge submission + Runbook handling");
+        assert_ne!(first, second);
+    }
 }
