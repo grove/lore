@@ -65,15 +65,22 @@ class StudyPreflightTests(unittest.TestCase):
             case["independent_gold_reviews"] = self.reviews(bundle, "gold-review-captures",
                                                            case["task_sha256"], f"gold-{index}", utc(-110))
         experiment.private_write(bundle / "PREREGISTRATION.json", registration)
+        budget_capture = bundle / "budget-captures/authorization.txt"
+        budget_capture.parent.mkdir()
+        budget_capture.write_text("Offline budget authorization/enforcement protocol double; no spending authorized.")
+        spec["budget"] = {"operator_id": registration["operator_id"], "authorized_at": utc(-40),
+            "max_billed_cost_usd": 1.0, "enforcement_method": "Offline billing gateway fixture only",
+            "capture": {"path": "budget-captures/authorization.txt", "sha256": coding.hash_file(budget_capture)}}
+        experiment.private_write(bundle / "EXPERIMENT.json", spec)
         experiment.seal(bundle)
         readiness = experiment.read(bundle / "READINESS.json")
         readiness.update(complete=True, observed_at=utc(-20), expires_at=utc(3600))
         for value in readiness["providers"].values():
             value["available"] = True
         readiness["enforcement"] = {"method": "Offline audit double, never actual OS sandbox evidence",
-                                   **dict.fromkeys(experiment.ENFORCEMENT, True)}
+                                   **dict.fromkeys(experiment.ENFORCEMENT, True), "billing_budget_enforced": True}
         readiness["captures"] = []
-        for kind in ("provider_availability", "runtime_isolation", "egress_enforcement"):
+        for kind in ("provider_availability", "runtime_isolation", "egress_enforcement", "billing_enforcement"):
             name = "readiness-captures/" + kind + ".txt"
             path = bundle / name
             path.parent.mkdir(exist_ok=True)

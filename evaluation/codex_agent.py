@@ -223,7 +223,9 @@ def execute(args, prompt: bytes, directory: Path, env: dict, event: dict, record
             if kind.startswith("item.") and item.get("type") not in ("agent_message", "reasoning"):
                 raise AdapterFailure("rejected")
             if kind == "item.completed" and item.get("type") == "agent_message":
-                messages.append(item.get("text"))
+                if not isinstance(item.get("text"), str):
+                    raise AdapterFailure()
+                messages.append(item["text"])
             if kind == "turn.completed":
                 terminal.append(value)
                 if len(terminal) == 1:
@@ -238,9 +240,10 @@ def execute(args, prompt: bytes, directory: Path, env: dict, event: dict, record
                             "item.updated", "item.completed"):
                 raise AdapterFailure()
         process.wait(timeout=max(0.01, args.timeout - (time.monotonic() - start)))
-        if process.returncode or not terminal or len(messages) != 1 or not isinstance(messages[0], str):
+        if process.returncode or not terminal or not messages or not isinstance(messages[-1], str):
             raise AdapterFailure("incomplete")
-        answer = json.loads(messages[0])
+        # Interim commentary is private; only the final message is a proposal.
+        answer = json.loads(messages[-1])
         if (not isinstance(answer, dict) or set(answer) != {"schema_version", "files", "summary"}
                 or type(answer["schema_version"]) is not int or answer["schema_version"] != 1):
             raise AdapterFailure()

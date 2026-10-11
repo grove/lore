@@ -129,3 +129,103 @@ requires a completed, hash-bound `DECISION_INTAKE.json`; the public restoration
 and decision fixtures cannot pass that intake by relabeling or renaming files.
 Supporting decision documents retain original upstream bytes even if marked
 editable. Capture review still requires actual independent people.
+
+## Independent intake, spending and report workflow
+
+Read [the external author contract](DECISION_TASK_AUTHORING_09.md) first. Collect
+six private decision tasks from at least three pinned projects; separately
+collect at least 30 untouched holdout tasks before tuning. Copy original source
+documents byte for byte. Keep original solutions, controls, checkers and human
+captures outside every source input. `candidate_unreviewed` is useful collection
+progress, not execution readiness.
+
+```sh
+# Preparation, inspection and reporting execute no model or checker.
+python3 evaluation/study_09.py prepare \
+  --cases /ABS/INDEPENDENT-PILOT/cases.json --output /ABS/PILOT-STUDY
+python3 evaluation/decision_task_intake_09.py inspect \
+  --cases /ABS/INDEPENDENT-PILOT/cases.json --bundle /ABS/PILOT-STUDY
+python3 evaluation/study_09.py doctor /ABS/PILOT-STUDY --format markdown
+
+# Explicit checker execution on reviewed inputs, in the enforced study sandbox.
+python3 evaluation/decision_task_intake_09.py validate-controls \
+  --cases /ABS/INDEPENDENT-PILOT/cases.json \
+  --intake /ABS/PILOT-STUDY/DECISION_INTAKE.json \
+  --output /ABS/PILOT-STUDY/controls.json --execute-checkers
+
+# Configure first; these commands cannot create external approvals or reviews.
+python3 evaluation/experiment_08.py pins /ABS/PILOT-STUDY
+python3 evaluation/experiment_08.py seal /ABS/PILOT-STUDY
+python3 evaluation/experiment_08.py preflight /ABS/PILOT-STUDY
+
+# Live run: only after explicit spending authorization and authenticated readiness.
+python3 evaluation/experiment_08.py run /ABS/PILOT-STUDY
+
+# Read-only assessment; optional output is a fresh private directory.
+python3 evaluation/study_09.py report /ABS/PILOT-STUDY --format markdown
+python3 evaluation/study_09.py report /ABS/PILOT-STUDY --output /ABS/PRIVATE-REPORT
+```
+
+Use Python 3.10 or newer; real execution is restricted to the independently
+isolated POSIX worker.
+
+`study_09.py` delegates preparation/preflight/assessment to the existing evaluator.
+It never launches the study or signs reviews. `report` revalidates retained
+bindings in memory (`assess(..., persist=False)`); explicit output writes only
+`RESULT.json` and `REPORT.md` outside the checkout. Written report links resolve
+to retained artifacts from that report directory; stdout uses bundle-relative
+names. Unrun artifact links describe future handoff locations. Original `experiment_08.py assess` still persists
+its private retention/result/triage artifacts. Inspection does not overwrite
+historical results. Expired current readiness blocks another launch; a retained
+study uses readiness bound to its recorded launch. The report distinguishes
+current launch blockers from retained assessment qualification. Invalid bindings block qualification while retaining counts
+where the journals remain readable.
+
+Every newly sealed experiment needs `EXPERIMENT.json.budget`:
+
+```json
+{
+  "operator_id": "EXACT_PREREGISTERED_OPERATOR",
+  "authorized_at": "OFFSET_TIMESTAMP_BEFORE_LAUNCH",
+  "max_billed_cost_usd": null,
+  "enforcement_method": "ACTUAL_BILLING_GATEWAY_OR_PROVIDER_HARD_LIMIT",
+  "capture": {"path": "budget-captures/authorization.txt", "sha256": "SHA256"}
+}
+```
+
+This incomplete example deliberately fails. The real authorization must specify
+a finite positive dollar cap and hash-bound operator approval. It is sealed with
+all run/model/task pins. `READINESS.json.enforcement.billing_budget_enforced`
+must be true, with a separate `billing_enforcement` capture proving the actual
+external cap covers every enabled coding and Lore role, including retries,
+initialization, warm-up and served context. The existing two external readiness
+reviews bind these controls and authentication together. Without an available
+gateway/provider limit and real captures, preflight fails closed. Python cannot
+guarantee a dollar cap from token estimates. An authorization filename or true
+boolean is not actual permission or proof of enforcement.
+
+The additive budget field can be omitted when reading older specifications;
+new sealing/launching requires approval. Historical sealed code identities are
+never silently updated to newer evaluator code. Keep the original collector
+revision for historical assessment. The direct coding adapters and Rust product
+contracts remain available and unchanged.
+
+Reports include all planned slots, started and attempted assignments, checked
+outcomes, failures, missingness, observed wall time, arm costs, paired 95%
+intervals and review/audit qualification. Initialization/warm-up/served context
+are charged by the existing assessor. Unstarted work remains separate from
+failed attempts. Provider ledgers are captured coverage, not complete invoices;
+unknown tokens/USD stay null and billing remains `budget_unverifiable` until
+observed billing can be reconciled externally. No price-table estimates or
+unobserved zero-dollar assertions are inserted. Pilot conclusions stay
+exploratory. Qualified holdout intervals still require independent interpretation;
+the report cannot authorize a stable release or broad field productivity claim.
+
+For troubleshooting, match public `doctor` gate identifiers with private
+`experiment_08.py preflight` diagnostics. Missing intake requires real author
+material; missing spending/readiness requires the operator and actual enforcement.
+Hash mismatches require investigating the changed bytes and a fresh study,
+not editing a sealed receipt. After an abort, retain the entire bundle and
+never resume over its attempts. Raw code, prompts, events, private diagnostics
+and credentials must stay in the private retained bundle; reports expose counts,
+content identities and relative artifact links only.

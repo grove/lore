@@ -72,6 +72,23 @@ class CodexProcessTests(unittest.TestCase):
             self.assertIsNone(value["adapter_receipt"]["effective_backend_revision"])
             self.assertEqual(set(root.iterdir()), {root / "usage.json", root / "offline-codex"})
 
+    def test_interim_messages_do_not_replace_the_final_structured_answer(self):
+        for final_valid in (True, False):
+            with self.subTest(final_valid=final_valid), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary).resolve()
+                interim = {"type": "item.completed", "item": {"type": "agent_message", "text": "Offline progress"}}
+                stream = [*events()[:2], interim, *events()[2:]]
+                if not final_valid:
+                    stream.insert(-1, interim)
+                args = fake(root, stream)
+                if final_valid:
+                    value, _ = self.run_double(root, args)
+                    self.assertEqual(value["files"], {"src/a.py": "value = 1\n"})
+                else:
+                    with self.assertRaises(ValueError):
+                        self.run_double(root, args)
+                    self.assertEqual(metering.read(root / "usage.json")["ledger"]["summary"]["total_tokens"], 15)
+
     def test_missing_usage_or_ambiguous_cumulative_usage_remains_unknown(self):
         for stream in (events(usage=False), [*events(), events()[-1]]):
             with self.subTest(stream=stream), tempfile.TemporaryDirectory() as temporary:
