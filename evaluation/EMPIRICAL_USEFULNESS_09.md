@@ -50,3 +50,40 @@ File-proposal experiments do not reproduce everyday interactive agent work.
 
 See [decision controls](DECISION_WORK_09.md), [release gates](PRODUCT_QUALITY_09.md)
 and [baseline receipts](results/empirical-09/README.md).
+
+## Pinned Codex proposal adapter
+
+`codex_agent.py` accepts the existing schema-1 JSON request on stdin and emits
+one validated complete-file proposal on stdout. It supports the reviewed
+`codex-cli 0.162.1` only, on POSIX. Installations with another version require
+an explicit compatibility review; there is no fallback. The schema is resolved
+to the task's editable filenames; strict structured output requests every
+editable file, including unchanged files. The runner applies proposals.
+
+```sh
+# Configuration example only: executing this command requires authorized spending.
+python3 evaluation/codex_agent.py \
+  --codex-bin /ABS/PINNED/codex --codex-sha256 SHA256 \
+  --codex-version 'codex-cli 0.162.1' --model PINNED_MODEL \
+  --reasoning high --timeout 600 --allow-hosted < PRIVATE_REQUEST.json
+```
+
+The executable, fixed prompt (`codex_agent.PROMPT`), schema, flags and environment
+scrub policy are pinned. Version/help probes use no inference. Each invocation
+uses a fresh private directory and `CODEX_HOME`, read-only CLI sandbox, disabled tools and no
+workspace/user rules, profile or resumed session. Credentials must be supplied
+privately through `OPENAI_API_KEY` or `CODEX_API_KEY`; existing login stores are
+not copied into the study. These flags do not establish
+OS isolation, managed configuration enforcement, egress limits or spending
+authorization; independently authenticated worker captures are still required.
+
+Documented terminal JSONL usage feeds the existing `LORE_USAGE_LEDGER`. Cached
+input tokens are recorded separately without adding them twice. Missing or
+ambiguous usage, internal provider request/retry counts, backend revision and
+billed USD remain unknown. An observed CLI model is distinct from a requested
+model; external observation must establish the actual backend. Raw events,
+prompts and diagnostics are private and never printed on failure.
+
+The flags and event shapes were checked against the installed version/help and
+[official noninteractive documentation](https://learn.chatgpt.com/docs/non-interactive-mode).
+Offline tests use a pinned fake executable; no real Codex inference has run.
