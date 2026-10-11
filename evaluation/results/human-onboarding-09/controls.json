@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "classification": "offline_engineering_controls",
+  "checks": [
+    {
+      "suite": "onboarding-rust-host",
+      "status": "passed",
+      "tests_passed": 51,
+      "log_sha256": "f927ee6ad4a8bfe3f9c08c3558eea50e89ba5b2c9f4c4f98e2d1312979799d31"
+    },
+    {
+      "suite": "onboarding-python",
+      "status": "passed",
+      "tests_passed": 20,
+      "log_sha256": "a16a909031a8273211e6a6bc43519c303df81149eb1384e1f0d9da4cc43805cf"
+    }
+  ],
+  "prior_failed_attempt": {
+    "suite": "onboarding-rust-sandbox",
+    "passed": 18,
+    "failed": 1,
+    "reason": "Existing bootstrap test requires a loopback listener; sandbox denied binding. Host rerun passed."
+  },
+  "participant_records": 0,
+  "real_sessions": 0,
+  "human_improvement": "unmeasured",
+  "ux_change": null,
+  "reason": "No consented observed stumbling point justifies changing the existing three-concept orientation or task bypass. Added a shared-snapshot/constraint equivalence regression instead.",
+  "independent_human_review": "unavailable"
+}
