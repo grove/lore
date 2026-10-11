@@ -13,6 +13,7 @@ from datetime import datetime, timezone
 import hashlib
 import ipaddress
 import json
+import math
 import os
 from pathlib import Path
 import signal
@@ -85,6 +86,8 @@ def template(pilot: bool) -> dict:
                   "endpoint": "http://127.0.0.1:11434", "prompt_file": ""},
         "lore_revisions": {"generative": "", "decision": None, "embedding": None},
         "pilot_bundle": None,
+        "budget": {"operator_id": "", "authorized_at": "", "max_billed_cost_usd": None,
+                   "enforcement_method": "", "capture": None},
         "study_wall_time_seconds": 43200, "output_retention_days": 30,
         "publish_raw_outputs": False}
 
@@ -112,9 +115,25 @@ def specification(bundle: Path) -> dict:
             or set(spec.get("run", {})) != set(RUN_DEFAULTS)
             or set(spec.get("agent", {})) != {"provider", "model", "model_revision", "reasoning", "endpoint", "prompt_file"}
             or set(spec.get("lore_revisions", {})) != {"generative", "decision", "embedding"}
-            or set(spec) != set(template(spec.get("mode") == "pilot"))):
+            or set(spec) - {"budget"} != set(template(spec.get("mode") == "pilot")) - {"budget"}):
         raise ValueError("Expected the complete version-1 experiment and run options")
     return spec
+
+
+def spending_authorization(bundle: Path, spec: dict, at: str) -> dict:
+    budget = spec.get("budget", {})
+    if not isinstance(budget, dict):
+        raise ValueError("Spending authorization must be an object")
+    registration = read(bundle / "PREREGISTRATION.json")
+    amount = budget.get("max_billed_cost_usd")
+    if (budget.get("operator_id") != registration.get("operator_id") or not budget.get("operator_id")
+            or type(amount) not in (int, float) or not math.isfinite(amount) or amount <= 0
+            or not isinstance(budget.get("enforcement_method"), str) or not budget["enforcement_method"].strip()
+            or outcome.timestamp(budget.get("authorized_at")) > outcome.timestamp(at)):
+        raise ValueError("Explicit operator spending authorization and an externally enforced finite budget are required")
+    digest = outcome.capture(bundle, budget["capture"])
+    return {"max_billed_cost_usd": amount, "authorization_capture_sha256": digest,
+            "qualification": "Externally supplied authorization/enforcement capture; Python cannot guarantee billed dollars. Readiness review must authenticate actual enforcement."}
 
 
 def prepared_inputs(bundle: Path) -> dict:
@@ -442,6 +461,7 @@ def contract_for(bundle: Path, spec: dict, prepared: dict, args: argparse.Namesp
         "grants": adaptive.policy_from_args(args), "repair_policy": coding.repair_policy(args),
         "agent_limits": {key: registration["agent"][key]
                          for key in ("tools", "token_limit", "tool_call_limit", "temperature")}}
+    result["spending_authorization"] = spending_authorization(bundle, spec, at)
     if (bundle / "DECISION_INTAKE.json").exists() or "codex_adapter" in models:
         result["decision_intake"] = decision_intake_contract(bundle, spec, prepared)
     return result
@@ -461,7 +481,7 @@ def privacy(bundle: Path, spec: dict, fresh: bool) -> dict:
 
 
 def readiness_template(contract: dict) -> dict:
-    return {"schema_version": 1, "protocol": PROTOCOL + "-readiness", "complete": False,
+    value = {"schema_version": 1, "protocol": PROTOCOL + "-readiness", "complete": False,
         "contract_sha256": cross.digest(contract), "observed_at": "", "expires_at": "",
         "providers": {role: {**value, "available": None} for role, value in
                       contract["model_configuration"]["providers"].items()},
@@ -469,6 +489,9 @@ def readiness_template(contract: dict) -> dict:
         "captures": [], "authentication": {"method": "", "capture": None},
         "reviews": [],
         "qualification": "External enforcement and authenticated reviewer evidence must be supplied; this template is not an audit."}
+    if "spending_authorization" in contract:
+        value["enforcement"]["billing_budget_enforced"] = None
+    return value
 
 
 def readiness_status(bundle: Path, contract: dict, at: str) -> dict:
@@ -490,9 +513,14 @@ def readiness_status(bundle: Path, contract: dict, at: str) -> dict:
     if (not isinstance(enforcement.get("method"), str) or not enforcement["method"].strip()
             or any(enforcement.get(key) is not True for key in ENFORCEMENT)):
         raise ValueError("Independent OS isolation, checker separation, tool limits and active egress capture are required")
+    budgeted = "spending_authorization" in contract
+    if budgeted and enforcement.get("billing_budget_enforced") is not True:
+        raise ValueError("The authorized billing gateway must externally enforce the sealed dollar budget")
     captures = value["captures"]
-    if not isinstance(captures, list) or {item.get("kind") for item in captures} != {
-            "provider_availability", "runtime_isolation", "egress_enforcement"}:
+    required = {"provider_availability", "runtime_isolation", "egress_enforcement"}
+    if budgeted:
+        required.add("billing_enforcement")
+    if not isinstance(captures, list) or {item.get("kind") for item in captures} != required:
         raise ValueError("Retain separate provider, runtime-isolation and egress-enforcement captures")
     for item in captures:
         outcome.capture(bundle, item)
@@ -538,6 +566,7 @@ def _preflight(bundle: Path, *, at: str | None = None, fresh=True) -> tuple[dict
                            "reason": str(error) if isinstance(error, ValueError) else type(error).__name__})
 
     check("specification", lambda: specification(bundle))
+    check("operator_spending_authorization", lambda: spending_authorization(bundle, cache["specification"], at), ("specification",))
     check("pinned_source_snapshots", lambda: prepared_inputs(bundle))
     if (bundle / "DECISION_INTAKE.json").exists() or str(ROOT / "codex_agent.py") in cache.get("specification", {}).get("run", {}).get("agent_command", []):
         check("independent_decision_task_intake", lambda: decision_intake_contract(bundle,
@@ -854,11 +883,12 @@ def run(bundle: Path) -> dict:
     return assess(bundle)
 
 
-def assess(bundle: Path) -> dict:
+def assess(bundle: Path, *, persist=True) -> dict:
     bundle = cross.selected_path(bundle)
     execution = read(bundle / "EXECUTION.json")
     retained = retention(bundle, execution)
-    private_write(bundle / "RETENTION.json", retained)
+    if persist:
+        private_write(bundle / "RETENTION.json", retained)
     before = preflight(bundle, at=execution["started_at"], fresh=False)
     if (before["contract_sha256"] != execution["contract_sha256"]
             or before["readiness_sha256"] != execution["readiness_sha256"]
@@ -878,13 +908,15 @@ def assess(bundle: Path) -> dict:
     if complete:
         import failure_triage
         triage = failure_triage.triage(bundle / "run")
-        private_write(bundle / "FAILURE_TRIAGE.json", triage)
+        if persist:
+            private_write(bundle / "FAILURE_TRIAGE.json", triage)
     result = {"schema_version": 1, "protocol": PROTOCOL, "execution": execution,
         "mechanical_comparison_complete": complete, "retention": retained,
         "comparison": comparison, "triage": triage,
         "coding_productivity": "unmeasured", "productivity_benefit_established": False,
         "qualification": "The existing independently reviewed paired-task assessment remains authoritative. A readiness pass, completed run or cache hit is not a productivity result. Aborted studies retain coverage and cost uncertainty and cannot become a passing independent comparison."}
-    private_write(bundle / "RESULT.json", result)
+    if persist:
+        private_write(bundle / "RESULT.json", result)
     return result
 
 

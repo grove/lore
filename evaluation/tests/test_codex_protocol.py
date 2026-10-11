@@ -56,9 +56,9 @@ class CodexProtocolTests(unittest.TestCase):
         readiness.update(complete=True, observed_at=fixtures.utc(-20), expires_at=fixtures.utc(3600))
         for value in readiness["providers"].values():
             value["available"] = True
-        readiness["enforcement"] = {"method": "Offline audit fixture only", **dict.fromkeys(experiment.ENFORCEMENT, True)}
+        readiness["enforcement"] = {"method": "Offline audit fixture only", **dict.fromkeys((*experiment.ENFORCEMENT, "billing_budget_enforced"), True)}
         readiness["captures"] = []
-        for kind in ("provider_availability", "runtime_isolation", "egress_enforcement"):
+        for kind in ("provider_availability", "runtime_isolation", "egress_enforcement", "billing_enforcement"):
             name = "readiness-captures/" + kind + ".txt"
             path = bundle / name
             path.write_text("Offline Codex protocol capture " + kind)

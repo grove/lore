@@ -1,0 +1,137 @@
+{
+  "authenticated_independence_evidence": false,
+  "captured_at": "2026-10-11T22:53:05.918386+00:00",
+  "classification": "offline_not_run_workflow_receipt",
+  "collector_files_sha256": {
+    "adaptive_tasks.py": "fd1137bb5ceb6a8a7af840ae619c3fefe33ab02bada6ee8b64a4de0c702db042",
+    "benchmark.py": "b93a9e6b3d47cc2f26499999defa42808559149e7e3776e3bf5b8c200bdba0b3",
+    "codex_agent.py": "f4297eb42bc47d16eda57e2b1cc21f6fa3d49ad5564c7dacf2a603dbb37c56ed",
+    "codex_proposal.schema.json": "5917327dbb3de8ffde409b636e9f4d877bd481260c76d0e4cc8fa08e270762c1",
+    "coding_agent.py": "7dd9b6a9637a9831fd37644acdc8802934e6d59a2cdf92013ec072fe4249e553",
+    "coding_tasks.py": "43beea8959efd0230a31e864a9d3a12029c70677118aa5478f9870dde3f2f298",
+    "cross_source.py": "dfede36c53f6653318f398df88de3acc86e58804314580191305fd1f360fd52e",
+    "decision_task_intake_09.py": "d22cb214c10863bf4af3b4f60726738ebe87eaf47b1fec7ccecf2136c33902f4",
+    "decision_tasks.py": "2ffee5132d9e6e0a86aaa948709696fa81df1ef284fd61e92b05ae8a6d1ae908",
+    "experiment_08.py": "809b58c751b942eba581482cbfc981bda4dcda3bd8ed91848d55b9414ac81c3e",
+    "failure_triage.py": "95e5ab9b94e7687b4eaba1d49f520dc684d8b15a86a31486e69119ed95e96009",
+    "outcome_protocol.py": "4fdb70e0a9beeb2bb46dc8415e7815b6a50989dd418b85db5ab3e7e8f63202f2",
+    "provider_usage.py": "f76d91c6c51661406d2bb0a21c536247188e9d1a726efa1dace1ad325479ce64",
+    "shared_intelligence.py": "ae4d92df85591bd2153689d00a6c50b8543ebeb1321d5099d4122b66f07d05d0",
+    "study_09.py": "8228dad40583d73f71356a1515bfc7391b7e3db2b92b68e8eb2bced074fc03d7"
+  },
+  "input_classification": "public coding-real-v1 restoration inputs, ineligible for the genuine pilot",
+  "python_version": "3.12.14",
+  "real_model_evidence": false,
+  "report": {
+    "arm_totals": {},
+    "arms": [
+      "baseline",
+      "fast",
+      "lore05",
+      "lore06",
+      "adaptive_no_reuse",
+      "adaptive_reuse"
+    ],
+    "attempted_assignments": 0,
+    "attempted_invocations": 0,
+    "audit_complete": false,
+    "baseline_comparisons": {},
+    "billing_status": "budget_unverifiable",
+    "blinded_reviews_complete": false,
+    "blockers": [
+      {
+        "gate": "operator_spending_authorization",
+        "passed": false
+      },
+      {
+        "gate": "independent_decision_task_intake",
+        "passed": false
+      },
+      {
+        "gate": "grants_models_and_limits",
+        "passed": false
+      },
+      {
+        "gate": "preregistration_record",
+        "passed": false
+      },
+      {
+        "gate": "preregistration_and_independent_gold_reviews",
+        "passed": false
+      },
+      {
+        "gate": "model_command_prompt_and_configuration",
+        "passed": false
+      },
+      {
+        "gate": "current_contract",
+        "passed": false
+      },
+      {
+        "gate": "sealed_contract",
+        "passed": false
+      },
+      {
+        "gate": "external_readiness_record",
+        "passed": false
+      },
+      {
+        "gate": "provider_availability_and_external_runtime_egress_audit",
+        "passed": false
+      }
+    ],
+    "captured_provider_usage": {
+      "billed_cost_usd": null,
+      "billing_source": null,
+      "cache_hits": null,
+      "event_count": null,
+      "input_tokens": null,
+      "model_calls": null,
+      "output_tokens": null,
+      "provider_request_count": null,
+      "total_tokens": null
+    },
+    "classification": "offline_fixture",
+    "coding_productivity": "unmeasured",
+    "completed_checked_assignments": 0,
+    "conclusion": "not_yet_measurable",
+    "identities": null,
+    "initial_assignments": 36,
+    "integrity_qualified": false,
+    "interpretation": "pilot_diagnostic_exploratory",
+    "not_started_assignments": 36,
+    "observed_study_wall_seconds": null,
+    "paired_tasks": 0,
+    "pilot": "blocked_external",
+    "preflight_passed": false,
+    "private_artifacts": {
+      "EXECUTION.json": "EXECUTION.json",
+      "PREFLIGHT_AT_LAUNCH.json": "PREFLIGHT_AT_LAUNCH.json",
+      "RESULT.json": "RESULT.json",
+      "RETENTION.json": "RETENTION.json",
+      "SEAL.json": "SEAL.json",
+      "run/CODEX_IDENTITIES.json": "run/CODEX_IDENTITIES.json",
+      "run/INTEGRITY_AUDIT.json": "run/INTEGRITY_AUDIT.json",
+      "run/metrics.json": "run/metrics.json"
+    },
+    "productivity_benefit_established": false,
+    "protocol": "lore-experiment-08-v1",
+    "provider_calls": 0,
+    "reported_successes": 0,
+    "schema_version": 1,
+    "started_assignments": 0,
+    "status": "not_run",
+    "subprocess_calls": 0,
+    "target": {
+      "all_in_time_or_cost_reduction_percent": 20,
+      "no_increase_in_critical_violations": true,
+      "noninferior_correctness": true,
+      "success_gain_percentage_points": 10
+    },
+    "tasks": 6,
+    "usage_coverage": {}
+  },
+  "report_subprocess_calls": 0,
+  "schema_version": 1,
+  "source_preserved": true
+}
