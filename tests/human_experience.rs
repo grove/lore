@@ -1177,3 +1177,35 @@ async fn fresh_proposed_design_is_not_presented_as_an_adopted_project_or_learnin
     }));
     assert!(experience::render_markdown(&result).contains("proposed"));
 }
+
+#[tokio::test]
+async fn human_task_guidance_preserves_agent_constraints_and_snapshot_without_claiming_execution() {
+    let fixture = Fixture::new();
+    let mut options = fixture.options();
+    options.task =
+        Some("Refactor dispatch while preserving production and staging queue limits".into());
+    let shared = fixture
+        .shared_task(&options.run, options.task.as_deref().unwrap())
+        .await;
+    let snapshot = shared.snapshot.clone();
+    let capabilities = shared.capabilities.clone();
+    let agent = serde_json::to_value(&shared.intelligence).unwrap();
+    let human = experience::build(&fixture.conn, &fixture.config, &options, shared, None)
+        .await
+        .unwrap();
+    assert_eq!(human.snapshot, snapshot);
+    assert_eq!(human.capabilities, capabilities);
+    assert_eq!(serde_json::to_value(&human.intelligence).unwrap(), agent);
+    assert!(serde_json::to_string(&human).unwrap().contains(RULE));
+    assert!(human.tutorial.is_none());
+    assert!(human.feedback.is_none());
+    assert!(
+        human
+            .first_task
+            .unwrap()
+            .qualification
+            .contains("not checks Lore executed")
+    );
+    assert_eq!(human.model_calls, 0);
+    assert!(!fixture.config.state.exists());
+}
