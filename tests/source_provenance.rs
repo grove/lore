@@ -145,7 +145,7 @@ async fn ordinary_openwiki_markdown_preserves_multi_root_identity_and_captured_p
     assert_eq!(snapshot.material, SourceMaterial::Derived);
     let wiki = fs::read_to_string(cfg.wiki.join("topics/workers.md")).unwrap();
     assert!(wiki.contains("openwiki/moved/overview.md"));
-    assert!(wiki.contains("captured as openwiki:overview.md"));
+    assert!(wiki.contains("previously openwiki/overview.md"));
     drop(db);
 
     fs::remove_file(cfg.base.join("docs/overview.md")).unwrap();

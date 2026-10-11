@@ -421,10 +421,21 @@ async fn run_metered(cli: Cli, meter: lore::inference::usage::UsageSession) -> R
     // Command dispatch includes every async CLI branch. Keep that future on
     // the heap before the cancellation and task-local scopes embed it; their
     // combined stack frame otherwise also crowds argument parsing on Windows.
+    let is_visualizer = matches!(&cli.command, Command::Visualize { .. });
     let operation = Box::pin(run(cli));
     let result = meter
         .scope(async move {
-            tokio::select! {result=operation=>result,_=tokio::signal::ctrl_c()=>Err(anyhow::anyhow!("cancelled; run update to recover any pending publication"))}
+            tokio::select! {
+                result = operation => result,
+                _ = tokio::signal::ctrl_c() => {
+                    if is_visualizer {
+                        println!("Lore visualizer stopped.");
+                        Ok(0)
+                    } else {
+                        Err(anyhow::anyhow!("cancelled; run update to recover any pending publication"))
+                    }
+                }
+            }
         })
         .await;
     meter.finish(result.is_ok())?;
@@ -607,7 +618,9 @@ async fn run(cli: Cli) -> Result<i32> {
     }
     match cli.command {
         Command::Integrate { .. } => unreachable!("integration is dispatched before configuration"),
-        Command::Visualize { port, no_open } => lore::visualize::run(&config, port, no_open)?,
+        Command::Visualize { port, no_open } => {
+            lore::visualize::run(&config, port, no_open).await?
+        }
         Command::Init { rebuild, .. } => {
             compile(
                 &config,

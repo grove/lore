@@ -165,7 +165,7 @@ async fn overview_repairs_schema_ignoring_citations_then_mutates_and_noops() {
         .await
         .unwrap();
     let index = fs::read(cfg.wiki.join("index.md")).unwrap();
-    assert!(String::from_utf8_lossy(&index).contains("explicitly supersedes"));
+    assert!(String::from_utf8_lossy(&index).contains("explicitly replaces"));
     let calls = model.inner.calls.load(Ordering::SeqCst);
     let no_op = engine::update(&cfg, &model, None, UpdateOptions::default())
         .await
@@ -212,7 +212,7 @@ async fn unknown_citations_still_fail_closed_and_preserve_initial_publication() 
     );
     let index = fs::read_to_string(cfg.wiki.join("index.md")).unwrap();
     assert!(index.contains("lore:degraded-overview-synthesis"));
-    assert!(index.contains("## Overview evidence"));
+    assert!(index.contains("## Sources"));
     assert!(!index.contains("Do not persist rejected private prose"));
     let noop = engine::update(&cfg, &model, None, UpdateOptions::default())
         .await

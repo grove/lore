@@ -66,7 +66,7 @@ async fn design_intent_requirements_and_reported_delivery_are_independent() {
             .collect()
     );
     let prose = std::fs::read_to_string(cfg.wiki.join("topics/architecture.md")).unwrap();
-    assert!(prose.contains("Documented design, not independently verified"));
+    assert!(prose.contains("Design note"));
     assert!(!prose.contains("Proposed or planned work"));
     assert!(
         engine::update(&cfg, &model, None, UpdateOptions::default())

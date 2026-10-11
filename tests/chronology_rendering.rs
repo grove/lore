@@ -132,9 +132,9 @@ async fn persistent_semantic_rejection_publishes_only_attributed_source_excerpts
     );
     let topic = fs::read_to_string(cfg.wiki.join("topics/ledger.md")).unwrap();
     assert!(topic.contains("lore:degraded-topic-synthesis"));
-    assert!(topic.contains("Source excerpts — synthesis requires review"));
+    assert!(topic.contains("Original text — summary needs review"));
     assert!(topic.contains("> DECISION ledger: ADR-002 replaces ADR-001; PostgreSQL is selected."));
-    assert!(topic.contains("## Documented decision relationships"));
+    assert!(topic.contains("## How decisions relate"));
     assert!(!topic.contains("Before ADR-002, the entire migration plan was accepted."));
     let noop = engine::update(&cfg, &model, None, UpdateOptions::default())
         .await
@@ -198,6 +198,6 @@ async fn cross_topic_relationship_uses_citation_closed_writing_and_verification_
     assert!(report.degraded_topics.is_empty());
     assert!(model.full_verifier_history.load(Ordering::SeqCst) > 0);
     let legacy = fs::read_to_string(cfg.wiki.join("topics/legacy.md")).unwrap();
-    assert!(legacy.contains("## Documented decision relationships"));
-    assert!(legacy.contains("explicitly supersedes"));
+    assert!(legacy.contains("## How decisions relate"));
+    assert!(legacy.contains("explicitly replaces"));
 }

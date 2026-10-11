@@ -38,11 +38,13 @@ async fn overview_uses_document_ids_and_source_backed_decision_chain() {
     let index = fs::read_to_string(cfg.wiki.join("index.md")).unwrap();
     assert!(
         index.contains(
-            "[ADR-027](topics/ledger.md) explicitly supersedes [ADR-001](topics/ledger.md)"
+            "[ADR-027](topics/ledger.md) explicitly replaces [ADR-001](topics/ledger.md)"
         )
     );
-    assert!(!index.contains("[ledger](topics/ledger.md) explicitly supersedes [ledger]"));
-    assert!(index.contains("## Overview evidence"));
+    assert!(!index.contains("[ledger](topics/ledger.md) explicitly replaces [ledger]"));
+    assert!(index.contains("## Sources"));
+    assert!(index.contains("## Browse topics"));
+    assert!(index.contains("## What's covered"));
     assert!(index.contains("PostgreSQL replaces ADR-001"));
     assert!(index.contains("[Review history](reviews.md)"));
     assert_ne!(before, fs::read(cfg.wiki.join("topics/review.md")).unwrap());
@@ -52,7 +54,8 @@ async fn overview_uses_document_ids_and_source_backed_decision_chain() {
         .into_iter()
         .find(|f| f.kind == "supersedes")
         .unwrap();
-    assert!(index.contains(&relation.evidence_id));
+    assert!(index.contains("ADR-027.md"));
+    assert!(index.contains("ADR-001.md"));
     let calls: i64 = conn
         .query_row(
             "SELECT count(*) FROM model_calls WHERE task='overview' AND cache_hit=0",
@@ -201,10 +204,11 @@ async fn repeated_overview_verifier_rejections_produce_an_explicit_evidence_inde
     );
     let index = fs::read_to_string(cfg.wiki.join("index.md")).unwrap();
     assert!(index.contains("lore:degraded-overview-synthesis"));
-    assert!(index.contains("Source excerpts — overview requires review"));
+    assert!(index.contains("Original text — summary needs review"));
     assert!(index.contains("> DECISION ledger: MySQL is the selected database."));
-    assert!(index.contains("## Overview evidence"));
-    assert!(index.contains("## Explore the project"));
+    assert!(index.contains("## Sources"));
+    assert!(index.contains("## Browse topics"));
+    assert!(index.contains("## Browse topics"));
     assert!(index.contains("Source:"));
     assert!(!index.contains("unjustified publication chronology"));
     assert_eq!(engine::audit(&cfg).unwrap()["ok"], true);
@@ -232,5 +236,6 @@ async fn supported_overview_repair_publishes_no_degradation_marker() {
     assert!(!index.contains("lore:degraded-overview-synthesis"));
     assert!(!index.contains("unjustified publication chronology"));
     assert!(index.contains("MySQL is the selected database"));
-    assert!(index.contains("## Overview evidence"));
+    assert!(index.contains("## Sources"));
+    assert!(index.contains("## Browse topics"));
 }

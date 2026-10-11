@@ -7,7 +7,7 @@ use serde_json::{Value, json};
 use std::{
     collections::{BTreeMap, BTreeSet},
     io::{Read, Write},
-    net::{Ipv4Addr, SocketAddrV4, TcpListener, TcpStream},
+    net::{Ipv4Addr, SocketAddrV4, TcpStream},
     path::Path,
     time::Duration,
 };
@@ -248,7 +248,10 @@ fn render_markdown(
     let ids: BTreeSet<_> = pages.keys().cloned().collect();
     let parser = Parser::new_ext(
         source,
-        Options::ENABLE_TABLES | Options::ENABLE_STRIKETHROUGH | Options::ENABLE_TASKLISTS,
+        Options::ENABLE_TABLES
+            | Options::ENABLE_STRIKETHROUGH
+            | Options::ENABLE_TASKLISTS
+            | Options::ENABLE_FOOTNOTES,
     )
     .map(|event| match event {
         Event::Html(x) | Event::InlineHtml(x) => Event::Text(x),
@@ -345,10 +348,11 @@ fn handle(viewer: &Viewer, mut stream: TcpStream) -> Result<()> {
         Err(_) => send(&mut stream,400,"application/json; charset=utf-8",br#"{"error":"Unavailable or invalid published knowledge. Run lore status or lore audit."}"#),
     }
 }
-pub fn run(config: &ResolvedConfig, port: u16, no_open: bool) -> Result<()> {
+pub async fn run(config: &ResolvedConfig, port: u16, no_open: bool) -> Result<()> {
     ensure!(port >= 1024, "visualizer port must be at least 1024");
     let viewer = Viewer::open(config)?;
-    let listener = TcpListener::bind(SocketAddrV4::new(Ipv4Addr::LOCALHOST, port))
+    let listener = tokio::net::TcpListener::bind(SocketAddrV4::new(Ipv4Addr::LOCALHOST, port))
+        .await
         .with_context(|| format!("bind visualizer on 127.0.0.1:{port}"))?;
     let addr = listener.local_addr()?;
     let url = format!("http://127.0.0.1:{}", addr.port());
@@ -364,12 +368,16 @@ pub fn run(config: &ResolvedConfig, port: u16, no_open: bool) -> Result<()> {
         let _ = std::process::Command::new("xdg-open").arg(&url).spawn();
     }
     // One request per connection, with bounded reads/timeouts. Localhost is not a sandbox.
-    for (count, connection) in listener.incoming().enumerate() {
-        if count >= MAX_CONNECTIONS {
-            break;
-        }
-        if let Ok(stream) = connection {
-            let _ = handle(&viewer, stream);
+    for _ in 0..MAX_CONNECTIONS {
+        let (stream, _) = listener.accept().await?;
+        let stream = stream.into_std()?;
+        stream.set_nonblocking(false)?;
+        let config = viewer.config.clone();
+        let result = tokio::task::spawn_blocking(move || handle(&Viewer { config }, stream))
+            .await
+            .context("visualizer request handler panicked")?;
+        if let Err(error) = result {
+            eprintln!("Lore visualizer request failed: {error:#}");
         }
     }
     Ok(())
@@ -400,5 +408,27 @@ mod tests {
         );
         assert!(!rendered.contains("<script>"));
         assert!(rendered.contains("&lt;script&gt;"));
+    }
+    #[test]
+    fn wiki_citations_render_as_numbered_footnotes() {
+        let pages = BTreeMap::from([(
+            "index.md".to_string(),
+            storage::StoredPage {
+                path: "index.md".into(),
+                input_digest: String::new(),
+                output_digest: String::new(),
+                content: String::new(),
+            },
+        )]);
+        let rendered = render_markdown(
+            "A documented rule.[^ku_example]\n\n## Sources\n\n[^ku_example]: Source: runbook.md, lines 4-6.\n",
+            "index.md",
+            &pages,
+        );
+        assert!(rendered.contains("footnote-reference"));
+        assert!(rendered.contains("footnote-definition"), "{rendered}");
+        assert!(rendered.contains(">1</sup>"));
+        assert!(!rendered.contains(">ku_example<"));
+        assert!(rendered.contains("runbook.md, lines 4-6"));
     }
 }

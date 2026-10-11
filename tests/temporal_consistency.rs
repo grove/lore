@@ -42,11 +42,11 @@ async fn documentary_decision_timeline_invalidates_related_topics() {
         .unwrap();
     assert!(!update.no_op);
     let legacy = fs::read_to_string(cfg.wiki.join("topics/legacy.md")).unwrap();
-    assert!(legacy.contains("explicitly supersedes"));
+    assert!(legacy.contains("explicitly replaces"));
     assert!(legacy.contains("replacement.md"));
-    assert!(legacy.contains("not independent verification of deployment"));
+    assert!(legacy.contains("does not confirm what is running"));
     let index = fs::read_to_string(cfg.wiki.join("index.md")).unwrap();
-    assert!(index.contains("explicitly supersedes"));
+    assert!(index.contains("explicitly replaces"));
     assert!(index.contains("reaffirms"));
 
     let conn = Connection::open(cfg.state.join("state.db")).unwrap();
