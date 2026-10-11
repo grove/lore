@@ -51,6 +51,12 @@ File-proposal experiments do not reproduce everyday interactive agent work.
 See [decision controls](DECISION_WORK_09.md), [release gates](PRODUCT_QUALITY_09.md)
 and [baseline receipts](results/empirical-09/README.md).
 
+Engineering A–E is complete; pilot and holdout remain `blocked_external`.
+See [the implementation report](results/empirical-09/IMPLEMENTATION_REPORT.md)
+for merged PRs, exact-head verification, available offline evidence and the next
+external study actions. No paid inference or empirical productivity claim is
+part of that handoff.
+
 ## Pinned Codex proposal adapter
 
 `codex_agent.py` accepts the existing schema-1 JSON request on stdin and emits

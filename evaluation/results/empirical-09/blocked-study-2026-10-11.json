@@ -1,0 +1,467 @@
+{
+  "arm_protocol": "adaptive-coding-v1",
+  "arms": [
+    "baseline",
+    "fast",
+    "lore05",
+    "lore06",
+    "adaptive_no_reuse",
+    "adaptive_reuse"
+  ],
+  "authenticated_independence_evidence": null,
+  "authenticated_runtime_enforcement_evidence": null,
+  "captured_at": "2026-10-11T23:20:51.124706+00:00",
+  "classification": "engineering_handoff_not_empirical_evidence",
+  "coding_productivity": "unmeasured",
+  "collector_files_sha256": {
+    "adaptive_tasks.py": "fd1137bb5ceb6a8a7af840ae619c3fefe33ab02bada6ee8b64a4de0c702db042",
+    "benchmark.py": "b93a9e6b3d47cc2f26499999defa42808559149e7e3776e3bf5b8c200bdba0b3",
+    "codex_agent.py": "f4297eb42bc47d16eda57e2b1cc21f6fa3d49ad5564c7dacf2a603dbb37c56ed",
+    "codex_proposal.schema.json": "5917327dbb3de8ffde409b636e9f4d877bd481260c76d0e4cc8fa08e270762c1",
+    "coding_agent.py": "7dd9b6a9637a9831fd37644acdc8802934e6d59a2cdf92013ec072fe4249e553",
+    "coding_tasks.py": "43beea8959efd0230a31e864a9d3a12029c70677118aa5478f9870dde3f2f298",
+    "cross_source.py": "dfede36c53f6653318f398df88de3acc86e58804314580191305fd1f360fd52e",
+    "decision_task_intake_09.py": "d22cb214c10863bf4af3b4f60726738ebe87eaf47b1fec7ccecf2136c33902f4",
+    "decision_tasks.py": "2ffee5132d9e6e0a86aaa948709696fa81df1ef284fd61e92b05ae8a6d1ae908",
+    "experiment_08.py": "809b58c751b942eba581482cbfc981bda4dcda3bd8ed91848d55b9414ac81c3e",
+    "failure_triage.py": "95e5ab9b94e7687b4eaba1d49f520dc684d8b15a86a31486e69119ed95e96009",
+    "outcome_protocol.py": "4fdb70e0a9beeb2bb46dc8415e7815b6a50989dd418b85db5ab3e7e8f63202f2",
+    "provider_usage.py": "f76d91c6c51661406d2bb0a21c536247188e9d1a726efa1dace1ad325479ce64",
+    "shared_intelligence.py": "ae4d92df85591bd2153689d00a6c50b8543ebeb1321d5099d4122b66f07d05d0",
+    "study_09.py": "8228dad40583d73f71356a1515bfc7391b7e3db2b92b68e8eb2bced074fc03d7"
+  },
+  "credentials_inspected_or_tested": false,
+  "engineering_status": "engineering_ready",
+  "external_blockers": [
+    "Six independently authored decision tasks across at least three pinned projects, separate checker authors and two independently authenticated gold reviewers per task",
+    "At least 30 separate untouched holdout tasks and independent gold/checker material registered before tuning",
+    "Authorized fixed coding/Lore models and externally authenticated availability/backend observations",
+    "Externally enforced POSIX isolation, tools, wall/token bounds, egress and authenticated captures with two independent readiness reviews",
+    "Explicit finite spending authorization, actual external all-role dollar cap and observed billing reconciliation",
+    "Actual pilot/holdout execution, blinded final/earlier failed-answer reviews and independent post-run execution audit"
+  ],
+  "genuine_study": {
+    "attempted_assignments": 0,
+    "audit_complete": false,
+    "blinded_reviews_complete": false,
+    "completed_checked_assignments": 0,
+    "eligible_pilot_tasks_supplied": 0,
+    "paired_intervals": null,
+    "registered_assignments": 0,
+    "registered_tasks": 0,
+    "started_assignments": 0
+  },
+  "holdout": "blocked_external",
+  "merged_implementation_prs": [
+    {
+      "checks": {
+        "guardian-integrity": {
+          "completed_at": "2026-10-11T20:51:11Z",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/grove/lore/actions/runs/38173476834/job/114570819938"
+        },
+        "test (macos-latest)": {
+          "completed_at": "2026-10-11T20:56:20Z",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/grove/lore/actions/runs/38173476855/job/114570820116"
+        },
+        "test (ubuntu-latest)": {
+          "completed_at": "2026-10-11T20:58:58Z",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/grove/lore/actions/runs/38173476855/job/114570820306"
+        },
+        "test (windows-latest)": {
+          "completed_at": "2026-10-11T21:08:26Z",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/grove/lore/actions/runs/38173476855/job/114570820318"
+        }
+      },
+      "merge_revision": "0b64838cdae8c372b3ca07bb6305a2f931c99df3",
+      "merged_at": "2026-10-11T21:14:34Z",
+      "merged_tree_matches_tested_head": true,
+      "pr": "https://github.com/grove/lore/pull/59",
+      "python_tests_run": 242,
+      "python_tests_skipped": 1,
+      "scope": "A: baseline/status",
+      "verified_head": "4c90582e82648fcc9dab4f1a2aa38a81285150a1",
+      "verified_tree": "b843a6ee94391ed186c3149ae73fe2838aa4e25b"
+    },
+    {
+      "checks": {
+        "guardian-integrity": {
+          "completed_at": "2026-10-11T21:39:36Z",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/grove/lore/actions/runs/38176825034/job/114580865668"
+        },
+        "test (macos-latest)": {
+          "completed_at": "2026-10-11T21:48:39Z",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/grove/lore/actions/runs/38176825027/job/114580866063"
+        },
+        "test (ubuntu-latest)": {
+          "completed_at": "2026-10-11T21:46:45Z",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/grove/lore/actions/runs/38176825027/job/114580866235"
+        },
+        "test (windows-latest)": {
+          "completed_at": "2026-10-11T21:56:30Z",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/grove/lore/actions/runs/38176825027/job/114580866331"
+        }
+      },
+      "merge_revision": "04ab59525f4e95ad94869f7581b6ada99220a3fc",
+      "merged_at": "2026-10-11T21:57:05Z",
+      "merged_tree_matches_tested_head": true,
+      "pr": "https://github.com/grove/lore/pull/60",
+      "python_tests_run": 250,
+      "python_tests_skipped": 1,
+      "scope": "B: Codex adapter",
+      "verified_head": "d11739e82919c1aeaa5fb5473df6fa95f6cc0c44",
+      "verified_tree": "309f33bcd7403b8d832c8905c94568533d547eb0"
+    },
+    {
+      "checks": {
+        "guardian-integrity": {
+          "completed_at": "2026-10-11T22:02:28Z",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/grove/lore/actions/runs/38178512808/job/114585905968"
+        },
+        "test (macos-latest)": {
+          "completed_at": "2026-10-11T22:11:52Z",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/grove/lore/actions/runs/38178512798/job/114585906063"
+        },
+        "test (ubuntu-latest)": {
+          "completed_at": "2026-10-11T22:12:54Z",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/grove/lore/actions/runs/38178512798/job/114585906061"
+        },
+        "test (windows-latest)": {
+          "completed_at": "2026-10-11T22:21:40Z",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/grove/lore/actions/runs/38178512798/job/114585905877"
+        }
+      },
+      "merge_revision": "d7dcd179d8b7adeeb5cd5b9c8a6b20d4df2f19ea",
+      "merged_at": "2026-10-11T22:22:16Z",
+      "merged_tree_matches_tested_head": true,
+      "pr": "https://github.com/grove/lore/pull/61",
+      "python_tests_run": 254,
+      "python_tests_skipped": 1,
+      "scope": "C: sealed protocol",
+      "verified_head": "bce2b986b132d2e20239800d6dbfc4f006e802bd",
+      "verified_tree": "a39da2d7aa3a7ef937acc471bb478ed57ad10317"
+    },
+    {
+      "checks": {
+        "guardian-integrity": {
+          "completed_at": "2026-10-11T22:30:14Z",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/grove/lore/actions/runs/38180237208/job/114591047877"
+        },
+        "test (macos-latest)": {
+          "completed_at": "2026-10-11T22:41:09Z",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/grove/lore/actions/runs/38180237269/job/114591048326"
+        },
+        "test (ubuntu-latest)": {
+          "completed_at": "2026-10-11T22:39:25Z",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/grove/lore/actions/runs/38180237269/job/114591048492"
+        },
+        "test (windows-latest)": {
+          "completed_at": "2026-10-11T22:47:38Z",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/grove/lore/actions/runs/38180237269/job/114591048144"
+        }
+      },
+      "merge_revision": "28add597e1b3224c7b06a69e5a7ed3184673489d",
+      "merged_at": "2026-10-11T22:51:03Z",
+      "merged_tree_matches_tested_head": true,
+      "pr": "https://github.com/grove/lore/pull/62",
+      "python_tests_run": 262,
+      "python_tests_skipped": 1,
+      "scope": "D: independent intake",
+      "verified_head": "2493d75e495317749e8691a06fb4b7a589cb48a8",
+      "verified_tree": "740fdfd97620271660fbd67bb9e980a0a683b0fe"
+    },
+    {
+      "checks": {
+        "guardian-integrity": {
+          "completed_at": "2026-10-11T23:00:10Z",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/grove/lore/actions/runs/38182182265/job/114596879535"
+        },
+        "test (macos-latest)": {
+          "completed_at": "2026-10-11T23:07:07Z",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/grove/lore/actions/runs/38182182262/job/114596879459"
+        },
+        "test (ubuntu-latest)": {
+          "completed_at": "2026-10-11T23:08:16Z",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/grove/lore/actions/runs/38182182262/job/114596879769"
+        },
+        "test (windows-latest)": {
+          "completed_at": "2026-10-11T23:17:15Z",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/grove/lore/actions/runs/38182182262/job/114596879661"
+        }
+      },
+      "merge_revision": "42b61ae1791763a17146a7099b21312a9b36e8da",
+      "merged_at": "2026-10-11T23:17:34Z",
+      "merged_tree_matches_tested_head": true,
+      "pr": "https://github.com/grove/lore/pull/63",
+      "python_tests_run": 269,
+      "python_tests_skipped": 1,
+      "scope": "E: spending/report workflow",
+      "verified_head": "e67cc3a926573a8fde4298f572aa9fa1aaeb6baa",
+      "verified_tree": "bb728aa7ac36122331b81921e68ffd61cd7b8989"
+    }
+  ],
+  "next_actions": [
+    "Collect authentic independent pilot and untouched holdout material using DECISION_TASK_AUTHORING_09.md",
+    "Provision authenticated model/worker/billing controls and obtain explicit bounded spending approval",
+    "Inspect/control/pin/seal/preflight a fresh private bundle; only then run an authorized bounded smoke and all 36 pilot assignments",
+    "Obtain blinded reviews/external audit, assess retained evidence and triage actual failures",
+    "Apply only evidence-bound fixes and evaluate all six arms on the registered untouched holdout",
+    "Report paired intervals/negative outcomes/missingness; decide stable release separately"
+  ],
+  "observed_billed_cost_usd": null,
+  "offline_verification": {
+    "baseline_receipt": {
+      "path": "baseline-2026-10-11-876f419.json",
+      "rust_tests_passed": 515,
+      "sha256": "c16b41089c1d08bc227008ffa173dd3ee4b5e738507a0861fe84e783c8649811"
+    },
+    "offline_not_run_receipt": {
+      "attempted_assignments": 0,
+      "classification": "public_fixture_report_mechanics_not_registered_pilot",
+      "path": "offline-not-run-2026-10-11.json",
+      "sha256": "ae4160d1e6842f4b73cc9b673dd39d1a97c60134a98400d3c7b3def5cb044431",
+      "slots": 36
+    },
+    "product_files_unchanged_since": "876f419ffb6aa46d27ae08422a8f3724e9366072",
+    "public_controls": {
+      "all_controls_passed": true,
+      "argv": [
+        "/Users/grove/.local/bin/python3.12",
+        "evaluation/decision_work_09.py",
+        "validate",
+        "--output",
+        "/private/tmp/lore-09-final-public-controls"
+      ],
+      "cases": 8,
+      "cases_sha256": "fdcbdfc1b685e8a690c59cba864888fa3ae095186f85e6f74f04b00dd628d9b9",
+      "controls": 24,
+      "exit_code": 0,
+      "outcomes": [
+        {
+          "case": "accepted-before-proposal",
+          "control_passed": true,
+          "source_preserved": true,
+          "source_sha256": "825de82ed4d2b1593335e7b7eec35a7befc86e8db7e003c3bf9d76672a63943f",
+          "variant": "correct"
+        },
+        {
+          "case": "accepted-before-proposal",
+          "control_passed": true,
+          "source_preserved": true,
+          "source_sha256": "ec55e2268d646b1b38820ff90d88d0700c122e6942a8a612683f66002b19f91a",
+          "variant": "wrong"
+        },
+        {
+          "case": "accepted-before-proposal",
+          "control_passed": true,
+          "source_preserved": true,
+          "source_sha256": "859cfc3c7529ee88597aad0e397c554103fc6b58d6963f82324c106e86f20904",
+          "variant": "unimplemented"
+        },
+        {
+          "case": "scoped-supersession",
+          "control_passed": true,
+          "source_preserved": true,
+          "source_sha256": "15c1eceb616d2391eeb787db288cf8d2b1b49c4fd55f98e1a16bdff54bdc1062",
+          "variant": "correct"
+        },
+        {
+          "case": "scoped-supersession",
+          "control_passed": true,
+          "source_preserved": true,
+          "source_sha256": "68f2fde2d67701220275bc74eb6a7af98ef944098d7b2b5e6edc65ea8cb495ee",
+          "variant": "wrong"
+        },
+        {
+          "case": "scoped-supersession",
+          "control_passed": true,
+          "source_preserved": true,
+          "source_sha256": "77b266654b7ee5e021949b69f5cd8232f44a231115234034ab524dce459e8b04",
+          "variant": "unimplemented"
+        },
+        {
+          "case": "rare-release-exception",
+          "control_passed": true,
+          "source_preserved": true,
+          "source_sha256": "1065f053ad000766fcc27fe2f6462a2c9b808224b40ce8e2cbb8f259cc41bc3e",
+          "variant": "correct"
+        },
+        {
+          "case": "rare-release-exception",
+          "control_passed": true,
+          "source_preserved": true,
+          "source_sha256": "ac6fb40cc68b503e296f41e392ba6c2622659fcb011016b3d03dce099b24da3a",
+          "variant": "wrong"
+        },
+        {
+          "case": "rare-release-exception",
+          "control_passed": true,
+          "source_preserved": true,
+          "source_sha256": "600edc49398d4e7f5a5a115302e3689fcd8cbddf7be6054a0a1d58862d579d1f",
+          "variant": "unimplemented"
+        },
+        {
+          "case": "report-is-not-policy",
+          "control_passed": true,
+          "source_preserved": true,
+          "source_sha256": "8620c17553973c59cff1f93820b9f50a4407de905c836bc160c97e5b9f528c38",
+          "variant": "correct"
+        },
+        {
+          "case": "report-is-not-policy",
+          "control_passed": true,
+          "source_preserved": true,
+          "source_sha256": "bf9223649c3ae82a21c0b8e11b1faf61df5a90ab0340cac488d95ff2ab628959",
+          "variant": "wrong"
+        },
+        {
+          "case": "report-is-not-policy",
+          "control_passed": true,
+          "source_preserved": true,
+          "source_sha256": "4ebf8bd574a62774c6a842bf11b2450c94b7cff82c361db652459db78528298f",
+          "variant": "unimplemented"
+        },
+        {
+          "case": "implementation-doc-conflict",
+          "control_passed": true,
+          "source_preserved": true,
+          "source_sha256": "90e517b16bcac67cc7796f25d3b30c0914c8635be268505b8ce5f2632eea0527",
+          "variant": "correct"
+        },
+        {
+          "case": "implementation-doc-conflict",
+          "control_passed": true,
+          "source_preserved": true,
+          "source_sha256": "25ce9b37256fdfa86feddc4ef89d4e8630726b68b122fa34146ca147f59471f3",
+          "variant": "wrong"
+        },
+        {
+          "case": "implementation-doc-conflict",
+          "control_passed": true,
+          "source_preserved": true,
+          "source_sha256": "a4072a91addd99a2879266d0585664015e52e12cf84a7aa5753c35ea7f88043c",
+          "variant": "unimplemented"
+        },
+        {
+          "case": "rejected-resubmission",
+          "control_passed": true,
+          "source_preserved": true,
+          "source_sha256": "6228f929c3d608f11a8e640ff5deb46059f8ef48cd86e66182e1f1c6d9bf11d1",
+          "variant": "correct"
+        },
+        {
+          "case": "rejected-resubmission",
+          "control_passed": true,
+          "source_preserved": true,
+          "source_sha256": "11fd6a59509443859261b286c85d736342cad3dbe56142dddd1bc4227435a213",
+          "variant": "wrong"
+        },
+        {
+          "case": "rejected-resubmission",
+          "control_passed": true,
+          "source_preserved": true,
+          "source_sha256": "f1890705bd98ff4f11bc627c0fcc03f42aa61c08c74514db33cf2ea6183f3766",
+          "variant": "unimplemented"
+        },
+        {
+          "case": "revision-reversion",
+          "control_passed": true,
+          "source_preserved": true,
+          "source_sha256": "10b709db72cebf59dd1eeaa468069de2176643e0ac61e806f9678f0ffdd0a1bd",
+          "variant": "correct"
+        },
+        {
+          "case": "revision-reversion",
+          "control_passed": true,
+          "source_preserved": true,
+          "source_sha256": "abb167f0d4090d094df3274e25d10e2165f36065925d7027aa866cf0b4f594c5",
+          "variant": "wrong"
+        },
+        {
+          "case": "revision-reversion",
+          "control_passed": true,
+          "source_preserved": true,
+          "source_sha256": "ecceaa4b9b521b31c3d4911a1ecfdad09191144ad4b6fdc4a47500493a6c5f9c",
+          "variant": "unimplemented"
+        },
+        {
+          "case": "caller-permission-ceiling",
+          "control_passed": true,
+          "source_preserved": true,
+          "source_sha256": "893f4510e5ffe3fa6d53ac9b0f583758be4807bd8c188585f88c1c6f1c67f747",
+          "variant": "correct"
+        },
+        {
+          "case": "caller-permission-ceiling",
+          "control_passed": true,
+          "source_preserved": true,
+          "source_sha256": "bba7b0a1d034867317d5742341a7b4fc814c46ce79e6f401b55a93e277d7a73e",
+          "variant": "wrong"
+        },
+        {
+          "case": "caller-permission-ceiling",
+          "control_passed": true,
+          "source_preserved": true,
+          "source_sha256": "fdff11fc78021bb61bd6410bdbe3a8530074e51fd1918637f5ed76f45ff2b9dc",
+          "variant": "unimplemented"
+        }
+      ],
+      "provider_calls": 0,
+      "raw_private_receipt_sha256": "3438e527e9cdc1dcb2057394d11d80456e3ab9e2ec6a22561ea9f749a99bd5de",
+      "source_preserved": true
+    },
+    "python": {
+      "argv": [
+        "/Users/grove/.local/bin/python3.12",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "evaluation/tests",
+        "-v"
+      ],
+      "exit_code": 0,
+      "log_sha256": "08b2a6ae84340e1c419e2b805ca1a12314a055e478b821ef920c5ec8ea3c4a4d",
+      "python_version": "3.12.14",
+      "tests_passed": 268,
+      "tests_run": 269,
+      "tests_skipped": 1
+    }
+  },
+  "paid_inference_started": false,
+  "pilot": "blocked_external",
+  "productivity_benefit_established": false,
+  "protocol": "lore-experiment-08-v1",
+  "real_model_calls": 0,
+  "real_model_evidence": null,
+  "release_status": "0.9.0-rc.1",
+  "schema_version": 1,
+  "source_revision": "42b61ae1791763a17146a7099b21312a9b36e8da",
+  "stable_release_approval": false,
+  "targets_not_actual_registration": {
+    "minimum_holdout_initial_assignments": 180,
+    "minimum_holdout_tasks": 30,
+    "minimum_pilot_projects": 3,
+    "pilot_initial_assignments": 36,
+    "pilot_tasks": 6
+  }
+}
