@@ -1,0 +1,131 @@
+{
+  "arms": [
+    "baseline",
+    "fast",
+    "lore05",
+    "lore06",
+    "adaptive_no_reuse",
+    "adaptive_reuse"
+  ],
+  "blockers": [
+    {
+      "gate": "grants_models_and_limits",
+      "passed": false,
+      "reason": "Configure a real Lore model and pinned coding-agent identity"
+    },
+    {
+      "gate": "preregistration_record",
+      "passed": false,
+      "reason": "Preregistration, independent task/checker authors and two gold reviews per task are pending"
+    },
+    {
+      "gate": "preregistration_and_independent_gold_reviews",
+      "passed": false,
+      "reason": "Requires passing gate: grants_models_and_limits, preregistration_record"
+    },
+    {
+      "gate": "model_command_prompt_and_configuration",
+      "passed": false,
+      "reason": "Requires passing gate: grants_models_and_limits"
+    },
+    {
+      "gate": "current_contract",
+      "passed": false,
+      "reason": "Requires passing gate: grants_models_and_limits, preregistration_and_independent_gold_reviews, model_command_prompt_and_configuration"
+    },
+    {
+      "gate": "sealed_contract",
+      "passed": false,
+      "reason": "Requires passing gate: current_contract"
+    },
+    {
+      "gate": "external_readiness_record",
+      "passed": false,
+      "reason": "Required JSON artifact is missing: READINESS.json"
+    },
+    {
+      "gate": "provider_availability_and_external_runtime_egress_audit",
+      "passed": false,
+      "reason": "Requires passing gate: sealed_contract, external_readiness_record"
+    }
+  ],
+  "checked_at": "2026-10-11T09:56:22.439310+00:00",
+  "checks": [
+    {
+      "gate": "specification",
+      "passed": true
+    },
+    {
+      "gate": "pinned_source_snapshots",
+      "passed": true
+    },
+    {
+      "gate": "checker_bytes_and_input_separation",
+      "passed": true
+    },
+    {
+      "gate": "cohort",
+      "passed": true
+    },
+    {
+      "gate": "full_study_holdout_nonoverlap",
+      "passed": true
+    },
+    {
+      "gate": "grants_models_and_limits",
+      "passed": false,
+      "reason": "Configure a real Lore model and pinned coding-agent identity"
+    },
+    {
+      "gate": "preregistration_record",
+      "passed": false,
+      "reason": "Preregistration, independent task/checker authors and two gold reviews per task are pending"
+    },
+    {
+      "gate": "preregistration_and_independent_gold_reviews",
+      "passed": false,
+      "reason": "Requires passing gate: grants_models_and_limits, preregistration_record"
+    },
+    {
+      "gate": "model_command_prompt_and_configuration",
+      "passed": false,
+      "reason": "Requires passing gate: grants_models_and_limits"
+    },
+    {
+      "gate": "private_output",
+      "passed": true
+    },
+    {
+      "gate": "current_contract",
+      "passed": false,
+      "reason": "Requires passing gate: grants_models_and_limits, preregistration_and_independent_gold_reviews, model_command_prompt_and_configuration"
+    },
+    {
+      "gate": "sealed_contract",
+      "passed": false,
+      "reason": "Requires passing gate: current_contract"
+    },
+    {
+      "gate": "external_readiness_record",
+      "passed": false,
+      "reason": "Required JSON artifact is missing: READINESS.json"
+    },
+    {
+      "gate": "provider_availability_and_external_runtime_egress_audit",
+      "passed": false,
+      "reason": "Requires passing gate: sealed_contract, external_readiness_record"
+    }
+  ],
+  "coding_productivity": "unmeasured",
+  "contract_sha256": null,
+  "initial_assignments": 36,
+  "preflight_passed": false,
+  "protocol": "lore-experiment-08-v1",
+  "provider_calls": 0,
+  "qualification": "Readiness authorizes no empirical claim. Post-run model identity, checker/answer reviews and execution/egress audit remain required. No environment allowlist is treated as a sandbox.",
+  "readiness_sha256": null,
+  "schema_version": 1,
+  "status": "not_run",
+  "subprocess_calls": 0,
+  "tasks": 6
+}

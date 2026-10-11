@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "contract": "lore.release_acceptance",
+  "release": "0.9",
+  "updated_at": "2026-10-11T09:56:22.272324+00:00",
+  "baseline_revision": "3ba498d5ed71fc2e0051b6a2428430f484b55df5",
+  "engineering_status": "not_run",
+  "stable_status": "blocked_external",
+  "gates": [
+    {
+      "id": "baseline",
+      "status": "passed",
+      "qualification": "Pinned binary and schema compatibility captures passed. Full platform suite is a separate pending merge gate.",
+      "artifacts": [
+        "baseline-09/contracts/contracts.json",
+        "baseline-09/bootstrap-receipt.json",
+        "baseline-09/compatibility-comparison.json",
+        "baseline-09/local-checks.json"
+      ]
+    },
+    {
+      "id": "coding_pilot",
+      "status": "blocked_external",
+      "actual_attempts": 0,
+      "provider_cost_usd": null,
+      "missing": [
+        "six eligible decision-dependent tasks across three pinned projects",
+        "pinned and authorized coding/Lore models",
+        "independent task/checker authors and gold reviews",
+        "authenticated external model/isolation/egress captures",
+        "sealed experiment and post-run reviews/audit"
+      ]
+    },
+    {
+      "id": "heldout_efficacy",
+      "status": "unmeasured",
+      "missing": [
+        "30 independently authored/reviewed untouched tasks and complete six-arm outcomes"
+      ]
+    },
+    {
+      "id": "human_outcomes",
+      "status": "blocked_external",
+      "enrolled_participants": 0,
+      "missing": [
+        "12 consenting participants",
+        "independent unfamiliar projects and submitted-work reviews",
+        "participation/access/assistance/withdrawal audit"
+      ]
+    },
+    {
+      "id": "guardian_alert_quality",
+      "status": "unmeasured",
+      "missing": [
+        "genuine inference and independent alert judgments/audit"
+      ]
+    },
+    {
+      "id": "baseline_platform_ci",
+      "status": "not_run"
+    }
+  ],
+  "packages": {
+    "1": {
+      "status": "implemented_pending_ci",
+      "pr": null,
+      "merge": null
+    },
+    "2": {
+      "status": "not_run",
+      "pr": null,
+      "merge": null
+    },
+    "3": {
+      "status": "not_run",
+      "pr": null,
+      "merge": null
+    },
+    "4": {
+      "status": "not_run",
+      "pr": null,
+      "merge": null
+    },
+    "5": {
+      "status": "not_run",
+      "pr": null,
+      "merge": null
+    },
+    "6": {
+      "status": "not_run",
+      "pr": null,
+      "merge": null
+    },
+    "7": {
+      "status": "not_run",
+      "pr": null,
+      "merge": null
+    },
+    "8": {
+      "status": "not_run",
+      "pr": null,
+      "merge": null
+    }
+  }
+}

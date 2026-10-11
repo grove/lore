@@ -1,0 +1,69 @@
+{
+  "blocking_prerequisites": [
+    "independent_unfamiliar_held_out_projects",
+    "twelve_real_consented_participants",
+    "four_completed_stages_per_participant",
+    "independent_submission_and_explanation_reviews",
+    "participation_access_assistance_and_withdrawal_audit"
+  ],
+  "completed_participants": 0,
+  "contract": "lore.human_study_readiness",
+  "enrolled_participant_records": 0,
+  "enrollment_or_session_writes": false,
+  "executed_checks": 0,
+  "first_correct_contribution_time_status": "unmeasured",
+  "fixture_only": true,
+  "human_outcomes_status": "unmeasured",
+  "independent_learning_transfer_status": "unmeasured",
+  "inference_calls": 0,
+  "issues": [],
+  "learning_benefit_established": false,
+  "mechanical_contracts_passed": true,
+  "phase": "not_run",
+  "planned_slots": 12,
+  "protocol": "human-onboarding-v1",
+  "qualification": "Readiness validates retained local mechanics and declarations. It does not recruit people, authenticate human identities, contact a provider, prove OS isolation or measure learning. A local session may be mechanically ready while the real study remains not run.",
+  "requirements": [
+    {
+      "id": "pinned_source_task_checker_integrity",
+      "requirement": "Keep the exact prepared source snapshots, manifest tasks, counterbalanced assignments and checker programs intact, with declared checker/helper paths and bytes outside every participant source input.",
+      "status": "satisfied"
+    },
+    {
+      "id": "independent_unfamiliar_held_out_projects",
+      "requirement": "Prepare two independently selected unfamiliar projects with distinct contribution/transfer cases and external hidden checkers via --cases; bundled fixtures are ineligible.",
+      "status": "pending"
+    },
+    {
+      "id": "twelve_real_consented_participants",
+      "requirement": "Enroll at least twelve actual consenting humans with study-bound pseudonyms; verify participation and current consent through independent retained audit capture.",
+      "status": "pending"
+    },
+    {
+      "id": "four_completed_stages_per_participant",
+      "requirement": "Collect both counterbalanced rounds, each with a first contribution and different transfer, including unsuccessful stops, exact patches, cumulative time and assistance.",
+      "status": "pending"
+    },
+    {
+      "id": "independent_submission_and_explanation_reviews",
+      "requirement": "Obtain two distinct blinded, conflict-free reviews and source-derived factual/exception scores bound to every exact submitted record, including earlier failures.",
+      "status": "pending"
+    },
+    {
+      "id": "participation_access_assistance_and_withdrawal_audit",
+      "requirement": "Complete the independent study/record-bound human audit, including enforced checker isolation, assistance/time capture and all current withdrawals.",
+      "status": "pending"
+    }
+  ],
+  "schema_version": 1,
+  "session": {
+    "human_identity_authenticated": false,
+    "mechanically_ready": null,
+    "operator_isolation": "requires_independent_verification",
+    "provider_availability": "not_checked",
+    "requested": false
+  },
+  "study_sha256": "70d1fa2ca0be1b751c7c74a5b78448d228bc36e9bcb34d6304ef7a23ffd5802e",
+  "verified_human_participants": null,
+  "withdrawn_participant_records": 0
+}

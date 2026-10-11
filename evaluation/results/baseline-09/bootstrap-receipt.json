@@ -1,0 +1,22 @@
+{
+  "source_revision": "3ba498d5ed71fc2e0051b6a2428430f484b55df5",
+  "command": [
+    "/Users/grove/projects/lore/target/release/lore",
+    "--json",
+    "context",
+    "Change retry handling",
+    "--max-tokens",
+    "3000"
+  ],
+  "exit_code": 0,
+  "status": "passed",
+  "binary_sha256": "ead55ecc00bcf868af53360b8bb1474dcd5a28db1f3ddfaa9b101a5c78372e3e",
+  "source_sha256": "816065c8d1d61fd455b51aacd6b91a1c6f0d6893b2642a8a457388382cefcd14",
+  "response_sha256": "3a5ad4eeb139a50e92be17bbf384001a9e97279e911e13d8f5696f6f9eb7e0f2",
+  "grants": {
+    "inspection": false,
+    "hosted_egress": false,
+    "checkout_egress": false
+  },
+  "qualification": "Actual offline CLI capture over a labeled development fixture, not model evaluation."
+}

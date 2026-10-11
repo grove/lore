@@ -1,0 +1,129 @@
+{
+  "source_revision": "3ba498d5ed71fc2e0051b6a2428430f484b55df5",
+  "captured_at": "2026-10-11T09:58:07.506621+00:00",
+  "platform": "macOS",
+  "rustc": "rustc 1.99.0 (b940084d7 2026-09-28) (Homebrew)",
+  "cargo": "cargo 1.99.0 (5f94df478 2026-08-27) (Homebrew)",
+  "python": "3.14.8",
+  "records": [
+    {
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 1.4216930866241455,
+      "log": "/tmp/lore-09-baseline/check-0.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "cargo",
+        "clippy",
+        "--all-targets",
+        "--locked",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 101,
+      "seconds": 23.223248958587646,
+      "log": "/tmp/lore-09-baseline/check-1.log",
+      "sha256": "4f9100c3f28533f02bbfb4d0bc04b91eeff9d2b81a4fe724572f5f4f4a70bbec"
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--all-targets",
+        "--locked"
+      ],
+      "exit_code": 101,
+      "seconds": 23.05831289291382,
+      "log": "/tmp/lore-09-baseline/check-2.log",
+      "sha256": "4f9100c3f28533f02bbfb4d0bc04b91eeff9d2b81a4fe724572f5f4f4a70bbec"
+    },
+    {
+      "command": [
+        "cargo",
+        "build",
+        "--release",
+        "--locked"
+      ],
+      "exit_code": 0,
+      "seconds": 62.782870054244995,
+      "log": "/tmp/lore-09-baseline/check-3.log",
+      "sha256": "32d302c20e05ba92bc9aa9cb2c5003210d97da9d8ee6373272698dd1e1d3e81e"
+    },
+    {
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "evaluation/tests",
+        "-v"
+      ],
+      "exit_code": 1,
+      "seconds": 10.80435299873352,
+      "log": "/tmp/lore-09-baseline/check-4.log",
+      "sha256": "18977449774a59e63601966c040bc80d0ce2b56aa622f844878e7245f9fe8940"
+    },
+    {
+      "command": [
+        "cargo",
+        "clippy",
+        "--all-targets",
+        "--locked",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "status": "passed",
+      "log": "/private/tmp/lore-09-baseline/clippy-retry.log",
+      "sha256": "d93d79dbd68b50c75e849f9e6fc9ee467d81c98eb607bcb36140ddc79c9d2d25"
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--all-targets",
+        "--locked"
+      ],
+      "status": "failed",
+      "log": "/private/tmp/lore-09-baseline/rust-retry.log",
+      "sha256": "77a85adec0b63055a78d649055c798cebf886ffc782952701fe6bf59b620d4dd"
+    },
+    {
+      "command": [
+        "python3.14",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "evaluation/tests",
+        "-v"
+      ],
+      "status": "passed",
+      "log": "/private/tmp/lore-09-baseline/python314.log",
+      "sha256": "bbdbcfc7070dbd9b3df0c9fa69c6f8c060c33b2958b4989a270cc074e2c45191"
+    }
+  ],
+  "python_tests": {
+    "passed": 235,
+    "failed": 0,
+    "skipped": 1
+  },
+  "notes": [
+    "First Rust attempts failed fetching uncached locked dependencies in restricted network; cargo fetch --locked succeeded with host network.",
+    "Default Python 3.9.6 fails parsing pinned upstream match syntax; 3.14 rerun passed.",
+    "Sandbox Rust rerun stopped at mock loopback listener bind (Operation not permitted); host rerun pending.",
+    "Ollama executable exists; no model inventory, availability probe, inference or credentials inspected.",
+    "GitHub issues 3 and 4 remain open; provider metering already exists, semantic adjudication does not.",
+    "GitHub main has no branch protection/rulesets; task-mandated three-platform and Guardian gates still apply."
+  ]
+}
