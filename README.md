@@ -28,6 +28,10 @@ preserves deterministic schema 2, and `--schema-version 3` retains the 0.5
 contract. Explicit schema 4 remains available with the privacy,
 limits, and caching described in [the historical 0.6 guide](docs/V06.md).
 
+## Learn Lore: a hands-on beginner course
+
+**New to Lore?** Start with [Learn Lore](docs/tutorial/README.md): seven practical lessons, a [fictional HarborPay classroom](examples/tutorial-project/README.md), exercises and an answer key. The first lessons work without a model, credentials or initialization. Optional later lessons cover durable knowledge, Codex/Claude Code integration, evidence, reviews and task feedback. This teaches **how to use Lore**; `lore onboard --mode tutorial` instead teaches you about **your project**.
+
 ### Adaptive project intelligence
 
 Ordinary initialized-project `lore context TASK` uses schema 5 and selects
