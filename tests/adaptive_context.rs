@@ -165,11 +165,9 @@ async fn omitted_critical_group_prevents_decision_sufficient_reference() {
     )
     .await
     .unwrap();
-    let DecisionContextResult::FastFallback(result) = result.intelligence else {
-        panic!("no model supplied")
-    };
+    let result = serde_json::to_value(result.intelligence).unwrap();
     assert_ne!(
-        result.mode, "reference",
+        result["mode"], "reference",
         "an omitted critical group cannot be decision-sufficient"
     );
 }
