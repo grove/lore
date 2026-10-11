@@ -264,6 +264,11 @@ lore doctor --inference
 lore init
 ```
 
+During `init` and `update`, Lore shows a spinner and source-section progress bar
+in interactive terminals. When stderr is redirected, it writes progress messages
+there instead; `--json` keeps progress output disabled so stdout remains valid
+JSON.
+
 The result is ordinary Markdown under `lore/`, with an index and topic pages. Lore keeps its database, exact evidence snapshots, and reusable inference results under `.lore/`. Add `.lore/` to your project's `.gitignore`; it contains potentially sensitive copied project material. Review generated pages before publishing them, just as you would review other documentation.
 
 ## Retrieve context for your next change

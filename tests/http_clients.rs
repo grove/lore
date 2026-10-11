@@ -431,28 +431,40 @@ fn real_cli_compiles_over_http_then_updates_with_server_offline() {
     let (c, _) = configured(&cfg, &server, "ollama");
     std::fs::write(&cfg.config_path, serde_yaml::to_string(&c.config).unwrap()).unwrap();
     let binary = env!("CARGO_BIN_EXE_lore");
-    let run = |args: &[&str]| {
-        Command::new(binary)
-            .arg("--config")
-            .arg(&cfg.config_path)
-            .arg("--json")
-            .args(args)
-            .output()
-            .unwrap()
+    let run = |json_output: bool, args: &[&str]| {
+        let mut command = Command::new(binary);
+        command.arg("--config").arg(&cfg.config_path);
+        if json_output {
+            command.arg("--json");
+        }
+        command.args(args).output().unwrap()
     };
-    let first = run(&["init"]);
+    let first = run(true, &["init"]);
     assert!(
         first.status.success(),
         "stdout: {}\nstderr: {}",
         String::from_utf8_lossy(&first.stdout),
         String::from_utf8_lossy(&first.stderr)
     );
+    assert!(first.stderr.is_empty());
     assert_eq!(
         serde_json::from_slice::<Value>(&first.stdout).unwrap()["knowledge_units"],
         1
     );
+    let plain = run(false, &["init", "--rebuild"]);
+    assert!(
+        plain.status.success(),
+        "stdout: {}\nstderr: {}",
+        String::from_utf8_lossy(&plain.stdout),
+        String::from_utf8_lossy(&plain.stderr)
+    );
+    let progress = String::from_utf8_lossy(&plain.stderr);
+    assert!(progress.contains("Discovered 1 source file and 1 section."));
+    assert!(progress.contains("Reusing section 1/1: docs:decision.md"));
+    assert!(progress.contains("Building topic and overview pages"));
+    assert!(String::from_utf8_lossy(&plain.stdout).contains("Published"));
     drop(server);
-    let noop = run(&["update"]);
+    let noop = run(true, &["update"]);
     assert!(
         noop.status.success(),
         "stdout: {}\nstderr: {}",
@@ -462,10 +474,10 @@ fn real_cli_compiles_over_http_then_updates_with_server_offline() {
     let result: Value = serde_json::from_slice(&noop.stdout).unwrap();
     assert_eq!(result["no_op"], true);
     assert_eq!(result["model_calls"], 0);
-    assert!(run(&["status"]).status.success());
-    assert!(run(&["audit"]).status.success());
-    assert!(run(&["search", "MySQL"]).status.success());
-    assert!(run(&["read", "database"]).status.success());
+    assert!(run(true, &["status"]).status.success());
+    assert!(run(true, &["audit"]).status.success());
+    assert!(run(true, &["search", "MySQL"]).status.success());
+    assert!(run(true, &["read", "database"]).status.success());
 }
 
 #[tokio::test]

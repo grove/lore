@@ -1,5 +1,6 @@
 use anyhow::{Context, Result, ensure};
 use clap::{Parser, Subcommand};
+use indicatif::{ProgressBar, ProgressStyle};
 use lore::{
     config::{Config, ResolvedConfig, SourceRoot},
     context::{self, ContextOptions},
@@ -14,8 +15,9 @@ use lore::{
 use serde_json::{Value, json};
 use std::{
     fs,
-    io::Write,
+    io::{self, IsTerminal, Write},
     path::{Path, PathBuf},
+    time::Duration,
 };
 
 #[derive(Parser)]
@@ -1406,6 +1408,134 @@ async fn intelligent_context(
     }
 }
 
+struct CompileProgress {
+    enabled: bool,
+    interactive: bool,
+    bar: Option<ProgressBar>,
+}
+
+impl CompileProgress {
+    fn new(enabled: bool) -> Result<Self> {
+        let interactive = enabled && io::stderr().is_terminal();
+        let bar = interactive.then(ProgressBar::new_spinner);
+        if let Some(bar) = &bar {
+            bar.set_style(ProgressStyle::with_template(
+                "{spinner:.green} {bar:40.cyan/blue} {pos}/{len} {msg}",
+            )?);
+            bar.enable_steady_tick(Duration::from_millis(100));
+        }
+        Ok(Self {
+            enabled,
+            interactive,
+            bar,
+        })
+    }
+
+    fn update(&mut self, event: engine::UpdateProgress) -> Result<()> {
+        if !self.enabled {
+            return Ok(());
+        }
+        match event {
+            engine::UpdateProgress::Phase(phase) => self.set_message(phase)?,
+            engine::UpdateProgress::Inventory { files, sections } => {
+                if self.interactive {
+                    let length = u64::try_from(sections)
+                        .context("source-section count exceeds progress-bar capacity")?;
+                    self.bar
+                        .as_ref()
+                        .context("interactive progress display is unavailable")?
+                        .set_length(length);
+                    let file_unit = if files == 1 { "file" } else { "files" };
+                    self.set_message(format!("Processing {files} source {file_unit}"))?;
+                } else {
+                    let file_unit = if files == 1 { "file" } else { "files" };
+                    let section_unit = if sections == 1 { "section" } else { "sections" };
+                    self.log(&format!(
+                        "Discovered {files} source {file_unit} and {sections} {section_unit}."
+                    ))?;
+                }
+            }
+            engine::UpdateProgress::SectionStarted {
+                index,
+                total,
+                source,
+                heading,
+                changed,
+            } => {
+                let source = safe_progress_label(&source);
+                let heading = if heading.trim().is_empty() {
+                    "untitled section".to_owned()
+                } else {
+                    safe_progress_label(&heading)
+                };
+                let action = if changed { "Processing" } else { "Reusing" };
+                let message = format!("{action} section {index}/{total}: {source} - {heading}");
+                if self.interactive {
+                    self.set_message(message)?;
+                } else {
+                    self.log(&message)?;
+                }
+            }
+            engine::UpdateProgress::SectionCompleted => {
+                if let Some(bar) = &self.bar {
+                    bar.inc(1);
+                }
+            }
+        }
+        Ok(())
+    }
+
+    fn set_message(&self, message: impl Into<String>) -> Result<()> {
+        let message = message.into();
+        if self.interactive {
+            if let Some(bar) = &self.bar {
+                bar.set_message(message);
+            }
+        } else {
+            self.log(&message)?;
+        }
+        Ok(())
+    }
+
+    fn log(&self, message: &str) -> Result<()> {
+        writeln!(io::stderr().lock(), "Lore: {message}")?;
+        io::stderr().flush()?;
+        Ok(())
+    }
+
+    fn finish(&self, success: bool) {
+        if !self.interactive {
+            return;
+        }
+        if let Some(bar) = &self.bar {
+            if success {
+                bar.finish_with_message("Compilation complete");
+            } else {
+                bar.abandon_with_message("Compilation stopped; see error");
+            }
+        }
+    }
+}
+
+fn safe_progress_label(value: &str) -> String {
+    let mut chars = value.chars();
+    let mut label = chars
+        .by_ref()
+        .take(96)
+        .map(|character| {
+            if character.is_control() {
+                ' '
+            } else {
+                character
+            }
+        })
+        .collect::<String>();
+    if chars.next().is_some() {
+        label.push_str("...");
+    }
+    label
+}
+
 async fn compile(config: &ResolvedConfig, options: UpdateOptions, json_output: bool) -> Result<()> {
     // Constructing adapters performs no network request and reads no API key.
     // No-op updates therefore work without running inference servers or secrets.
@@ -1420,13 +1550,25 @@ async fn compile(config: &ResolvedConfig, options: UpdateOptions, json_output: b
         .map(|role| HttpModel::new(config, role))
         .transpose()
         .map_err(|e| anyhow::anyhow!("{e:?}"))?;
-    let report = engine::update(
+    let mut progress = CompileProgress::new(!json_output)?;
+    let report = match engine::update_with_progress(
         config,
         &model,
         decision.as_ref().map(|m| m as &dyn DecisionModel),
         options,
+        |event| progress.update(event),
     )
-    .await?;
+    .await
+    {
+        Ok(report) => {
+            progress.finish(true);
+            report
+        }
+        Err(error) => {
+            progress.finish(false);
+            return Err(error);
+        }
+    };
     if json_output {
         emit(serde_json::to_value(report)?, true)?;
     } else {

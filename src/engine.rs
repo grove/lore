@@ -31,6 +31,22 @@ pub struct UpdateOptions {
     pub refresh: bool,
     pub deep: bool,
 }
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum UpdateProgress {
+    Phase(&'static str),
+    Inventory {
+        files: usize,
+        sections: usize,
+    },
+    SectionStarted {
+        index: usize,
+        total: usize,
+        source: String,
+        heading: String,
+        changed: bool,
+    },
+    SectionCompleted,
+}
 /// A single rejected synthesis/verification draft. Kept separate from the
 /// final publication status because repaired drafts are useful diagnostics.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -263,15 +279,40 @@ pub async fn update(
     decision: Option<&dyn DecisionModel>,
     options: UpdateOptions,
 ) -> Result<Report> {
-    usage::scoped(update_metered(config, generative, decision, options)).await
+    update_with_progress(config, generative, decision, options, |_| Ok(())).await
 }
 
-async fn update_metered(
+pub async fn update_with_progress<F>(
     config: &ResolvedConfig,
     generative: &dyn GenerativeModel,
     decision: Option<&dyn DecisionModel>,
     options: UpdateOptions,
-) -> Result<Report> {
+    mut progress: F,
+) -> Result<Report>
+where
+    F: FnMut(UpdateProgress) -> Result<()>,
+{
+    usage::scoped(update_metered(
+        config,
+        generative,
+        decision,
+        options,
+        &mut progress,
+    ))
+    .await
+}
+
+async fn update_metered<F>(
+    config: &ResolvedConfig,
+    generative: &dyn GenerativeModel,
+    decision: Option<&dyn DecisionModel>,
+    options: UpdateOptions,
+    progress: &mut F,
+) -> Result<Report>
+where
+    F: FnMut(UpdateProgress) -> Result<()>,
+{
+    progress(UpdateProgress::Phase("Scanning configured sources"))?;
     let _lock = publish::ProjectLock::acquire(config)?;
     publish::recover(config)?;
     let inventory = sources::scan(config)?;
@@ -320,6 +361,15 @@ async fn update_metered(
             ..Report::default()
         });
     }
+    let total_sections = inventory
+        .documents
+        .iter()
+        .map(|document| document.chunks.len())
+        .sum();
+    progress(UpdateProgress::Inventory {
+        files: inventory.documents.len(),
+        sections: total_sections,
+    })?;
     publish::cleanup_abandoned(config)?;
     let generation = util::id("run");
     let _stage = publish::StageGuard::new(config, &generation)?;
@@ -378,6 +428,8 @@ async fn update_metered(
             }
         }
     }
+    progress(UpdateProgress::Phase("Extracting source sections"))?;
+    let mut section_index = 0;
     for document in &inventory.documents {
         let old = plan
             .matches
@@ -385,11 +437,20 @@ async fn update_metered(
         let (source, revision) = storage::begin_source(&conn, document, old)?;
         let existing = storage::current_chunks(&conn, &source)?;
         for chunk in &document.chunks {
-            if !force
+            section_index += 1;
+            let unchanged = !force
                 && existing
                     .get(&chunk.key)
-                    .is_some_and(|(_, d)| d == &chunk.input_digest)
-            {
+                    .is_some_and(|(_, digest)| digest == &chunk.input_digest);
+            progress(UpdateProgress::SectionStarted {
+                index: section_index,
+                total: total_sections,
+                source: format!("{}:{}", document.root_id, document.relative_path),
+                heading: chunk.heading_path.join(" / "),
+                changed: !unchanged,
+            })?;
+            if unchanged {
+                progress(UpdateProgress::SectionCompleted)?;
                 continue;
             }
             let (section, section_revision) =
@@ -508,8 +569,10 @@ async fn update_metered(
                 )
                 .await?;
             }
+            progress(UpdateProgress::SectionCompleted)?;
         }
     }
+    progress(UpdateProgress::Phase("Reconciling related knowledge"))?;
     conn.execute(
         "UPDATE runs SET phase='reconciling' WHERE id=?1",
         [&generation],
@@ -526,6 +589,7 @@ async fn update_metered(
         "UPDATE runs SET phase='synthesizing' WHERE id=?1",
         [&generation],
     )?;
+    progress(UpdateProgress::Phase("Building topic and overview pages"))?;
     let mut pages = render::build(
         &mut runner,
         &knowledge,
@@ -555,6 +619,7 @@ async fn update_metered(
         "UPDATE runs SET phase='validating' WHERE id=?1",
         [&generation],
     )?;
+    progress(UpdateProgress::Phase("Validating generated output"))?;
     ensure!(
         sources::scan(config)?.digest == inventory.digest,
         "source inputs changed during compilation; rerun update (valid model results are cached)"
@@ -605,6 +670,7 @@ async fn update_metered(
     report.pending_reviews = pending_reviews(&conn)?;
     report.usage = usage::summary();
     storage::save_provider_usage(&conn, &generation, &usage::events())?;
+    progress(UpdateProgress::Phase("Publishing compiled knowledge"))?;
     drop(runner);
     conn.execute_batch("COMMIT")?;
     conn.close().map_err(|(_, e)| e)?;

@@ -1,7 +1,7 @@
 mod common;
 use common::*;
 use lore::{
-    engine::{self, UpdateOptions},
+    engine::{self, UpdateOptions, UpdateProgress},
     publish, storage, util,
 };
 use std::{fs, sync::atomic::Ordering};
@@ -33,6 +33,64 @@ async fn compiles_and_then_proves_a_zero_call_noop() {
     );
     assert_eq!(engine::audit(&cfg).unwrap()["ok"], true);
 }
+
+#[tokio::test]
+async fn compilation_reports_source_section_and_phase_progress() {
+    let (_dir, cfg, model) = project();
+    put(
+        &cfg,
+        "ADR-001.md",
+        "# Database\nDECISION database: MySQL is the selected database.\n",
+    );
+    let mut events = Vec::new();
+    engine::update_with_progress(&cfg, &model, None, UpdateOptions::default(), |event| {
+        events.push(event);
+        Ok(())
+    })
+    .await
+    .unwrap();
+
+    assert!(events.iter().any(|event| matches!(
+        event,
+        UpdateProgress::Inventory {
+            files: 1,
+            sections: 1
+        }
+    )));
+    assert!(events.iter().any(|event| matches!(
+        event,
+        UpdateProgress::SectionStarted {
+            index: 1,
+            total: 1,
+            source,
+            changed: true,
+            ..
+        } if source.ends_with("ADR-001.md")
+    )));
+    assert_eq!(
+        events
+            .iter()
+            .filter(|event| matches!(event, UpdateProgress::SectionCompleted))
+            .count(),
+        1
+    );
+    for phase in [
+        "Scanning configured sources",
+        "Extracting source sections",
+        "Reconciling related knowledge",
+        "Building topic and overview pages",
+        "Validating generated output",
+        "Publishing compiled knowledge",
+    ] {
+        assert!(
+            events
+                .iter()
+                .any(|event| event == &UpdateProgress::Phase(phase)),
+            "missing progress phase: {phase}"
+        );
+    }
+}
+
 #[tokio::test]
 async fn equivalent_sources_share_knowledge_but_keep_distinct_provenance() {
     let (_dir, cfg, model) = project();
