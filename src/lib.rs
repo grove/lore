@@ -19,3 +19,4 @@ pub mod reviews;
 pub mod sources;
 pub mod storage;
 pub mod util;
+pub mod visualize;
