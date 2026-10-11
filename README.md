@@ -4,17 +4,19 @@
 
 Projects collect their history in architecture notes, ADRs, plans, issue exports, investigations, and previous agent experiences. Understanding a subject often means piecing together several sources written at different times for different reasons. Lore is a Rust command-line application that reads your project's Markdown directories and optional native knowledge snapshots, maintains evidence-backed project understanding, and uses the decisions, constraints, history, and open questions to recommend an approach for your next task. The same knowledge powers a linked, topic-oriented Markdown wiki.
 
-**Lore 0.8 provides useful first contact before setup, adaptive context by
-default, and honest provider accounting.** Uninitialized projects receive
-bounded local documentary guidance; initialized projects use schema 5 within
-the caller's inspection and egress grants. Provider attempts, retries and
-failures retain nullable usage, while controlled Guardian replay and sealed
-study preflight make the evidence limits inspectable. Read [the 0.8 guide](docs/V08.md)
-for examples and migration notes and [the release scorecard](evaluation/PRODUCT_QUALITY_08.md)
-for final engineering results. Real-model coding gains, human contribution and
-transfer outcomes, and independently reviewed Guardian alert quality remain
-unmeasured. The [0.7 guide](docs/V07.md) and [0.7 scorecard](evaluation/PRODUCT_QUALITY_07.md)
-preserve the previous release's evidence.
+**Lore 0.9.0-rc.1 adds agent integration, evidence-bound review adjudication
+and safe task-feedback proposals.** It preserves first contact without setup,
+schema-5 adaptive context, caller-owned permissions and nullable provider
+accounting. Exact-reference guidance now rejects lookalike identifiers and
+incomplete critical evidence groups. See [the 0.9 guide](docs/V09.md),
+[agent integration](docs/AGENT_INTEGRATION.md) and
+[engineering/empirical scorecard](evaluation/PRODUCT_QUALITY_09.md).
+
+This is an engineering release candidate. Stable 0.9.0 remains unreleased:
+the genuine six-task/six-arm decision pilot and independent evidence are
+missing. Real-model coding gains, human contribution/transfer benefits and
+Guardian alert quality remain unmeasured. [0.8](docs/V08.md) and its
+[scorecard](evaluation/PRODUCT_QUALITY_08.md) retain historical evidence.
 
 `lore context "Implement payment retries"` continues to lead with one preferred
 approach and says whether to proceed, perform a specific check first, or resolve
