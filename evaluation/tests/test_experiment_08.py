@@ -27,11 +27,12 @@ def utc(seconds=0):
 
 
 class StudyPreflightTests(unittest.TestCase):
-    def bundle(self, root, *, ready=True):
+    def bundle(self, root, *, ready=True, cases_manifest=None):
         inputs = root / "inputs"
-        real.prepare(inputs, pilot=True)
+        if cases_manifest is None:
+            real.prepare(inputs, pilot=True)
         bundle = root / "study"
-        experiment.prepare(bundle, inputs / "cases.json")
+        experiment.prepare(bundle, cases_manifest or inputs / "cases.json")
         if not ready:
             return bundle
         if os.name != "posix":

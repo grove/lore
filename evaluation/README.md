@@ -203,3 +203,5 @@ Evaluation phase reports retain bounded `quality_diagnostics` entries (topic, at
 ## Shared-passage relationship scoring
 
 Relationship scoring uses `source-witness-sets-v3`. Distinct assertions can legitimately share one original passage. The scorer examines the full candidate sets rather than selecting whichever unit agrees with an expected label. It records the active source-bound edge witnesses for positive relations and tests all candidate pairs for prohibited relations. Missing assignments, an assertion assigned to several units, invalid excerpts, and mismatched witnesses remain unassessable. Exact type/lifecycle labels remain separate diagnostics. The comparator flags changed scorer versions; a corrected score on an existing database must not be advertised as a new model-quality result.
+
+Independent empirical task intake: [decision author handoff](DECISION_TASK_AUTHORING_09.md).

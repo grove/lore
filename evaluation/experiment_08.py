@@ -400,8 +400,18 @@ def code_identity() -> dict:
     names = ("experiment_08.py", "outcome_protocol.py", "adaptive_tasks.py", "coding_tasks.py",
              "coding_agent.py", "provider_usage.py", "decision_tasks.py", "cross_source.py",
              "benchmark.py", "shared_intelligence.py", "failure_triage.py",
-             "codex_agent.py", "codex_proposal.schema.json")
+             "codex_agent.py", "codex_proposal.schema.json", "decision_task_intake_09.py")
     return {name: coding.hash_file(ROOT / name) for name in names}
+
+
+def decision_intake_contract(bundle: Path, spec: dict, prepared: dict) -> dict:
+    import decision_task_intake_09 as intake
+    pilot = Path(spec["pilot_bundle"]) / "prepared.json" if spec.get("pilot_bundle") else None
+    result = intake.inspect(Path(prepared["cases_manifest"]), bundle=bundle, pilot_prepared=pilot)
+    if not result["eligible"]:
+        raise ValueError("Independent decision-task intake remains incomplete; inspect the private intake deficits")
+    return {"sha256": coding.hash_file(bundle / "DECISION_INTAKE.json"), "status": result["status"],
+            "pilot_prepared_sha256": coding.hash_file(pilot) if pilot else None}
 
 
 def contract_for(bundle: Path, spec: dict, prepared: dict, args: argparse.Namespace, at: str) -> dict:
@@ -413,7 +423,7 @@ def contract_for(bundle: Path, spec: dict, prepared: dict, args: argparse.Namesp
         if candidate.is_file():
             cross.reject_symlink_path(candidate)
             command_files[str(candidate)] = coding.hash_file(candidate)
-    return {"schema_version": 1, "protocol": PROTOCOL,
+    result = {"schema_version": 1, "protocol": PROTOCOL,
         "experiment_sha256": coding.hash_file(bundle / "EXPERIMENT.json"),
         "prepared_sha256": coding.hash_file(bundle / "prepared.json"),
         "preregistration_sha256": coding.hash_file(bundle / "PREREGISTRATION.json"),
@@ -432,6 +442,9 @@ def contract_for(bundle: Path, spec: dict, prepared: dict, args: argparse.Namesp
         "grants": adaptive.policy_from_args(args), "repair_policy": coding.repair_policy(args),
         "agent_limits": {key: registration["agent"][key]
                          for key in ("tools", "token_limit", "tool_call_limit", "temperature")}}
+    if (bundle / "DECISION_INTAKE.json").exists() or "codex_adapter" in models:
+        result["decision_intake"] = decision_intake_contract(bundle, spec, prepared)
+    return result
 
 
 def privacy(bundle: Path, spec: dict, fresh: bool) -> dict:
@@ -526,6 +539,9 @@ def _preflight(bundle: Path, *, at: str | None = None, fresh=True) -> tuple[dict
 
     check("specification", lambda: specification(bundle))
     check("pinned_source_snapshots", lambda: prepared_inputs(bundle))
+    if (bundle / "DECISION_INTAKE.json").exists() or str(ROOT / "codex_agent.py") in cache.get("specification", {}).get("run", {}).get("agent_command", []):
+        check("independent_decision_task_intake", lambda: decision_intake_contract(bundle,
+            cache["specification"], cache["pinned_source_snapshots"]), ("specification", "pinned_source_snapshots"))
     check("checker_bytes_and_input_separation",
           lambda: checker_separation(bundle, cache["pinned_source_snapshots"]), ("pinned_source_snapshots",))
     check("cohort", lambda: cohort(cache["specification"], cache["pinned_source_snapshots"]),
