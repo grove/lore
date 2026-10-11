@@ -291,7 +291,11 @@ impl ResolvedConfig {
             .parent()
             .context("configuration has no parent")?
             .canonicalize()?;
-        Self::resolve_at(config, config_path, base, validate_inference)
+        let mut resolved = Self::resolve_at(config, config_path, base, validate_inference)?;
+        if let Some(project_id) = crate::publish::stored_project_id(&resolved.state)? {
+            resolved.project_id = project_id;
+        }
+        Ok(resolved)
     }
     /// First contact has already selected and read this normalized path through
     /// no-follow descriptors. Keep that parent identity instead of resolving a
@@ -480,7 +484,10 @@ impl ResolvedConfig {
             "pipeline-v12-native-observations",
             &config,
         ))?;
-        let project_id = format!("project_{}", &util::digest(&config.project.name)[7..31]);
+        let project_id = format!(
+            "project_{}",
+            &util::digest(state.to_string_lossy().as_bytes())[7..31]
+        );
         Ok(Self {
             config,
             config_path: config_path.to_owned(),

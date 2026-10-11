@@ -130,6 +130,24 @@ mod lock_tests {
     }
 }
 
+pub(crate) fn stored_project_id(directory: &Path) -> Result<Option<String>> {
+    let path = directory.join(OWNER);
+    util::reject_symlinks(&path)?;
+    if !path.try_exists()? {
+        return Ok(None);
+    }
+    let owner: Owner = serde_json::from_str(&util::read_limited(&path, 4096)?)
+        .context("invalid stored project identity")?;
+    ensure!(
+        owner.project_id.len() == 32
+            && owner.project_id.starts_with("project_")
+            && owner.project_id[8..]
+                .bytes()
+                .all(|byte| byte.is_ascii_hexdigit()),
+        "invalid stored project identity"
+    );
+    Ok(Some(owner.project_id))
+}
 fn check_owner(directory: &Path, project: &str) -> Result<Owner> {
     let owner: Owner = serde_json::from_str(&util::read_limited(&directory.join(OWNER), 4096)?)
         .context("directory is not a recognized Lore-owned output; select an empty directory")?;

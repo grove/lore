@@ -379,7 +379,7 @@ where
     )?;
     conn.execute_batch("BEGIN IMMEDIATE")?;
     conn.execute(
-        "INSERT OR IGNORE INTO projects VALUES(?1,?2,?3)",
+        "INSERT INTO projects VALUES(?1,?2,?3) ON CONFLICT(id) DO UPDATE SET name=excluded.name",
         params![config.project_id, config.config.project.name, util::now()],
     )?;
     for (id, path) in &config.roots {

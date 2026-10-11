@@ -269,6 +269,8 @@ lore init --configure-only --source ./docs --source ./plans --source ./issue-exp
 
 Edit `lore.yml` to select your source directories and models. The default is local-only Ollama with `gemma4:12b`; any suitable installed model with reliable structured JSON output can be selected instead. Start with a small representative set of documents, because first-time extraction and cross-document reconciliation can involve many model calls.
 
+`project.name` is an editable display name. Changing it preserves an initialized project's stored identity and knowledge, including projects initialized by older Lore versions. The visualizer uses the new name immediately; generated wiki text and the registry's display name change on the next authorized `lore update`. Keep the state and wiki directories together: ownership checks still reject a wiki belonging to a different project. New projects with copied configuration files receive distinct identities when their resolved state directories differ.
+
 ```bash
 ollama pull gemma4:12b
 lore doctor --inference
