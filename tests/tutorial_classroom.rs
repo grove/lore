@@ -50,7 +50,11 @@ fn zero_setup_classroom_onboard_and_context_do_not_write_or_call_models() {
     for (args, contract) in [
         (vec!["--json", "onboard"], "lore.bootstrap_onboard"),
         (
-            vec!["--json", "context", "Can production attempts increase to five?"],
+            vec![
+                "--json",
+                "context",
+                "Can production attempts increase to five?",
+            ],
             "lore.bootstrap_context",
         ),
     ] {
