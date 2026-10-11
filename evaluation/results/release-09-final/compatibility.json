@@ -1,0 +1,43 @@
+[
+  {
+    "case": "schema_2",
+    "baseline_sha256": "eeee6ff4c074469b03c226d8b5c5b7499ce4c2f006b645dd0a818a4e182ab268",
+    "candidate_sha256": "eeee6ff4c074469b03c226d8b5c5b7499ce4c2f006b645dd0a818a4e182ab268",
+    "different_fields": [],
+    "status": "passed"
+  },
+  {
+    "case": "schema_3",
+    "baseline_sha256": "b22031f40eff90b125c0e6a91029724ebc1c5cdfea99a636eb9c712d51f54f16",
+    "candidate_sha256": "b22031f40eff90b125c0e6a91029724ebc1c5cdfea99a636eb9c712d51f54f16",
+    "different_fields": [],
+    "status": "passed"
+  },
+  {
+    "case": "schema_4",
+    "baseline_sha256": "9f87cd609ba13558ad745a32c8018f179875388f9593c634299d3b72fcaa4355",
+    "candidate_sha256": "1a1c5b393c6a3adf30658949e2c0ec2cc8700c7f5a2976c40b40c41444fd2db7",
+    "different_fields": [
+      "/investigation/budget/elapsed_ms"
+    ],
+    "status": "passed"
+  },
+  {
+    "case": "schema_5",
+    "baseline_sha256": "c1484d604c62785803f4ae990bf00697f34b85141eaf83a7137cf6fe5828ceb1",
+    "candidate_sha256": "76955fddaa0aff6d1a64fefc6b2c489974daf96f7ba9b6a03f1cb4df22616caf",
+    "different_fields": [
+      "/intelligence/investigation/budget/elapsed_ms"
+    ],
+    "status": "passed"
+  },
+  {
+    "case": "default",
+    "baseline_sha256": "ddb9ce8ef6eb20c1c40d189b2a9d19e0803c5fcd70e4e4061f490a4588a088e0",
+    "candidate_sha256": "76955fddaa0aff6d1a64fefc6b2c489974daf96f7ba9b6a03f1cb4df22616caf",
+    "different_fields": [
+      "/intelligence/investigation/budget/elapsed_ms"
+    ],
+    "status": "passed"
+  }
+]

@@ -6,15 +6,15 @@ pilot. No real-agent productivity, model-quality, cost-saving, human-learning or
 Guardian alert-quality gain is claimed.
 
 The [machine ledger](results/acceptance-09.json) is a dated evidence snapshot.
-[Local integrated verification](results/release-09/verification.json) binds source
-`cf5a1022097ce0e07853b5e49ecea3c435304936`; the final evidence commit preserves its
+[Local integrated verification](results/release-09-final/verification.json) binds source
+`1d38442733a344fb3b022cea8b600257044f99ee`; the final evidence commit preserves its
 code objects. GitHub's checks on each exact PR head and merge records own live CI
 and merge status. Every PR requires Linux, macOS, Windows and Guardian success.
 The release matrix explicitly checks out the PR head and runs optimized CLI smoke.
 
 | Engineering observation | Actual result |
 | --- | --- |
-| Full local Rust suite | 497 passed, 0 failed, 3 explicitly ignored, 60 targets |
+| Full local Rust suite | 498 passed, 0 failed, 3 explicitly ignored, 60 targets |
 | Full Python 3.14 suite | 239 passed, 0 failed, 1 platform-specific skip |
 | Formatting / strict clippy / optimized build | Passed |
 | Release version and context/review/adjudication/integrate/feedback help | Passed |
@@ -47,6 +47,14 @@ variants. The fix checks actual non-reference mode across both valid variants;
 it does not weaken the required behavior. Initial oversized/source-order fixture
 attempts and a sandbox listener failure are documented alongside successful runs.
 Historical 0.7/0.8 receipts and the original 0.9 baseline capture remain unchanged.
+
+Final boundary review reproduced a blocking FIFO open in optional feedback-file
+hashing. The repaired implementation rejects non-regular files before opening
+and uses nonblocking/no-follow Unix opens. The new regression and all seven
+feedback tests pass. A fresh full suite, optimized build and contract capture
+followed the repair; [before/after logs](results/release-09-final/verification.json)
+retain the failure. The earlier candidate's successful CI/Guardian records are
+historical and are not substituted for the repaired head's mandatory checks.
 
 Adjudication conservatively confirms an existing documentary relation or records
 advisory interpretation; it never invents a new authoritative edge. Full documentary

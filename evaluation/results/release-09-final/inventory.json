@@ -1,0 +1,23 @@
+{
+  "files": {
+    "bootstrap-receipt.json": "2f3a47b7945cc1ecf3f227e393434fc7c008e4e13f16a491f096a8fc67d5ddf4",
+    "bootstrap.json": "3a5ad4eeb139a50e92be17bbf384001a9e97279e911e13d8f5696f6f9eb7e0f2",
+    "cli-smoke.json": "19015a8445e033bcd5a788109a24e53cf6a27f32e6165c1f37e43743ceb8ba41",
+    "clippy.json": "62fe4910affb5990e0d78fa9a88899c089650d300758c996150dd40912da0c57",
+    "compatibility.json": "f2160171522e6733821de10e6cbbb1e062b1168b3935a265de1c427a21d0a3e1",
+    "contracts/contracts.json": "13c0b38db37688fe8a7f1ea1c3d38aa703d63465e5285e63babbdbfdef1f2a88",
+    "contracts/default.json": "76955fddaa0aff6d1a64fefc6b2c489974daf96f7ba9b6a03f1cb4df22616caf",
+    "contracts/schema_2.json": "eeee6ff4c074469b03c226d8b5c5b7499ce4c2f006b645dd0a818a4e182ab268",
+    "contracts/schema_3.json": "b22031f40eff90b125c0e6a91029724ebc1c5cdfea99a636eb9c712d51f54f16",
+    "contracts/schema_4.json": "1a1c5b393c6a3adf30658949e2c0ec2cc8700c7f5a2976c40b40c41444fd2db7",
+    "contracts/schema_5.json": "76955fddaa0aff6d1a64fefc6b2c489974daf96f7ba9b6a03f1cb4df22616caf",
+    "fifo-after.log": "bdcc6d8070db240c1a68336ee21dcf8d6f5c7d3b8b6909e928f972f221046017",
+    "fifo-before.log": "a464b328b9a4b808368f1bf677482b089899b7ebfc0797f5ee5ed843d8258068",
+    "fmt.json": "0c749cd3fed1fcce4e2387348be7c20cbda3a67783fdced215c2a7505b196eb6",
+    "python.log": "484d02f82feb4fe663a74c684bad8d5bbb889cc90a99691bf13146db25518b98",
+    "release.json": "9c5b5d19410de69df59aaab18386a4210739a7f9b350e27b8c78a698dfc79530",
+    "rust.json": "9f4536d402519229554c9838bc7876f2520880f1b517926c9d02b09234601214",
+    "rust.log": "328c78f9a8ed0de4f166342d3c0fa17327f175f56ea908673201063e064631c9",
+    "verification.json": "85ce655f83c0af7bacefc3381178f8e06789a9f6a28c3d5ce2b71b87b8463e73"
+  }
+}

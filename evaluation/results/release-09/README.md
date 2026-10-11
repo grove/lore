@@ -1,8 +1,12 @@
-# Integrated RC engineering evidence
+# Original RC candidate evidence
+
+This checkpoint precedes the reproduced FIFO boundary repair. The
+[final capture](../release-09-final/README.md) supersedes it. Original JSON
+receipts, logs and hashes below remain immutable historical observations.
 
 [Verification](verification.json) binds the full local checks to the integrated
-`cf5a1022097ce0e07853b5e49ecea3c435304936` source. Subsequent changes in this release
-PR contain evidence and documentation only; code object IDs permit exact reuse
+`cf5a1022097ce0e07853b5e49ecea3c435304936` source. The following evidence-only commit at that checkpoint retained its code
+objects; those IDs permit exact reuse
 without pretending that documents were executable changes. [Inventory](inventory.json)
 binds retained logs and captures. Full logs record explicit ignored/skipped cases.
 [Compatibility](compatibility.json) compares fresh optimized output against the

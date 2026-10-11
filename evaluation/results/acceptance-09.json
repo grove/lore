@@ -2,7 +2,7 @@
   "schema_version": 1,
   "contract": "lore.release_acceptance",
   "release": "0.9.0-rc.1",
-  "updated_at": "2026-10-11T10:53:58.634570+00:00",
+  "updated_at": "2026-10-11T11:24:55.084026+00:00",
   "baseline_revision": "3ba498d5ed71fc2e0051b6a2428430f484b55df5",
   "engineering_status": "implemented_locally_verified",
   "stable_status": "blocked_external",
@@ -74,16 +74,16 @@
     {
       "id": "integrated_local_engineering",
       "status": "passed",
-      "rust_passed": 497,
+      "rust_passed": 498,
       "rust_failed": 0,
       "rust_ignored": 3,
       "python_passed": 239,
       "python_failed": 0,
       "python_skipped": 1,
       "artifacts": [
-        "release-09/verification.json",
-        "release-09/compatibility.json",
-        "release-09/bootstrap-receipt.json"
+        "release-09-final/verification.json",
+        "release-09-final/compatibility.json",
+        "release-09-final/bootstrap-receipt.json"
       ]
     },
     {
@@ -112,32 +112,37 @@
       "merge": "e85c9b2f1dfd888c1df61921f027a3c2a6085ce0"
     },
     "4": {
-      "status": "implemented",
+      "status": "merged",
       "pr": 51,
-      "url": "https://github.com/grove/lore/pull/51"
+      "url": "https://github.com/grove/lore/pull/51",
+      "merge": "4bea8914db85aa01f858f57a8eac76267807ce0f"
     },
     "5": {
-      "status": "implemented",
+      "status": "merged",
       "pr": 52,
-      "url": "https://github.com/grove/lore/pull/52"
+      "url": "https://github.com/grove/lore/pull/52",
+      "merge": "39b9d4ee15e136ff01bd86b159a2236735eaf4fb"
     },
     "6": {
-      "status": "implemented",
+      "status": "merged",
       "pr": 53,
-      "url": "https://github.com/grove/lore/pull/53"
+      "url": "https://github.com/grove/lore/pull/53",
+      "merge": "aaeadddbba190de0ea783f4c41de3745801653d8"
     },
     "7": {
-      "status": "implemented",
+      "status": "merged",
       "pr": 54,
-      "url": "https://github.com/grove/lore/pull/54"
+      "url": "https://github.com/grove/lore/pull/54",
+      "merge": "7083ea8b537442ee79428cac4b2222e1d23ba4ad"
     },
     "8": {
       "status": "implemented",
-      "pr": null,
-      "url": null
+      "pr": 55,
+      "url": "https://github.com/grove/lore/pull/55"
     }
   },
   "version_status": "prerelease_only",
-  "local_source_revision": "cf5a1022097ce0e07853b5e49ecea3c435304936",
-  "live_merge_and_ci_authority": "GitHub PR checks and merge commits; this ledger is a pre-publication evidence snapshot, not a mutable CI database."
+  "local_source_revision": "1d38442733a344fb3b022cea8b600257044f99ee",
+  "live_merge_and_ci_authority": "GitHub PR checks and merge commits; this ledger is a pre-publication evidence snapshot, not a mutable CI database.",
+  "repair": "Pre-publication FIFO rejection hardening has separate before/after and full fresh evidence in release-09-final. Earlier candidate captures remain historical, not proof of this repair."
 }

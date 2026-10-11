@@ -16,7 +16,7 @@ Each linked PR's exact-head checks and merge record own its live status.
 | 5 — Adjudication | [#52](https://github.com/grove/lore/pull/52): immutable exact-candidate history, advisory projections and invalidation |
 | 6 — Feedback | [#53](https://github.com/grove/lore/pull/53): bounded receipts, explicit writes and ordinary source intake |
 | 7 — Human readiness | [#54](https://github.com/grove/lore/pull/54): shared-guidance parity, existing safety controls, zero real enrollment |
-| 8 — RC integration | Version, documentation, complete local gates, exact-head native CI/Guardian and immutable evidence captures |
+| 8 — RC integration | [#55](https://github.com/grove/lore/pull/55): version, documentation, FIFO boundary repair, full local gates, exact-head native CI/Guardian and immutable captures |
 
 Stable 0.9.0 is unreleased until the genuine six-task/six-arm decision pilot and
 independent external evidence exist. Engineering fixtures are not that pilot.
