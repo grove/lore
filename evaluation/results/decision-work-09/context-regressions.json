@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "classification": "deterministic_correctness_regression",
+  "modules": [
+    "src/context/adaptive.rs"
+  ],
+  "failing_samples": [
+    "adaptive_context::similarly_named_constants_do_not_claim_an_exact_reference",
+    "adaptive_context::omitted_critical_group_prevents_decision_sufficient_reference"
+  ],
+  "before_failures": [
+    "MAX_QUEUE_CAPACITY was labeled an exact QUEUE_CAPACITY reference",
+    "A retrieved constant was marked decision_sufficient despite an omitted critical conflict group"
+  ],
+  "expected_repair": "Match complete identifier tokens and decline the reference shortcut when critical groups were omitted.",
+  "separate_validation": "Existing exact_retained_constant_bypasses_model_checkout_and_cache remains a zero-call reference; prefix, suffix and Unicode-boundary counterexamples are distinct. Existing runtime, memory and relationship-manifest suites pass.",
+  "cost_risk": "Previously incorrect shortcuts may now use the existing bounded decision path. No new grant, schema, provider, budget or cache policy. Model effectiveness and savings remain unmeasured.",
+  "heldout_outcomes_opened": false,
+  "real_model_attempts": 0,
+  "measured_improvement": false,
+  "passed_tests": 42,
+  "failed_tests": 0,
+  "attempt_logs": [
+    {
+      "log": "lore-09-reference-before.log",
+      "sha256": "252258478278b5c23ecd94a8d077585dc01f182c0665cbd7b21b384364215631"
+    },
+    {
+      "log": "lore-09-critical-before.log",
+      "sha256": "c3a988e0b9288c7098ab8d886bf665d7f0077101d1cde42b287e86a2f99d8357"
+    },
+    {
+      "log": "lore-09-critical-before2.log",
+      "sha256": "55ee41204771ce0164f23672653b6725a676a41b15c96e436cb6cf23d73f1da2"
+    },
+    {
+      "log": "lore-09-critical-before3.log",
+      "sha256": "29f8921c52d19563384d92987875b2d0f22f640c0d6b14a1924576b02d1bc526"
+    },
+    {
+      "log": "lore-09-context-after.log",
+      "sha256": "12d5492e8cd93ea6f4dae3dded41844ed6ef58da39e12d1e886d5c7c087ee515"
+    },
+    {
+      "log": "lore-09-context-after2.log",
+      "sha256": "6045e0282defabfb64249e8c3e5dd4ff3f7a2e6632146c50106ee11819a22373"
+    }
+  ],
+  "attempt_qualification": "The first two critical-group fixtures failed setup (oversized assertions, then source ordering); the third reproduced the product defect. First after-run exposed an overly strict enum assumption in the lookalike test; corrected assertion checks the actual mode. All final focused targets passed.",
+  "zoom_regression": "running; current-head CI also executes the existing 24-case source comparison"
+}
