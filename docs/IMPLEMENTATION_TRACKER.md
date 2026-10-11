@@ -1,12 +1,26 @@
 # Lore implementation tracker
 
-## 0.9 work in progress
+## 0.9 release candidate
 
-Follow the [eight-package plan](V09_IMPLEMENTATION_PLAN.md) in package order.
-Current gates and empirical blockers are in the [0.9 scorecard](../evaluation/PRODUCT_QUALITY_09.md)
-and [machine ledger](../evaluation/results/acceptance-09.json).
-Stable 0.9 requires an authentic six-task/six-arm decision-dependent pilot;
-engineering completion alone permits only a release candidate.
+All eight packages are implemented as `0.9.0-rc.1`; see the [guide](V09.md),
+[scorecard](../evaluation/PRODUCT_QUALITY_09.md) and
+[dated evidence ledger](../evaluation/results/acceptance-09.json).
+Each linked PR's exact-head checks and merge record own its live status.
+
+| Package | Delivery |
+| --- | --- |
+| 1 — Baseline | [#48](https://github.com/grove/lore/pull/48): immutable 0.8 contract captures and explicit empirical gates |
+| 2 — Decision corpus | [#49](https://github.com/grove/lore/pull/49): eight public fixtures, 24 controls, unchanged six arms and genuine-task shortfall |
+| 3 — Agent integration | [#50](https://github.com/grove/lore/pull/50): preview/apply/status/remove for exact Codex/Claude blocks |
+| 4 — Context correction | [#51](https://github.com/grove/lore/pull/51): exact identifiers and critical-omission gating |
+| 5 — Adjudication | [#52](https://github.com/grove/lore/pull/52): immutable exact-candidate history, advisory projections and invalidation |
+| 6 — Feedback | [#53](https://github.com/grove/lore/pull/53): bounded receipts, explicit writes and ordinary source intake |
+| 7 — Human readiness | [#54](https://github.com/grove/lore/pull/54): shared-guidance parity, existing safety controls, zero real enrollment |
+| 8 — RC integration | Version, documentation, complete local gates, exact-head native CI/Guardian and immutable evidence captures |
+
+Stable 0.9.0 is unreleased until the genuine six-task/six-arm decision pilot and
+independent external evidence exist. Engineering fixtures are not that pilot.
+No hosted inference spending or human/agent efficacy is inferred from this work.
 
 ## 0.8 implementation and release gate
 

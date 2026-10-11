@@ -1,0 +1,864 @@
+   Compiling lore v0.9.0-rc.1 (/private/tmp/lore-09-work)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 31.05s
+     Running unittests src/lib.rs (/Users/grove/projects/lore/target/debug/deps/lore-d576f3b30af36690)
+
+running 44 tests
+test context::imports::tests::identifiers_are_complete_and_unicode_safe ... ok
+test companion::guardian_signal_tests::overlapping_action_text_does_not_erase_a_distinct_decision ... ok
+test companion::guardian_signal_tests::an_overlap_merges_complete_groups_without_collapsing_unrelated_changes ... ok
+test companion::guardian_signal_tests::risk_and_blocker_for_one_source_change_have_one_complete_advisory ... ok
+test context::decision::tests::generated_inline_references_are_collected_but_raw_fact_literals_are_not ... ok
+test bootstrap::tests::changed_during_read_or_replaced_file_is_rejected ... ok
+test bootstrap::tests::configuration_parent_replacement_never_selects_an_outside_config ... ok
+test bootstrap::tests::ancestor_replacement_cannot_redirect_descriptor_relative_reads ... ok
+test bootstrap::tests::changed_configuration_cannot_reuse_previously_selected_roots ... ok
+test engine::cross_source::tests::one_shared_word_does_not_trigger_reconciliation_and_large_groups_are_bounded ... ok
+test engine::cross_source::tests::invalid_quotes_and_ambiguous_applicability_cannot_become_discrepancies ... ok
+test engine::cross_source::tests::closed_work_and_agent_success_reports_remain_questions_without_creating_knowledge ... ok
+test engine::grounding::tests::a_plan_cannot_turn_its_unsettled_timetable_into_timeless_current_fact ... ok
+test engine::grounding::tests::explicit_source_order_is_retained_but_sample_absence_is_not ... ok
+test engine::grounding::tests::guessed_order_in_model_statement_is_not_original_evidence ... ok
+test engine::grounding::tests::presentation_order_is_not_an_event_claim ... ok
+test engine::grounding::tests::when_does_not_become_before_or_after ... ok
+test engine::overview::selection_contracts::historical_endpoint_survives_representative_depth_limit ... ok
+test engine::overview::selection_contracts::incomplete_decision_pair_is_never_sent_to_model_context ... ok
+test engine::overview::selection_contracts::insufficient_budget_or_dangling_relationship_is_an_explicit_error ... ok
+test engine::cross_source::tests::deleted_memories_are_not_promoted_and_native_links_do_not_guess_other_import_targets ... ok
+test engine::reconcile::explicit_reference_tests::compares_explicit_source_identifiers_not_arbitrary_topic_names ... ok
+test engine::reconcile::explicit_reference_tests::handles_unicode_context_without_invalid_utf8_slicing ... ok
+test engine::reconcile::explicit_reference_tests::reaffirmation_requires_that_the_source_assertion_itself_assert_reaffirmation ... ok
+test engine::reconcile::explicit_reference_tests::recognizes_an_identified_predecessor_without_confusing_the_successor ... ok
+test engine::reconcile::explicit_reference_tests::rejects_unidentified_conditional_negative_and_speculative_links ... ok
+test engine::reconcile::explicit_reference_tests::retains_strict_scope_full_statement_replacement_without_a_document_id ... ok
+test engine::source_context::tests::joins_by_active_source_not_by_topic_or_shared_words ... ok
+test engine::synthesis::tests::a_patch_cannot_rewrite_a_good_paragraph_or_forge_its_location ... ok
+test engine::synthesis::tests::all_findings_and_full_original_text_survive_grouping ... ok
+test engine::synthesis::tests::fabricated_verifier_excerpt_cannot_trigger_a_patch ... ok
+test engine::overview::selection_contracts::oversubscribed_64kb_overview_preserves_navigation_and_records_omissions ... ok
+test integrations::tests::concurrent_change_is_not_overwritten ... ok
+test engine::cross_source::tests::shared_code_evidence_is_identified_without_independent_confirmation ... ok
+test engine::cross_source::tests::incompatible_environments_are_rejected_before_inference_and_negative_result_is_cached ... ok
+test engine::cross_source::tests::different_opaque_revisions_are_qualified_instead_of_called_contradictory ... ok
+test engine::cross_source::tests::evidence_binding_and_historical_endpoint_ownership_are_audited ... ok
+test engine::cross_source::tests::versioned_discrepancy_is_idempotent_and_never_edits_documentary_knowledge ... ok
+test engine::cross_source::tests::bounded_discovery_does_not_forget_previously_known_discrepancies ... ok
+test publish::lock_tests::dropped_guard_releases_lock_while_an_inherited_descriptor_survives ... ok
+test engine::cross_source::tests::changed_native_evidence_reopens_its_review_and_withdrawal_retains_history ... ok
+test publish::lock_tests::inherited_guard_cannot_unlock_another_processes_active_lock ... ok
+test engine::cross_source::tests::changed_reconciliation_configuration_reconsiders_unchanged_source_pairs ... ok
+test engine::synthesis::tests::oversized_verification_is_split_and_locations_map_to_original_draft ... ok
+
+test result: ok. 44 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.95s
+
+     Running unittests src/main.rs (/Users/grove/projects/lore/target/debug/deps/lore-12319f635af4bc59)
+
+running 2 tests
+test tests::metered_dispatch_future_stays_small ... ok
+test tests::metered_cli_parses_and_flushes_failure_on_a_bounded_stack ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/active_reaffirmation.rs (/Users/grove/projects/lore/target/debug/deps/active_reaffirmation-f066b63057ca6b6b)
+
+running 1 test
+test active_policy_reaffirmation_is_valid_without_new_acceptance ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.63s
+
+     Running tests/adaptive_context.rs (/Users/grove/projects/lore/target/debug/deps/adaptive_context-996d788d5bcbd0b3)
+
+running 13 tests
+test project_root_cannot_escape_standing_grant_and_caller_denial_wins ... ok
+test local_only_remains_a_ceiling_on_explicit_hosted_grants ... ok
+test project_configuration_cannot_grant_host_capabilities ... ok
+test standing_read_grant_enables_automatic_investigation_with_narrower_project_scope ... ok
+test failed_adaptive_request_releases_its_read_snapshot ... ok
+test exact_retained_constant_bypasses_model_checkout_and_cache ... ok
+test adaptive_preselection_must_match_current_task_paths_and_retained_facts ... ok
+test dropping_pending_adaptive_generation_releases_only_its_read_snapshot ... ok
+test shared_static_result_has_exact_evidence_and_makes_no_source_or_registry_writes ... ok
+test new_evidence_changes_registry_identity_even_when_original_dependencies_do_not ... ok
+test omitted_critical_group_prevents_decision_sufficient_reference ... ok
+test new_counterevidence_invalidates_preselection_even_when_old_citations_still_exist ... ok
+test similarly_named_constants_do_not_claim_an_exact_reference ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.94s
+
+     Running tests/adr_metadata.rs (/Users/grove/projects/lore/target/debug/deps/adr_metadata-22c64d4b083f782b)
+
+running 3 tests
+test changing_formal_adr_status_invalidates_only_its_decision_context ... ok
+test accepted_status_from_another_context_never_promotes_a_decision ... ok
+test accepted_adr_header_qualifies_unknown_decision_and_records_supersession ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.41s
+
+     Running tests/agent_integration_cli.rs (/Users/grove/projects/lore/target/debug/deps/agent_integration_cli-4ea6fca914dd09fa)
+
+running 7 tests
+test symlink_target_is_never_followed ... ok
+test ambiguous_root_explicit_configuration_and_overlapping_install_fail_closed ... ok
+test missing_target_and_stale_preview_do_not_clobber_instructions ... ok
+test modified_duplicate_malformed_oversized_and_nonregular_targets_fail_closed ... ok
+test preview_apply_status_reapply_and_remove_preserve_original_bytes ... ok
+test command_capable_test_double_consumes_bootstrap_and_unavailable_fallback ... ok
+test command_adapter_handles_initialized_denied_and_stale_context_without_initializing ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.00s
+
+     Running tests/bootstrap_cli.rs (/Users/grove/projects/lore/target/debug/deps/bootstrap_cli-8f9beea4cd32defd)
+
+running 19 tests
+test explicit_missing_and_invalid_config_never_fall_back_to_cwd ... ok
+test configured_root_cannot_escape_or_bypass_parent_ignores ... ok
+test configured_sources_and_exclusions_constrain_first_contact_without_network ... ok
+test ignores_hidden_generated_vendor_and_unrequested_source_trees ... ok
+test exact_symbols_prioritize_complete_rule_exception_and_history ... ok
+test bad_utf8_and_oversized_files_are_reported_without_altering_source ... ok
+test compiled_projects_keep_their_pinned_contracts ... ok
+test pending_publication_is_an_error_with_or_without_configuration ... ok
+test pinned_context_and_learning_contracts_require_initialization ... ok
+test source_text_is_inert_and_markdown_fences_cannot_be_closed_by_it ... ok
+test ordinary_commands_work_without_config_provider_or_documents ... ok
+test readme_evidence_is_exact_hash_bound_and_never_creates_state ... ok
+test symlinks_and_directory_escapes_are_not_followed ... ok
+test total_read_cap_never_consumes_a_byte_beyond_eight_mebibytes ... ok
+test linked_sections_close_the_bundle_and_ambiguous_qualifications_stay_whole ... ok
+test budgets_omit_whole_rule_groups_and_never_slice_an_exception ... ok
+test long_readme_keeps_relevant_parent_exception_and_source_lines ... ok
+test duplicate_anchors_and_reference_or_prefix_links_cannot_drop_required_sections ... ok
+test file_and_directory_depth_caps_are_reported ... ok
+
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.02s
+
+     Running tests/checkout_inspection.rs (/Users/grove/projects/lore/target/debug/deps/checkout_inspection-60f1c83fe4db62a1)
+
+running 13 tests
+test opt_in_discovery_and_configuration_limits_are_explicit ... ok
+test path_catalog_rejects_traversal_absolute_paths_and_invented_files ... ok
+test source_files_and_commands_are_never_executed_or_modified ... ok
+test exact_hash_bound_observations_preserve_crlf_unicode_and_line_ranges ... ok
+test nested_gitignore_rules_and_reinclusion_are_respected ... ok
+test binary_generated_and_credential_content_cannot_be_observations ... ok
+test symlink_files_directories_roots_and_post_discovery_swaps_are_rejected ... ok
+test nearest_checkout_and_explicit_configuration_relative_root_are_supported ... ok
+test symlinked_ignore_files_fail_closed_without_reading_external_rules ... ok
+test byte_file_index_and_excerpt_budgets_bound_real_reads ... ok
+test ignores_hidden_secrets_generated_outputs_and_configured_exclusions ... ok
+test cache_revalidation_detects_same_size_changes_and_index_additions_deletions ... ok
+test task_terms_recorded_paths_and_related_tests_select_useful_small_observations ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/chronology_rendering.rs (/Users/grove/projects/lore/target/debug/deps/chronology_rendering-1e37cb95575c76e1)
+
+running 3 tests
+test verifier_feedback_repairs_unsupported_order_without_degradation ... ok
+test persistent_semantic_rejection_publishes_only_attributed_source_excerpts ... ok
+test cross_topic_relationship_uses_citation_closed_writing_and_verification_context ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.76s
+
+     Running tests/citation_contracts.rs (/Users/grove/projects/lore/target/debug/deps/citation_contracts-72cc2e37f5f7e3b8)
+
+running 4 tests
+test scoped_citations_are_closed_in_both_provider_request_formats ... ok
+test presentation_upgrade_reuses_extracted_assertions_then_returns_to_noop ... ok
+test overview_repairs_schema_ignoring_citations_then_mutates_and_noops ... ok
+test unknown_citations_still_fail_closed_and_preserve_initial_publication ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.88s
+
+     Running tests/classification.rs (/Users/grove/projects/lore/target/debug/deps/classification-281f09880ebd69a6)
+
+running 2 tests
+test reaffirms_is_part_of_the_strict_model_contract ... ok
+test design_intent_requirements_and_reported_delivery_are_independent ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s
+
+     Running tests/compiler.rs (/Users/grove/projects/lore/target/debug/deps/compiler-c3e8f3702dc79802)
+
+running 15 tests
+test extraction_schema_only_offers_unique_verbatim_source_passages ... ok
+test local_ollama_extracts_selected_source_section ... ignored, requires local Ollama and LORE_LIVE_CONFIG/LORE_LIVE_SECTION
+test invented_evidence_is_rejected_before_publication ... ok
+test audit_search_and_purge_operate_without_models ... ok
+test evidence_quote_repair_receives_specific_validation_feedback ... ok
+test compiles_and_then_proves_a_zero_call_noop ... ok
+test detects_output_edits_and_requires_explicit_rebuild ... ok
+test equivalent_sources_share_knowledge_but_keep_distinct_provenance ... ok
+test frontmatter_change_invalidates_descendant_sections ... ok
+test deleting_one_source_retains_other_support_and_deleting_all_preserves_snapshots ... ok
+test failed_synthesis_preserves_database_and_wiki_and_retry_reuses_valid_work ... ok
+test recovers_crash_after_wiki_switch_before_database_switch ... ok
+test proposal_does_not_supersede_decision_and_unrelated_topic_is_unchanged ... ok
+test new_document_can_supersede_unchanged_old_evidence_and_withdrawal_is_not_resurrection ... ok
+test reordered_sections_and_renamed_files_preserve_identity_without_reextraction ... ok
+
+test result: ok. 14 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 2.84s
+
+     Running tests/context_assembly.rs (/Users/grove/projects/lore/target/debug/deps/context_assembly-96c7014e88ccc4a4)
+
+running 8 tests
+test inspection_suggestions_require_literal_source_evidence ... ok
+test withdrawn_replacement_does_not_revive_an_accepted_predecessor ... ok
+test complete_queries_are_deterministic_and_never_write_the_registry ... ok
+test conflict_and_supersession_keep_the_complete_recorded_chain ... ok
+test derived_and_unknown_constraints_require_verification ... ok
+test reported_outcomes_and_proposals_retain_their_kind_in_human_output ... ok
+test unicode_escaped_sources_and_special_token_spellings_obey_both_output_budgets ... ok
+test tight_budget_omits_whole_conflict_group_and_reports_it ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.45s
+
+     Running tests/context_cli.rs (/Users/grove/projects/lore/target/debug/deps/context_cli-89f80d497383de30)
+
+running 8 tests
+test missing_registry_is_an_actionable_json_error_without_initialization ... ok
+test json_argument_errors_work_before_configuration_is_loaded ... ok
+test pending_publication_is_not_recovered_or_read_by_context ... ok
+test unmatched_task_returns_a_successful_explicit_empty_result ... ok
+test context_does_not_require_working_inference_configuration_or_live_sources ... ok
+test context_validation_errors_keep_the_typed_json_contract ... ok
+test repeated_fast_context_is_read_only_offline_and_has_resolvable_evidence ... ok
+test human_and_json_output_fit_the_named_tokenizer_budget ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.16s
+
+     Running tests/context_decision_cli.rs (/Users/grove/projects/lore/target/debug/deps/context_decision_cli-542e3185af11b99f)
+
+running 10 tests
+test default_is_action_first_and_does_not_send_checkout_without_a_grant ... ok
+test default_exact_symbol_reads_retained_rules_without_model_or_checkout_work ... ok
+test unavailable_or_disallowed_models_keep_schema_four_fallback_without_egress ... ok
+test inspection_is_opt_in_and_no_inspect_overrides_configured_inspection ... ok
+test default_honors_standing_inspection_and_explicit_denial_without_inventing_authority ... ok
+test hosted_documentary_permission_does_not_send_checkout_until_separately_authorized ... ok
+test incompatible_flags_are_typed_json_errors_before_model_calls ... ok
+test default_and_pinned_five_deny_host_privileges_requested_by_configuration_and_evidence ... ok
+test explicit_schema_four_keeps_verified_cache_and_fast_compatibility ... ok
+test default_and_explicit_five_have_identical_offline_semantics_and_budget_errors ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.47s
+
+     Running tests/context_imports.rs (/Users/grove/projects/lore/target/debug/deps/context_imports-b68d076b0c208b7e)
+
+running 10 tests
+test a_cross_source_citation_cannot_be_substituted_with_an_unrelated_native_record ... ok
+test stale_interpretation_cannot_silently_bind_a_new_native_revision ... ok
+test old_document_only_context_remains_readable_without_native_migration ... ok
+test thousands_of_global_diagnostics_cannot_consume_the_task_context_budget ... ok
+test review_dispositions_are_visible_without_becoming_implementation_verification ... ok
+test closed_work_deleted_memories_and_retired_imports_keep_source_authority ... ok
+test native_identifier_retrieves_documented_intent_and_complete_discrepancy ... ok
+test cross_source_groups_are_omitted_whole_and_both_formats_fit_the_budget ... ok
+test native_issue_references_components_and_paths_expand_locally ... ok
+test native_retrieval_bounds_and_reconciliation_warnings_are_explicit ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.73s
+
+     Running tests/context_intelligent_cli.rs (/Users/grove/projects/lore/target/debug/deps/context_intelligent_cli-db808c6624ac0041)
+
+running 5 tests
+test fabricated_model_citation_falls_back_and_does_not_poison_cache ... ok
+test too_small_inference_budget_falls_back_before_any_calls_or_cache_writes ... ok
+test embedding_failure_still_returns_lexical_guidance_with_visible_degradation ... ok
+test unsafe_or_disabled_model_configuration_falls_back_without_network_or_cache ... ok
+test schema_three_cli_returns_guidance_reuses_cache_and_refreshes_changed_evidence ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.46s
+
+     Running tests/context_provenance.rs (/Users/grove/projects/lore/target/debug/deps/context_provenance-9ecc0519ad549c2c)
+
+running 1 test
+test context_keeps_source_identity_and_does_not_promote_derived_only_support ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.61s
+
+     Running tests/context_retrieval.rs (/Users/grove/projects/lore/target/debug/deps/context_retrieval-58c0d612041a7869)
+
+running 10 tests
+test task_punctuation_and_fts_operator_names_are_literal_and_empty_queries_are_empty ... ok
+test finds_connected_constraint_with_no_task_words_and_no_model_calls ... ok
+test incoming_relationships_preserve_superseded_historical_knowledge ... ok
+test path_evidence_and_path_terminology_can_seed_retrieval ... ok
+test subject_and_small_topic_clusters_bridge_unmentioned_requirements ... ok
+test exact_paths_preserve_ambiguous_roots_and_allow_explicit_disambiguation ... ok
+test graph_expansion_is_bounded_and_repeated_reads_are_identical ... ok
+test broad_topic_does_not_become_an_unrelated_constraint_avalanche ... ok
+test search_reports_term_seed_and_concept_limits_without_claiming_completeness ... ok
+test weak_topic_constraints_do_not_displace_direct_task_relevance_under_a_budget ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.39s
+
+     Running tests/cross_source_update.rs (/Users/grove/projects/lore/target/debug/deps/cross_source_update-df01955bf7137725)
+
+running 2 tests
+test invalid_semantic_evidence_cannot_publish_changed_imports_or_relationships ... ok
+test documented_intent_and_real_openwiki_claim_form_a_versioned_actionable_context_group ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.73s
+
+     Running tests/cross_topic_verification.rs (/Users/grove/projects/lore/target/debug/deps/cross_topic_verification-a2d565053d6914e3)
+
+running 1 test
+test cross_topic_verifier_repairs_false_absence_and_sees_document_date ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.45s
+
+     Running tests/decision_contract.rs (/Users/grove/projects/lore/target/debug/deps/decision_contract-5ea6e6952ef38bae)
+
+running 12 tests
+test public_validation_rechecks_retained_facts_instead_of_trusting_selected_text ... ok
+test facts_cannot_be_model_written_and_heuristics_cannot_borrow_project_citations ... ok
+test preserving_change_can_proceed_with_implementation_checks_and_exact_copied_facts ... ok
+test all_constraints_and_exact_unique_evidence_ids_are_required ... ok
+test generic_review_and_validation_are_not_decision_ready_next_actions ... ok
+test proceed_cannot_conceal_a_required_check_or_material_decision ... ok
+test hypotheses_remain_qualified_and_direct_static_evidence_can_support_narrow_confidence ... ok
+test implementation_seams_require_exact_hash_bound_observations_for_the_same_path ... ok
+test proceed_after_check_requires_one_or_two_inexpensive_specific_checks ... ok
+test invented_paths_and_runtime_execution_assertions_are_rejected ... ok
+test unresolved_policy_deviation_is_a_real_material_blocker ... ok
+test verification_qualifier_does_not_itself_block_a_preserving_change ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.44s
+
+     Running tests/decision_lenses.rs (/Users/grove/projects/lore/target/debug/deps/decision_lenses-11890690c55e4117)
+
+running 12 tests
+test absent_rationale_is_not_filled_from_general_engineering_expectations ... ok
+test closed_imported_issue_is_source_owned_history_and_carries_native_evidence ... ok
+test explicit_replacement_preserves_original_acceptance_and_the_relationship_witness ... ok
+test explicit_marker_uses_whole_original_quote_and_unicode_bytes_are_preserved ... ok
+test rejected_approach_is_a_case_and_documented_risk_is_not_an_observed_failure ... ok
+test a_rationale_from_another_decision_in_the_same_minutes_is_never_attached ... ok
+test unstructured_source_markers_cannot_attach_another_choices_rationale ... ok
+test proposed_facets_rejected_approaches_and_unrelated_risks_keep_source_roles ... ok
+test documented_case_keeps_start_expected_and_reported_actual_distinct_without_execution ... ok
+test decision_lens_keeps_exact_rationale_tradeoffs_and_rare_table_exception ... ok
+test views_are_deterministic_and_can_run_with_database_writes_disabled ... ok
+test every_returned_view_fits_its_full_json_and_markdown_budget_without_slicing_facets ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.56s
+
+     Running tests/decision_lenses_cli.rs (/Users/grove/projects/lore/target/debug/deps/decision_lenses_cli-f270817364b5e4f3)
+
+running 1 test
+test decision_and_case_commands_keep_source_status_and_work_without_a_provider ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.05s
+
+     Running tests/decision_runtime.rs (/Users/grove/projects/lore/target/debug/deps/decision_runtime-c1052eedef6fa275)
+
+running 21 tests
+test final_support_check_must_cover_inspected_observation_references ... ok
+test an_invalid_plan_cannot_read_an_arbitrary_path_and_stops_with_the_validated_initial_brief ... ok
+test hosted_retained_knowledge_permission_never_implies_checkout_egress ... ok
+test discriminating_deeper_observation_changes_the_action_and_preserves_a_cited_trace ... ok
+test a_dangling_cached_investigation_reference_is_rejected_even_with_a_valid_cache_checksum ... ok
+test inline_only_local_citation_remains_manifested_when_output_budget_prunes_other_items ... ok
+test explicit_checkout_permission_allows_hosted_static_evidence_and_cache_hit_sends_nothing ... ok
+test inspected_source_change_during_reasoning_discards_generated_advice ... ok
+test deeper_only_file_change_invalidates_cached_reasoning_even_with_restored_mtime_and_size ... ok
+test no_inspect_overrides_investigation_configuration_and_performs_zero_checkout_discovery ... ok
+test adding_and_removing_a_relevant_file_invalidates_the_checkout_index_cache ... ok
+test material_counterevidence_cannot_leave_the_original_action_in_place ... ok
+test local_only_policy_rejects_cloud_tagged_ollama_even_with_checkout_permission ... ok
+test openai_loopback_proxy_location_does_not_authorize_checkout_egress ... ok
+test normal_schema_four_has_independent_support_check_and_revision_bound_cache_hit ... ok
+test newly_retained_source_invalidates_findings_with_unchanged_selected_dependencies ... ok
+test source_mutation_after_investigation_discards_generated_trace_and_its_local_references ... ok
+test output_budget_preserves_complete_citations_and_honest_fallback ... ok
+test cache_replay_repacks_the_unpruned_draft_and_preserves_required_premises ... ok
+test invalid_generation_and_failed_review_fall_back_without_poisoning_the_cache ... ok
+test one_call_budget_never_skips_the_mandatory_support_check_and_deadline_is_shared ... ok
+
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.90s
+
+     Running tests/documentary_identity.rs (/Users/grove/projects/lore/target/debug/deps/documentary_identity-30bd10bc4c18d0a8)
+
+running 2 tests
+test a_document_with_two_substantive_decisions_stays_ambiguous_despite_a_status_header ... ok
+test accepted_document_header_is_not_an_ambiguous_predecessor_and_heading_quotes_work ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.81s
+
+     Running tests/evidence_complete_synthesis.rs (/Users/grove/projects/lore/target/debug/deps/evidence_complete_synthesis-9037b7169ddd032b)
+
+running 2 tests
+test closed_external_citations_and_located_repairs_preserve_good_paragraphs ... ok
+test forged_locations_findings_and_citations_cannot_replace_a_publication ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.86s
+
+     Running tests/explicit_decisions.rs (/Users/grove/projects/lore/target/debug/deps/explicit_decisions-effc63605d37ce6e)
+
+running 2 tests
+test explicit_adr_mentions_reconcile_despite_model_scope_drift_and_missed_links ... ok
+test ambiguous_predecessors_and_negated_mentions_are_not_auto_linked ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.07s
+
+     Running tests/guardian_corpus_export.rs (/Users/grove/projects/lore/target/debug/deps/guardian_corpus_export-5544deee7b822746)
+
+running 2 tests
+test export_synthetic_guardian_retained_snapshots_when_explicitly_requested ... ok
+test synthetic_guardian_corpus_has_sixty_successive_labeled_transitions ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/hardening.rs (/Users/grove/projects/lore/target/debug/deps/hardening-f31df61072644d72)
+
+running 5 tests
+test normalizes_openai_order_and_rejects_unrequested_systemone_answers ... ok
+test choice_must_agree_with_returned_probabilities ... ok
+test rejects_too_small_context_and_sources_inside_generated_state ... ok
+test parser_does_not_ingest_publication_backups ... ok
+test cleanup_removes_owned_abandoned_sibling_stage ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/http_clients.rs (/Users/grove/projects/lore/target/debug/deps/http_clients-c6eac48719b0d43a)
+
+running 19 tests
+test generation_refusals_truncation_and_tool_calls_are_not_success ... ok
+test embedding_decoder_rejects_model_substitution_counts_indices_and_invalid_vectors ... ok
+test http_constructor_enforces_inference_contract_after_read_only_config_loading ... ok
+test local_only_rejects_remote_hosts_before_network_io ... ok
+test model_cache_identities_include_endpoint_but_never_credentials ... ok
+test openai_live_preserves_multiline_quote_constraints ... ignored, requires LORE_OPENAI_LIVE_CONFIG and its configured credential environment variable
+test provider_usage_parses_partial_counts_and_rejects_malformed_units_and_prices ... ok
+test incomplete_and_cancelled_http_attempts_retain_unknown_cost ... ok
+test embedding_retries_count_as_one_logical_inference_call ... ok
+test calls_ollama_embedding_api_with_explicit_input_bounds ... ok
+test decision_refusal_keeps_optional_provider_usage ... ok
+test calls_openai_responses_with_strict_schema_and_no_storage ... ok
+test decision_http_paths_and_predicate_mappings_match_each_backend ... ok
+test metering_keeps_retry_usage_refusal_and_validation_errors_without_bodies ... ok
+test openai_embedding_response_indices_preserve_exact_input_association ... ok
+test openai_http_restores_source_passages_before_validation ... ok
+test real_cli_compiles_over_http_then_updates_with_server_offline ... ok
+test request_timeout_and_invalid_headers_have_distinct_request_counts ... ok
+test retries_transient_errors_and_withholds_failure_body ... ok
+
+test result: ok. 18 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 2.13s
+
+     Running tests/human_experience.rs (/Users/grove/projects/lore/target/debug/deps/human_experience-bfd087c3558b97c8)
+
+running 25 tests
+test fresh_proposed_design_is_not_presented_as_an_adopted_project_or_learning_rule ... ok
+test a_narrower_request_cannot_reuse_shared_checkout_content_from_an_older_grant ... ok
+test cancelled_presentation_releases_read_snapshot_and_schedules_no_followup ... ok
+test human_task_guidance_preserves_agent_constraints_and_snapshot_without_claiming_execution ... ok
+test on08_prerequisite_cycles_are_exact_colearned_groups_without_mandatory_gates ... ok
+test human_model_cannot_expand_host_egress_grants ... ok
+test moving_the_allowed_root_cannot_leak_previous_observations_to_a_model ... ok
+test default_output_budget_keeps_a_complete_learning_activity_and_exact_constraint ... ok
+test on11_reference_is_exact_and_does_not_call_presentation_model ... ok
+test on01_immediate_orientation_is_shared_source_extractive_and_stateless ... ok
+test on12_first_task_bypasses_curriculum_and_preserves_supplied_intent ... ok
+test no_cache_bypasses_verified_lesson_reuse_and_an_unpinned_answer_is_not_graded ... ok
+test ordinary_intent_does_not_trigger_quizzes_and_learning_overrides_are_explicit ... ok
+test on03_source_checked_orientation_preserves_conditions_and_resolves_all_ids ... ok
+test on21_new_source_invalidates_an_older_shared_snapshot ... ok
+test on18_answer_is_not_in_shared_task_or_persisted_and_feedback_is_fallible ... ok
+test on21_code_mutation_during_generation_discards_stale_static_premises ... ok
+test on24_offline_tutorial_provides_real_activity_and_honest_source_comparison ... ok
+test unchanged_checkout_is_rehashed_after_presentation_and_preserves_observations ... ok
+test on10_tutorial_has_purposeful_activity_optional_hints_and_distinct_transfer ... ok
+test human_cache_evicts_only_managed_regular_files_before_publishing_new_drafts ... ok
+test on05_invalid_files_evidence_execution_and_failed_support_degrade_to_sources ... ok
+test initial_explanation_limits_concepts_without_changing_grounding_or_lessons ... ok
+test oversized_or_junk_filled_human_cache_does_not_grow_and_generation_remains_usable ... ok
+test verified_lesson_cache_reuses_hints_without_retaining_answers_and_invalidates_on_new_evidence ... ok
+
+test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.79s
+
+     Running tests/human_experience_cli.rs (/Users/grove/projects/lore/target/debug/deps/human_experience_cli-abc7b0064b3a07cc)
+
+running 7 tests
+test invalid_onboard_cli_inputs_are_rejected_before_configuration_is_opened ... ok
+test direct_reference_cli_preserves_verbatim_passages_and_live_evidence_drilldown ... ok
+test optional_answer_has_ungraded_fallback_without_a_stored_profile_or_answer ... ok
+test supplied_task_bypasses_tutorial_and_retains_actual_intent ... ok
+test onboard_cli_immediately_returns_useful_exact_evidence_without_inspection_or_inference ... ok
+test onboard_cli_json_and_markdown_fit_the_complete_budget_and_preserve_sources_wiki_and_state ... ok
+test initialized_onboard_flushes_usage_on_native_stacks_and_linux_one_mib_stack ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.00s
+
+     Running tests/hybrid_retrieval.rs (/Users/grove/projects/lore/target/debug/deps/hybrid_retrieval-1d320c52fd2d0c4f)
+
+running 11 tests
+test rank_fusion_is_scale_independent_deduplicated_and_deterministic ... ok
+test hosted_policy_is_checked_even_when_all_vectors_are_cached ... ok
+test rejects_invalid_provider_vectors_before_caching_and_never_writes_truth ... ok
+test model_or_endpoint_changes_invalidate_all_vectors ... ok
+test full_revision_fingerprints_invalidate_changes_beyond_bounded_embedding_input ... ok
+test malformed_or_dimension_mismatched_cache_rows_are_rebuilt_and_stale_ids_ignored ... ok
+test empty_or_invalid_semantic_stream_preserves_fast_retrieval_exactly ... ok
+test changed_model_dimensions_recover_on_next_query_without_touching_other_models ... ok
+test caches_tasks_and_records_and_only_reembeds_changed_native_revision ... ok
+test retrieves_paraphrased_original_units_then_expands_recorded_relations ... ok
+test retrieves_source_owned_observations_with_no_lexical_seed ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.37s
+
+     Running tests/intelligent_context.rs (/Users/grove/projects/lore/target/debug/deps/intelligent_context-658db3554f7923fe)
+
+running 19 tests
+test fast_retrieval_is_deterministic_read_only_and_never_touches_guidance_cache ... ok
+test a_valid_registry_citation_outside_selected_evidence_is_rejected ... ok
+test cache_disabled_and_unwritable_cache_do_not_prevent_intelligence ... ok
+test corrupted_cache_is_ignored_and_replaced_by_validated_guidance ... ok
+test destructive_and_security_tasks_cannot_avoid_scrutiny_by_omitting_risk_labels ... ok
+test four_source_recommendation_retains_its_hypothesis_and_constraint_at_default_budget ... ok
+test ordinary_hypotheses_get_a_support_check_and_historical_only_support_is_not_current ... ok
+test native_reports_cannot_become_authoritative_known_statements ... ok
+test four_sources_produce_useful_cited_advice_without_changing_accepted_knowledge ... ok
+test exact_citation_validation_rejects_prefixes_whitespace_record_ids_and_fabrication ... ok
+test stale_selected_revisions_are_not_sent_to_the_model ... ok
+test unchanged_section_evidence_remains_usable_after_source_revision_and_rename ... ok
+test cache_reuses_guidance_and_binds_task_paths_evidence_model_endpoint_reasoning_and_privacy ... ok
+test tight_output_budgets_and_input_limits_remain_enforced_in_both_formats ... ok
+test unavailable_disabled_private_invalid_and_absent_models_return_explicit_fast_context ... ok
+test replacing_native_evidence_invalidates_revision_bound_interpretations ... ok
+test cannot_skip_accepted_constraints_or_conceal_a_deviation_or_omit_risk_scrutiny ... ok
+test unrelated_work_older_observations_and_unsupported_policy_claims_fail_scrutiny ... ok
+test budgets_keep_all_conditions_and_late_required_verification_steps_or_fall_back ... ok
+
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.36s
+
+     Running tests/investigation.rs (/Users/grove/projects/lore/target/debug/deps/investigation-3379ae494aa64533)
+
+running 9 tests
+test an_expired_shared_deadline_prevents_further_calls_and_inspections ... ok
+test retrieval_usage_is_included_and_cannot_hide_an_exhausted_allowance ... ok
+test investigation_report_records_explicit_stopping_and_actual_consumed_budget ... ok
+test settings_have_strict_small_limits_and_reject_unknown_keys ... ok
+test invalid_attempts_consume_calls_and_rounds_without_resetting_the_budget ... ok
+test candidate_paths_cannot_escape_the_checkout_on_any_platform ... ok
+test model_selection_resolves_only_exact_allowlisted_identifiers ... ok
+test planner_request_is_structured_bounded_and_has_no_execution_capability ... ok
+test plans_require_a_hypothesis_and_specific_discriminator_or_explicit_stop ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/investigation_memory.rs (/Users/grove/projects/lore/target/debug/deps/investigation_memory-e2169d1953cd700d)
+
+running 4 tests
+test corrupted_interrupted_and_future_metadata_cannot_be_a_fresh_finding ... ok
+test retention_does_not_follow_symlinks ... ok
+test expired_and_oversized_records_are_removed_before_new_persistence ... ok
+test retention_is_bounded_and_only_managed_decision_findings_are_evicted ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/knowledge_zoom.rs (/Users/grove/projects/lore/target/debug/deps/knowledge_zoom-6aa60ca41c85e07d)
+
+running 43 tests
+test an_incremental_cache_cannot_mask_corrupted_authoritative_evidence ... ok
+test a_resigned_cache_rejects_overflowing_summary_coverage_without_panicking ... ok
+test a_resigned_cache_cannot_drop_one_of_two_canonical_parents ... ok
+test a_resigned_cache_cannot_remove_a_derived_intersection_and_flatten_its_children ... ok
+test a_new_relationship_rebuilds_grouping_but_inventory_only_changes_reuse_every_node ... ok
+test a_resigned_cache_cannot_invent_warnings_or_conceal_real_truncation ... ok
+test compact_disagreement_preserves_both_endpoints_witness_and_exact_resolution ... ok
+test a_new_critical_exception_changes_leaf_priority_and_forces_a_full_refresh ... ok
+test cross_cutting_concepts_and_records_have_multiple_semantic_parents ... ok
+test compact_resolver_rejects_overflowing_coverage_without_panicking ... ok
+test compact_conditions_survive_node_focus_and_cannot_be_replaced_by_navigation ... ok
+test compact_staging_proposal_retains_accepted_baseline_without_promoting_proposal ... ok
+test changed_source_support_refreshes_opposite_relationship_endpoints_in_a_validated_layout ... ok
+test empty_and_incompatible_registries_fail_without_inventing_knowledge ... ok
+test controlled_selection_has_identical_candidate_and_obligation_sets ... ok
+test concept_summaries_quote_original_records_and_keep_complete_critical_scope ... ok
+test excessive_critical_summary_is_disclosed_without_losing_original_records ... ok
+test explanatory_language_cannot_hide_explicit_permissions_or_mandatory_rules ... ok
+test invalid_refs_and_containment_cycles_are_rejected ... ok
+test compact_historical_evidence_and_unfit_obligations_are_explicit ... ok
+test format_acronyms_do_not_bind_unrelated_options_but_explicit_flags_do ... ok
+test oversized_cache_ownership_marker_is_rejected_without_touching_the_snapshot ... ok
+test generic_shared_cli_words_are_context_not_transitive_obligations ... ok
+test grouping_labels_and_resource_limits_invalidate_even_unchanged_memberships ... ok
+test compact_conceptual_queries_pack_complete_rules_before_explanatory_context ... ok
+test poisoned_cache_is_rebuilt_and_unmanaged_files_are_preserved ... ok
+test large_corpus_keeps_semantic_navigation_and_direct_facts_within_a_small_node_budget ... ok
+test exact_original_fact_bypasses_a_navigation_node_budget ... ok
+test relationship_changes_invalidate_both_topic_views ... ok
+test rejected_partial_reuse_counts_discarded_work_before_full_rebuild ... ok
+test rare_exception_and_both_conflict_endpoints_survive_exact_retrieval ... ok
+test recomputing_the_cache_checksum_cannot_authorize_forged_summary_or_scope ... ok
+test semantic_membership_can_exceed_five_levels_without_a_depth_parameter ... ok
+test requested_body_conditions_outrank_a_broad_matching_subject ... ok
+test sentence_punctuation_does_not_turn_prose_into_an_exact_reference ... ok
+test source_retirement_invalidates_affected_views_and_keeps_unrelated_revisions ... ok
+test tables_procedures_code_and_scope_keep_the_original_evidence_identity ... ok
+test unchanged_snapshot_has_zero_model_calls_no_writes_and_reuses_all_views ... ok
+test tight_budget_omits_complete_critical_groups_instead_of_the_qualifier ... ok
+test stable_topology_refreshes_only_nodes_with_changed_source_status ... ok
+test tiny_grouping_work_budget_falls_back_to_a_valid_direct_index ... ok
+test dense_shared_topic_does_not_make_unrelated_conditions_mandatory ... ok
+test compact_navigation_disclosure_is_reserved_at_an_exact_packing_boundary ... ok
+
+test result: ok. 43 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.57s
+
+     Running tests/knowledge_zoom_cli.rs (/Users/grove/projects/lore/target/debug/deps/knowledge_zoom_cli-12f8865fcf0fb578)
+
+running 5 tests
+test invalid_navigation_limits_fail_before_configuration_loading ... ok
+test unmanaged_cache_does_not_block_navigation_or_overwrite_user_files ... ok
+test direct_exploration_uses_original_evidence_and_complete_budgets_without_inference ... ok
+test compact_is_explicit_reversible_and_identical_with_and_without_cache ... ok
+test repeated_navigation_revalidates_without_rewriting_an_unchanged_cache ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.88s
+
+     Running tests/knowledge_zoom_comparison.rs (/Users/grove/projects/lore/target/debug/deps/knowledge_zoom_comparison-c4278b395221a599)
+
+running 4 tests
+test measured_existing_compiled_project ... ignored, requires an explicitly selected compiled project, independent gold cases and a new report path
+test critical_recall_requires_the_whole_statement_and_its_qualifications ... ok
+test measured_flat_direct_and_zoom_on_the_same_compiled_fixture has been running for over 60 seconds
+test source_corpus::measured_source_pinned_three_repository_cases has been running for over 60 seconds
+test measured_flat_direct_and_zoom_on_the_same_compiled_fixture ... ok
+test source_corpus::measured_source_pinned_three_repository_cases ... ok
+
+test result: ok. 3 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 202.52s
+
+     Running tests/knowledge_zoom_reviewed.rs (/Users/grove/projects/lore/target/debug/deps/knowledge_zoom_reviewed-d0074d5a75d78ed4)
+
+running 1 test
+test reviewed_upstream_queries_retain_their_complete_original_at_1500_tokens ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.57s
+
+     Running tests/native_adapters.rs (/Users/grove/projects/lore/target/debug/deps/native_adapters-2abc82e368c90404)
+
+running 16 tests
+test beads_memory_import_requires_explicit_opt_in ... ok
+test engram_project_filter_honors_explicit_ownership_before_session_fallback ... ok
+test beads_keeps_closed_decisions_as_work_state_and_preserves_dependencies_comments_and_raw_record ... ok
+test engram_rejects_unknown_versions_duplicate_identity_and_missing_observations ... ok
+test beads_rejects_unknown_record_types_malformed_lines_and_version_envelopes ... ok
+test engram_legacy_numeric_identity_survives_content_edits_and_tombstones ... ok
+test engram_timestamp_only_reexport_is_identical_and_native_relationship_judgments_are_preserved ... ok
+test missing_and_oversized_input_fail_instead_of_becoming_an_empty_snapshot ... ok
+test bundled_cross_project_evaluation_snapshots_have_resolvable_native_evidence ... ok
+test empty_claims_set_does_not_turn_page_prose_into_code_evidence ... ok
+test okf_without_sidecars_stays_documentary_with_exact_markdown_evidence ... ok
+test modified_page_scope_cannot_qualify_claims_verified_for_a_previous_page ... ok
+test rejects_symlinked_inputs_and_descendants_without_reading_outside_the_snapshot ... ok
+test old_claims_without_durable_verification_remain_reported_even_with_verified_markdown ... ok
+test imports_real_openwiki_shape_and_preserves_opaque_versions_without_copying_the_page ... ok
+test rejects_unknown_openwiki_versions_invalid_claims_and_incomplete_snapshots ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/native_storage.rs (/Users/grove/projects/lore/target/debug/deps/native_storage-690e3d3411d438ba)
+
+running 9 tests
+test import_config_is_versioned_optional_and_rejects_overlapping_ownership ... ok
+test version_five_registry_remains_readable_and_migrates_without_touching_history ... ok
+test source_kind_changes_need_a_new_native_namespace ... ok
+test rejects_dangling_record_pointers_and_cross_record_current_pointers ... ok
+test preserves_native_identity_immutable_evidence_and_withdrawn_history ... ok
+test malformed_import_is_rejected_before_any_published_change ... ok
+test native_only_update_is_idempotent_and_missing_input_never_retires_records ... ok
+test compact_native_entry_point_handles_large_source_diagnostics ... ok
+test oversized_native_relationship_cannot_break_the_managed_page_limit ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.30s
+
+     Running tests/overview.rs (/Users/grove/projects/lore/target/debug/deps/overview-f4b2558a79235f0b)
+
+running 4 tests
+test supported_overview_repair_publishes_no_degradation_marker ... ok
+test repeated_overview_verifier_rejections_produce_an_explicit_evidence_index ... ok
+test unsupported_overview_cannot_replace_the_previous_publication ... ok
+test overview_uses_document_ids_and_source_backed_decision_chain ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.04s
+
+     Running tests/overview_temporal_qualifier.rs (/Users/grove/projects/lore/target/debug/deps/overview_temporal_qualifier-f043d6136fa09b64)
+
+running 1 test
+test proposal_absence_is_attributed_and_a_later_report_keeps_its_own_status ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s
+
+     Running tests/project_companion.rs (/Users/grove/projects/lore/target/debug/deps/project_companion-3d5c60a9743bdf16)
+
+running 18 tests
+test captured_current_membership_cannot_name_another_revision_or_duplicate_support ... ok
+test guardian_preserves_useful_shared_fallback_and_never_claims_clean_checkout ... ok
+test edited_baseline_cannot_fabricate_accepted_history_scope_or_evidence ... ok
+test baselines_require_explicit_replacement_and_have_bounded_local_retention ... ok
+test historical_native_relationship_status_remains_independent_of_current_membership ... ok
+test explicit_baseline_and_cosmetic_source_change_do_not_create_consequential_alerts ... ok
+test constrained_reports_omit_complete_records_and_account_for_all_output ... ok
+test changed_exact_exception_is_visible_with_unchanged_summary_and_old_baseline_stays_valid ... ok
+test interrupted_or_symlinked_baselines_never_touch_a_source ... ok
+test historical_interpretation_endpoints_keep_their_exact_revision_evidence_after_source_updates ... ok
+test imported_work_change_keeps_native_scope_and_prevents_false_no_change_guardian ... ok
+test omitted_native_conditions_produce_an_explicit_unassessed_guardian_status ... ok
+test schema_one_baselines_without_current_membership_keep_original_checksum_and_load ... ok
+test guardian_selects_accepted_constraints_before_alphabetical_proposal_noise ... ok
+test interpretation_budget_omits_complete_pairs_and_tampered_endpoint_evidence_is_rejected ... ok
+test restored_source_condition_is_visible_after_a_b_a_with_unchanged_summary ... ok
+test supersession_report_keeps_original_policy_status_scope_and_relation_evidence ... ok
+test relationship_only_revisions_and_withdrawal_keep_original_caveats_and_current_guard ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.63s
+
+     Running tests/project_companion_cli.rs (/Users/grove/projects/lore/target/debug/deps/project_companion_cli-0c37e9963036913a)
+
+running 2 tests
+test traversal_and_invalid_budgets_are_rejected_before_configuration_loading ... ok
+test named_baseline_changes_and_guard_form_a_complete_read_only_source_workflow ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.37s
+
+     Running tests/provider_contracts.rs (/Users/grove/projects/lore/target/debug/deps/provider_contracts-0daa3fed5e855c15)
+
+running 7 tests
+test generative_requests_are_provider_specific_and_remote_is_opt_in ... ok
+test malformed_requests_and_wrong_choice_are_rejected ... ok
+test both_decision_backends_normalize_to_same_answers ... ok
+test openai_passage_ids_preserve_source_bytes_and_empty_quotes ... ok
+test refusal_and_bad_probabilities_do_not_become_negative_answers ... ok
+test openai_and_systemone_wire_shapes_are_distinct ... ok
+test openai_uses_passage_ids_without_changing_ollama_schema ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/provider_usage.rs (/Users/grove/projects/lore/target/debug/deps/provider_usage-092d95e58d920a9d)
+
+running 7 tests
+test optional_usage_scope_is_small_and_joins_the_session_active_when_polled ... ok
+test event_hash_matches_python_for_unicode_and_small_currency_amounts ... ok
+test uninstrumented_adapter_does_not_invent_provider_requests_or_tokens ... ok
+test migration_from_v07_preserves_historical_usage_as_unknown ... ok
+test explicit_ledger_is_non_sensitive_and_existing_files_are_never_overwritten ... ok
+test extraction_repair_and_no_op_aggregate_from_retained_attempts ... ok
+test cache_reuse_has_no_new_request_or_historical_token_charge ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.41s
+
+     Running tests/reasoning_effort.rs (/Users/grove/projects/lore/target/debug/deps/reasoning_effort-cbe1104f9a53d342)
+
+running 4 tests
+test defaults_cover_every_generating_and_verifying_task ... ok
+test responses_effort_is_optional_and_not_an_ollama_or_decisions_setting ... ok
+test reasoning_settings_are_typed_backwards_compatible_and_can_be_disabled ... ok
+test configured_effort_routes_to_tasks_and_changes_invalidate_cache ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.34s
+
+     Running tests/reversal.rs (/Users/grove/projects/lore/target/debug/deps/reversal-1bc7bb968d626af1)
+
+running 3 tests
+test undated_reversal_is_not_merged_into_a_superseded_decision ... ok
+test pending_supersession_edges_are_considered_before_lifecycle_refresh ... ok
+test explicit_historical_date_can_still_identify_the_same_past_decision ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/review_adjudication.rs (/Users/grove/projects/lore/target/debug/deps/review_adjudication-a3c3faaebd62a551)
+
+running 7 tests
+test migration_from_eight_is_transactional_and_read_only_does_not_upgrade ... ok
+test acceptance_requires_exact_active_evidence_and_never_invents_authority ... ok
+test unchanged_eight_project_requires_update_and_migrates_without_new_model_calls ... ok
+test ambiguous_and_proposed_inputs_cannot_manufacture_accepted_supersession ... ok
+test same_text_different_scopes_stay_separate_and_only_one_candidate_is_dismissed ... ok
+test changed_review_and_source_reversion_cannot_replay_an_old_interpretation ... ok
+test preview_apply_retry_and_projections_preserve_documentary_history ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.69s
+
+     Running tests/review_safety.rs (/Users/grove/projects/lore/target/debug/deps/review_safety-9c2c795aad42cf3d)
+
+running 2 tests
+test same_topic_or_source_without_an_accepted_decision_does_not_resolve_review ... ok
+test manual_resolution_reopens_only_when_bound_evidence_changes ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.75s
+
+     Running tests/review_workflow.rs (/Users/grove/projects/lore/target/debug/deps/review_workflow-13e1495de431ca18)
+
+running 4 tests
+test migration_retains_legacy_queue_and_events_are_append_only ... ok
+test explicit_documentary_edge_is_confirmed_without_promoting_another_assertion ... ok
+test exact_relationship_reviews_resolve_and_withdrawn_evidence_reopens ... ok
+test manual_cli_dispositions_publish_without_inference_or_graph_edits ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.35s
+
+     Running tests/schema_contracts.rs (/Users/grove/projects/lore/target/debug/deps/schema_contracts-139362ad2a42e7e1)
+
+running 3 tests
+test rejects_future_database_versions ... ok
+test historical_evidence_is_immutable_and_referentially_valid ... ok
+test migration_is_versioned_and_enforces_foreign_keys ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/source_provenance.rs (/Users/grove/projects/lore/target/debug/deps/source_provenance-2a4d3b25c7fbbb27)
+
+running 6 tests
+test provenance_defaults_are_compatible_and_invalid_metadata_is_rejected ... ok
+test read_only_configuration_needs_no_working_inference_or_online_sources ... ok
+test provenance_changes_invalidate_sections_even_with_identical_markdown ... ok
+test version_four_reads_and_migration_preserve_legacy_unknown_provenance ... ok
+test changing_declared_material_recaptures_without_rewriting_old_provenance ... ok
+test ordinary_openwiki_markdown_preserves_multi_root_identity_and_captured_paths ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.63s
+
+     Running tests/source_relationship_manifest.rs (/Users/grove/projects/lore/target/debug/deps/source_relationship_manifest-60cb4cb505ec40a6)
+
+running 4 tests
+test human_adapter_rejects_forged_qualifications_status_revisions_and_missing_group_members ... ok
+test human_views_keep_the_same_source_manifest_and_qualify_endpoint_claims ... ok
+test source_status_review_qualifications_and_complete_endpoints_survive_shared_packing ... ok
+test complete_group_budget_is_reserved_before_inference_and_never_shortens_conditions ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.24s
+
+     Running tests/sources_config.rs (/Users/grove/projects/lore/target/debug/deps/sources_config-91984b61ca471dcb)
+
+running 6 tests
+test markdown_parser_ignores_fenced_headings_and_disambiguates_repeated_ones ... ok
+test splits_large_unicode_markdown_without_losing_bytes ... ok
+test rejects_unsafe_output_paths_and_overlapping_source_ownership ... ok
+test missing_root_is_an_error_not_a_mass_deletion ... ok
+test refuses_source_and_output_symlink_traversal ... ok
+test generated_output_is_never_ingested_when_source_is_project_root ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/task_feedback.rs (/Users/grove/projects/lore/target/debug/deps/task_feedback-01297c68b791b011)
+
+running 6 tests
+test symlink_receipts_files_and_destinations_are_rejected ... ok
+test secret_checker_material_and_claimed_independence_never_enter_public_notes ... ok
+test malformed_partial_and_malicious_receipts_fail_closed ... ok
+test cli_read_only_configuration_and_destinations_need_no_provider ... ok
+test deterministic_read_only_drafts_keep_reports_and_byte_checks_separate ... ok
+test explicit_note_intake_uses_existing_sources_and_preserves_withdrawn_history ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.40s
+
+     Running tests/temporal_consistency.rs (/Users/grove/projects/lore/target/debug/deps/temporal_consistency-1e4224e7704d59ce)
+
+running 4 tests
+test publication_date_is_not_decision_effective_date ... ok
+test v2_database_can_upgrade_without_losing_records ... ok
+test unsupported_model_effective_dates_are_cleared_without_aborting_extraction ... ok
+test documentary_decision_timeline_invalidates_related_topics ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.76s
+

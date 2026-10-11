@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
   "contract": "lore.release_acceptance",
-  "release": "0.9",
-  "updated_at": "2026-10-11T09:56:22.272324+00:00",
+  "release": "0.9.0-rc.1",
+  "updated_at": "2026-10-11T10:53:58.634570+00:00",
   "baseline_revision": "3ba498d5ed71fc2e0051b6a2428430f484b55df5",
-  "engineering_status": "not_run",
+  "engineering_status": "implemented_locally_verified",
   "stable_status": "blocked_external",
   "gates": [
     {
       "id": "baseline",
       "status": "passed",
-      "qualification": "Pinned binary and schema compatibility captures passed. Full platform suite is a separate pending merge gate.",
+      "qualification": "Pinned contracts passed; the subsequent host Rust run passed 472 tests with three ignored. Original baseline receipt is preserved; followup is in release-09.",
       "artifacts": [
         "baseline-09/contracts/contracts.json",
         "baseline-09/bootstrap-receipt.json",
@@ -57,49 +57,87 @@
     },
     {
       "id": "baseline_platform_ci",
-      "status": "not_run"
+      "status": "passed",
+      "pr": 48,
+      "qualification": "All three platform jobs and Guardian passed before merge."
+    },
+    {
+      "id": "decision_development_controls",
+      "status": "passed",
+      "cases": 8,
+      "checks": 24,
+      "classification": "public_deterministic_controls_not_agent_outcomes",
+      "artifacts": [
+        "decision-work-09/controls.json"
+      ]
+    },
+    {
+      "id": "integrated_local_engineering",
+      "status": "passed",
+      "rust_passed": 497,
+      "rust_failed": 0,
+      "rust_ignored": 3,
+      "python_passed": 239,
+      "python_failed": 0,
+      "python_skipped": 1,
+      "artifacts": [
+        "release-09/verification.json",
+        "release-09/compatibility.json",
+        "release-09/bootstrap-receipt.json"
+      ]
+    },
+    {
+      "id": "final_native_ci_and_guardian",
+      "status": "not_run_at_capture",
+      "requirement": "All exact-head Linux/macOS/Windows jobs and Guardian must pass before merging the release PR; GitHub checks are authoritative."
     }
   ],
   "packages": {
     "1": {
-      "status": "implemented_pending_ci",
-      "pr": null,
-      "merge": null
+      "status": "merged",
+      "pr": 48,
+      "url": "https://github.com/grove/lore/pull/48",
+      "merge": "427a057b2f9d2e28406fdd2642e964b56e3e7898"
     },
     "2": {
-      "status": "not_run",
-      "pr": null,
-      "merge": null
+      "status": "merged",
+      "pr": 49,
+      "url": "https://github.com/grove/lore/pull/49",
+      "merge": "d7490da44c18a369267e28303a7634d83269999c"
     },
     "3": {
-      "status": "not_run",
-      "pr": null,
-      "merge": null
+      "status": "merged",
+      "pr": 50,
+      "url": "https://github.com/grove/lore/pull/50",
+      "merge": "e85c9b2f1dfd888c1df61921f027a3c2a6085ce0"
     },
     "4": {
-      "status": "not_run",
-      "pr": null,
-      "merge": null
+      "status": "implemented",
+      "pr": 51,
+      "url": "https://github.com/grove/lore/pull/51"
     },
     "5": {
-      "status": "not_run",
-      "pr": null,
-      "merge": null
+      "status": "implemented",
+      "pr": 52,
+      "url": "https://github.com/grove/lore/pull/52"
     },
     "6": {
-      "status": "not_run",
-      "pr": null,
-      "merge": null
+      "status": "implemented",
+      "pr": 53,
+      "url": "https://github.com/grove/lore/pull/53"
     },
     "7": {
-      "status": "not_run",
-      "pr": null,
-      "merge": null
+      "status": "implemented",
+      "pr": 54,
+      "url": "https://github.com/grove/lore/pull/54"
     },
     "8": {
-      "status": "not_run",
+      "status": "implemented",
       "pr": null,
-      "merge": null
+      "url": null
     }
-  }
+  },
+  "version_status": "prerelease_only",
+  "local_source_revision": "cf5a1022097ce0e07853b5e49ecea3c435304936",
+  "live_merge_and_ci_authority": "GitHub PR checks and merge commits; this ledger is a pre-publication evidence snapshot, not a mutable CI database."
 }

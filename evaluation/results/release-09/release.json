@@ -1,0 +1,13 @@
+{
+  "command": [
+    "cargo",
+    "build",
+    "--release",
+    "--locked"
+  ],
+  "source_revision": "cf5a1022097ce0e07853b5e49ecea3c435304936",
+  "exit_code": 0,
+  "status": "passed",
+  "elapsed_seconds": 29.372,
+  "log_sha256": "3c000a2f3a56c89f95f4e43379d51bad422ed071e047bc868abbb68732bcc378"
+}

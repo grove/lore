@@ -1,0 +1,14 @@
+{
+  "command": [
+    "cargo",
+    "fmt",
+    "--all",
+    "--",
+    "--check"
+  ],
+  "source_revision": "cf5a1022097ce0e07853b5e49ecea3c435304936",
+  "exit_code": 0,
+  "status": "passed",
+  "elapsed_seconds": 0.681,
+  "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}
