@@ -49,11 +49,13 @@ async fn overview_uses_document_ids_and_source_backed_decision_chain() {
     assert!(index.contains("[Review history](reviews.md)"));
     assert_ne!(before, fs::read(cfg.wiki.join("topics/review.md")).unwrap());
     let conn = storage::read_only(&cfg.state.join("state.db")).unwrap();
-    let relation = storage::relation_facts(&conn)
-        .unwrap()
-        .into_iter()
-        .find(|f| f.kind == "supersedes")
-        .unwrap();
+    assert!(
+        storage::relation_facts(&conn)
+            .unwrap()
+            .into_iter()
+            .any(|f| f.kind == "supersedes"),
+        "accepted successor must retain its documentary supersession relation"
+    );
     assert!(index.contains("ADR-027.md"));
     assert!(index.contains("ADR-001.md"));
     let calls: i64 = conn
