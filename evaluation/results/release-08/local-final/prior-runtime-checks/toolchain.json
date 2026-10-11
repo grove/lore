@@ -1,0 +1,11 @@
+{
+  "all_worktree_status": "",
+  "cargo_version": "cargo 1.90.0 (840b83a10 2025-07-30)",
+  "clippy_driver_version": "clippy 0.1.90 (1159e78c47 2025-09-14)",
+  "qualification": "Local direct Rust 1.90 toolchain; strict all-target Clippy uses the matching driver as RUSTC_WORKSPACE_WRAPPER because the normal frontend cannot resolve /proc/self/exe in this environment.",
+  "rustc_verbose_version": "rustc 1.90.0 (1159e78c4 2025-09-14)\nbinary: rustc\ncommit-hash: 1159e78c4747b02ef996e55082b704c09b970588\ncommit-date: 2025-09-14\nhost: x86_64-unknown-linux-gnu\nrelease: 1.90.0\nLLVM version: 20.1.8",
+  "rustfmt_version": "rustfmt 1.8.0-stable (1159e78c47 2025-09-14)",
+  "schema_version": 1,
+  "source_revision": "ab9411885f0e049719c74c6b346bda981a15ea33",
+  "tracked_worktree_status": ""
+}

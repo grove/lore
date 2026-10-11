@@ -1,0 +1,44 @@
+{
+  "all_captures_exit_zero": true,
+  "all_captures_source_and_state_unchanged": true,
+  "all_captures_stderr_empty": true,
+  "all_reported_response_budgets_within_8000": true,
+  "baseline_binary_sha256": "5eccce5338fa7acd1c99ee03a7ded6bc292bb8f54046ca31ae37bd1ec0a11efa",
+  "baseline_capture_manifest_sha256": "65f5101381b708e25e5c96343677e7f4c4d98894836ed4662181eb58ab7e4729",
+  "baseline_source_revision": "0ba8b17f7e63726a8d81def2b60af18573d4640c",
+  "classification": "offline_contract_compatibility_comparison",
+  "expected_schema_maps": {
+    "baseline": {
+      "default": 4,
+      "schema_2": 2,
+      "schema_3": 3,
+      "schema_4": 4,
+      "schema_5": 5
+    },
+    "final": {
+      "default": 5,
+      "schema_2": 2,
+      "schema_3": 3,
+      "schema_4": 4,
+      "schema_5": 5
+    }
+  },
+  "final_binary_sha256": "f9ee5b81b14a16df4a7c5fba6ced41d8a1111ec3701db38bbc433d69fdebeff8",
+  "final_capture_manifest_sha256": "20c972f1f23581b3af6a253e0ab26297a77c404360ec2d0f9c4d147e0cd434c7",
+  "final_default_equals_explicit_schema_5_except_elapsed_ms": true,
+  "final_source_revision": "a55cfeead56775af4e0ae9d171cbdcf191af2007",
+  "qualification": "Generation-disabled public-fixture contract controls only; two separate fixture roots retain their own before/after fingerprints. No coding or human benefit is measured.",
+  "same_frozen_public_fixture_manifest": true,
+  "schema_2_equal": true,
+  "schema_3_equal": true,
+  "schema_4_equal_except_elapsed_ms": true,
+  "schema_5_changes": [
+    "additive zero-request usage summary",
+    "complete-response token count and nested allowance recomputed for usage metadata",
+    "invocation elapsed milliseconds"
+  ],
+  "schema_5_existing_payload_equal_except_accounting_budgets_and_elapsed_ms": true,
+  "schema_version": 1,
+  "status": "passed",
+  "zero_model_calls": true
+}

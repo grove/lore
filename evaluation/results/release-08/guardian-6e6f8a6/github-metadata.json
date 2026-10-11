@@ -1,0 +1,97 @@
+{
+  "artifact": {
+    "id": 11685921786,
+    "name": "guardian-source-integrity-6e6f8a6af871bdeca53dcc79b63a60fd2af52743",
+    "size_in_bytes": 4568649,
+    "url": "https://api.github.com/repos/grove/lore/actions/artifacts/11685921786",
+    "archive_download_url": "https://api.github.com/repos/grove/lore/actions/artifacts/11685921786/zip",
+    "expired": false,
+    "created_at": "2026-10-10T23:26:14Z",
+    "expires_at": "2026-11-09T23:26:12Z",
+    "updated_at": "2026-10-10T23:26:14Z",
+    "digest": "sha256:d0d0ca8890f3998d1e25aec19851f75b790c8a6baf2bfb07d5df61e61f5554f4",
+    "workflow_run": {
+      "id": 38094627173,
+      "repository_id": 1410550244,
+      "head_repository_id": 1410550244,
+      "head_branch": "release/0.8.0",
+      "head_sha": "6e6f8a6af871bdeca53dcc79b63a60fd2af52743"
+    }
+  },
+  "workflow": {
+    "id": 38094627173,
+    "name": "Guardian source integrity",
+    "head_sha": "6e6f8a6af871bdeca53dcc79b63a60fd2af52743",
+    "head_tree_sha": "1e77e84d9f7e69b89968c6b60a6beef7f9afec82",
+    "status": "completed",
+    "conclusion": "success",
+    "event": "pull_request",
+    "created_at": "2026-10-10T23:19:35Z",
+    "updated_at": "2026-10-10T23:26:18Z",
+    "run_started_at": "2026-10-10T23:19:35Z",
+    "html_url": "https://github.com/grove/lore/actions/runs/38094627173"
+  },
+  "runner_environment": {
+    "image": "ubuntu-24.04",
+    "image_version": "20261004.327.1",
+    "runner_version": "2.337.0",
+    "rustc_version": "1.99.0 (b940084d7 2026-09-28)",
+    "cargo_version": "1.99.0 (5f94df478 2026-08-27)",
+    "python_version": "3.12.3",
+    "rustc_verbose": {
+      "commit_hash": "b940084d7eb6a299eb4bfeb8e34901bc051e7ac4",
+      "commit_date": "2026-09-28",
+      "host": "x86_64-unknown-linux-gnu",
+      "release": "1.99.0",
+      "llvm_version": "23.1.1"
+    },
+    "exact_toolchain_versions_observed": true,
+    "build_profiles": {
+      "lore_baseline_and_candidate": "dev",
+      "baseline_fixture_export": "test",
+      "observed_finished_profile_counts": {
+        "dev [unoptimized]": 2,
+        "test [unoptimized]": 1
+      },
+      "cargo_profile_dev_debug": 0,
+      "cargo_profile_test_debug": 0,
+      "cargo_incremental": 0,
+      "release_profile_exercised_here": false
+    },
+    "observation_binding": {
+      "conclusion": "success",
+      "observed_source_sha": "6e6f8a6af871bdeca53dcc79b63a60fd2af52743",
+      "job_id": 114337891434,
+      "local_raw_log_binding": {
+        "bytes": 71255,
+        "sha256": "75a5b64300d3963dd0ed8730aa0f0f2c8f0bc6fbedc70cfdd01f3f31c870dbf1",
+        "included_in_published_receipt": false
+      }
+    }
+  },
+  "source_and_version_step": {
+    "conclusion": "success",
+    "observed_source_sha": "6e6f8a6af871bdeca53dcc79b63a60fd2af52743",
+    "job_id": 114337891434,
+    "local_raw_log_binding": {
+      "bytes": 71255,
+      "sha256": "75a5b64300d3963dd0ed8730aa0f0f2c8f0bc6fbedc70cfdd01f3f31c870dbf1",
+      "included_in_published_receipt": false
+    }
+  },
+  "retained_member_bindings": {
+    "receipt.json": {
+      "bytes": 49384,
+      "sha256": "24ccb9a06d19739063a533fa08645e880708dbf2d4d059f3847da787b2ec5184"
+    },
+    "guardian-integrity-evidence.zip": {
+      "bytes": 4813894,
+      "sha256": "7d74e13097c6fe201f589e21b4bc92861b18c3ff157f434c0053a7000a082301"
+    }
+  },
+  "retained_binding_provenance": {
+    "official_artifact_id": 11685921786,
+    "official_artifact_digest": "sha256:d0d0ca8890f3998d1e25aec19851f75b790c8a6baf2bfb07d5df61e61f5554f4",
+    "origin": "members_extracted_after_official_outer_digest_verification"
+  }
+}

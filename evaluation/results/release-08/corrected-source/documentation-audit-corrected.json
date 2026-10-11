@@ -1,0 +1,166 @@
+{
+  "artifact_manifest_digest_matches_ledger": true,
+  "artifact_manifest_entries_verified": 68,
+  "artifact_manifest_sha256": "d2c721e476175bc5439f3bc9da4159677990401872c386a7dda7195ba3bcaae4",
+  "audited_public_source": "6e6f8a6af871bdeca53dcc79b63a60fd2af52743",
+  "audited_public_tree": "1e77e84d9f7e69b89968c6b60a6beef7f9afec82",
+  "classification": "bounded_corrected_release_documentation_and_artifact_audit",
+  "every_gate_artifact_hash_verified": true,
+  "guide_cli_behavior_consistency": "No discrepancy found in the previously exercised 0.8 help/version/capture commands, bootstrap/initialized dispatch, schema pinning, permission matrix, bounded source excerpts, provider accounting, migration or optional human learning descriptions.",
+  "inputs": [
+    {
+      "bytes": 20941,
+      "git_blob": "e42965179b5db16812cc28502e3c5eae47fa07f1",
+      "kind": "blob",
+      "mode": "100644",
+      "path": "docs/V08.md",
+      "sha256": "8f994c9b71841ef111da9c96913f811cc347be19d206565291917c8478c1f271"
+    },
+    {
+      "bytes": 40367,
+      "git_blob": "caf93922540580b467b8b77f8491df9032d3579c",
+      "kind": "blob",
+      "mode": "100644",
+      "path": "docs/V08_IMPLEMENTATION_PLAN.md",
+      "sha256": "4f5f9ef8b542d0803ee8444ae6e38a7018bab46694226652f27566ef9b5fba26"
+    },
+    {
+      "bytes": 40537,
+      "git_blob": "00b22dbb25c246ca0e41b5e6a4e81044eca45203",
+      "kind": "blob",
+      "mode": "100644",
+      "path": "README.md",
+      "sha256": "a3695c4a604fda3b31ebb155cfec001ceff9e4f8a597325f3baaa7bdcf027666"
+    },
+    {
+      "bytes": 23124,
+      "git_blob": "727c38d8b4faf630aeda483584dd1e2a8a629539",
+      "kind": "blob",
+      "mode": "100644",
+      "path": "docs/IMPLEMENTATION_TRACKER.md",
+      "sha256": "7ebf9c08af86804bb45aeb0453d33e3fd9498a631919c2d68ad55238a66ccb38"
+    },
+    {
+      "bytes": 20588,
+      "git_blob": "ecd99ad6a3b9a5bf72bb5c55eff680bc8e07a93f",
+      "kind": "blob",
+      "mode": "100644",
+      "path": "evaluation/README.md",
+      "sha256": "552b58a7bde2a7eb4dd940dd27757ed763cee756fd8a5f52587ff25a1e1b5024"
+    },
+    {
+      "bytes": 14301,
+      "git_blob": "5668a330caa829f50737a7b86488255c24c273ae",
+      "kind": "blob",
+      "mode": "100644",
+      "path": "evaluation/PRODUCT_QUALITY_08.md",
+      "sha256": "3843bc2b6113e55470cf8e440eee9ff323b1b9fbe7c536e2772bfb6ecccb0f3a"
+    },
+    {
+      "bytes": 7060,
+      "git_blob": "3672019be3310f5d11d1b965dc549ae1a423bfb8",
+      "kind": "blob",
+      "mode": "100644",
+      "path": "evaluation/results/README-08.md",
+      "sha256": "9bfca18c721aa59850d87c0e044c8e36944999fb42ff3009872197c9f1304882"
+    },
+    {
+      "bytes": 8789,
+      "git_blob": "49c93c970eadcc84d6a34e1861de2323a8b0f921",
+      "kind": "blob",
+      "mode": "100644",
+      "path": "evaluation/results/acceptance-08.json",
+      "sha256": "86a813490b93d07117e95fa486a25c8fe306a57a4341c44e4d353f6cfa8683bf"
+    },
+    {
+      "bytes": 13969,
+      "git_blob": "4344aa88809a11a7b66b9e526d85fc8cb591e088",
+      "kind": "blob",
+      "mode": "100644",
+      "path": "evaluation/results/release-08/artifact-manifest.json",
+      "sha256": "d2c721e476175bc5439f3bc9da4159677990401872c386a7dda7195ba3bcaae4"
+    }
+  ],
+  "known_receipt_correction": {
+    "correction": "The original derived receipt overstated release-build evidence for PR46. PR46 has no dedicated release build and its release smoke was skipped after Python failed; PR47 has an explicit successful release build. The v2 receipt supersedes only that claim, preserving failed source identities, outcome counts and log hashes.",
+    "current_working_documentation": [
+      {
+        "bytes": 14304,
+        "explicit_supersession_present": false,
+        "git_committed_source": null,
+        "path": "evaluation/PRODUCT_QUALITY_08.md",
+        "qualification": "Working-tree documentation snapshot only; this is not a claim that the correction is in public source 6e6.",
+        "sha256": "78fa582629c7ba999aedf0c620155d2cbfef78d029e495f26f0c70eadffae035",
+        "v2_receipt_link_present": true
+      },
+      {
+        "bytes": 7626,
+        "explicit_supersession_present": true,
+        "git_committed_source": null,
+        "path": "evaluation/results/README-08.md",
+        "qualification": "Working-tree documentation snapshot only; this is not a claim that the correction is in public source 6e6.",
+        "sha256": "22a6b4481f88645ccb2f883d26756e5ecb44bea38f748752bd7507f88e6c2ecf",
+        "v2_receipt_link_present": true
+      }
+    ],
+    "published_6e6_receipt": "evaluation/results/release-08/pr46-pr47-human-fixture-regression.json",
+    "published_sha256": "d30b7e3224d906cb8ac2d03bc13e1e9f70e653e49883f4acf5e45d364ab0a970",
+    "release_integration_action": "Keep original bytes labeled superseded; publish v2 and update current references plus artifact/ledger hashes before the final release decision. Parent has already accepted this correction.",
+    "replacement": "windows-ci-failures.json",
+    "replacement_sha256": "e3784af33b5b2a2fc1e1883a34d15852573e2624262f7cab01ef429873ebadbd"
+  },
+  "new_ci_runs_observed": false,
+  "new_tests_run_for_this_audit": false,
+  "observed_at_utc": "2026-10-10T23:25:27.374438+00:00",
+  "observed_release_state": {
+    "actual_humans": 0,
+    "decision": "in_progress",
+    "guardian_source": "a55cfeead56775af4e0ae9d171cbdcf191af2007",
+    "human_harness": "failed",
+    "platform_matrix": "failed",
+    "real_model_attempts": 0
+  },
+  "plan_consistency": "PR7 requires preserved optional learning, consent/revocation and exact independent assessment boundaries; zero real participants and unmeasured outcomes are explicitly permitted when prerequisites are absent. PR8 still requires complete corrected-head engineering CI before merge/release acceptance.",
+  "previous_audit": "documentation-audit.json",
+  "prior_findings": [
+    {
+      "basis": "The ledger retains the a55 matrix as failed and names the corrected native CI gate separately.",
+      "id": "platform_attempt_status",
+      "status": "resolved_or_correctly_preserved_in_published_correction"
+    },
+    {
+      "basis": "The later Windows fixture failure is explicit; the original local suite receipt retains its source and no corrected native pass is inferred.",
+      "id": "human_gate_scope",
+      "status": "resolved_or_correctly_preserved_in_published_correction"
+    },
+    {
+      "basis": "The scorecard and linked regression history distinguish the runtime allocation regression, platform test fixture corrections and later Python path fixture failure.",
+      "id": "latest_stack_and_fixture_status",
+      "status": "resolved_or_correctly_preserved_in_published_correction"
+    },
+    {
+      "basis": "The a55 capture is separately bound to 190 events and 1891 command intervals; historical PR41 remains 1889.",
+      "id": "guardian_capture_count_and_source",
+      "status": "resolved_or_correctly_preserved_in_published_correction"
+    },
+    {
+      "basis": "Logical calls are zero and independent physical attempts remain unknown; no absent toolchain or billing observation is synthesized.",
+      "id": "guardian_usage_scope",
+      "status": "resolved_or_correctly_preserved_in_published_correction"
+    },
+    {
+      "basis": "Passed component gates have source-bound artifacts; failed native and pending final release gates remain explicit.",
+      "id": "gate_artifact_bindings",
+      "status": "resolved_or_correctly_preserved_in_published_correction"
+    },
+    {
+      "basis": "Reproduction retains the actually built and captured public a55 revision; corrected-head-binding.json supplies scoped identity without relabeling.",
+      "id": "retained_public_capture_pin",
+      "status": "resolved_or_correctly_preserved_in_published_correction"
+    }
+  ],
+  "raw_log_contents_inspected_or_copied": false,
+  "review_conclusion": "No unresolved material runtime/functionality gap was found in this bounded PR4/PR7 and release-documentation review. The only additional factual correction is the acknowledged v2 PR46 release-build evidence scope. Corrected-head native CI and Guardian completion remain separate required release gates, not code-review defects or inferred passes.",
+  "root_files_modified_by_audit": false,
+  "schema_version": 1
+}

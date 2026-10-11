@@ -1,0 +1,109 @@
+{
+  "binary_sha256": "f9ee5b81b14a16df4a7c5fba6ced41d8a1111ec3701db38bbc433d69fdebeff8",
+  "binary_version": "0.8.0",
+  "classification": "public_source_final_local_release_engineering_receipt",
+  "contracts": {
+    "all_stderr_empty": true,
+    "baseline_capture": "baseline-contracts/contracts.json",
+    "baseline_source_revision": "0ba8b17f7e63726a8d81def2b60af18573d4640c",
+    "final_capture": "contracts/contracts.json",
+    "final_default_equals_explicit_schema_5_except_elapsed_ms": true,
+    "provider_calls": 0,
+    "reported_full_response_budgets_within_8000_tokens": true,
+    "schema_2_equal": true,
+    "schema_3_equal": true,
+    "schema_4_equal_except_elapsed_ms": true,
+    "source_and_state_unchanged_within_each_capture": true
+  },
+  "finished_utc": "2026-10-10T22:50:22.603522+00:00",
+  "platform": "x86_64 Linux",
+  "prior_identical_runtime_checks": {
+    "focused_rust": {
+      "assertion_failures": 0,
+      "generated_executable_repair": "prior-runtime-checks/executable-permission-repair.json",
+      "ignored": 1,
+      "initial_command_receipt": "prior-runtime-checks/focused-cli-provider-tests.json",
+      "initial_command_status": "failed_before_provider_test_launch",
+      "narrow_rerun_receipt": "prior-runtime-checks/provider-usage-rerun.json",
+      "passed": 42,
+      "qualification": "The initial command passed 35 tests before a generated ELF with mode 0644 could not execute. Only execute permission bits were restored; its bytes and SHA256 were unchanged. The seven provider tests then passed.",
+      "status": "passed_after_environment_permission_repair",
+      "target_counts": {
+        "bin_lore": 2,
+        "context_cli": 8,
+        "http_clients": 18,
+        "human_experience_cli": 7,
+        "provider_usage": 7
+      }
+    },
+    "formatting": {
+      "receipt": "prior-runtime-checks/fmt.json",
+      "status": "passed"
+    },
+    "guide_and_ci_cli_smoke": {
+      "cases": 11,
+      "receipt": "prior-runtime-checks/cli-smoke.json",
+      "status": "passed"
+    },
+    "identical_tracked_runtime_inputs": 70,
+    "same_release_binary_sha256": true,
+    "source_equivalence": "source-equivalence.json",
+    "source_revision": "ab9411885f0e049719c74c6b346bda981a15ea33",
+    "strict_clippy_all_targets": {
+      "qualification": "Matching clippy-driver through RUSTC_WORKSPACE_WRAPPER, with warnings denied; regular CI uses cargo clippy.",
+      "receipt": "prior-runtime-checks/strict-clippy.json",
+      "status": "passed"
+    }
+  },
+  "public_head_gates": {
+    "baseline_comparison": {
+      "receipt": "contract-comparison.json",
+      "status": "passed"
+    },
+    "capture_hash_verification": {
+      "receipt": "receipts/contract-verify.json",
+      "status": "passed"
+    },
+    "five_case_contract_capture": {
+      "capture": "contracts/contracts.json",
+      "cases": 5,
+      "receipt": "receipts/contract-capture.json",
+      "schemas": {
+        "default": 5,
+        "schema_2": 2,
+        "schema_3": 3,
+        "schema_4": 4,
+        "schema_5": 5
+      },
+      "source_revision": "a55cfeead56775af4e0ae9d171cbdcf191af2007",
+      "status": "passed"
+    },
+    "release_build_locked": {
+      "elapsed_seconds": 0.105425,
+      "receipt": "receipts/release-build.json",
+      "status": "passed"
+    },
+    "release_version": {
+      "observed": "lore 0.8.0",
+      "receipt": "receipts/release-version.json",
+      "status": "passed"
+    }
+  },
+  "public_source_revision": "a55cfeead56775af4e0ae9d171cbdcf191af2007",
+  "public_source_tree": "a0ebeecb3970a14abd10a4bcf15ea96d4bbc2049",
+  "publication": {
+    "binaries_included": false,
+    "raw_log_hashes": "present_in_condensed_receipts",
+    "raw_logs_included": false,
+    "selected_artifacts": "Only JSON metadata and synthetic public-fixture contract captures listed in artifact-manifest.json."
+  },
+  "qualification": "Public-source reproducible engineering and compatibility controls only; no coding productivity or human benefit outcome is measured. All copied prior receipts retain their original source revision, and all public-head captures were freshly run.",
+  "schema_version": 1,
+  "scope": {
+    "full_suite_rerun_at_public_head": false,
+    "native_ci_result_included": false,
+    "qualification": "The public commit changes documentation/evidence and the stack-limit test fixture only; runtime inputs and the release binary match the source checked locally. Complete suites and native CI are independent retained gates."
+  },
+  "status": "passed_with_retained_environment_failure",
+  "tracked_worktree_unchanged": true
+}

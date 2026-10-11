@@ -21,6 +21,12 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
+      - name: Record source and toolchain versions
+        run: |
+          git rev-parse HEAD
+          rustc --version --verbose
+          cargo --version
+          python3 --version
       - name: Allocate dedicated runner storage and freeze source identities
         shell: bash
         run: |

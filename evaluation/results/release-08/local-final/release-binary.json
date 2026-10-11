@@ -1,0 +1,23 @@
+{
+  "binary_bytes": 24263272,
+  "binary_mode": "0o755",
+  "binary_sha256": "f9ee5b81b14a16df4a7c5fba6ced41d8a1111ec3701db38bbc433d69fdebeff8",
+  "build_command": [
+    "cargo",
+    "build",
+    "--release",
+    "--locked"
+  ],
+  "captured_utc": "2026-10-10T22:49:01.721320+00:00",
+  "classification": "public_source_release_binary_binding",
+  "identical_binary_to_previous_runtime_build": true,
+  "previous_release_binary_sha256": "f9ee5b81b14a16df4a7c5fba6ced41d8a1111ec3701db38bbc433d69fdebeff8",
+  "previous_runtime_source_revision": "ab9411885f0e049719c74c6b346bda981a15ea33",
+  "qualification": "Fresh successful cargo build invocation at the fetched public source commit reused the exact previously built runtime executable; no historical receipt or capture has been relabeled.",
+  "release_build_receipt_sha256": "b151516f844afe1d01773ab51542ec3f23201b073177fc68e283b00322fc42c1",
+  "runtime_source_manifest_sha256": "d5d23c487b281f2f775e159d644f6dce41a3cd1757031f418fdf0555d0d13a87",
+  "schema_version": 1,
+  "source_equivalence_sha256": "3560cbfaf3bd665f08267128a82602e183c07300e11f8bb06efd5a5442a81c5b",
+  "source_revision": "a55cfeead56775af4e0ae9d171cbdcf191af2007",
+  "source_tree": "a0ebeecb3970a14abd10a4bcf15ea96d4bbc2049"
+}

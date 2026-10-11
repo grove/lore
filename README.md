@@ -4,14 +4,17 @@
 
 Projects collect their history in architecture notes, ADRs, plans, issue exports, investigations, and previous agent experiences. Understanding a subject often means piecing together several sources written at different times for different reasons. Lore is a Rust command-line application that reads your project's Markdown directories and optional native knowledge snapshots, maintains evidence-backed project understanding, and uses the decisions, constraints, history, and open questions to recommend an approach for your next task. The same knowledge powers a linked, topic-oriented Markdown wiki.
 
-**Lore 0.7 focuses on evidence-driven usefulness.** It improves complete-condition
-retrieval within tight token budgets, preserves restored source conditions in
-project comparisons, and adds reproducible coding, onboarding, and guardian
-evaluation protocols. Read [the 0.7 guide](docs/V07.md) for the implemented changes
-and [the release scorecard](evaluation/PRODUCT_QUALITY_07.md) for what was actually
-measured. Reviewed retrieval regressions are engineering evidence; real-model
-coding gains, human learning transfer, and independently reviewed guardian alert
-quality remain separate, unmeasured outcomes.
+**Lore 0.8 provides useful first contact before setup, adaptive context by
+default, and honest provider accounting.** Uninitialized projects receive
+bounded local documentary guidance; initialized projects use schema 5 within
+the caller's inspection and egress grants. Provider attempts, retries and
+failures retain nullable usage, while controlled Guardian replay and sealed
+study preflight make the evidence limits inspectable. Read [the 0.8 guide](docs/V08.md)
+for examples and migration notes and [the release scorecard](evaluation/PRODUCT_QUALITY_08.md)
+for final engineering results. Real-model coding gains, human contribution and
+transfer outcomes, and independently reviewed Guardian alert quality remain
+unmeasured. The [0.7 guide](docs/V07.md) and [0.7 scorecard](evaluation/PRODUCT_QUALITY_07.md)
+preserve the previous release's evidence.
 
 `lore context "Implement payment retries"` continues to lead with one preferred
 approach and says whether to proceed, perform a specific check first, or resolve
@@ -193,15 +196,25 @@ a causal graph advantage.
 
 The [adaptive coding-task comparison](evaluation/ADAPTIVE_TASKS.md) retains six
 matched configurations, independent executable checks, explicit reuse controls,
-and all repair/investigation costs. The [30 public coding candidates](evaluation/REAL_CODING_TASKS.md)
-and [12-participant onboarding protocol](evaluation/HUMAN_ONBOARDING.md) prepare
-real studies without inventing completed attempts or participants. The
-[guardian captures](evaluation/results/guardian-debug-2026-10-10/README.md)
+and all repair/investigation costs. The [0.8 study wrapper](evaluation/EXPERIMENT_08.md)
+adds sealed source/model/command pins, external readiness gates and complete
+denominators for failed, refused, cancelled or interrupted work. Its actual
+[readiness receipt](evaluation/results/experiment-08-readiness/README.md) is
+not_run: six public pilot tasks and 36 planned assignments, with zero actual
+coding attempts or provider calls. The [30 public coding candidates](evaluation/REAL_CODING_TASKS.md)
+remain development input, and the [human protocol](evaluation/HUMAN_ONBOARDING.md)
+has twelve planned positions and zero real participants.
+
+The historical [0.7 Guardian captures](evaluation/results/guardian-debug-2026-10-10/README.md)
 exercise sixty synthetic transitions per full run; both full captures failed
-strict source-integrity checks when deleted files reappeared. Targeted source
-reversion regressions passed, but longitudinal alert quality remains unmeasured.
-The [0.7 scorecard](evaluation/PRODUCT_QUALITY_07.md) keeps these evidence classes
-and outstanding outcome gates explicit.
+strict source-integrity checks when deleted files reappeared. Those failures
+remain intact. The 0.8 investigation reproduced restoration in a zero-Lore
+control and adds per-command source observations plus a dedicated clean-runner
+gate for baseline, candidate, repeated candidate and no-Lore cohorts. The
+[longitudinal protocol](evaluation/GUARDIAN_LONGITUDINAL.md) explains the writer
+attribution limits. The [0.8 scorecard](evaluation/PRODUCT_QUALITY_08.md) records
+final integrity results separately from unmeasured independent alert quality;
+the [0.7 scorecard](evaluation/PRODUCT_QUALITY_07.md) preserves the earlier record.
 
 ## Why a project needs more than a summary
 
@@ -219,7 +232,18 @@ cd lore
 cargo install --path . --locked
 ```
 
-In the project you want to document, create a configuration without running inference yet. You can name several source directories, including local Markdown exported from an issue tracker. Paths in the configuration are resolved relative to `lore.yml`, not whichever directory you later run the command from.
+For an uninitialized project, start with local documentary assistance:
+
+```bash
+cd /path/to/your-project
+lore context "Find the first change for this task"
+lore onboard
+```
+
+When ready for durable compiled intelligence, create a configuration explicitly
+without running inference yet. You can name several source directories,
+including local Markdown exported from an issue tracker. Configuration paths
+are resolved relative to `lore.yml`, not the later command's working directory.
 
 ```bash
 cd /path/to/your-project
@@ -262,6 +286,15 @@ Checkout inspection requires a caller grant: `LORE_INSPECTION_ROOT` permits boun
 The default output budget is 3,000 tokens. Lore measures the complete compact JSON and Markdown with the embedded `cl100k_base` tokenizer, including the schema-5 envelope, source relationship manifest, citations, metadata and warnings. The model's evidence input is separately limited by `processing.max_context_bytes`. Whole optional items can be omitted with a count; required risk and constraint qualifications stay together. If inference fails or the provider is unavailable, `intelligence.mode: fast_fallback` identifies a deterministic result without fresh reasoning. If the minimum complete response cannot fit, Lore returns a typed budget error. Read the nested mode, model-call count and cache status before treating a result as fresh reasoning.
 
 `lore context --fast` emits the unchanged schema 2 retrieval contract with zero model calls and no writes, credentials, model server, or embedding service required. It groups related documentary/native records with their evidence and preserves conflict endpoints. A tight budget can omit an entire connected group, with explicit omission counts. In fast mode, paths are relevance hints and captured inspection leads; no checkout inspection occurs. An empty result means no eligible knowledge was retrieved, not that no constraints apply.
+
+Schema 5 also reports invocation usage. Logical model calls, physical HTTP
+attempts, provider tokens and billed USD remain distinct; missing counts or
+bills are null. Retries, refusals, timeouts and rejected answers keep their
+events. Accounting uses memory by default, with a private sidecar only when
+the caller explicitly selects a fresh `LORE_USAGE_LEDGER` path. Successful
+compilation stores non-sensitive accounting through SQLite schema 8 without
+backfilling historical costs. See [provider usage](docs/PROVIDER_USAGE.md) and
+the [0.8 migration notes](docs/V08.md#provider-usage-and-sqlite-schema-8).
 
 Unchanged queries reuse guidance bound to the task, selected evidence revisions, endpoint/model identity, reasoning settings, privacy, prompt version, and budgets. Schema 4 also binds the checkout index and rehashes every inspected file, including deeper investigation files. Changed evidence is re-evaluated on the next query. `--no-cache` bypasses both guidance and embedding caches for one call; `context.cache: false` disables their persistence in configuration. Refresh explicitly after changing the weights behind an unchanged model alias.
 

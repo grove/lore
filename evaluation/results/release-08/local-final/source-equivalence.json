@@ -1,0 +1,36 @@
+{
+  "all_changed_paths": [
+    "M\tdocs/V08.md",
+    "M\tevaluation/PRODUCT_QUALITY_08.md",
+    "M\tevaluation/results/README-08.md",
+    "M\tevaluation/results/acceptance-08.json",
+    "M\tevaluation/results/release-08/artifact-manifest.json",
+    "D\tevaluation/results/release-08/baseline-ci-logs.zip",
+    "M\tevaluation/results/release-08/baseline-ci.json",
+    "D\tevaluation/results/release-08/guardian-pr41/public-ci-job-logs.zip",
+    "M\tevaluation/results/release-08/guardian-pr41/verified-summary.json",
+    "D\tevaluation/results/release-08/initial-local-logs.zip",
+    "M\tevaluation/results/release-08/initial-local.json",
+    "D\tevaluation/results/release-08/integrated-python-logs.zip",
+    "M\tevaluation/results/release-08/integrated-python.json",
+    "A\tevaluation/results/release-08/integrated-rust.json",
+    "M\ttests/human_experience_cli.rs"
+  ],
+  "classification": "exact_runtime_source_equivalence",
+  "compared_paths": [
+    "src",
+    "Cargo.toml",
+    "Cargo.lock",
+    "build.rs",
+    ".cargo",
+    "migrations"
+  ],
+  "git_diff_exit_code": 0,
+  "prior_source_revision": "ab9411885f0e049719c74c6b346bda981a15ea33",
+  "public_git_tree": "a0ebeecb3970a14abd10a4bcf15ea96d4bbc2049",
+  "public_source_revision": "a55cfeead56775af4e0ae9d171cbdcf191af2007",
+  "qualification": "Rust source, Cargo manifest/lockfile and embedded SQL migrations are byte/mode identical; changes are documentation, evidence and test-fixture portability. The release build was run again at the public commit; earlier runtime checks retain their original source pin.",
+  "runtime_file_count": 70,
+  "runtime_git_tree_entries_equal": true,
+  "schema_version": 1
+}

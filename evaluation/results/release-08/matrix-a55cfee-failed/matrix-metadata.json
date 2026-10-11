@@ -1,0 +1,336 @@
+{
+  "checkout_commit": {
+    "parents": [
+      "75ab314368d2f87e790c95a1991ef33414f5432b",
+      "a55cfeead56775af4e0ae9d171cbdcf191af2007"
+    ],
+    "sha": "cc9c520f15d6cba5b5b1c8dca428383fda401487",
+    "tree_sha": "a0ebeecb3970a14abd10a4bcf15ea96d4bbc2049"
+  },
+  "expected_rust_targets": [
+    "src/lib.rs",
+    "src/main.rs",
+    "tests/active_reaffirmation.rs",
+    "tests/adaptive_context.rs",
+    "tests/adr_metadata.rs",
+    "tests/bootstrap_cli.rs",
+    "tests/checkout_inspection.rs",
+    "tests/chronology_rendering.rs",
+    "tests/citation_contracts.rs",
+    "tests/classification.rs",
+    "tests/compiler.rs",
+    "tests/context_assembly.rs",
+    "tests/context_cli.rs",
+    "tests/context_decision_cli.rs",
+    "tests/context_imports.rs",
+    "tests/context_intelligent_cli.rs",
+    "tests/context_provenance.rs",
+    "tests/context_retrieval.rs",
+    "tests/cross_source_update.rs",
+    "tests/cross_topic_verification.rs",
+    "tests/decision_contract.rs",
+    "tests/decision_lenses.rs",
+    "tests/decision_lenses_cli.rs",
+    "tests/decision_runtime.rs",
+    "tests/documentary_identity.rs",
+    "tests/evidence_complete_synthesis.rs",
+    "tests/explicit_decisions.rs",
+    "tests/guardian_corpus_export.rs",
+    "tests/hardening.rs",
+    "tests/http_clients.rs",
+    "tests/human_experience.rs",
+    "tests/human_experience_cli.rs",
+    "tests/hybrid_retrieval.rs",
+    "tests/intelligent_context.rs",
+    "tests/investigation.rs",
+    "tests/investigation_memory.rs",
+    "tests/knowledge_zoom.rs",
+    "tests/knowledge_zoom_cli.rs",
+    "tests/knowledge_zoom_comparison.rs",
+    "tests/knowledge_zoom_reviewed.rs",
+    "tests/native_adapters.rs",
+    "tests/native_storage.rs",
+    "tests/overview.rs",
+    "tests/overview_temporal_qualifier.rs",
+    "tests/project_companion.rs",
+    "tests/project_companion_cli.rs",
+    "tests/provider_contracts.rs",
+    "tests/provider_usage.rs",
+    "tests/reasoning_effort.rs",
+    "tests/reversal.rs",
+    "tests/review_safety.rs",
+    "tests/review_workflow.rs",
+    "tests/schema_contracts.rs",
+    "tests/source_provenance.rs",
+    "tests/source_relationship_manifest.rs",
+    "tests/sources_config.rs",
+    "tests/temporal_consistency.rs"
+  ],
+  "jobs": [
+    {
+      "conclusion": "success",
+      "id": 114332014048,
+      "name": "test (ubuntu-latest)",
+      "status": "completed",
+      "steps": [
+        {
+          "conclusion": "success",
+          "name": "Set up job"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262"
+        },
+        {
+          "conclusion": "success",
+          "name": "Check formatting"
+        },
+        {
+          "conclusion": "success",
+          "name": "Strict Rust lint"
+        },
+        {
+          "conclusion": "success",
+          "name": "Build and run offline Rust tests"
+        },
+        {
+          "conclusion": "success",
+          "name": "Build release CLI"
+        },
+        {
+          "conclusion": "success",
+          "name": "Benchmark and assessment tests (no inference)"
+        },
+        {
+          "conclusion": "success",
+          "name": "Prepare validation corpora (no inference)"
+        },
+        {
+          "conclusion": "success",
+          "name": "Compare the exact frozen Zoom registry (no inference)"
+        },
+        {
+          "conclusion": "success",
+          "name": "Decision and case CLI help"
+        },
+        {
+          "conclusion": "success",
+          "name": "Project companion CLI help"
+        },
+        {
+          "conclusion": "success",
+          "name": "CLI help"
+        },
+        {
+          "conclusion": "success",
+          "name": "Review CLI help"
+        },
+        {
+          "conclusion": "success",
+          "name": "Context CLI help"
+        },
+        {
+          "conclusion": "success",
+          "name": "Onboarding CLI help"
+        },
+        {
+          "conclusion": "success",
+          "name": "Exploration CLI help"
+        },
+        {
+          "conclusion": "success",
+          "name": "CLI version"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262"
+        },
+        {
+          "conclusion": "success",
+          "name": "Complete job"
+        }
+      ]
+    },
+    {
+      "conclusion": "success",
+      "id": 114332014210,
+      "name": "test (macos-latest)",
+      "status": "completed",
+      "steps": [
+        {
+          "conclusion": "success",
+          "name": "Set up job"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262"
+        },
+        {
+          "conclusion": "success",
+          "name": "Check formatting"
+        },
+        {
+          "conclusion": "success",
+          "name": "Strict Rust lint"
+        },
+        {
+          "conclusion": "success",
+          "name": "Build and run offline Rust tests"
+        },
+        {
+          "conclusion": "success",
+          "name": "Build release CLI"
+        },
+        {
+          "conclusion": "success",
+          "name": "Benchmark and assessment tests (no inference)"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Prepare validation corpora (no inference)"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Compare the exact frozen Zoom registry (no inference)"
+        },
+        {
+          "conclusion": "success",
+          "name": "Decision and case CLI help"
+        },
+        {
+          "conclusion": "success",
+          "name": "Project companion CLI help"
+        },
+        {
+          "conclusion": "success",
+          "name": "CLI help"
+        },
+        {
+          "conclusion": "success",
+          "name": "Review CLI help"
+        },
+        {
+          "conclusion": "success",
+          "name": "Context CLI help"
+        },
+        {
+          "conclusion": "success",
+          "name": "Onboarding CLI help"
+        },
+        {
+          "conclusion": "success",
+          "name": "Exploration CLI help"
+        },
+        {
+          "conclusion": "success",
+          "name": "CLI version"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262"
+        },
+        {
+          "conclusion": "success",
+          "name": "Complete job"
+        }
+      ]
+    },
+    {
+      "conclusion": "failure",
+      "id": 114332014292,
+      "name": "test (windows-latest)",
+      "status": "completed",
+      "steps": [
+        {
+          "conclusion": "success",
+          "name": "Set up job"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262"
+        },
+        {
+          "conclusion": "success",
+          "name": "Check formatting"
+        },
+        {
+          "conclusion": "success",
+          "name": "Strict Rust lint"
+        },
+        {
+          "conclusion": "success",
+          "name": "Build and run offline Rust tests"
+        },
+        {
+          "conclusion": "success",
+          "name": "Build release CLI"
+        },
+        {
+          "conclusion": "failure",
+          "name": "Benchmark and assessment tests (no inference)"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Prepare validation corpora (no inference)"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Compare the exact frozen Zoom registry (no inference)"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Decision and case CLI help"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Project companion CLI help"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "CLI help"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Review CLI help"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Context CLI help"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Onboarding CLI help"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Exploration CLI help"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "CLI version"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262"
+        },
+        {
+          "conclusion": "success",
+          "name": "Complete job"
+        }
+      ]
+    }
+  ],
+  "workflow": {
+    "conclusion": "failure",
+    "created_at": "2026-10-10T22:45:50Z",
+    "event": "pull_request",
+    "head_sha": "a55cfeead56775af4e0ae9d171cbdcf191af2007",
+    "head_tree_sha": "a0ebeecb3970a14abd10a4bcf15ea96d4bbc2049",
+    "html_url": "https://github.com/grove/lore/actions/runs/38092630287",
+    "id": 38092630287,
+    "name": "Lore tests",
+    "run_started_at": "2026-10-10T22:45:50Z",
+    "status": "completed",
+    "updated_at": "2026-10-10T23:08:16Z"
+  }
+}

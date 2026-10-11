@@ -1,0 +1,408 @@
+{
+  "schema_version": 1,
+  "kind": "lore_08_pr42_platform_regression_history",
+  "recorded_at_utc": "2026-10-10T23:12:41Z",
+  "repository": "grove/lore",
+  "pull_request": 42,
+  "pull_request_url": "https://github.com/grove/lore/pull/42",
+  "status": "runtime_and_fixture_regressions_closed_on_stated_head",
+  "introduced_by_authored_commit": "9ec2b1674ebd747e5d21ca7bda6c257d91610ce7",
+  "authored_commit_scope": "These are the exact implementation-worktree commits. Published PR heads are recorded separately because integration cherry-picks used different commit identities.",
+  "history": [
+    {
+      "phase": "original_windows_dispatch_stack_overflow",
+      "workflow_source_head": "99409f9871edfcf8a584ad4cc08fa65d969c4c93",
+      "run_id": 38089593665,
+      "job_id": 114323120948,
+      "job_url": "https://github.com/grove/lore/actions/runs/38089593665/jobs/114323120948",
+      "platform": "windows",
+      "job_conclusion": "failure",
+      "failed_stage": "Build and run offline Rust tests",
+      "observation": "All eight context_cli child launches overflowed the main stack, including invalid-argument paths; the reported child exit code was -1073741571.",
+      "evidence_basis": "Parent-agent decoded-log triage, corroborated by fetched run/job metadata.",
+      "rust_all_targets": null,
+      "context_cli": {
+        "passed": 0,
+        "failed": 8
+      },
+      "decoded_log": {
+        "encoding": "decoded UTF-8 job log",
+        "bytes": null,
+        "sha256": null,
+        "raw_included": false,
+        "reason": "Earlier failure details were supplied by parent-agent CI triage; a decoded-log binding was not retained in this receipt's inputs."
+      },
+      "cause": "The metered CLI cancellation/task-local wrappers retained the large dispatcher future inline.",
+      "fix_authored_commit": "6dfea49490000cb6ea6b2020b9107104a3092e5c",
+      "correction": "Allocate the CLI operation before entering cancellation and task-local wrappers; keep failed/cancelled ledger flushing."
+    },
+    {
+      "phase": "remaining_windows_initialized_onboarding_overflow_after_outer_box",
+      "workflow_source_head": "20e508a9d6c54a10b09357e11fadab5440156c93",
+      "run_id": 38090476285,
+      "job_id": 114325693758,
+      "job_url": "https://github.com/grove/lore/actions/runs/38090476285/jobs/114325693758",
+      "platform": "windows",
+      "job_conclusion": "failure",
+      "failed_stage": "Build and run offline Rust tests",
+      "observation": "All eight context_cli tests passed, but four initialized onboarding child paths still overflowed the main stack.",
+      "evidence_basis": "Parent-agent decoded-log triage, corroborated by fetched run/job metadata.",
+      "rust_all_targets": null,
+      "context_cli": {
+        "passed": 8,
+        "failed": 0
+      },
+      "human_experience_cli": {
+        "passed": 2,
+        "failed": 4
+      },
+      "decoded_log": {
+        "encoding": "decoded UTF-8 job log",
+        "bytes": null,
+        "sha256": null,
+        "raw_included": false,
+        "reason": "Earlier failure details were supplied by parent-agent CI triage; a decoded-log binding was not retained in this receipt's inputs."
+      },
+      "fix_authored_commit": "0e741201516f5361253ee419c75349330e120f3f"
+    },
+    {
+      "phase": "macos_owned_temporary_directory_fixture",
+      "workflow_source_head": "20e508a9d6c54a10b09357e11fadab5440156c93",
+      "run_id": 38090476285,
+      "job_id": 114325693605,
+      "job_url": "https://github.com/grove/lore/actions/runs/38090476285/jobs/114325693605",
+      "platform": "macos",
+      "job_conclusion": "failure",
+      "failed_stage": "Build and run offline Rust tests",
+      "observation": "The new bounded-stack bin fixture passed tempfile's /var path to the no-symlink ledger guard and failed with a symlink-not-allowed error.",
+      "evidence_basis": "Parent-agent decoded-log triage, corroborated by fetched run/job metadata.",
+      "rust_all_targets": null,
+      "decoded_log": {
+        "encoding": "decoded UTF-8 job log",
+        "bytes": null,
+        "sha256": null,
+        "raw_included": false,
+        "reason": "Earlier failure details were supplied by parent-agent CI triage; a decoded-log binding was not retained in this receipt's inputs."
+      },
+      "fix_authored_commit": "2b2366ed6902edfe5864fb37ed66a3920dae542d",
+      "correction": "Canonicalize only the newly owned fixture directory before constructing its missing-config and ledger paths. Product symlink guards remain intact."
+    },
+    {
+      "phase": "remaining_onboarding_failure_directly_verified",
+      "workflow_source_head": "5cd779c6bd20b7bcbb9435851812d1da162e1532",
+      "run_id": 38090994593,
+      "job_id": 114327216382,
+      "job_url": "https://github.com/grove/lore/actions/runs/38090994593/jobs/114327216382",
+      "platform": "windows",
+      "job_conclusion": "failure",
+      "failed_stage": "Build and run offline Rust tests",
+      "observation": "Both bin tests and all eight context_cli tests passed. Four of six human_experience_cli tests crashed with child main-stack overflows.",
+      "evidence_basis": "Decoded completed job log inspected locally; counts recomputed only inside the all-target Rust command section.",
+      "rust_all_targets": {
+        "suite_summaries": 31,
+        "passed": 241,
+        "failed": 4,
+        "ignored": 2,
+        "measured": 0,
+        "filtered_out": 0,
+        "complete": false
+      },
+      "bin": {
+        "passed": 2,
+        "failed": 0
+      },
+      "context_cli": {
+        "passed": 8,
+        "failed": 0
+      },
+      "human_experience_cli": {
+        "passed": 2,
+        "failed": 4
+      },
+      "failed_test_names": [
+        "onboard_cli_immediately_returns_useful_exact_evidence_without_inspection_or_inference",
+        "onboard_cli_json_and_markdown_fit_the_complete_budget_and_preserve_sources_wiki_and_state",
+        "optional_answer_has_ungraded_fallback_without_a_stored_profile_or_answer",
+        "supplied_task_bypasses_tutorial_and_retains_actual_intent"
+      ],
+      "decoded_log": {
+        "encoding": "decoded UTF-8 job log",
+        "bytes": 128502,
+        "sha256": "fdc6df0ea28ce2fa30f4b6a386b41e7fa1040e4cc10888ba0a24fe6f5901f840",
+        "raw_included": false
+      },
+      "fix_authored_commit": "0e741201516f5361253ee419c75349330e120f3f",
+      "cause": "The generic asynchronous optional usage scope stored the owned operation in its initial state and both inline await branches, increasing future storage and nested polling stack frames.",
+      "correction": "Make usage::scoped a synchronous constructor that boxes the operation before constructing its async block. Keep active-session selection inside that block at poll time."
+    },
+    {
+      "phase": "native_windows_production_fix_pass",
+      "workflow_source_head": "0700a6d8f4e1757b10c394eb9a8bbc77da8505d1",
+      "workflow_source_tree": "effde6b2459b24f4bcee75c96a7ab3839a186963",
+      "observed_checkout_sha": "ed49354571373e87b99119023aeb029cd49f7fb2",
+      "run_id": 38092125905,
+      "job_id": 114330529505,
+      "job_url": "https://github.com/grove/lore/actions/runs/38092125905/jobs/114330529505",
+      "platform": "windows",
+      "job_conclusion": "success",
+      "evidence_basis": "Decoded completed job log and completed step metadata; counts recomputed by command section.",
+      "rust_all_targets": {
+        "suite_summaries": 56,
+        "passed": 435,
+        "failed": 0,
+        "ignored": 3,
+        "measured": 0,
+        "filtered_out": 0,
+        "complete": true
+      },
+      "human_experience_cli": {
+        "passed": 6,
+        "failed": 0
+      },
+      "python": {
+        "discovered": 204,
+        "passed": 203,
+        "skipped": 1,
+        "reported_failure_outcomes": 0,
+        "reported_error_outcomes": 0,
+        "elapsed_seconds": 115.346
+      },
+      "decoded_log": {
+        "encoding": "decoded UTF-8 job log",
+        "bytes": 180571,
+        "sha256": "784bc1f394398bc57556f06c9935f6c0fd98daa43dda79c6a0e3f5c624978d66",
+        "raw_included": false
+      },
+      "observation": "The original six human CLI tests passed on the native Windows stack. At this revision, the newly added initialized-stack fixture was gated to Unix and therefore did not run on Windows."
+    },
+    {
+      "phase": "macos_added_setrlimit_fixture_rejected_before_child_launch",
+      "workflow_source_head": "0700a6d8f4e1757b10c394eb9a8bbc77da8505d1",
+      "run_id": 38092125905,
+      "job_id": 114330529514,
+      "job_url": "https://github.com/grove/lore/actions/runs/38092125905/jobs/114330529514",
+      "platform": "macos",
+      "job_conclusion": "failure",
+      "failed_stage": "Build and run offline Rust tests",
+      "evidence_basis": "Decoded completed job log inspected locally; counts recomputed only inside the all-target Rust command section.",
+      "rust_all_targets": {
+        "suite_summaries": 31,
+        "passed": 249,
+        "failed": 1,
+        "ignored": 2,
+        "measured": 0,
+        "filtered_out": 0,
+        "complete": false
+      },
+      "human_experience_cli": {
+        "passed": 6,
+        "failed": 1
+      },
+      "observation": "The six original human CLI tests passed. The added Unix child-stack fixture failed during child.output() setup with OS error 22 (EINVAL), before launching Lore.",
+      "decoded_log": {
+        "encoding": "decoded UTF-8 job log",
+        "bytes": 95937,
+        "sha256": "69b2db8a103d6dd158abff394c4e3b1cd749e8baa9c7e0258cea1f3ae1ffe3ff",
+        "raw_included": false
+      },
+      "fix_authored_commit": "471fe255d61ab163c60168f028fc7875cdebd377",
+      "correction": "Gate only the setrlimit pre-exec hook to Linux. Run the full initialized onboarding, ledger, and source-preservation fixture on every platform; macOS and Windows retain native stacks."
+    }
+  ],
+  "final_pr42_matrix": {
+    "workflow_source_head": "4711c89b336f303b239d371c348e22d7067cc828",
+    "workflow_source_tree": "c0b967b4377cf1c18ff7ef17f78816cf08bbded6",
+    "observed_checkout_sha": "41a73293e2b252b875f6d009ac35eec8f75c472b",
+    "observed_checkout_tree_sha": null,
+    "checkout_binding_note": "All three logs record the same GitHub merge checkout SHA. The workflow source head and its source-tree SHA are retained separately; this receipt did not independently fetch the merge-checkout tree.",
+    "run_id": 38092521367,
+    "workflow_url": "https://github.com/grove/lore/actions/runs/38092521367",
+    "conclusion": "success",
+    "platforms": {
+      "linux": {
+        "job_id": 114331703369,
+        "job_url": "https://github.com/grove/lore/actions/runs/38092521367/jobs/114331703369",
+        "conclusion": "success",
+        "stages": {
+          "format": "success",
+          "strict_clippy": "success",
+          "rust_all_targets": "success",
+          "python": "success",
+          "frozen_zoom": "success",
+          "cli_smoke_steps_successful": 8,
+          "cli_smoke_steps_total": 8,
+          "dedicated_release_build": null
+        },
+        "rust_all_targets": {
+          "suite_summaries": 56,
+          "passed": 444,
+          "failed": 0,
+          "ignored": 3,
+          "measured": 0,
+          "filtered_out": 0,
+          "complete": true
+        },
+        "human_experience_cli": {
+          "passed": 7,
+          "failed": 0,
+          "new_native_stack_fixture_included": true
+        },
+        "python": {
+          "discovered": 204,
+          "passed": 204,
+          "skipped": 0,
+          "reported_failure_outcomes": 0,
+          "reported_error_outcomes": 0,
+          "elapsed_seconds": 55.568
+        },
+        "separate_frozen_zoom": {
+          "passed": 1,
+          "failed": 0,
+          "not_added_to_all_targets_total": true
+        },
+        "runner_image": {
+          "image": "ubuntu-24.04",
+          "version": "20261004.327.1"
+        },
+        "decoded_log": {
+          "encoding": "decoded UTF-8 job log",
+          "bytes": 487910,
+          "sha256": "de59b25b682deec119df892251cec610f38c0becef906d6f478c21ea09475b3d",
+          "raw_included": false
+        }
+      },
+      "macos": {
+        "job_id": 114331703105,
+        "job_url": "https://github.com/grove/lore/actions/runs/38092521367/jobs/114331703105",
+        "conclusion": "success",
+        "stages": {
+          "format": "success",
+          "strict_clippy": "success",
+          "rust_all_targets": "success",
+          "python": "success",
+          "frozen_zoom": "skipped",
+          "cli_smoke_steps_successful": 8,
+          "cli_smoke_steps_total": 8,
+          "dedicated_release_build": null
+        },
+        "rust_all_targets": {
+          "suite_summaries": 56,
+          "passed": 444,
+          "failed": 0,
+          "ignored": 3,
+          "measured": 0,
+          "filtered_out": 0,
+          "complete": true
+        },
+        "human_experience_cli": {
+          "passed": 7,
+          "failed": 0,
+          "new_native_stack_fixture_included": true
+        },
+        "python": {
+          "discovered": 204,
+          "passed": 203,
+          "skipped": 1,
+          "reported_failure_outcomes": 0,
+          "reported_error_outcomes": 0,
+          "elapsed_seconds": 34.124
+        },
+        "separate_frozen_zoom": {
+          "status": "skipped",
+          "passed": 0
+        },
+        "runner_image": {
+          "image": "macos-26-arm64",
+          "version": "20260907.0351.1"
+        },
+        "decoded_log": {
+          "encoding": "decoded UTF-8 job log",
+          "bytes": 178750,
+          "sha256": "1457279f41f9c4d5ac367ca1d3dbe435a2a02641ed338363b854d0954103b9cc",
+          "raw_included": false
+        }
+      },
+      "windows": {
+        "job_id": 114331703302,
+        "job_url": "https://github.com/grove/lore/actions/runs/38092521367/jobs/114331703302",
+        "conclusion": "success",
+        "stages": {
+          "format": "success",
+          "strict_clippy": "success",
+          "rust_all_targets": "success",
+          "python": "success",
+          "frozen_zoom": "skipped",
+          "cli_smoke_steps_successful": 8,
+          "cli_smoke_steps_total": 8,
+          "dedicated_release_build": null
+        },
+        "rust_all_targets": {
+          "suite_summaries": 56,
+          "passed": 436,
+          "failed": 0,
+          "ignored": 3,
+          "measured": 0,
+          "filtered_out": 0,
+          "complete": true
+        },
+        "human_experience_cli": {
+          "passed": 7,
+          "failed": 0,
+          "new_native_stack_fixture_included": true
+        },
+        "python": {
+          "discovered": 204,
+          "passed": 203,
+          "skipped": 1,
+          "reported_failure_outcomes": 0,
+          "reported_error_outcomes": 0,
+          "elapsed_seconds": 127.995
+        },
+        "separate_frozen_zoom": {
+          "status": "skipped",
+          "passed": 0
+        },
+        "runner_image": {
+          "image": "windows-2025-vs2026",
+          "version": "20260925.250.1"
+        },
+        "decoded_log": {
+          "encoding": "decoded UTF-8 job log",
+          "bytes": 180689,
+          "sha256": "db39c351a380659566c3b07797f990aa9bf8da2355c827a1e003726f4d70b206",
+          "raw_included": false
+        }
+      }
+    }
+  },
+  "local_regression_checks": {
+    "cli_wrapper_future_bytes": {
+      "before": 64512,
+      "after": 496,
+      "asserted_maximum": 16384
+    },
+    "optional_scope_large_future_bytes": {
+      "before": 98432,
+      "asserted_maximum_after": 1024
+    },
+    "active_session_semantics": "Regression verifies a future constructed before its active session is polled within that session and keeps its event ownership across a yield.",
+    "initialized_fixture_cases": [
+      "initial_json",
+      "initial_markdown",
+      "optional_answer",
+      "supplied_task"
+    ],
+    "stack_limit_policy": "No global runtime stack increase. The fixture adds a 1 MiB child stack limit only on Linux and uses native child stacks elsewhere.",
+    "evidence_limit": "The Linux 1 MiB initialized child control also passed before the scope fix. It does not reproduce the Windows crash; the pre-fix future-size regression and native Windows CI are the direct before/after evidence."
+  },
+  "raw_ci_logs_included": false,
+  "providers_called_by_this_review": 0,
+  "limitations": [
+    "This history covers only its stated source heads. Later human-harness and release changes require their own matrix checks.",
+    "A failed Cargo command stops before later test targets; partial target totals are not complete-suite results.",
+    "Ignored and skipped tests remain separate from passes; platform-specific compiled tests account for different Rust totals.",
+    "Earlier log byte counts and hashes unavailable in these inputs remain null. They were not reconstructed or guessed.",
+    "Raw decoded CI logs are retained locally outside this receipt and must not be bundled for publication.",
+    "No real provider, hosted study, or human cohort was run by this verification work."
+  ]
+}

@@ -1,0 +1,320 @@
+{
+  "archive_members": 260,
+  "baseline_candidate_resolution_read_differences": {
+    "releases-14": {
+      "baseline_resolution_reads": 11,
+      "candidate_resolution_reads": 10,
+      "difference": 1
+    },
+    "releases-18": {
+      "baseline_resolution_reads": 11,
+      "candidate_resolution_reads": 10,
+      "difference": 1
+    }
+  },
+  "baseline_revision": "0ba8b17f7e63726a8d81def2b60af18573d4640c",
+  "binary_sha256": {
+    "baseline": "f03f54e0affacf3ac623634cfbb2fc8c992b78e9e881f8b16af8e8f5de98b127",
+    "candidate": "59f20591127dbd04ac350ae0bd7e9651be0f33daf7a24d3dbcd9bfd05c6c83f8"
+  },
+  "cohorts": {
+    "baseline": {
+      "assessment_sha256": "d1c25da9c77a64938cfe04d37a291fbb5039bf32b2614768c9acb68c2b305c52",
+      "authorized_snapshot_intervals_hash_verified": 63,
+      "command_integrity": {
+        "captured": 608,
+        "filesystem_observer_captured": 608,
+        "filesystem_observer_complete": 605,
+        "filesystem_source_observer_complete": 608,
+        "preserved": 608,
+        "total": 608
+      },
+      "command_outcomes": {
+        "cancelled_commands": 0,
+        "captured_commands": 608,
+        "exit_code_counts": {
+          "0": 608
+        },
+        "exit_zero_basis": "The pinned collector records error:null and a JSON response only after process returncode0.",
+        "invalid_json_response_commands": 0,
+        "nonzero_exit_commands": 0,
+        "timeout_commands": 0,
+        "unavailable_process_commands": 0,
+        "unknown_outcome_commands": 0
+      },
+      "event_checks_recomputed": {
+        "exact_checkpoint_states": 60,
+        "explicit_baseline": 60,
+        "no_execution_claims": 60,
+        "original_evidence_and_endpoints": 60,
+        "per_command_source_integrity": 60,
+        "read_only_registry": 60,
+        "references_resolve": 60,
+        "requested_budget": 60,
+        "response_hashes": 60,
+        "retained_history": 60,
+        "source_hashes": 60,
+        "versioned_contracts": 60
+      },
+      "events": 60,
+      "failed_checks": {},
+      "model_call_components_recomputed": {
+        "event_compilation": 0,
+        "guard_intelligence": 0,
+        "initialization": 0,
+        "total": 0
+      },
+      "model_calls": 0,
+      "observer_gaps": {
+        "new_directory_watch_gap:lore_state": 3
+      },
+      "physical_provider_attempts": null,
+      "run_sha256": "c0277d9902bf819263b41b8b998e49529ebf7cd46990ee47957c921cd73ad9e2"
+    },
+    "candidate": {
+      "assessment_sha256": "74bbdb7c6ec6b944f02c52dbc303d2a724235e8eb98e5875e80a7ac5950a0dca",
+      "authorized_snapshot_intervals_hash_verified": 63,
+      "command_integrity": {
+        "captured": 606,
+        "filesystem_observer_captured": 606,
+        "filesystem_observer_complete": 603,
+        "filesystem_source_observer_complete": 606,
+        "preserved": 606,
+        "total": 606
+      },
+      "command_outcomes": {
+        "cancelled_commands": 0,
+        "captured_commands": 606,
+        "exit_code_counts": {
+          "0": 606
+        },
+        "exit_zero_basis": "The pinned collector records error:null and a JSON response only after process returncode0.",
+        "invalid_json_response_commands": 0,
+        "nonzero_exit_commands": 0,
+        "timeout_commands": 0,
+        "unavailable_process_commands": 0,
+        "unknown_outcome_commands": 0
+      },
+      "event_checks_recomputed": {
+        "exact_checkpoint_states": 60,
+        "explicit_baseline": 60,
+        "no_execution_claims": 60,
+        "original_evidence_and_endpoints": 60,
+        "per_command_source_integrity": 60,
+        "read_only_registry": 60,
+        "references_resolve": 60,
+        "requested_budget": 60,
+        "response_hashes": 60,
+        "retained_history": 60,
+        "source_hashes": 60,
+        "versioned_contracts": 60
+      },
+      "events": 60,
+      "failed_checks": {},
+      "model_call_components_recomputed": {
+        "event_compilation": 0,
+        "guard_intelligence": 0,
+        "initialization": 0,
+        "total": 0
+      },
+      "model_calls": 0,
+      "observer_gaps": {
+        "new_directory_watch_gap:lore_state": 3
+      },
+      "physical_provider_attempts": null,
+      "run_sha256": "e60b436a29d7f583e90864aa2cf7f4c2b7a95db1f1579b96b5cfa095c71da6cb"
+    },
+    "candidate-repeat": {
+      "assessment_sha256": "68d331ab54abf09af547548b506481ca55fc1452d813252878f1238d02778d81",
+      "authorized_snapshot_intervals_hash_verified": 63,
+      "command_integrity": {
+        "captured": 606,
+        "filesystem_observer_captured": 606,
+        "filesystem_observer_complete": 603,
+        "filesystem_source_observer_complete": 606,
+        "preserved": 606,
+        "total": 606
+      },
+      "command_outcomes": {
+        "cancelled_commands": 0,
+        "captured_commands": 606,
+        "exit_code_counts": {
+          "0": 606
+        },
+        "exit_zero_basis": "The pinned collector records error:null and a JSON response only after process returncode0.",
+        "invalid_json_response_commands": 0,
+        "nonzero_exit_commands": 0,
+        "timeout_commands": 0,
+        "unavailable_process_commands": 0,
+        "unknown_outcome_commands": 0
+      },
+      "event_checks_recomputed": {
+        "exact_checkpoint_states": 60,
+        "explicit_baseline": 60,
+        "no_execution_claims": 60,
+        "original_evidence_and_endpoints": 60,
+        "per_command_source_integrity": 60,
+        "read_only_registry": 60,
+        "references_resolve": 60,
+        "requested_budget": 60,
+        "response_hashes": 60,
+        "retained_history": 60,
+        "source_hashes": 60,
+        "versioned_contracts": 60
+      },
+      "events": 60,
+      "failed_checks": {},
+      "model_call_components_recomputed": {
+        "event_compilation": 0,
+        "guard_intelligence": 0,
+        "initialization": 0,
+        "total": 0
+      },
+      "model_calls": 0,
+      "observer_gaps": {
+        "new_directory_watch_gap:lore_state": 3
+      },
+      "physical_provider_attempts": null,
+      "run_sha256": "c17420a454b81da7c95e34eebe5a02f41c3cc8c486d5428a39cfa935243857b5"
+    },
+    "focused-payments": {
+      "assessment_sha256": "0f496c63e210c2603a484532458fb1120369ae85071217f422cf38f1fb9d1559",
+      "authorized_snapshot_intervals_hash_verified": 11,
+      "command_integrity": {
+        "captured": 71,
+        "filesystem_observer_captured": 71,
+        "filesystem_observer_complete": 70,
+        "filesystem_source_observer_complete": 71,
+        "preserved": 71,
+        "total": 71
+      },
+      "command_outcomes": {
+        "cancelled_commands": 0,
+        "captured_commands": 71,
+        "exit_code_counts": {
+          "0": 71
+        },
+        "exit_zero_basis": "The pinned collector records error:null and a JSON response only after process returncode0.",
+        "invalid_json_response_commands": 0,
+        "nonzero_exit_commands": 0,
+        "timeout_commands": 0,
+        "unavailable_process_commands": 0,
+        "unknown_outcome_commands": 0
+      },
+      "event_checks_recomputed": {
+        "exact_checkpoint_states": 10,
+        "explicit_baseline": 10,
+        "no_execution_claims": 10,
+        "original_evidence_and_endpoints": 10,
+        "per_command_source_integrity": 10,
+        "read_only_registry": 10,
+        "references_resolve": 10,
+        "requested_budget": 10,
+        "response_hashes": 10,
+        "retained_history": 10,
+        "source_hashes": 10,
+        "versioned_contracts": 10
+      },
+      "events": 10,
+      "failed_checks": {},
+      "model_call_components_recomputed": {
+        "event_compilation": 0,
+        "guard_intelligence": 0,
+        "initialization": 0,
+        "total": 0
+      },
+      "model_calls": 0,
+      "observer_gaps": {
+        "new_directory_watch_gap:lore_state": 1
+      },
+      "physical_provider_attempts": null,
+      "run_sha256": "8f3c011a33d56232f0cb7ba7a4963da283b0b75af9280a421c03993b050703df"
+    }
+  },
+  "collector_source_sha256": {
+    "coding_tasks.py": "9cc8dc89cdea03d1f0db29d6ab7276b78d50d961a253893e8183f943a7136f43",
+    "cross_source.py": "dfede36c53f6653318f398df88de3acc86e58804314580191305fd1f360fd52e",
+    "guardian_integrity.py": "4f4099b345253235f4d47484c349c5a724ee63f97e991510ad2e2b1e9ff45ac0",
+    "guardian_longitudinal.py": "26404634a5480f266c89b57bf569900adc085e2ca5ace016aed5728ab734f9e6",
+    "shared_intelligence.py": "ae4d92df85591bd2153689d00a6c50b8543ebeb1321d5099d4122b66f07d05d0"
+  },
+  "compiled_sha256": "ec188c6dd0b7ce7accf9b470d455e4290dabc799e53a467474e30134bf261091",
+  "events_manifest_sha256": "462a2e5b6d95fd4dbac8f1640274e74977c4d80dd0a3be2341c05a3cb1a82461",
+  "gate_source_sha256": "d2bc1ee92039ec1db1a4aed2acfb7d433025530ccfa3255b0463bf8ebe9ce242",
+  "head_sha": "a55cfeead56775af4e0ae9d171cbdcf191af2007",
+  "kind": "final_candidate_guardian_source_integrity",
+  "limits": [
+    "This receipt is bound to the stated PR head; later revisions need their own CI result.",
+    "Retained-inner mode verifies receipt and archive member bindings, without synthesizing an outer ZIP or claiming to revalidate its recorded origin digest.",
+    "All source observers are complete. Recorded new-directory observer gaps apply only to permitted Lore-owned state.",
+    "Guardian independent alert quality remains unmeasured; execution/egress syscall audit was not run.",
+    "Logical model calls are independently summed from every initialization, event materialization and guard intelligence response. Physical provider-attempt ledgers are not retained in this synthetic replay archive, so that independent field remains null.",
+    "The original historical source-restoration failures are not relabeled or attributed to a writer by this clean run.",
+    "Platform tests and release-mode CLI smoke results are recorded separately; no raw CI log is included."
+  ],
+  "manifest_members_verified": 259,
+  "no_lore_control": {
+    "events": 60,
+    "failed_events": [],
+    "intervals": 240,
+    "model_calls": 0,
+    "processes_started": 0,
+    "source_observer_complete": 240,
+    "source_preserved": 240
+  },
+  "official_artifact": {
+    "bytes": 4552486,
+    "created_at": "2026-10-10T22:53:56Z",
+    "expires_at": "2026-11-09T22:53:55Z",
+    "id": 11684548775,
+    "name": "guardian-source-integrity-a55cfeead56775af4e0ae9d171cbdcf191af2007",
+    "official_digest_verified": false,
+    "outer_digest_revalidation": "not_run_retained_inner_only",
+    "retained_origin": "Previously recorded official outer digest is provenance; it is not revalidated in retained-inner mode.",
+    "sha256": "269fd529f7d78aa8f28498c85a44d40edd9e05cf9907a6569b301532375d1822"
+  },
+  "original_receipt": {
+    "bytes": 49384,
+    "sha256": "d1defb19308392294679798c6f6debd35a807055a89f701e904e8fe34a6a0706"
+  },
+  "prepared_sha256": "50c2a69bf9d8bc7ac26c799f99b4a0231ed8b905c73cf9c888eedbab15f91e89",
+  "publication_scope": {
+    "providers_called_by_verifier": 0,
+    "raw_ci_logs_included": false,
+    "replay_launched_by_verifier": false,
+    "synthetic_capture": true
+  },
+  "pull_request": 47,
+  "repository": "grove/lore",
+  "runner_environment": {
+    "cargo_version": null,
+    "exact_toolchain_versions_observed": false,
+    "image": "ubuntu-24.04",
+    "image_version": "20261004.327.1",
+    "python_version": null,
+    "runner_version": "2.337.0",
+    "rustc_version": null
+  },
+  "schema_version": 1,
+  "source_tree_sha": "a0ebeecb3970a14abd10a4bcf15ea96d4bbc2049",
+  "status": "verified",
+  "synthetic_evidence_archive": {
+    "bytes": 4803212,
+    "sha256": "7435a529a96d68c3ad432ef4a13c4a47877a97cfdb96750edd2be6563310ef40"
+  },
+  "verification_input_mode": "retained_inner",
+  "verifier_sha256": "f24cbb69007c8895855898252e61d86db79c56c4a90efd629d6705305471ffc8",
+  "workflow_run": {
+    "conclusion": "success",
+    "created_at": "2026-10-10T22:45:50Z",
+    "event": "pull_request",
+    "head_sha": "a55cfeead56775af4e0ae9d171cbdcf191af2007",
+    "head_tree_sha": "a0ebeecb3970a14abd10a4bcf15ea96d4bbc2049",
+    "html_url": "https://github.com/grove/lore/actions/runs/38092630241",
+    "id": 38092630241,
+    "name": "Guardian source integrity",
+    "run_started_at": "2026-10-10T22:45:50Z",
+    "status": "completed",
+    "updated_at": "2026-10-10T22:54:00Z"
+  }
+}

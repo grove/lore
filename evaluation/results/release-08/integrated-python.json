@@ -1,0 +1,42 @@
+{
+  "argv": [
+    "python3",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "evaluation/tests",
+    "-v"
+  ],
+  "classification": "offline_python_engineering",
+  "elapsed_seconds": 145.22952961899864,
+  "exit_code": 0,
+  "local_log_archive": {
+    "bytes": 8071,
+    "local_filename": "integrated-python-logs.zip",
+    "published_in_repository": false,
+    "sha256": "1a832f1870403c5b4692430f45c04ec684cefc924952acb9977a5cbf5d8386d4"
+  },
+  "log": {
+    "bytes": 44795,
+    "local_filename": "python.log",
+    "published_in_repository": false,
+    "sha256": "f9acd098f97f1d90a5ce81a934680bdb15735e50d9dbcc8a0cff223a3f2b00b1"
+  },
+  "offline_scope": "Tests may exercise fake models and loopback mock HTTP servers; no configured real provider or empirical study was run.",
+  "python": "3.12.14",
+  "raw_logs_published_in_repository": false,
+  "real_participants": 0,
+  "real_provider_calls": 0,
+  "schema_version": 1,
+  "source_revision": "e6dc56fd460742e8fdb76b64a87ff58755e62171",
+  "source_revision_after": "e6dc56fd460742e8fdb76b64a87ff58755e62171",
+  "started_at": "2026-10-10T22:16:53.631874+00:00",
+  "status": "passed",
+  "tests": {
+    "failed": 0,
+    "passed": 236,
+    "runner_seconds": 145.079,
+    "skipped": 0
+  }
+}

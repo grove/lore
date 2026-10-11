@@ -1,0 +1,79 @@
+{
+  "head_sha": "644ac153072ce6fd8696d6f110b0f2da396feeaa",
+  "local_log_archive": {
+    "bytes": 163043,
+    "local_filename": "baseline-ci-logs.zip",
+    "published_in_repository": false,
+    "sha256": "7616f7e12b819abf82869835fe016faa7899254018ca909b38c273fb458e6789"
+  },
+  "qualification": "Fresh standard GitHub Actions matrix on unchanged 0.7 runtime. Counts exclude the separately executed ignored Zoom comparison. Platform cfg explains the Rust count difference.",
+  "run_id": 38085575884,
+  "runtime_baseline": "0ba8b17f7e63726a8d81def2b60af18573d4640c",
+  "status": "passed",
+  "summary": [
+    {
+      "job_id": 114311246417,
+      "job_url": "https://github.com/grove/lore/actions/runs/38085575884/jobs/114311246417",
+      "local_log_filename": "job-114311246417.log",
+      "log_bytes": 479553,
+      "log_sha256": "fa651d9fd6e4d2963f1413ddc92e057b7d3eff14e7b76e04261db065d8e2dbcb",
+      "platform": "ubuntu-latest",
+      "python": [
+        {
+          "seconds": 53.675,
+          "tests": 174
+        }
+      ],
+      "raw_log_published_in_repository": false,
+      "rust": {
+        "failed": 0,
+        "ignored": 3,
+        "passed": 429,
+        "targets": 55
+      }
+    },
+    {
+      "job_id": 114311246232,
+      "job_url": "https://github.com/grove/lore/actions/runs/38085575884/jobs/114311246232",
+      "local_log_filename": "job-114311246232.log",
+      "log_bytes": 170087,
+      "log_sha256": "1e1a563973392917c1994f725e0b72c3a0fe9286b65d5ab316864e3ff3b4c0de",
+      "platform": "macos-latest",
+      "python": [
+        {
+          "seconds": 29.077,
+          "tests": 174
+        }
+      ],
+      "raw_log_published_in_repository": false,
+      "rust": {
+        "failed": 0,
+        "ignored": 3,
+        "passed": 429,
+        "targets": 55
+      }
+    },
+    {
+      "job_id": 114311246399,
+      "job_url": "https://github.com/grove/lore/actions/runs/38085575884/jobs/114311246399",
+      "local_log_filename": "job-114311246399.log",
+      "log_bytes": 172240,
+      "log_sha256": "3b0ff16fc79c3c5a8943b25dc27419b58c0c336ff7e81d377dd55fefcc83e3e3",
+      "platform": "windows-latest",
+      "python": [
+        {
+          "seconds": 116.84,
+          "tests": 174
+        }
+      ],
+      "raw_log_published_in_repository": false,
+      "rust": {
+        "failed": 0,
+        "ignored": 3,
+        "passed": 421,
+        "targets": 55
+      }
+    }
+  ],
+  "workflow_url": "https://github.com/grove/lore/actions/runs/38085575884"
+}

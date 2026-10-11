@@ -1,0 +1,127 @@
+{
+  "actionable_findings": [
+    {
+      "action": "Retain both failed prior attempts with their exact source/job/checkout bindings; keep the corrected-head result pending until observed. Update the remaining gate to the canonical review-path fixture correction and the full platform/CLI completion, rather than only Windows initialized onboarding.",
+      "finding": "The broad matrix gate is not_run, but the retained PR46 and PR47 candidate matrices actually completed with a Windows Python failure. A corrected-head gate may remain not_run only when explicitly source-pinned and separated from these failed attempts.",
+      "id": "platform_attempt_status",
+      "location": "gates.platform_matrix",
+      "path": "evaluation/results/acceptance-08.json",
+      "severity": "update_before_final_decision",
+      "supporting_receipt": "windows-ci-failures.json"
+    },
+    {
+      "action": "Keep the historical pass; name its actual source and local platform scope, and reference the separate candidate Windows failure/correction. Do not treat local twenty-test success as native corrected-head success.",
+      "finding": "The 236-test pass is true for the retained e6dc56f local run. Its broad scope currently omits that source in the gate object and does not surface the later Windows fixture failure.",
+      "id": "human_gate_scope",
+      "location": "gates.human_harness and gates.coding_harness",
+      "path": "evaluation/results/acceptance-08.json",
+      "severity": "clarify_scope"
+    },
+    {
+      "action": "Preserve the sequence of actual failures and corrections: bounded allocation fix; platform stack-test setup correction; Windows Python canonical evidence-path fixture correction. Link the condensed failure receipt and retain current corrected-head CI as pending.",
+      "finding": "The final usage-scope correction and original macOS temporary-path problem are described, but the newest observed Windows runs already passed all Rust tests and failed only the Python review-path fixture. The later macOS setrlimit fixture correction is also separate from the original temporary-path correction.",
+      "id": "latest_stack_and_fixture_status",
+      "lines": [
+        68,
+        107,
+        113
+      ],
+      "path": "evaluation/PRODUCT_QUALITY_08.md",
+      "severity": "update_before_final_decision"
+    },
+    {
+      "action": "Retain historical PR41 counts and source; add the a55 Guardian source/run/receipt and its exact new counts. Do not relabel the a55 result as a corrected-head run.",
+      "finding": "The current 190-event/1,889-command claim belongs to the historical PR41 capture. The completed a55 final-runtime capture is separate and contains 190 events and 1,891 command intervals (608+606+606+71), with 240 no-Lore intervals.",
+      "id": "guardian_capture_count_and_source",
+      "lines": [
+        99,
+        105
+      ],
+      "path": "evaluation/PRODUCT_QUALITY_08.md",
+      "severity": "update_when_importing_verified_capture",
+      "supporting_receipt": "guardian-evidence-binding.json"
+    },
+    {
+      "action": "Preserve these unknown fields and distinguish them from local contract captures/fixtures. New version-printing CI steps do not retroactively supply toolchain observations for the a55 Guardian run.",
+      "finding": "The a55 Guardian verifier independently sums logical model_calls=0, but it records physical_provider_attempts=null because no independent physical attempt ledger was retained. Exact CI toolchain versions are also null in that old capture.",
+      "id": "guardian_usage_scope",
+      "location": "Guardian evidence and resource claims",
+      "path": "evaluation/PRODUCT_QUALITY_08.md",
+      "severity": "preserve_qualification"
+    },
+    {
+      "action": "Attach the actual source-bound component receipts and scope any pending final-head gate explicitly. Update release.remaining_gate to avoid presenting the already-retained a55 release smoke/capture work as absent. Do not set full release passed before actual required CI results and merge bindings are retained.",
+      "finding": "These gates currently have empty artifact lists and not_run status despite retained local runtime/compatibility evidence; the unexecuted final-head gate remains distinct from completed component checks.",
+      "id": "gate_artifact_bindings",
+      "location": "gates.bootstrap, adaptive_default, provider_usage and release",
+      "path": "evaluation/results/acceptance-08.json",
+      "severity": "update_before_final_decision"
+    },
+    {
+      "action": "Keep this source pin and add the fixture-fix equivalence manifest when describing a later corrected release head. Any genuinely new capture should use a fresh path and its own actual source revision.",
+      "finding": "The reproducible capture command correctly pins published a55cfee, which was actually built and captured. The fixture-only correction does not require historical captures to be relabeled.",
+      "id": "retained_public_capture_pin",
+      "lines": [
+        60,
+        75
+      ],
+      "path": "evaluation/results/README-08.md",
+      "severity": "retain_as_recorded"
+    }
+  ],
+  "artifact_manifest_digest_matches_ledger": true,
+  "artifact_manifest_entries_verified": 52,
+  "audited_at_utc": "2026-10-10T23:20:07.148655+00:00",
+  "audited_source_revision": "24222ca4f01849ebfcd29cf93c0e78686124c82a",
+  "classification": "bounded_read_only_release_documentation_audit",
+  "correct_current_claims": [
+    "Release decision remains integration in progress rather than a premature ship claim.",
+    "Zero actual participants, zero genuine coding attempts and unmeasured coding/human/alert-quality outcomes remain consistent with the retained readiness artifacts.",
+    "The guide and README accurately distinguish source-only first contact, initialized schema-5 default, pinned schemas and explicit permission grants.",
+    "Guide and CI help/version syntax was previously exercised against the identical 0.8 runtime; no command mismatch was found in this bounded audit.",
+    "Pinned schema-2 and schema-3 response bytes match the retained fresh baseline exactly; schema-4/default-5 comparisons retain their elapsed-time qualification.",
+    "The audited acceptance manifest SHA and all 52 selected artifact hashes/sizes match the committed bytes.",
+    "The four newly introduced raw-log ZIPs remain omitted; condensed hashes/CI links and controlled synthetic Guardian evidence preserve the publication boundary."
+  ],
+  "inputs": [
+    {
+      "bytes": 20941,
+      "path": "docs/V08.md",
+      "sha256": "8f994c9b71841ef111da9c96913f811cc347be19d206565291917c8478c1f271"
+    },
+    {
+      "bytes": 40537,
+      "path": "README.md",
+      "sha256": "a3695c4a604fda3b31ebb155cfec001ceff9e4f8a597325f3baaa7bdcf027666"
+    },
+    {
+      "bytes": 23124,
+      "path": "docs/IMPLEMENTATION_TRACKER.md",
+      "sha256": "7ebf9c08af86804bb45aeb0453d33e3fd9498a631919c2d68ad55238a66ccb38"
+    },
+    {
+      "bytes": 11743,
+      "path": "evaluation/PRODUCT_QUALITY_08.md",
+      "sha256": "2f7db7b76902c0a9827434d087deb5918267ba45a7119ef6e31ed8204a3a94bf"
+    },
+    {
+      "bytes": 5126,
+      "path": "evaluation/results/README-08.md",
+      "sha256": "fb3e5b082dd2b4f460f1ec6beda81e2dff04be11acdcfa692c6daf1bb47048e8"
+    },
+    {
+      "bytes": 5560,
+      "path": "evaluation/results/acceptance-08.json",
+      "sha256": "1f24f3fc785c3d571ea01b2630da87f567312460d687cd2023862ed214262f6c"
+    },
+    {
+      "bytes": 10692,
+      "path": "evaluation/results/release-08/artifact-manifest.json",
+      "sha256": "4e68bd312f7cdcace3c93af1e620d8744242082458b129df7737a7a0263a2220"
+    }
+  ],
+  "new_ci_runs_observed_by_this_audit": false,
+  "qualification": "Findings describe the exact audited committed files. Root may update release documentation after this snapshot; this record does not claim later text or future CI results are unchanged.",
+  "raw_logs_read_or_copied_by_this_audit": false,
+  "schema_version": 1
+}

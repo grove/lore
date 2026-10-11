@@ -1,0 +1,65 @@
+{
+  "classification": "bounded_engineering_handoff_no_raw_logs",
+  "created_at_utc": "2026-10-10T23:26:19.845644+00:00",
+  "files": [
+    {
+      "bytes": 6814,
+      "path": "README.md",
+      "sha256": "0256d5fc90fb792f251992932c861188aeb2687db91dd997ac37dc7fa69d70d5"
+    },
+    {
+      "bytes": 36207,
+      "path": "corrected-head-binding.json",
+      "sha256": "29b62c0f9cdc57e4b6bbccd410ee8d953059c2d6762046148eb3b1d8de2fd913"
+    },
+    {
+      "bytes": 8264,
+      "path": "documentation-audit-corrected.json",
+      "sha256": "fcd087d2ac58ee6c52e0910cc0cfee64590dedb0e393a36845e80e211c20d5d3"
+    },
+    {
+      "bytes": 7989,
+      "path": "documentation-audit.json",
+      "sha256": "0f5c21a394c3a2e0073a02554d4ba0e6866585b3cf90cba1f5f810836c19a344"
+    },
+    {
+      "bytes": 1889,
+      "path": "fix-change-manifest.json",
+      "sha256": "a9708514cf7c1e732638e14e043ce4b0a6aa422ebbc1daf51a722e5551c9ff5d"
+    },
+    {
+      "bytes": 1862,
+      "path": "fix-validation.json",
+      "sha256": "cefe967417096419633fdcfc7a9c0548637267f1e604dede462eb905d562fe27"
+    },
+    {
+      "bytes": 3854,
+      "path": "guardian-evidence-binding.json",
+      "sha256": "63626a5e43407d97bf86945563a6727e898629d48462a3fa5c89468ed213c0aa"
+    },
+    {
+      "bytes": 44681,
+      "path": "guardian-inputs.json",
+      "sha256": "9c0268c1f815636c21f8cbef9caf16128506d19914a9681b36e49252cd25af5d"
+    },
+    {
+      "bytes": 19280,
+      "path": "runtime-inputs.json",
+      "sha256": "209703b68ccc2f04d9bb6e3e7ad83922b21b74ec8fb5c3a93fcd1482ec22d0a1"
+    },
+    {
+      "bytes": 5797,
+      "path": "windows-ci-failures.json",
+      "sha256": "e3784af33b5b2a2fc1e1883a34d15852573e2624262f7cab01ef429873ebadbd"
+    },
+    {
+      "bytes": 1019,
+      "path": "workflow-snapshot.json",
+      "sha256": "38dce02846f6d19d498f99645ee1a1986e8b69b17f47584ff8be84e79384fb60"
+    }
+  ],
+  "qualification": "Historical source-bound observations remain historical. This inventory includes no new corrected-head CI claim and excludes itself from its file list.",
+  "schema_version": 1,
+  "source_revision": "6e6f8a6af871bdeca53dcc79b63a60fd2af52743",
+  "source_tree": "1e77e84d9f7e69b89968c6b60a6beef7f9afec82"
+}

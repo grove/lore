@@ -1,0 +1,192 @@
+{
+  "binary_sha256": "f9ee5b81b14a16df4a7c5fba6ced41d8a1111ec3701db38bbc433d69fdebeff8",
+  "binary_version": "0.8.0",
+  "cases": [
+    {
+      "arguments": [
+        "--version"
+      ],
+      "content_valid": true,
+      "elapsed_seconds": 0.003553,
+      "exit_code": 0,
+      "label": "version",
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 11,
+      "stdout_sha256": "863e8c502128d0c562bbbc5c25e2f6f86d00110503045e3da75d57d136e9835f",
+      "workspace_unchanged": true
+    },
+    {
+      "arguments": [
+        "--help"
+      ],
+      "content_valid": true,
+      "elapsed_seconds": 0.002986,
+      "exit_code": 0,
+      "label": "help",
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 1978,
+      "stdout_sha256": "b18489af9f9cdd8fc21272267609d980ffc437d19a938831b1b6f7fe0a8464d0",
+      "workspace_unchanged": true
+    },
+    {
+      "arguments": [
+        "context",
+        "--help"
+      ],
+      "content_valid": true,
+      "elapsed_seconds": 0.003355,
+      "exit_code": 0,
+      "label": "context-help",
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 1238,
+      "stdout_sha256": "a276fe45d3c15a79c5e31d6abf7595545a5e74334aa526645e18aeabcd0cc575",
+      "workspace_unchanged": true
+    },
+    {
+      "arguments": [
+        "onboard",
+        "--help"
+      ],
+      "content_valid": true,
+      "elapsed_seconds": 0.003308,
+      "exit_code": 0,
+      "label": "onboard-help",
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 1149,
+      "stdout_sha256": "a53559084a56905d8f1914b98dfd14c00773876a2f178dd4311398e0c35f62b1",
+      "workspace_unchanged": true
+    },
+    {
+      "arguments": [
+        "baseline",
+        "--help"
+      ],
+      "content_valid": true,
+      "elapsed_seconds": 0.00299,
+      "exit_code": 0,
+      "label": "baseline-help",
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 527,
+      "stdout_sha256": "784869f8fdce6e5978e4e8920cec3d24142692d1e0fc1861e0bba3460e7820f1",
+      "workspace_unchanged": true
+    },
+    {
+      "arguments": [
+        "guard",
+        "--help"
+      ],
+      "content_valid": true,
+      "elapsed_seconds": 0.003666,
+      "exit_code": 0,
+      "label": "guard-help",
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 582,
+      "stdout_sha256": "51a6f0d49a0e9274c8d512dd7f65f412e03cf9aa0d76c7ba4e3b2a172a3ce71b",
+      "workspace_unchanged": true
+    },
+    {
+      "arguments": [
+        "decisions",
+        "--help"
+      ],
+      "content_valid": true,
+      "elapsed_seconds": 0.005655,
+      "exit_code": 0,
+      "label": "decisions-help",
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 404,
+      "stdout_sha256": "6b19033751b59433c3404a69a0112ae4b1356b9cc2751e61d90b0fb4ca87a4c0",
+      "workspace_unchanged": true
+    },
+    {
+      "arguments": [
+        "cases",
+        "--help"
+      ],
+      "content_valid": true,
+      "elapsed_seconds": 0.003472,
+      "exit_code": 0,
+      "label": "cases-help",
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 395,
+      "stdout_sha256": "b82a5bbef2cdd57243abf7a88722f807ea3621c1696f3eb9393d8649b6a87251",
+      "workspace_unchanged": true
+    },
+    {
+      "arguments": [
+        "changes",
+        "--help"
+      ],
+      "content_valid": true,
+      "elapsed_seconds": 0.004235,
+      "exit_code": 0,
+      "label": "changes-help",
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 448,
+      "stdout_sha256": "2bee9c3cc4d1cbc162e451fa165ce68901eec7172d0a5b309b3ab56ffbb12690",
+      "workspace_unchanged": true
+    },
+    {
+      "arguments": [
+        "review",
+        "--help"
+      ],
+      "content_valid": true,
+      "elapsed_seconds": 0.004011,
+      "exit_code": 0,
+      "label": "review-help",
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 716,
+      "stdout_sha256": "ac934f5f587596f7ae684c344cc6db3bc373c38400073124397444b5b12d04af",
+      "workspace_unchanged": true
+    },
+    {
+      "arguments": [
+        "explore",
+        "--help"
+      ],
+      "content_valid": true,
+      "elapsed_seconds": 0.003402,
+      "exit_code": 0,
+      "label": "explore-help",
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 710,
+      "stdout_sha256": "72a46c261fabc85a5d07d26314b8c4e27112f2eac9b371ac414b307f4c4f51ef",
+      "workspace_unchanged": true
+    }
+  ],
+  "classification": "public_cli_help_and_version_smoke",
+  "finished_utc": "2026-10-10T22:44:11.484059+00:00",
+  "inspection_or_egress_grants": false,
+  "provider_calls": 0,
+  "qualification": "Guide and CI help/version smoke commands; no product-outcome claim.",
+  "raw_logs": {
+    "publication": "not_published",
+    "retention": "local_only"
+  },
+  "schema_version": 1,
+  "source_revision": "ab9411885f0e049719c74c6b346bda981a15ea33",
+  "status": "passed"
+}

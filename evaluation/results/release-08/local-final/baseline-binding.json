@@ -1,0 +1,11 @@
+{
+  "binary_bytes": 48500944,
+  "binary_sha256": "5eccce5338fa7acd1c99ee03a7ded6bc292bb8f54046ca31ae37bd1ec0a11efa",
+  "classification": "baseline_binary_binding",
+  "matches_frozen_baseline_capture": true,
+  "previous_capture_binary_sha256": "5eccce5338fa7acd1c99ee03a7ded6bc292bb8f54046ca31ae37bd1ec0a11efa",
+  "previous_capture_path": "evaluation/results/baseline-08/contracts/contracts.json",
+  "previous_capture_sha256": "b438f9f50893163f919702603c5300e90561529fa0d637a99e08c19194fccbcd",
+  "schema_version": 1,
+  "source_revision": "0ba8b17f7e63726a8d81def2b60af18573d4640c"
+}

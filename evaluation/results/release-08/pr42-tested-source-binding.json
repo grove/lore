@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "kind": "pr42_tested_source_binding_addendum",
+  "repository": "grove/lore",
+  "recorded_at_utc": "2026-10-10 23:19:47 UTC",
+  "history_receipt": {
+    "name": "pr42-runtime-regression-history.json",
+    "bytes": 17016,
+    "sha256": "c423853954567c38e2eb78775dd553d0888028f8a31253a9cd378f47e6cc597f"
+  },
+  "status": "verified",
+  "bindings": [
+    {
+      "workflow_source_head": "0700a6d8f4e1757b10c394eb9a8bbc77da8505d1",
+      "observed_checkout_sha": "ed49354571373e87b99119023aeb029cd49f7fb2",
+      "head_tree_sha": "effde6b2459b24f4bcee75c96a7ab3839a186963",
+      "checkout_tree_sha": "effde6b2459b24f4bcee75c96a7ab3839a186963",
+      "tree_equality_verified": true,
+      "run_id": 38092125905,
+      "jobs": [
+        114330529505
+      ],
+      "source_head_metadata_url": "https://api.github.com/repos/grove/lore/git/commits/0700a6d8f4e1757b10c394eb9a8bbc77da8505d1",
+      "checkout_metadata_url": "https://api.github.com/repos/grove/lore/git/commits/ed49354571373e87b99119023aeb029cd49f7fb2"
+    },
+    {
+      "workflow_source_head": "4711c89b336f303b239d371c348e22d7067cc828",
+      "observed_checkout_sha": "41a73293e2b252b875f6d009ac35eec8f75c472b",
+      "head_tree_sha": "c0b967b4377cf1c18ff7ef17f78816cf08bbded6",
+      "checkout_tree_sha": "c0b967b4377cf1c18ff7ef17f78816cf08bbded6",
+      "tree_equality_verified": true,
+      "run_id": 38092521367,
+      "jobs": [
+        114331703105,
+        114331703302,
+        114331703369
+      ],
+      "source_head_metadata_url": "https://api.github.com/repos/grove/lore/git/commits/4711c89b336f303b239d371c348e22d7067cc828",
+      "checkout_metadata_url": "https://api.github.com/repos/grove/lore/git/commits/41a73293e2b252b875f6d009ac35eec8f75c472b"
+    }
+  ],
+  "raw_ci_logs_included": false,
+  "note": "This adds subsequently obtained Git Data tree metadata without rewriting the frozen history receipt. Its previously unknown final checkout-tree field is now resolved: the observed CI checkout tree equals the stated source-head tree. Only commit IDs and tree IDs are retained; author and other unrelated metadata are excluded."
+}

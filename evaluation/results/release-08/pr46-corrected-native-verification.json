@@ -1,0 +1,664 @@
+{
+  "schema_version": 1,
+  "kind": "lore_08_pr46_corrected_native_verification",
+  "status": "verified_success",
+  "recorded_at_utc": "2026-10-10 23:36:36 UTC",
+  "repository": "grove/lore",
+  "pull_request": {
+    "number": 46,
+    "url": "https://github.com/grove/lore/pull/46",
+    "state": "closed",
+    "merged": true,
+    "merge_commit_sha": "7b242d25b7a5bc1825c146c77657b46bd0eb73c6",
+    "head_sha": "76826b68a6054af10cedc7fe45386e96bf20f55f",
+    "merged_at": "2026-10-10T23:34:41Z"
+  },
+  "addresses_failure_receipt": {
+    "name": "pr46-pr47-human-fixture-regression-v3.json",
+    "bytes": 6817,
+    "sha256": "f3b1aae178294edb788691cef60ee34d1ea17b1081bd2deef8b1e58d4da8660e"
+  },
+  "correction": {
+    "authored_commit": "165e97dfc9d8a4e79f3892d670b5a91564c1a320",
+    "published_head": "76826b68a6054af10cedc7fe45386e96bf20f55f",
+    "scope": "Portable canonical evidence-path serialization in the human transfer fixture, with explicit backslash rejection assertions. No product guard relaxed or new test skip."
+  },
+  "source_binding": {
+    "workflow_source_head": "76826b68a6054af10cedc7fe45386e96bf20f55f",
+    "workflow_source_tree_sha": "24c1c9ee633863b62e3f2835807d83b12b791b50",
+    "observed_matrix_checkout_sha": "f9157ec18a55f9c501edd1b0e3d8b7e5e81e48a7",
+    "observed_matrix_checkout_tree_sha": "24c1c9ee633863b62e3f2835807d83b12b791b50",
+    "merge_commit_sha": "7b242d25b7a5bc1825c146c77657b46bd0eb73c6",
+    "merge_tree_sha": "24c1c9ee633863b62e3f2835807d83b12b791b50",
+    "all_three_trees_equal": true,
+    "source_metadata_url": "https://api.github.com/repos/grove/lore/git/commits/76826b68a6054af10cedc7fe45386e96bf20f55f",
+    "checkout_metadata_url": "https://api.github.com/repos/grove/lore/git/commits/f9157ec18a55f9c501edd1b0e3d8b7e5e81e48a7",
+    "merge_metadata_url": "https://api.github.com/repos/grove/lore/git/commits/7b242d25b7a5bc1825c146c77657b46bd0eb73c6"
+  },
+  "matrix_workflow": {
+    "id": 38094401927,
+    "head_sha": "76826b68a6054af10cedc7fe45386e96bf20f55f",
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/grove/lore/actions/runs/38094401927",
+    "run_attempt": 1,
+    "created_at": "2026-10-10T23:15:40Z",
+    "updated_at": "2026-10-10T23:34:03Z"
+  },
+  "expected_rust_targets": {
+    "source_tree_sha": "24c1c9ee633863b62e3f2835807d83b12b791b50",
+    "source_tree_metadata_url": "https://api.github.com/repos/grove/lore/git/trees/24c1c9ee633863b62e3f2835807d83b12b791b50?recursive=1",
+    "source_inventory_truncated": false,
+    "cargo_version": "0.7.0",
+    "count": 57,
+    "paths": [
+      "src/lib.rs",
+      "src/main.rs",
+      "tests/active_reaffirmation.rs",
+      "tests/adaptive_context.rs",
+      "tests/adr_metadata.rs",
+      "tests/bootstrap_cli.rs",
+      "tests/checkout_inspection.rs",
+      "tests/chronology_rendering.rs",
+      "tests/citation_contracts.rs",
+      "tests/classification.rs",
+      "tests/compiler.rs",
+      "tests/context_assembly.rs",
+      "tests/context_cli.rs",
+      "tests/context_decision_cli.rs",
+      "tests/context_imports.rs",
+      "tests/context_intelligent_cli.rs",
+      "tests/context_provenance.rs",
+      "tests/context_retrieval.rs",
+      "tests/cross_source_update.rs",
+      "tests/cross_topic_verification.rs",
+      "tests/decision_contract.rs",
+      "tests/decision_lenses.rs",
+      "tests/decision_lenses_cli.rs",
+      "tests/decision_runtime.rs",
+      "tests/documentary_identity.rs",
+      "tests/evidence_complete_synthesis.rs",
+      "tests/explicit_decisions.rs",
+      "tests/guardian_corpus_export.rs",
+      "tests/hardening.rs",
+      "tests/http_clients.rs",
+      "tests/human_experience.rs",
+      "tests/human_experience_cli.rs",
+      "tests/hybrid_retrieval.rs",
+      "tests/intelligent_context.rs",
+      "tests/investigation.rs",
+      "tests/investigation_memory.rs",
+      "tests/knowledge_zoom.rs",
+      "tests/knowledge_zoom_cli.rs",
+      "tests/knowledge_zoom_comparison.rs",
+      "tests/knowledge_zoom_reviewed.rs",
+      "tests/native_adapters.rs",
+      "tests/native_storage.rs",
+      "tests/overview.rs",
+      "tests/overview_temporal_qualifier.rs",
+      "tests/project_companion.rs",
+      "tests/project_companion_cli.rs",
+      "tests/provider_contracts.rs",
+      "tests/provider_usage.rs",
+      "tests/reasoning_effort.rs",
+      "tests/reversal.rs",
+      "tests/review_safety.rs",
+      "tests/review_workflow.rs",
+      "tests/schema_contracts.rs",
+      "tests/source_provenance.rs",
+      "tests/source_relationship_manifest.rs",
+      "tests/sources_config.rs",
+      "tests/temporal_consistency.rs"
+    ]
+  },
+  "platforms": {
+    "linux": {
+      "job_id": 114337202379,
+      "job_url": "https://github.com/grove/lore/actions/runs/38094401927/jobs/114337202379",
+      "status": "completed",
+      "conclusion": "success",
+      "observed_checkout_sha": "f9157ec18a55f9c501edd1b0e3d8b7e5e81e48a7",
+      "steps": {
+        "format": "success",
+        "strict_clippy": "success",
+        "rust_all_targets": "success",
+        "python": "success",
+        "frozen_zoom": "success",
+        "cli_smoke": {
+          "Decision and case CLI help": "success",
+          "Project companion CLI help": "success",
+          "CLI help": "success",
+          "Review CLI help": "success",
+          "Context CLI help": "success",
+          "Onboarding CLI help": "success",
+          "Exploration CLI help": "success",
+          "CLI version": "success"
+        },
+        "dedicated_release_build": null
+      },
+      "rust_all_targets": {
+        "suite_summaries": 57,
+        "passed": 472,
+        "failed": 0,
+        "ignored": 3,
+        "measured": 0,
+        "filtered_out": 0,
+        "expected_targets": 57,
+        "declared_tests": 475,
+        "parse_complete": true
+      },
+      "human_experience_cli": {
+        "passed": 7,
+        "failed": 0,
+        "ignored": 0,
+        "expected_test_names": [
+          "invalid_onboard_cli_inputs_are_rejected_before_configuration_is_opened",
+          "direct_reference_cli_preserves_verbatim_passages_and_live_evidence_drilldown",
+          "onboard_cli_immediately_returns_useful_exact_evidence_without_inspection_or_inference",
+          "optional_answer_has_ungraded_fallback_without_a_stored_profile_or_answer",
+          "initialized_onboard_flushes_usage_on_native_stacks_and_linux_one_mib_stack",
+          "onboard_cli_json_and_markdown_fit_the_complete_budget_and_preserve_sources_wiki_and_state",
+          "supplied_task_bypasses_tutorial_and_retains_actual_intent"
+        ],
+        "all_expected_names_observed_once_as_passed": true
+      },
+      "python": {
+        "discovered": 236,
+        "passed": 236,
+        "skipped": 0,
+        "reported_failure_outcomes": 0,
+        "reported_error_outcomes": 0,
+        "elapsed_seconds": 61.473
+      },
+      "corrected_human_transfer_regression": {
+        "test": "test_human_onboarding.HumanOnboardingTests.test_independent_transfer_requires_bound_explanation_review_and_no_assistance",
+        "observed_pass": true,
+        "observed_records": 1,
+        "skipped": false
+      },
+      "separate_frozen_zoom": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered_out": 3,
+        "command_conclusion": "success",
+        "excluded_from_all_targets_count": true
+      },
+      "cli_smoke": {
+        "profile": "debug",
+        "command_prefix": [
+          "cargo",
+          "run",
+          "--locked",
+          "--"
+        ],
+        "observed_invocations": [
+          [
+            "decisions",
+            "--help"
+          ],
+          [
+            "cases",
+            "--help"
+          ],
+          [
+            "baseline",
+            "--help"
+          ],
+          [
+            "changes",
+            "--help"
+          ],
+          [
+            "guard",
+            "--help"
+          ],
+          [
+            "--help"
+          ],
+          [
+            "review",
+            "--help"
+          ],
+          [
+            "context",
+            "--help"
+          ],
+          [
+            "onboard",
+            "--help"
+          ],
+          [
+            "explore",
+            "--help"
+          ],
+          [
+            "--version"
+          ]
+        ],
+        "version_stdout": [
+          "lore 0.7.0"
+        ],
+        "release_mode_observed": false
+      },
+      "runner_environment": {
+        "image": "ubuntu-24.04",
+        "image_version": "20261004.327.1",
+        "rustc_version": null,
+        "cargo_version": null,
+        "python_version": "3.12.3"
+      },
+      "decoded_log_binding": {
+        "encoding": "decoded UTF-8 job log",
+        "bytes": 498637,
+        "sha256": "60ed6f4e14cd308686eae0e22d9486930db773b9c14046c12bbbe0b2c5b5b035",
+        "raw_included": false
+      }
+    },
+    "macos": {
+      "job_id": 114337202277,
+      "job_url": "https://github.com/grove/lore/actions/runs/38094401927/jobs/114337202277",
+      "status": "completed",
+      "conclusion": "success",
+      "observed_checkout_sha": "f9157ec18a55f9c501edd1b0e3d8b7e5e81e48a7",
+      "steps": {
+        "format": "success",
+        "strict_clippy": "success",
+        "rust_all_targets": "success",
+        "python": "success",
+        "frozen_zoom": "skipped",
+        "cli_smoke": {
+          "Decision and case CLI help": "success",
+          "Project companion CLI help": "success",
+          "CLI help": "success",
+          "Review CLI help": "success",
+          "Context CLI help": "success",
+          "Onboarding CLI help": "success",
+          "Exploration CLI help": "success",
+          "CLI version": "success"
+        },
+        "dedicated_release_build": null
+      },
+      "rust_all_targets": {
+        "suite_summaries": 57,
+        "passed": 472,
+        "failed": 0,
+        "ignored": 3,
+        "measured": 0,
+        "filtered_out": 0,
+        "expected_targets": 57,
+        "declared_tests": 475,
+        "parse_complete": true
+      },
+      "human_experience_cli": {
+        "passed": 7,
+        "failed": 0,
+        "ignored": 0,
+        "expected_test_names": [
+          "invalid_onboard_cli_inputs_are_rejected_before_configuration_is_opened",
+          "direct_reference_cli_preserves_verbatim_passages_and_live_evidence_drilldown",
+          "onboard_cli_immediately_returns_useful_exact_evidence_without_inspection_or_inference",
+          "optional_answer_has_ungraded_fallback_without_a_stored_profile_or_answer",
+          "initialized_onboard_flushes_usage_on_native_stacks_and_linux_one_mib_stack",
+          "onboard_cli_json_and_markdown_fit_the_complete_budget_and_preserve_sources_wiki_and_state",
+          "supplied_task_bypasses_tutorial_and_retains_actual_intent"
+        ],
+        "all_expected_names_observed_once_as_passed": true
+      },
+      "python": {
+        "discovered": 236,
+        "passed": 235,
+        "skipped": 1,
+        "reported_failure_outcomes": 0,
+        "reported_error_outcomes": 0,
+        "elapsed_seconds": 54.908
+      },
+      "corrected_human_transfer_regression": {
+        "test": "test_human_onboarding.HumanOnboardingTests.test_independent_transfer_requires_bound_explanation_review_and_no_assistance",
+        "observed_pass": true,
+        "observed_records": 1,
+        "skipped": false
+      },
+      "separate_frozen_zoom": {
+        "command_conclusion": "skipped",
+        "passed": 0
+      },
+      "cli_smoke": {
+        "profile": "debug",
+        "command_prefix": [
+          "cargo",
+          "run",
+          "--locked",
+          "--"
+        ],
+        "observed_invocations": [
+          [
+            "decisions",
+            "--help"
+          ],
+          [
+            "cases",
+            "--help"
+          ],
+          [
+            "baseline",
+            "--help"
+          ],
+          [
+            "changes",
+            "--help"
+          ],
+          [
+            "guard",
+            "--help"
+          ],
+          [
+            "--help"
+          ],
+          [
+            "review",
+            "--help"
+          ],
+          [
+            "context",
+            "--help"
+          ],
+          [
+            "onboard",
+            "--help"
+          ],
+          [
+            "explore",
+            "--help"
+          ],
+          [
+            "--version"
+          ]
+        ],
+        "version_stdout": [
+          "lore 0.7.0"
+        ],
+        "release_mode_observed": false
+      },
+      "runner_environment": {
+        "image": "macos-26-arm64",
+        "image_version": "20260907.0351.1",
+        "rustc_version": null,
+        "cargo_version": null,
+        "python_version": null
+      },
+      "decoded_log_binding": {
+        "encoding": "decoded UTF-8 job log",
+        "bytes": 189504,
+        "sha256": "b417d71b9f6f3a285405e56103d4c1d98c4329d2eee23ea0fff7559e4eb0a53d",
+        "raw_included": false
+      }
+    },
+    "windows": {
+      "job_id": 114337202421,
+      "job_url": "https://github.com/grove/lore/actions/runs/38094401927/jobs/114337202421",
+      "status": "completed",
+      "conclusion": "success",
+      "observed_checkout_sha": "f9157ec18a55f9c501edd1b0e3d8b7e5e81e48a7",
+      "steps": {
+        "format": "success",
+        "strict_clippy": "success",
+        "rust_all_targets": "success",
+        "python": "success",
+        "frozen_zoom": "skipped",
+        "cli_smoke": {
+          "Decision and case CLI help": "success",
+          "Project companion CLI help": "success",
+          "CLI help": "success",
+          "Review CLI help": "success",
+          "Context CLI help": "success",
+          "Onboarding CLI help": "success",
+          "Exploration CLI help": "success",
+          "CLI version": "success"
+        },
+        "dedicated_release_build": null
+      },
+      "rust_all_targets": {
+        "suite_summaries": 57,
+        "passed": 461,
+        "failed": 0,
+        "ignored": 3,
+        "measured": 0,
+        "filtered_out": 0,
+        "expected_targets": 57,
+        "declared_tests": 464,
+        "parse_complete": true
+      },
+      "human_experience_cli": {
+        "passed": 7,
+        "failed": 0,
+        "ignored": 0,
+        "expected_test_names": [
+          "invalid_onboard_cli_inputs_are_rejected_before_configuration_is_opened",
+          "direct_reference_cli_preserves_verbatim_passages_and_live_evidence_drilldown",
+          "onboard_cli_immediately_returns_useful_exact_evidence_without_inspection_or_inference",
+          "optional_answer_has_ungraded_fallback_without_a_stored_profile_or_answer",
+          "initialized_onboard_flushes_usage_on_native_stacks_and_linux_one_mib_stack",
+          "onboard_cli_json_and_markdown_fit_the_complete_budget_and_preserve_sources_wiki_and_state",
+          "supplied_task_bypasses_tutorial_and_retains_actual_intent"
+        ],
+        "all_expected_names_observed_once_as_passed": true
+      },
+      "python": {
+        "discovered": 236,
+        "passed": 226,
+        "skipped": 10,
+        "reported_failure_outcomes": 0,
+        "reported_error_outcomes": 0,
+        "elapsed_seconds": 140.282
+      },
+      "corrected_human_transfer_regression": {
+        "test": "test_human_onboarding.HumanOnboardingTests.test_independent_transfer_requires_bound_explanation_review_and_no_assistance",
+        "observed_pass": true,
+        "observed_records": 1,
+        "skipped": false
+      },
+      "separate_frozen_zoom": {
+        "command_conclusion": "skipped",
+        "passed": 0
+      },
+      "cli_smoke": {
+        "profile": "debug",
+        "command_prefix": [
+          "cargo",
+          "run",
+          "--locked",
+          "--"
+        ],
+        "observed_invocations": [
+          [
+            "decisions",
+            "--help"
+          ],
+          [
+            "cases",
+            "--help"
+          ],
+          [
+            "baseline",
+            "--help"
+          ],
+          [
+            "changes",
+            "--help"
+          ],
+          [
+            "guard",
+            "--help"
+          ],
+          [
+            "--help"
+          ],
+          [
+            "review",
+            "--help"
+          ],
+          [
+            "context",
+            "--help"
+          ],
+          [
+            "onboard",
+            "--help"
+          ],
+          [
+            "explore",
+            "--help"
+          ],
+          [
+            "--version"
+          ]
+        ],
+        "version_stdout": [
+          "lore 0.7.0"
+        ],
+        "release_mode_observed": false
+      },
+      "runner_environment": {
+        "image": "windows-2025-vs2026",
+        "image_version": "20260925.250.1",
+        "rustc_version": null,
+        "cargo_version": null,
+        "python_version": null
+      },
+      "decoded_log_binding": {
+        "encoding": "decoded UTF-8 job log",
+        "bytes": 191788,
+        "sha256": "098ade19279fb53077a7abe3d3dfcf2a81e51477691ef7ff004da8cac2a3f149",
+        "raw_included": false
+      }
+    }
+  },
+  "guardian": {
+    "workflow": {
+      "id": 38094401929,
+      "url": "https://github.com/grove/lore/actions/runs/38094401929",
+      "head_sha": "76826b68a6054af10cedc7fe45386e96bf20f55f",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "created_at": "2026-10-10T23:15:40Z",
+      "updated_at": "2026-10-10T23:22:15Z"
+    },
+    "job_id": 114337202210,
+    "job_url": "https://github.com/grove/lore/actions/runs/38094401929/jobs/114337202210",
+    "conclusion": "success",
+    "observed_checkout_sha": "76826b68a6054af10cedc7fe45386e96bf20f55f",
+    "official_artifact_metadata": {
+      "id": 11685312650,
+      "name": "guardian-source-integrity-76826b68a6054af10cedc7fe45386e96bf20f55f",
+      "bytes": 4566361,
+      "github_reported_sha256": "985e5ae335e9193b34c0d2347cbbdc6547c660c4eabe543b1049e1252f8da025",
+      "created_at": "2026-10-10T23:22:12Z",
+      "expires_at": "2026-11-09T23:22:10Z",
+      "expired_at_capture": false,
+      "url": "https://api.github.com/repos/grove/lore/actions/artifacts/11685312650",
+      "artifact_bytes_downloaded_by_this_review": false,
+      "artifact_digest_independently_recomputed": false
+    },
+    "gate_report": {
+      "status": "passed",
+      "errors": [],
+      "cohorts": {
+        "baseline": {
+          "events": 60,
+          "passed": true,
+          "reported_command_integrity": {
+            "captured": 603,
+            "filesystem_observer_captured": 603,
+            "filesystem_observer_complete": 600,
+            "filesystem_source_observer_complete": 603,
+            "preserved": 603,
+            "total": 603
+          },
+          "reported_logical_model_calls": 0
+        },
+        "candidate": {
+          "events": 60,
+          "passed": true,
+          "reported_command_integrity": {
+            "captured": 602,
+            "filesystem_observer_captured": 602,
+            "filesystem_observer_complete": 599,
+            "filesystem_source_observer_complete": 602,
+            "preserved": 602,
+            "total": 602
+          },
+          "reported_logical_model_calls": 0
+        },
+        "candidate-repeat": {
+          "events": 60,
+          "passed": true,
+          "reported_command_integrity": {
+            "captured": 602,
+            "filesystem_observer_captured": 602,
+            "filesystem_observer_complete": 599,
+            "filesystem_source_observer_complete": 602,
+            "preserved": 602,
+            "total": 602
+          },
+          "reported_logical_model_calls": 0
+        },
+        "focused-payments": {
+          "events": 10,
+          "passed": true,
+          "reported_command_integrity": {
+            "captured": 71,
+            "filesystem_observer_captured": 71,
+            "filesystem_observer_complete": 70,
+            "filesystem_source_observer_complete": 71,
+            "preserved": 71,
+            "total": 71
+          },
+          "reported_logical_model_calls": 0
+        }
+      },
+      "reported_replay_events": 190,
+      "reported_captured_source_preserved_commands": 1878,
+      "no_lore_control": {
+        "events": 60,
+        "passed": true,
+        "processes_started": 0,
+        "source_observer_complete_intervals": 240,
+        "failed_events": []
+      }
+    },
+    "physical_provider_attempts": null,
+    "gate_report_recomputed_from_archive": false,
+    "execution_egress_audit": "not_run",
+    "guardian_alert_quality": "unmeasured",
+    "decoded_log_binding": {
+      "encoding": "decoded UTF-8 job log",
+      "bytes": 70010,
+      "sha256": "ebf9251088334a8a906f0549aff1353430fbb4ff9bdf4e6c64763837b6773e65",
+      "raw_included": false
+    }
+  },
+  "verification_method": [
+    "Bind the completed workflow to its exact source head; verify the observed merge checkout and the accepted merge commit have the same Git tree.",
+    "Derive all 57 expected Rust targets from the untruncated source tree and Cargo target layout; require exactly that unique target set and one declared-test count and summary per target.",
+    "Recompute all-target Rust totals only inside the cargo test --all-targets --locked section, with no filtered tests; retain the separate selected frozen-Zoom invocation separately.",
+    "Count Python results from the unique completed unittest summary; require the previously failing human transfer method to appear exactly once with an ok outcome.",
+    "Check all seven named human CLI tests and their suite result; distinguish a preceding buffered summary from the newly announced target.",
+    "Require the exact 11 allowlisted debug-profile CLI invocations and observed lore 0.7.0 output on every platform.",
+    "Retain only decoded-log byte counts/hashes and bounded status/count fields. Guardian figures here are reports emitted by its completed gate, not a second independent archive verification."
+  ],
+  "raw_ci_logs_included": false,
+  "providers_called_by_this_review": 0,
+  "limitations": [
+    "This receipt proves the stated PR46 revision and merge. It does not provide acceptance evidence for a later PR47 source tree.",
+    "PR46 uses cargo run --locked and target/debug for its smoke checks. No release-mode build or release CLI invocation was observed in this workflow; final release-mode acceptance is recorded separately for PR47.",
+    "Ignored Rust tests and skipped Python tests are not counted as passes. Platform-specific compiled Rust tests cause different totals.",
+    "Missing exact toolchain versions remain null; runner images and any observed Python version are retained without inference.",
+    "Guardian artifact identity and digest are GitHub-reported metadata. This review did not download or recompute the artifact archive; the source-integrity counts are explicitly reported by the passed gate.",
+    "Physical provider-attempt counts are not independently available from this gate log and remain null. Independent alert quality remains unmeasured and execution/egress syscall audit was not run.",
+    "The earlier failed job outcomes and v1/v2/v3 receipt bytes remain unchanged. The v3 erratum is the current interpretation of the original failed runs.",
+    "No real providers, participants, or empirical study were launched by this verification."
+  ]
+}

@@ -1,0 +1,903 @@
+{
+  "authored_fix_source": "165e97dfc9d8a4e79f3892d670b5a91564c1a320",
+  "baseline_public_source": "a55cfeead56775af4e0ae9d171cbdcf191af2007",
+  "baseline_tree": "a0ebeecb3970a14abd10a4bcf15ea96d4bbc2049",
+  "changed_paths": [
+    {
+      "after": {
+        "bytes": 4144,
+        "git_blob": "f0f75ae183a10acb7abaf78146573f98b9aafce2",
+        "kind": "blob",
+        "mode": "100644",
+        "path": ".github/workflows/ci.yml",
+        "sha256": "c87a2979e5f1d73fa8ca030b5f658f43812a4d21f174bc5c9bfa31f3ab891f45"
+      },
+      "before": {
+        "bytes": 3960,
+        "git_blob": "bd61b487899531008b564585ff19b7a96f053f75",
+        "kind": "blob",
+        "mode": "100644",
+        "path": ".github/workflows/ci.yml",
+        "sha256": "b23e42a8b303031ad4aaa33526c8fe2a3cb32d381004dd2d2935632b4e61357d"
+      },
+      "classification": "source_and_toolchain_diagnostics_only",
+      "path": ".github/workflows/ci.yml",
+      "status": "modified"
+    },
+    {
+      "after": {
+        "bytes": 3696,
+        "git_blob": "6efd6cbd6ffbdbe0183b46a6bb091b12c4ca16b1",
+        "kind": "blob",
+        "mode": "100644",
+        "path": ".github/workflows/guardian-integrity.yml",
+        "sha256": "62620ce22674c8e3dd685ae6befed1377d77d889e1a282bbdc46482e0495d26e"
+      },
+      "before": {
+        "bytes": 3511,
+        "git_blob": "7a89adeb8ed0c16fa82a68362cc4f977c6d0b2ae",
+        "kind": "blob",
+        "mode": "100644",
+        "path": ".github/workflows/guardian-integrity.yml",
+        "sha256": "711d8143cac3f3d478954f47695459fce9b0cef32df25e5948ad9ee2bc0da895"
+      },
+      "classification": "source_and_toolchain_diagnostics_only",
+      "path": ".github/workflows/guardian-integrity.yml",
+      "status": "modified"
+    },
+    {
+      "after": {
+        "bytes": 14301,
+        "git_blob": "5668a330caa829f50737a7b86488255c24c273ae",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/PRODUCT_QUALITY_08.md",
+        "sha256": "3843bc2b6113e55470cf8e440eee9ff323b1b9fbe7c536e2772bfb6ecccb0f3a"
+      },
+      "before": {
+        "bytes": 11017,
+        "git_blob": "f8829e25e046842764483ba65908e01bfbe94c4c",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/PRODUCT_QUALITY_08.md",
+        "sha256": "827a531948ddf76d09148cc97c53806eb5819f15a9b3180a30e2ce6956aefcd5"
+      },
+      "classification": "release_documentation",
+      "path": "evaluation/PRODUCT_QUALITY_08.md",
+      "status": "modified"
+    },
+    {
+      "after": {
+        "bytes": 7060,
+        "git_blob": "3672019be3310f5d11d1b965dc549ae1a423bfb8",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/README-08.md",
+        "sha256": "9bfca18c721aa59850d87c0e044c8e36944999fb42ff3009872197c9f1304882"
+      },
+      "before": {
+        "bytes": 3989,
+        "git_blob": "8ddd3cce32994108cca8869934a942465ccbb047",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/README-08.md",
+        "sha256": "5ae03a012d9f815677dc39b5da93678c43c8935c98fde0c5be30c13b155c0a2a"
+      },
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/README-08.md",
+      "status": "modified"
+    },
+    {
+      "after": {
+        "bytes": 8789,
+        "git_blob": "49c93c970eadcc84d6a34e1861de2323a8b0f921",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/acceptance-08.json",
+        "sha256": "86a813490b93d07117e95fa486a25c8fe306a57a4341c44e4d353f6cfa8683bf"
+      },
+      "before": {
+        "bytes": 5560,
+        "git_blob": "91a6368541b3e5384123312ab550a331dcf84601",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/acceptance-08.json",
+        "sha256": "e7cd0f33043f4c1278fc9afbffeb035fac1cc7534a54a47e4937c59abfb9d485"
+      },
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/acceptance-08.json",
+      "status": "modified"
+    },
+    {
+      "after": {
+        "bytes": 13969,
+        "git_blob": "4344aa88809a11a7b66b9e526d85fc8cb591e088",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/artifact-manifest.json",
+        "sha256": "d2c721e476175bc5439f3bc9da4159677990401872c386a7dda7195ba3bcaae4"
+      },
+      "before": {
+        "bytes": 4500,
+        "git_blob": "3060e051b467183f57ca07e7bbcf9083d3ddadf8",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/artifact-manifest.json",
+        "sha256": "ffbe75f45f189bc72abbc5eac2e1132905a7e7286c2e74dad61f816c0b533d8a"
+      },
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/artifact-manifest.json",
+      "status": "modified"
+    },
+    {
+      "after": {
+        "bytes": 6594,
+        "git_blob": "a514c14ed3f3992e9ba3d66adec66d4a42e66df5",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/guardian-a55cfee/README.md",
+        "sha256": "495b432b64038e34c179927a6c2ab87ce581eabc48c6662c85d751b5e2bcf546"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/guardian-a55cfee/README.md",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 2159,
+        "git_blob": "911169b524d5fb4daccbc0d266b5d83ff872d5ba",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/guardian-a55cfee/github-metadata.json",
+        "sha256": "61d1d5cf1a03a745231f4c50532992f697b7f59ba47f8db1d411a531b7b14d07"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/guardian-a55cfee/github-metadata.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 4803212,
+        "git_blob": "d88a90b2647e94e0544dc0b4ae6d6a431ed968ba",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/guardian-a55cfee/guardian-integrity-evidence.zip",
+        "sha256": "7435a529a96d68c3ad432ef4a13c4a47877a97cfdb96750edd2be6563310ef40"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/guardian-a55cfee/guardian-integrity-evidence.zip",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 12203,
+        "git_blob": "4dd8663b500e55beb9bccb05feeea4eb41689c55",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/guardian-a55cfee/guardian-verification.json",
+        "sha256": "dde6ae997a303789e2b5c5a6313ce3a1bb19ab3832705bdddf9052daa8b517ee"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/guardian-a55cfee/guardian-verification.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 49384,
+        "git_blob": "d7edde1af19a917ae460817c7a4fcfe5bb3a78eb",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/guardian-a55cfee/receipt.json",
+        "sha256": "d1defb19308392294679798c6f6debd35a807055a89f701e904e8fe34a6a0706"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/guardian-a55cfee/receipt.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 12220,
+        "git_blob": "7cdf33cf72b72676e2b5bfd5ea270b156bf52d4f",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/guardian-a55cfee/retained-inner-verification.json",
+        "sha256": "8130b8a877318fd0f3d86e6606e2df972f2486a83de45e50a36d544c987d2a85"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/guardian-a55cfee/retained-inner-verification.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 1760,
+        "git_blob": "2b973c2a282bac092f0cea1bcad0594f504d1e05",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/guardian-a55cfee/selected-artifacts.json",
+        "sha256": "bf5111ec8242f2ee85e8b444fe2e5a9b6e93f9d87f6d3a008a385f400a8765dd"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/guardian-a55cfee/selected-artifacts.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 18823,
+        "git_blob": "3e0149d051754f60f90508b186e11d55738ad31a",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/guardian-a55cfee/verify_guardian_release.py",
+        "sha256": "f24cbb69007c8895855898252e61d86db79c56c4a90efd629d6705305471ffc8"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/guardian-a55cfee/verify_guardian_release.py",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 6718,
+        "git_blob": "c0b632a151fccd6e2f81f61b4bd18f8973792a22",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/local-final/artifact-manifest.json",
+        "sha256": "b3e48463ed00d171b7396a4f643f5c323e2e8f04fa78186ea8b8ace13f8ec50d"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/local-final/artifact-manifest.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 583,
+        "git_blob": "a1b8113f9a3af93f83538ddc8dad4e0cf62d692a",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/local-final/baseline-binding.json",
+        "sha256": "1f1885e1f6464dfbd375e7370df1120abe2ea142b32ac90ba94b6c450c0a4850"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/local-final/baseline-binding.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 4760,
+        "git_blob": "9c05810a46f9ce090fbe4530f419aa782e7e9c49",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/local-final/baseline-contracts/contracts.json",
+        "sha256": "65f5101381b708e25e5c96343677e7f4c4d98894836ed4662181eb58ab7e4729"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/local-final/baseline-contracts/contracts.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 9107,
+        "git_blob": "e62cea014b1c3c7c27721de2dd1ecfe581beada8",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/local-final/baseline-contracts/default.json",
+        "sha256": "84bc6cc7a52dd361fb123762fd8fcd9ddbb4135718a4a34c72b7712a9bf97fe8"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/local-final/baseline-contracts/default.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 7233,
+        "git_blob": "fc8f59743343e434375b0ca3b27130ca34f6d514",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/local-final/baseline-contracts/schema_2.json",
+        "sha256": "eeee6ff4c074469b03c226d8b5c5b7499ce4c2f006b645dd0a818a4e182ab268"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/local-final/baseline-contracts/schema_2.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 7397,
+        "git_blob": "fe6f38615678aaea25ad24a3694b0e2b6ddbf47b",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/local-final/baseline-contracts/schema_3.json",
+        "sha256": "b22031f40eff90b125c0e6a91029724ebc1c5cdfea99a636eb9c712d51f54f16"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/local-final/baseline-contracts/schema_3.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 9107,
+        "git_blob": "d42cdd51bf498f6d782307b4e492433d00cc36bc",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/local-final/baseline-contracts/schema_4.json",
+        "sha256": "e43859cad19bcb792c042ea5bdd32f8e295403d056abc805a6e4c75a617ef20c"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/local-final/baseline-contracts/schema_4.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 9508,
+        "git_blob": "67e2ebcffee11b26e52a09ce84f6d7f3c8f7985b",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/local-final/baseline-contracts/schema_5.json",
+        "sha256": "c8fe8d9852dff4860ec4b2e63b8cfa375fd2736c54d14dd88e33b41bf34ab186"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/local-final/baseline-contracts/schema_5.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 1829,
+        "git_blob": "ccb34e8edd1b1407cee37913f575e811049c703d",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/local-final/contract-comparison.json",
+        "sha256": "93f609a7e24eff9d8904d863bd77b9fcf8944278316d4a8f4047e4fae73939dc"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/local-final/contract-comparison.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 4763,
+        "git_blob": "05a743139290338ca6ae31eee13513dc59abc6dc",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/local-final/contracts/contracts.json",
+        "sha256": "20c972f1f23581b3af6a253e0ab26297a77c404360ec2d0f9c4d147e0cd434c7"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/local-final/contracts/contracts.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 9724,
+        "git_blob": "feb09711443597d26bfb68cd869ba84516cacf11",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/local-final/contracts/default.json",
+        "sha256": "5092567e7bd749e9aaa08b2ae3ecc7f7a68d39d6c8a3fe554da4a65ed044a224"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/local-final/contracts/default.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 7233,
+        "git_blob": "fc8f59743343e434375b0ca3b27130ca34f6d514",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/local-final/contracts/schema_2.json",
+        "sha256": "eeee6ff4c074469b03c226d8b5c5b7499ce4c2f006b645dd0a818a4e182ab268"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/local-final/contracts/schema_2.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 7397,
+        "git_blob": "fe6f38615678aaea25ad24a3694b0e2b6ddbf47b",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/local-final/contracts/schema_3.json",
+        "sha256": "b22031f40eff90b125c0e6a91029724ebc1c5cdfea99a636eb9c712d51f54f16"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/local-final/contracts/schema_3.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 9106,
+        "git_blob": "a5c42599f7d176196d5177a48fde44b2607c175a",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/local-final/contracts/schema_4.json",
+        "sha256": "2224e5d27bd586300ac387242b0bb5f3eec05fee87884c43ab4266cca52d3727"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/local-final/contracts/schema_4.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 9724,
+        "git_blob": "1dfa6ca1d10eedef5ec494db14724193e53bccec",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/local-final/contracts/schema_5.json",
+        "sha256": "25bd031eedf04dfa934693e406610519f0339ebab8866bb962e7d4437e20c2e1"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/local-final/contracts/schema_5.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 5936,
+        "git_blob": "d0d3da4c5e96910f426cdb2ab20f698525d7291b",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/local-final/prior-runtime-checks/cli-smoke.json",
+        "sha256": "f708278bab431882b5e9411b265224580d2d1885244c85722a93350db0941118"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/local-final/prior-runtime-checks/cli-smoke.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 828,
+        "git_blob": "03d9ea167d4f8adf574fd5b95924e48e35f0b4ec",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/local-final/prior-runtime-checks/executable-permission-repair.json",
+        "sha256": "74d6353b252e90ea4afde08c1f28511c9827ba60ddf9e7d8ba240a578c00e04f"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/local-final/prior-runtime-checks/executable-permission-repair.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 1644,
+        "git_blob": "91f9505a6acb153368ed872403f47211264d2402",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/local-final/prior-runtime-checks/fmt.json",
+        "sha256": "018b33dd15c0899f4e05801151928f2233fc7609a3ebde907281aa8575241bb7"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/local-final/prior-runtime-checks/fmt.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 2363,
+        "git_blob": "65df3408d5eec9c7a9041c3647d1225f4d483f6d",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/local-final/prior-runtime-checks/focused-cli-provider-tests.json",
+        "sha256": "54470bf886f2c44bd17896a35212664d776125ab5414d81c2010e65d701196a6"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/local-final/prior-runtime-checks/focused-cli-provider-tests.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 1849,
+        "git_blob": "1aac3016f5a7c38adb07636b7470835468794311",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/local-final/prior-runtime-checks/provider-usage-rerun.json",
+        "sha256": "0a0691f6aa927538e56bf4a1c4d49c31d94e496d59863ca8984f80d4cd9850ab"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/local-final/prior-runtime-checks/provider-usage-rerun.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 1874,
+        "git_blob": "28b78ccdd237bc7334db996d8238e62aaeb13e1b",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/local-final/prior-runtime-checks/strict-clippy.json",
+        "sha256": "f7f6e43ba07c36f59e2aacb426851fb027447cc9cac2595e60129f65a9dba0a7"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/local-final/prior-runtime-checks/strict-clippy.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 792,
+        "git_blob": "a5a10dbfe2950174757c4c4fc43be37c64cba47f",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/local-final/prior-runtime-checks/toolchain.json",
+        "sha256": "a0636deb087e7a390937df948add5e5a0938114d48401901c6839593b4025567"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/local-final/prior-runtime-checks/toolchain.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 1949,
+        "git_blob": "e91fb7da6e15af176b12f4dfb344b3a4ffea43bb",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/local-final/receipts/contract-capture.json",
+        "sha256": "32c391a56c0790633da2d49903e435d368a47905f4c2c14a82381ceee85a8b26"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/local-final/receipts/contract-capture.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 1755,
+        "git_blob": "55c588f2c57f9c9f13180adb43f63bf7facad429",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/local-final/receipts/contract-verify.json",
+        "sha256": "9d6af783e200bd42937c1db1469f7b22cc6b0ae404673e477518c976c96650fb"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/local-final/receipts/contract-verify.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 1730,
+        "git_blob": "e032bf91edefa737a6b06130c02ec4fdf7528609",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/local-final/receipts/release-build.json",
+        "sha256": "b151516f844afe1d01773ab51542ec3f23201b073177fc68e283b00322fc42c1"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/local-final/receipts/release-build.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 1725,
+        "git_blob": "ad8e4c22b9b07c4314e28d97a40b35695420cdf2",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/local-final/receipts/release-version.json",
+        "sha256": "8604375f7c3346d83175e02504807a9a88cf05cffac454952461f72d933b4317"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/local-final/receipts/release-version.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 1241,
+        "git_blob": "fe8a67a2a9ffa422f52fe8391bad2a2b0fc4134a",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/local-final/release-binary.json",
+        "sha256": "f516b97fbb351e4dc8234bc997f813cdd58dfc81df1027231d344b2e3cabb2e1"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/local-final/release-binary.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 11280,
+        "git_blob": "69f3c4855f96b091aee2c415a6093dbfa163ec51",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/local-final/runtime-source-manifest.json",
+        "sha256": "d5d23c487b281f2f775e159d644f6dce41a3cd1757031f418fdf0555d0d13a87"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/local-final/runtime-source-manifest.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 1668,
+        "git_blob": "73fcd045ab0047c66025defec924e0715c091cca",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/local-final/source-equivalence.json",
+        "sha256": "3560cbfaf3bd665f08267128a82602e183c07300e11f8bb06efd5a5442a81c5b"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/local-final/source-equivalence.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 4564,
+        "git_blob": "297faebcadb2aeea75641e4edfa36935205d5fc0",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/local-final/summary.json",
+        "sha256": "bd74d42d75d0adab7748a410539b25814143811660a5add2d740cb7a2f01a89d"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/local-final/summary.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 3693,
+        "git_blob": "0a932e1d56e7d76a8190b9c1abed8063008ed7b5",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/matrix-a55cfee-failed/MATRIX.md",
+        "sha256": "f3be57b41ae997bb16dae49302e84df5e4bce94cb2710fa16b0fe262a69e97e5"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/matrix-a55cfee-failed/MATRIX.md",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 9117,
+        "git_blob": "a890d5a484f6359d336de83e5ae904c65b03ff0f",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/matrix-a55cfee-failed/matrix-metadata.json",
+        "sha256": "d4b8b8a29f18ac52cf8f91b851a4a1dfdbe9fc2b3b87fa179d7a502d1432637b"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/matrix-a55cfee-failed/matrix-metadata.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 10502,
+        "git_blob": "e2d2c714a19c03a3d636d1edd1f112034ad7b7ec",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/matrix-a55cfee-failed/matrix-verification.json",
+        "sha256": "745704e12fb1c790925b7daea9c9b7df552fc0ab125e768cc9545c6ebb37731d"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/matrix-a55cfee-failed/matrix-verification.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 1163,
+        "git_blob": "1fee8db019aed5adf05fff1ffb5368e7fc01a879",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/matrix-a55cfee-failed/selected-matrix-artifacts.json",
+        "sha256": "a5cb98b6d71c54a4a6d3a2c8d6925e934933abae665be07f7eac097221a29081"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/matrix-a55cfee-failed/selected-matrix-artifacts.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 14125,
+        "git_blob": "63b74fd8bafd352e139b2cfea5bea7698c2d3fa3",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/matrix-a55cfee-failed/verify_release_matrix.py",
+        "sha256": "b3a741e066c1d5c90c66a43db0c9455fa3e1f292137aab2ba834b3671303ee12"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/matrix-a55cfee-failed/verify_release_matrix.py",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 2612,
+        "git_blob": "f9df5ed3fc27171ac86964cfec4fb24aae644340",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/merged-packages.json",
+        "sha256": "c9f073657cf88b05e9b071e341100fb293df94e3936a29520337d3581d45ff4b"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/merged-packages.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 17016,
+        "git_blob": "f371cd3f2ab3b5a1f91dc150d57aec0ba26704c9",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/pr42-runtime-regression-history.json",
+        "sha256": "c423853954567c38e2eb78775dd553d0888028f8a31253a9cd378f47e6cc597f"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/pr42-runtime-regression-history.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 5026,
+        "git_blob": "09a2b5dcb88aa32b50a65b1221604e6a5fdbdf1d",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/results/release-08/pr46-pr47-human-fixture-regression.json",
+        "sha256": "d30b7e3224d906cb8ac2d03bc13e1e9f70e653e49883f4acf5e45d364ab0a970"
+      },
+      "before": null,
+      "classification": "retained_evidence_or_evidence_documentation",
+      "path": "evaluation/results/release-08/pr46-pr47-human-fixture-regression.json",
+      "status": "added"
+    },
+    {
+      "after": {
+        "bytes": 32198,
+        "git_blob": "1c2ea3cad18770d4638aa4122d232f9bd2d5479b",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/tests/test_human_onboarding.py",
+        "sha256": "4a999f0cabfa5ab73b1a605cda0dc4878288f9f30393f5d82f29430a3e6242a5"
+      },
+      "before": {
+        "bytes": 31564,
+        "git_blob": "e48e07ece668eb4bda6d27f89f58d1434aa5c883",
+        "kind": "blob",
+        "mode": "100644",
+        "path": "evaluation/tests/test_human_onboarding.py",
+        "sha256": "d5c1aaf7d00b1ee778d9f6e6dbb5357b8efdd684f2f4b95d30e39bbdd3bcb631"
+      },
+      "classification": "portable_human_test_fixture_and_negative_boundary_assertion",
+      "path": "evaluation/tests/test_human_onboarding.py",
+      "status": "modified"
+    }
+  ],
+  "classification": "exact_corrected_public_head_source_and_evidence_input_binding",
+  "corrected_public_source": "6e6f8a6af871bdeca53dcc79b63a60fd2af52743",
+  "corrected_public_tree": "1e77e84d9f7e69b89968c6b60a6beef7f9afec82",
+  "equivalent_local_source": "2680a3c69c9c5d2b2d3c38942aa2d0d96572ce54",
+  "human_test_fixture": {
+    "bytes": 32198,
+    "git_blob": "1c2ea3cad18770d4638aa4122d232f9bd2d5479b",
+    "kind": "blob",
+    "mode": "100644",
+    "path": "evaluation/tests/test_human_onboarding.py",
+    "sha256": "4a999f0cabfa5ab73b1a605cda0dc4878288f9f30393f5d82f29430a3e6242a5"
+  },
+  "human_test_fixture_matches_tested_authored_fix": true,
+  "local_tree_matches_public_tree": true,
+  "new_corrected_head_binary_build": null,
+  "new_corrected_head_ci_result": null,
+  "new_guardian_replay": false,
+  "observed_at_utc": "2026-10-10T23:25:27.374438+00:00",
+  "only_test_file_changed_from_baseline": "evaluation/tests/test_human_onboarding.py",
+  "qualification": "This exact path/mode/blob/SHA-256 comparison binds unchanged runtime and Guardian inputs to the corrected public source. Original build, capture, binary, environment and CI records remain pinned to their actual a55 source. Workflow diagnostics changed separately. No new corrected-head platform or Guardian result is inferred.",
+  "retained_evidence": {
+    "guardian": {
+      "binding": "guardian-evidence-binding.json",
+      "candidate_debug_binary_sha256": "59f20591127dbd04ac350ae0bd7e9651be0f33daf7a24d3dbcd9bfd05c6c83f8",
+      "observed_source": "a55cfeead56775af4e0ae9d171cbdcf191af2007",
+      "run_id": 38092630241
+    },
+    "local_release": {
+      "binary_sha256": "f9ee5b81b14a16df4a7c5fba6ced41d8a1111ec3701db38bbc433d69fdebeff8",
+      "contract_capture_sha256": "20c972f1f23581b3af6a253e0ab26297a77c404360ec2d0f9c4d147e0cd434c7",
+      "observed_source": "a55cfeead56775af4e0ae9d171cbdcf191af2007",
+      "summary_sha256": "bd74d42d75d0adab7748a410539b25814143811660a5add2d740cb7a2f01a89d",
+      "version": "lore 0.8.0"
+    }
+  },
+  "schema_version": 1,
+  "total_changed_paths": 53,
+  "verified_input_scopes": [
+    {
+      "changed_paths": [],
+      "checked_baseline_source": "a55cfeead56775af4e0ae9d171cbdcf191af2007",
+      "checked_corrected_source": "6e6f8a6af871bdeca53dcc79b63a60fd2af52743",
+      "file_count": 70,
+      "manifest": "runtime-inputs.json",
+      "manifest_sha256": "209703b68ccc2f04d9bb6e3e7ad83922b21b74ec8fb5c3a93fcd1482ec22d0a1",
+      "status": "all_paths_modes_git_blobs_and_sha256_identical"
+    },
+    {
+      "changed_paths": [],
+      "checked_baseline_source": "a55cfeead56775af4e0ae9d171cbdcf191af2007",
+      "checked_corrected_source": "6e6f8a6af871bdeca53dcc79b63a60fd2af52743",
+      "file_count": 145,
+      "manifest": "guardian-inputs.json",
+      "manifest_sha256": "9c0268c1f815636c21f8cbef9caf16128506d19914a9681b36e49252cd25af5d",
+      "status": "all_paths_modes_git_blobs_and_sha256_identical"
+    }
+  ],
+  "workflows": [
+    {
+      "added_step_sha256": "4b7146a2c7a039e24448e748af1781f893ee64caec645df270f3550507c0c067",
+      "after": {
+        "bytes": 4144,
+        "git_blob": "f0f75ae183a10acb7abaf78146573f98b9aafce2",
+        "kind": "blob",
+        "mode": "100644",
+        "path": ".github/workflows/ci.yml",
+        "sha256": "c87a2979e5f1d73fa8ca030b5f658f43812a4d21f174bc5c9bfa31f3ab891f45"
+      },
+      "before": {
+        "bytes": 3960,
+        "git_blob": "bd61b487899531008b564585ff19b7a96f053f75",
+        "kind": "blob",
+        "mode": "100644",
+        "path": ".github/workflows/ci.yml",
+        "sha256": "b23e42a8b303031ad4aaa33526c8fe2a3cb32d381004dd2d2935632b4e61357d"
+      },
+      "change": "one six-line source/toolchain version reporting step added after checkout",
+      "existing_workflow_bytes_preserved_after_removing_exact_added_block": true,
+      "new_ci_result_claimed": false,
+      "path": ".github/workflows/ci.yml"
+    },
+    {
+      "added_step_sha256": "d4471f5dc5c8e6fb8cf34151721f44bb4a422c882bf24aeae15c6d9a0af1f07b",
+      "after": {
+        "bytes": 3696,
+        "git_blob": "6efd6cbd6ffbdbe0183b46a6bb091b12c4ca16b1",
+        "kind": "blob",
+        "mode": "100644",
+        "path": ".github/workflows/guardian-integrity.yml",
+        "sha256": "62620ce22674c8e3dd685ae6befed1377d77d889e1a282bbdc46482e0495d26e"
+      },
+      "before": {
+        "bytes": 3511,
+        "git_blob": "7a89adeb8ed0c16fa82a68362cc4f977c6d0b2ae",
+        "kind": "blob",
+        "mode": "100644",
+        "path": ".github/workflows/guardian-integrity.yml",
+        "sha256": "711d8143cac3f3d478954f47695459fce9b0cef32df25e5948ad9ee2bc0da895"
+      },
+      "change": "one six-line source/toolchain version reporting step added after checkout",
+      "existing_workflow_bytes_preserved_after_removing_exact_added_block": true,
+      "new_ci_result_claimed": false,
+      "path": ".github/workflows/guardian-integrity.yml"
+    }
+  ]
+}
