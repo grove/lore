@@ -8,7 +8,10 @@ use lore::{
     storage,
 };
 use serde_json::{Value, json};
-use std::fs;
+use std::{
+    fs,
+    sync::atomic::{AtomicUsize, Ordering},
+};
 
 /// A deterministic stand-in for an imperfect real extractor/reconciler.
 /// It deliberately paraphrases scopes differently and either mistakes a
@@ -93,6 +96,34 @@ impl GenerativeModel for ScopeDriftModel {
                     }
                 }
                 _ => {}
+            }
+            Ok(response)
+        })
+    }
+}
+
+struct DuplicateRelationshipModel {
+    delegate: FakeModel,
+    reconciliation_calls: AtomicUsize,
+}
+impl GenerativeModel for DuplicateRelationshipModel {
+    fn descriptor(&self) -> &ModelDescriptor {
+        self.delegate.descriptor()
+    }
+    fn generate<'a>(
+        &'a self,
+        request: &'a GenerationRequest,
+    ) -> ModelFuture<'a, GenerationResponse> {
+        Box::pin(async move {
+            let input: Value = serde_json::from_str(&request.input).unwrap();
+            let mut response = self.delegate.generate(request).await?;
+            if input["task"] == "reconcile" {
+                self.reconciliation_calls.fetch_add(1, Ordering::SeqCst);
+                let mut output: Value = serde_json::from_str(&response.text).unwrap();
+                if let Some(relation) = output["relations"].as_array().unwrap().first().cloned() {
+                    output["relations"].as_array_mut().unwrap().push(relation);
+                    response.text = output.to_string();
+                }
             }
             Ok(response)
         })
@@ -190,6 +221,60 @@ async fn explicit_adr_mentions_reconcile_despite_model_scope_drift_and_missed_li
         .unwrap();
     assert!(result.no_op);
     assert_eq!(result.model_calls, 0);
+}
+
+#[tokio::test]
+async fn duplicate_relationship_proposals_are_coalesced_before_validation() {
+    let (_temp, cfg, fake) = project();
+    let model = DuplicateRelationshipModel {
+        delegate: fake,
+        reconciliation_calls: AtomicUsize::new(0),
+    };
+    put(
+        &cfg,
+        "decisions/ADR-001.md",
+        "# ADR-001\n\nDECISION ledger: MySQL was selected as the production payments ledger database.\n",
+    );
+    engine::update(&cfg, &model, None, UpdateOptions::default())
+        .await
+        .unwrap();
+
+    let before = model.reconciliation_calls.load(Ordering::SeqCst);
+    put(
+        &cfg,
+        "decisions/ADR-027.md",
+        "# ADR-027\n\nDECISION ledger: PostgreSQL replaces ADR-001 for the production payments ledger.\n",
+    );
+    engine::update(&cfg, &model, None, UpdateOptions::default())
+        .await
+        .unwrap();
+    assert_eq!(
+        model.reconciliation_calls.load(Ordering::SeqCst) - before,
+        1,
+        "duplicate relationship output should not require a repair call"
+    );
+
+    let conn = storage::read_only(&cfg.state.join("state.db")).unwrap();
+    let operation: String = conn
+        .query_row(
+            "SELECT operation_json FROM reconciliation_log log
+             JOIN assertion_revisions revision ON revision.id=log.assertion_revision_id
+             JOIN sources source ON source.id=revision.source_id
+             WHERE source.relative_path='decisions/ADR-027.md'",
+            [],
+            |row| row.get(0),
+        )
+        .unwrap();
+    let operation: Value = serde_json::from_str(&operation).unwrap();
+    assert_eq!(operation["relations"].as_array().unwrap().len(), 1);
+    assert_eq!(
+        storage::relations(&conn)
+            .unwrap()
+            .iter()
+            .filter(|relation| relation.kind == "supersedes" && relation.active)
+            .count(),
+        1
+    );
 }
 
 #[tokio::test]
