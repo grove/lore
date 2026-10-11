@@ -232,3 +232,43 @@ async fn symlink_receipts_files_and_destinations_are_rejected() {
     std::os::unix::fs::symlink(&path, &output).unwrap();
     assert!(feedback::draft(&cfg, &path, &[], Some(&output), true).is_err());
 }
+
+#[cfg(unix)]
+#[tokio::test]
+async fn granted_fifo_is_rejected_without_waiting_for_a_writer() {
+    use std::{
+        ffi::CString,
+        os::unix::ffi::OsStrExt,
+        process::Stdio,
+        time::{Duration, Instant},
+    };
+    let (_tmp, cfg, _model, receipt) = setup().await;
+    let receipt_path = save(&cfg, &receipt);
+    let fifo = cfg.base.join("change.txt");
+    fs::remove_file(&fifo).unwrap();
+    let name = CString::new(fifo.as_os_str().as_bytes()).unwrap();
+    assert_eq!(unsafe { libc::mkfifo(name.as_ptr(), 0o600) }, 0);
+    let mut child = Command::new(env!("CARGO_BIN_EXE_lore"))
+        .arg("--config")
+        .arg(&cfg.config_path)
+        .args(["--json", "feedback", "draft", "--receipt"])
+        .arg(receipt_path)
+        .args(["--allow-file", "change.txt"])
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()
+        .unwrap();
+    let deadline = Instant::now() + Duration::from_secs(2);
+    loop {
+        if let Some(status) = child.try_wait().unwrap() {
+            assert!(!status.success());
+            break;
+        }
+        if Instant::now() >= deadline {
+            child.kill().unwrap();
+            child.wait().unwrap();
+            panic!("a FIFO must be rejected before a blocking open");
+        }
+        std::thread::sleep(Duration::from_millis(20));
+    }
+}

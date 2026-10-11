@@ -156,7 +156,19 @@ fn unique<'a>(items: impl IntoIterator<Item = &'a str>) -> Result<()> {
 fn byte_digest(path: &Path, expected: &str) -> Result<String> {
     use std::io::Read;
     util::reject_symlinks(path)?;
-    let file = fs::File::open(path)?;
+    ensure!(
+        fs::symlink_metadata(path)?.is_file(),
+        "expected a regular file"
+    );
+    let mut options = OpenOptions::new();
+    options.read(true);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::OpenOptionsExt;
+        // A concurrent replacement must not turn hashing into a blocking pipe read.
+        options.custom_flags(libc::O_NONBLOCK | libc::O_NOFOLLOW);
+    }
+    let file = options.open(path)?;
     ensure!(file.metadata()?.is_file(), "expected a regular file");
     let mut bytes = Vec::new();
     file.take(8_000_001).read_to_end(&mut bytes)?;
