@@ -10,6 +10,7 @@ pub mod http;
 pub mod imports;
 pub mod inference;
 pub mod insights;
+pub mod integrations;
 pub mod knowledge;
 pub mod provider_wire;
 pub mod publish;
