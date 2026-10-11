@@ -276,16 +276,30 @@ def configured_models(bundle: Path, spec: dict, prepared: dict, args: argparse.N
         prompt = bundle / coding.relative_file(str(prompt))
     prompt_hash = coding.hash_file(prompt)
     command = spec["run"]["agent_command"]
+    codex_adapter = str(ROOT / "codex_agent.py")
+    codex_pin = None
+    if codex_adapter in command:
+        import codex_agent
+        if len(command) < 2 or command[:2] != [str(Path(sys.executable).resolve()), codex_adapter]:
+            raise ValueError("Bundled Codex adapter requires the pinned Python interpreter and exact canonical script")
+        configured = codex_agent.parser().parse_args(command[2:])
+        codex_pin = codex_agent.configuration(configured)
+        if (agent["provider"] != "openai" or agent["endpoint"] != "https://api.openai.com/v1"
+                or configured.model != agent["model"] or configured.reasoning != agent["reasoning"]
+                or not args.allow_hosted or args.agent_location != "hosted"
+                or configured.timeout >= args.timeout or configured.timeout >= args.attempt_budget_seconds
+                or prompt_hash != codex_pin["prompt_sha256"]):
+            raise ValueError("Codex adapter model, prompt, hosted grants or inner timeout differ from the declared study")
     adapter = str(ROOT / "coding_agent.py")
     if adapter in command:
         # The bundled adapter has a known contract. Other adapters require the
         # captured external tool/model review, in addition to their command pin.
         import coding_agent
-        parser = AdapterArguments(add_help=False)
+        parser = AdapterArguments(add_help=False, allow_abbrev=False)
         parser.add_argument("--provider", choices=("ollama", "openai"), required=True)
         parser.add_argument("--model", required=True)
         parser.add_argument("--base-url")
-        parser.add_argument("--key-env", default="OPENAI_API_KEY")
+        parser.add_argument("--api-key-env", default="OPENAI_API_KEY")
         parser.add_argument("--allow-hosted", action="store_true")
         parser.add_argument("--reasoning-effort")
         parser.add_argument("--timeout", type=int, default=600)
@@ -319,7 +333,10 @@ def configured_models(bundle: Path, spec: dict, prepared: dict, args: argparse.N
             providers[role] = {"provider": provider, "model": model["model"], "model_revision": revision,
                 "endpoint": endpoint(config["providers"][provider]["base_url"], args.allow_hosted),
                 "reasoning": config["models"]["reasoning"]}
-    return {"configuration_sha256_by_case": configs, "providers": providers, "prompt_sha256": prompt_hash}
+    result = {"configuration_sha256_by_case": configs, "providers": providers, "prompt_sha256": prompt_hash}
+    if codex_pin is not None:
+        result["codex_adapter"] = codex_pin
+    return result
 
 
 def model_configuration(bundle: Path, spec: dict, prepared: dict, args: argparse.Namespace) -> dict:
@@ -331,6 +348,10 @@ def model_configuration(bundle: Path, spec: dict, prepared: dict, args: argparse
             raise ValueError("Coding model declarations differ from preregistration")
     if configured["prompt_sha256"] != registration["agent"]["prompt_sha256"]:
         raise ValueError("The exact coding prompt artifact differs from its preregistered digest")
+    if "codex_adapter" in configured:
+        if (registration["agent"].get("codex_adapter") != configured["codex_adapter"]
+                or registration["agent"]["tools"] != [] or registration["agent"]["tool_call_limit"] != 0):
+            raise ValueError("Preregister the exact Codex binary/schema/prompt/environment pins and zero tool grants")
     if (registration["lore"]["model"] != args.model
             or registration["lore"]["model_revision"] != spec["lore_revisions"]["generative"]
             or registration["lore"]["configuration_sha256_by_case"] != configured["configuration_sha256_by_case"]):
@@ -378,7 +399,8 @@ def registration_inputs(bundle: Path, spec: dict, prepared: dict, args: argparse
 def code_identity() -> dict:
     names = ("experiment_08.py", "outcome_protocol.py", "adaptive_tasks.py", "coding_tasks.py",
              "coding_agent.py", "provider_usage.py", "decision_tasks.py", "cross_source.py",
-             "benchmark.py", "shared_intelligence.py", "failure_triage.py")
+             "benchmark.py", "shared_intelligence.py", "failure_triage.py",
+             "codex_agent.py", "codex_proposal.schema.json")
     return {name: coding.hash_file(ROOT / name) for name in names}
 
 

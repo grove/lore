@@ -108,11 +108,23 @@ def validate_model_declarations(registration: dict) -> None:
         raise ValueError("The coding agent's tools must be an explicit unique list")
 
 
-def validate_model_pins(registration: dict, report: dict) -> None:
+def validate_model_pins(registration: dict, report: dict, *, codex_observations=None) -> None:
     validate_model_declarations(registration)
     agent, lore = registration["agent"], registration["lore"]
-    reported = {attempt["response"].get("provider_model") for sample in report["samples"]
-                for attempt in sample.get("attempts", [{"response": sample["agent_response"]}])}
+    reported = set()
+    for sample in report["samples"]:
+        for attempt in sample.get("attempts", [{"response": sample["agent_response"]}]):
+            response = attempt["response"]
+            model = response.get("provider_model")
+            if "codex_adapter" in agent:
+                receipt = response.get("adapter_receipt", {})
+                if any(receipt.get(key) != value for key, value in agent["codex_adapter"].items()):
+                    raise ValueError("Observed Codex invocation pins differ from preregistration")
+                observed = (codex_observations or {}).get(receipt.get("call_id"))
+                if observed is None or model is not None and model != observed:
+                    raise ValueError("Authenticated per-invocation Codex model observations are required")
+                model = observed
+            reported.add(model)
     if reported != {agent["model"]}:
         raise ValueError("Actual reported coding-model identities differ from the preregistered model")
     configurations = {sample["case_id"]: sample["configuration_sha256"] for sample in report["samples"]
@@ -120,6 +132,47 @@ def validate_model_pins(registration: dict, report: dict) -> None:
     if (not configurations or any(not isinstance(value, str) or not SHA256.fullmatch(value) for value in configurations.values())
             or lore.get("configuration_sha256_by_case") != configurations):
         raise ValueError("Preregistered Lore configurations do not match all collected cases")
+
+
+def codex_model_observations(directory: Path, registration: dict, report: dict) -> dict:
+    """External capture binds identities omitted by CLI events; names alone cannot pass."""
+    record = cross.read_json(directory / "CODEX_IDENTITIES.json")
+    if (record.get("schema_version") != 1 or record.get("complete") is not True
+            or record.get("metrics_sha256") != cross.digest(report)):
+        raise ValueError("Codex model observation capture is missing or unbound")
+    authentication = record.get("authentication", {})
+    if not isinstance(authentication.get("method"), str) or not authentication["method"].strip():
+        raise ValueError("External Codex identity capture requires authentication evidence")
+    capture(directory, authentication["capture"])
+    expected = {attempt["response"]["adapter_receipt"]["call_id"] for sample in report["samples"]
+                for attempt in sample["attempts"]}
+    count = sum(len(sample["attempts"]) for sample in report["samples"])
+    observed, observed_at = {}, []
+    for item in record["invocations"]:
+        identity = item["call_id"]
+        if (identity in observed or identity not in expected
+                or item["model"] != registration["agent"]["model"]
+                or item["model_revision"] != registration["agent"]["model_revision"]):
+            raise ValueError("External Codex identities do not cover the exact pinned invocations")
+        at = timestamp(item["observed_at"])
+        if at > datetime.now(timezone.utc):
+            raise ValueError("Codex identity observation cannot be future-dated")
+        observed_at.append(at)
+        capture(directory, item["capture"])
+        observed[identity] = item["model"]
+    if set(observed) != expected or len(expected) != count:
+        raise ValueError("External Codex identities are missing or invocation identifiers are reused")
+    excluded = [registration["operator_id"]]
+    for item in registration["cases"]:
+        excluded.extend(item["task_authors"] + item["checker_authors"])
+    subject = {key: value for key, value in record.items() if key != "reviews"}
+    reviewed = independent_reviews(directory, record["reviews"], excluded=excluded, target_sha256=cross.digest(subject))
+    if not reviewed["complete"]:
+        raise ValueError("Two independent reviews of authenticated Codex observations are required")
+    if any(timestamp(review["reviewed_at"]) < max(observed_at) or timestamp(review["reviewed_at"]) > datetime.now(timezone.utc)
+           for review in record["reviews"]):
+        raise ValueError("Codex identity reviews must follow observation and precede assessment")
+    return observed
 
 
 def validate_preregistration_inputs(directory: Path, registration: dict, report: dict) -> None:
@@ -189,7 +242,8 @@ def preregistration_status(directory: Path, report: dict) -> dict:
     issues = []
     try:
         validate_preregistration_inputs(directory, registration, report)
-        validate_model_pins(registration, report)
+        observations = codex_model_observations(directory, registration, report) if "codex_adapter" in registration["agent"] else None
+        validate_model_pins(registration, report, codex_observations=observations)
     except (ValueError, KeyError, TypeError, OSError) as error:
         issues.append(str(error))
     return {"complete": not issues, "status": "bound_preregistered_study" if not issues else "unmeasured",

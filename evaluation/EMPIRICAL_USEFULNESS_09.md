@@ -87,3 +87,38 @@ prompts and diagnostics are private and never printed on failure.
 The flags and event shapes were checked against the installed version/help and
 [official noninteractive documentation](https://learn.chatgpt.com/docs/non-interactive-mode).
 Offline tests use a pinned fake executable; no real Codex inference has run.
+
+## Sealed Codex configuration
+
+Set `EXPERIMENT.json`'s `run.agent_command` to a JSON argv array containing
+canonical Python and `evaluation/codex_agent.py` paths followed by the adapter
+arguments above. Set `run.agent_location` to `hosted`, `run.allow_hosted` to true,
+`agent.provider` to `openai`, `agent.endpoint` to `https://api.openai.com/v1`,
+and declare the same coding model/revision/reasoning in preregistration. The
+inner Codex timeout must be shorter than both the outer timeout and the attempt
+wall budget, so it can flush its failure ledger before the runner stops it.
+
+Write the exact `codex_agent.PROMPT` bytes to the private `agent.prompt_file`.
+Run `experiment_08.py pins BUNDLE`, then copy `configuration.codex_adapter`
+into `PREREGISTRATION.json`'s `agent.codex_adapter`. This pins the adapter,
+CLI executable/version, schema, prompt, fixed flags/config and scrub policy.
+Declare `tools: []` and `tool_call_limit: 0`. Seal and preflight check the same
+identities again; editing a pin after seal requires a new study directory.
+Generic private adapters retain their existing independent control route.
+The direct OpenAI/Ollama adapter remains available.
+
+Codex JSONL may omit the actual model or backend revision. Assessment never
+substitutes the requested CLI model for observation. In `run/CODEX_IDENTITIES.json`,
+retain `schema_version: 1`, `complete: true`, the canonical `metrics_sha256`,
+an `authentication` method and hash-bound capture, and one `invocations` entry
+per unique receipt `call_id`. Each entry needs the observed exact `model`,
+`model_revision`, offset `observed_at`, and private hash-bound `capture`.
+Two distinct independent `reviews` bind the digest of the whole observation
+record excluding `reviews`; use the existing independent review shape and
+exclude operator/task/checker authors. Authentication must come from the real
+external observer. The Python harness verifies bindings and declarations; it
+does not authenticate people or make a CLI model flag into backend evidence.
+
+Offline fixtures exercise this contract and the actual proposal/checker loop,
+including wrong answers and retained timeouts. They establish compatibility,
+never model availability, independence, productivity or release eligibility.
