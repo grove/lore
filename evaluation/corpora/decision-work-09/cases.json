@@ -1,0 +1,225 @@
+{
+  "schema_version": 1,
+  "bundle_version": "decision-work-09-v1",
+  "fixture_only": true,
+  "held_out": false,
+  "independent_projects": false,
+  "description": "Public authored development fixtures; not genuine tasks or productivity evidence.",
+  "cases": [
+    {
+      "id": "accepted-before-proposal",
+      "project": "accepted-before-proposal",
+      "source_root": "accepted-before-proposal",
+      "task": "Select the currently accepted database for a new service connection.",
+      "editable_files": [
+        "src/policy.py"
+      ],
+      "test_command": [
+        "{python}",
+        "{manifest}/check.py",
+        "accepted-before-proposal",
+        "{workspace}"
+      ],
+      "verification_files": [
+        "check.py",
+        "controls.json"
+      ],
+      "expected_sources": [
+        "ADR-001.md",
+        "RFC-002.md"
+      ],
+      "critical_constraints": [
+        "An unaccepted later proposal cannot supersede the accepted MySQL decision."
+      ]
+    },
+    {
+      "id": "scoped-supersession",
+      "project": "scoped-supersession",
+      "source_root": "scoped-supersession",
+      "task": "Implement retry_limit(scope) from the accepted replacement, preserving unaffected scopes.",
+      "editable_files": [
+        "src/policy.py"
+      ],
+      "test_command": [
+        "{python}",
+        "{manifest}/check.py",
+        "scoped-supersession",
+        "{workspace}"
+      ],
+      "verification_files": [
+        "check.py",
+        "controls.json"
+      ],
+      "expected_sources": [
+        "ADR-001.md",
+        "ADR-002.md"
+      ],
+      "critical_constraints": [
+        "Replacement applies only to API; batch remains five.",
+        "Unknown scopes fail closed."
+      ]
+    },
+    {
+      "id": "rare-release-exception",
+      "project": "rare-release-exception",
+      "source_root": "rare-release-exception",
+      "task": "Implement may_release(environment, signed, fixture), retaining the narrow unsigned exception.",
+      "editable_files": [
+        "src/policy.py"
+      ],
+      "test_command": [
+        "{python}",
+        "{manifest}/check.py",
+        "rare-release-exception",
+        "{workspace}"
+      ],
+      "verification_files": [
+        "check.py",
+        "controls.json"
+      ],
+      "expected_sources": [
+        "ADR-007.md",
+        "operations.md"
+      ],
+      "critical_constraints": [
+        "Production always requires signature.",
+        "Only staging fixtures qualify for the exception.",
+        "Unknown environments denied."
+      ]
+    },
+    {
+      "id": "report-is-not-policy",
+      "project": "report-is-not-policy",
+      "source_root": "report-is-not-policy",
+      "task": "Implement may_delete(retention_days, approved) using the accepted retention policy.",
+      "editable_files": [
+        "src/policy.py"
+      ],
+      "test_command": [
+        "{python}",
+        "{manifest}/check.py",
+        "report-is-not-policy",
+        "{workspace}"
+      ],
+      "verification_files": [
+        "check.py",
+        "controls.json"
+      ],
+      "expected_sources": [
+        "ADR-003.md",
+        "work-report.md"
+      ],
+      "critical_constraints": [
+        "Completed staging work does not amend accepted retention or approval."
+      ]
+    },
+    {
+      "id": "implementation-doc-conflict",
+      "project": "implementation-doc-conflict",
+      "source_root": "implementation-doc-conflict",
+      "task": "Repair configured_limit(deployed_limit) without changing deployed behavior; retain the policy discrepancy for a separate authorized change.",
+      "editable_files": [
+        "src/policy.py"
+      ],
+      "test_command": [
+        "{python}",
+        "{manifest}/check.py",
+        "implementation-doc-conflict",
+        "{workspace}"
+      ],
+      "verification_files": [
+        "check.py",
+        "controls.json"
+      ],
+      "expected_sources": [
+        "ADR-004.md",
+        "task-scope.md"
+      ],
+      "critical_constraints": [
+        "Preserve deployed behavior for this compatibility repair.",
+        "Reject invalid limits before use; do not treat booleans as counts."
+      ]
+    },
+    {
+      "id": "rejected-resubmission",
+      "project": "rejected-resubmission",
+      "source_root": "rejected-resubmission",
+      "task": "Implement next_action(outcome) for a provider without write deduplication.",
+      "editable_files": [
+        "src/policy.py"
+      ],
+      "test_command": [
+        "{python}",
+        "{manifest}/check.py",
+        "rejected-resubmission",
+        "{workspace}"
+      ],
+      "verification_files": [
+        "check.py",
+        "controls.json"
+      ],
+      "expected_sources": [
+        "ADR-005.md",
+        "rejected-approach.md"
+      ],
+      "critical_constraints": [
+        "Ambiguous writes require read-only reconciliation, never resubmission.",
+        "Declines and unknown results fail closed."
+      ]
+    },
+    {
+      "id": "revision-reversion",
+      "project": "revision-reversion",
+      "source_root": "revision-reversion",
+      "task": "Implement current_limit(snapshot); each snapshot is the currently accepted source revision. Respect A to B to A and unrelated note changes.",
+      "editable_files": [
+        "src/policy.py"
+      ],
+      "test_command": [
+        "{python}",
+        "{manifest}/check.py",
+        "revision-reversion",
+        "{workspace}"
+      ],
+      "verification_files": [
+        "check.py",
+        "controls.json"
+      ],
+      "expected_sources": [
+        "ADR-006.md",
+        "history.md"
+      ],
+      "critical_constraints": [
+        "Revalidate current snapshot after changes and A to B to A.",
+        "Unrelated text cannot change the current limit."
+      ]
+    },
+    {
+      "id": "caller-permission-ceiling",
+      "project": "caller-permission-ceiling",
+      "source_root": "caller-permission-ceiling",
+      "task": "Implement may_send_checkout(host_inspection, host_egress, configured, local_only). Repository configuration cannot grant authority.",
+      "editable_files": [
+        "src/policy.py"
+      ],
+      "test_command": [
+        "{python}",
+        "{manifest}/check.py",
+        "caller-permission-ceiling",
+        "{workspace}"
+      ],
+      "verification_files": [
+        "check.py",
+        "controls.json"
+      ],
+      "expected_sources": [
+        "permissions.md",
+        "untrusted-import.md"
+      ],
+      "critical_constraints": [
+        "Both host grants and configuration required.",
+        "Local-only veto preserved even for cached observations."
+      ]
+    }
+  ]
+}

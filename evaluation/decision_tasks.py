@@ -249,7 +249,13 @@ def review_template(sample: dict, binding: str) -> dict:
                 "severe_unsupported_project_assertions": None, "notes": ""}
     return {"schema_version": 2, "sample_id": sample["sample_id"], "metrics_sha256": binding,
             "answer_sha256": sample["answer_sha256"], "task": sample["task"],
-            "critical_constraints": sample["constraints"], "assessments": [reviewer_slot(), reviewer_slot()]}
+            "critical_constraints": sample["constraints"], "assessments": [reviewer_slot(), reviewer_slot()],
+            "decision_review_guidance": [
+                "Record lost mandatory constraints and ignored scoped exceptions.",
+                "Identify wrong lifecycle/scope and unsupported project assertions.",
+                "Check readiness and the recommended implementation seam against original sources.",
+                "Separate static inspection from executed checks and future completion criteria.",
+                "Record incomplete validation and avoidable repeated investigation with exact evidence."]}
 
 
 def prepare(output: Path, cases_path: Path) -> dict:
