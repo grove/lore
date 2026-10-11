@@ -1,0 +1,279 @@
+{
+  "accepted-before-proposal": {
+    "correct": "def database():\n    return \"mysql\"\n",
+    "wrong": "def database():\n    return \"postgresql\"\n",
+    "probes": [
+      [
+        [],
+        "mysql"
+      ]
+    ]
+  },
+  "scoped-supersession": {
+    "correct": "def retry_limit(scope):\n    if scope not in (\"api\", \"batch\"):\n        raise ValueError(scope)\n    return 3 if scope == \"api\" else 5\n",
+    "wrong": "def retry_limit(scope):\n    if scope not in (\"api\", \"batch\"):\n        raise ValueError(scope)\n    return 3\n",
+    "probes": [
+      [
+        [
+          "api"
+        ],
+        3
+      ],
+      [
+        [
+          "batch"
+        ],
+        5
+      ],
+      [
+        [
+          "unknown"
+        ],
+        {
+          "raises": "ValueError"
+        }
+      ]
+    ]
+  },
+  "rare-release-exception": {
+    "correct": "def may_release(environment, signed, fixture):\n    return environment in (\"production\", \"staging\") and (signed or (environment == \"staging\" and fixture))\n",
+    "wrong": "def may_release(environment, signed, fixture):\n    return environment in (\"production\", \"staging\") and (signed or fixture)\n",
+    "probes": [
+      [
+        [
+          "production",
+          false,
+          true
+        ],
+        false
+      ],
+      [
+        [
+          "staging",
+          false,
+          true
+        ],
+        true
+      ],
+      [
+        [
+          "staging",
+          false,
+          false
+        ],
+        false
+      ],
+      [
+        [
+          "production",
+          true,
+          false
+        ],
+        true
+      ],
+      [
+        [
+          "unknown",
+          true,
+          true
+        ],
+        false
+      ]
+    ]
+  },
+  "report-is-not-policy": {
+    "correct": "def may_delete(retention_days, approved):\n    return retention_days >= 30 and approved\n",
+    "wrong": "def may_delete(retention_days, approved):\n    return retention_days >= 7 and approved\n",
+    "probes": [
+      [
+        [
+          7,
+          true
+        ],
+        false
+      ],
+      [
+        [
+          30,
+          false
+        ],
+        false
+      ],
+      [
+        [
+          30,
+          true
+        ],
+        true
+      ],
+      [
+        [
+          29,
+          true
+        ],
+        false
+      ]
+    ]
+  },
+  "implementation-doc-conflict": {
+    "correct": "def configured_limit(deployed_limit):\n    if type(deployed_limit) is not int or deployed_limit < 0:\n        raise ValueError(deployed_limit)\n    return deployed_limit\n",
+    "wrong": "def configured_limit(deployed_limit):\n    if type(deployed_limit) is not int or deployed_limit < 0:\n        raise ValueError(deployed_limit)\n    return 3\n",
+    "probes": [
+      [
+        [
+          5
+        ],
+        5
+      ],
+      [
+        [
+          0
+        ],
+        0
+      ],
+      [
+        [
+          -1
+        ],
+        {
+          "raises": "ValueError"
+        }
+      ],
+      [
+        [
+          true
+        ],
+        {
+          "raises": "ValueError"
+        }
+      ]
+    ]
+  },
+  "rejected-resubmission": {
+    "correct": "def next_action(outcome):\n    return {\"ambiguous\": \"reconcile\", \"declined\": \"fail\", \"success\": \"complete\"}.get(outcome, \"fail\")\n",
+    "wrong": "def next_action(outcome):\n    return {\"ambiguous\": \"retry\", \"declined\": \"fail\", \"success\": \"complete\"}.get(outcome, \"fail\")\n",
+    "probes": [
+      [
+        [
+          "ambiguous"
+        ],
+        "reconcile"
+      ],
+      [
+        [
+          "declined"
+        ],
+        "fail"
+      ],
+      [
+        [
+          "success"
+        ],
+        "complete"
+      ],
+      [
+        [
+          "unknown"
+        ],
+        "fail"
+      ]
+    ]
+  },
+  "revision-reversion": {
+    "correct": "def current_limit(snapshot):\n    return snapshot[\"limit\"]\n",
+    "wrong": "def current_limit(snapshot):\n    return max(5, snapshot[\"limit\"])\n",
+    "probes": [
+      [
+        [
+          {
+            "revision": "A",
+            "limit": 3,
+            "note": "x"
+          }
+        ],
+        3
+      ],
+      [
+        [
+          {
+            "revision": "B",
+            "limit": 5,
+            "note": "x"
+          }
+        ],
+        5
+      ],
+      [
+        [
+          {
+            "revision": "A-restored",
+            "limit": 3,
+            "note": "x"
+          }
+        ],
+        3
+      ],
+      [
+        [
+          {
+            "revision": "A-restored",
+            "limit": 3,
+            "note": "unrelated"
+          }
+        ],
+        3
+      ]
+    ]
+  },
+  "caller-permission-ceiling": {
+    "correct": "def may_send_checkout(host_inspection, host_egress, configured, local_only):\n    return host_inspection and host_egress and configured and not local_only\n",
+    "wrong": "def may_send_checkout(host_inspection, host_egress, configured, local_only):\n    return configured and not local_only\n",
+    "probes": [
+      [
+        [
+          true,
+          true,
+          true,
+          false
+        ],
+        true
+      ],
+      [
+        [
+          false,
+          true,
+          true,
+          false
+        ],
+        false
+      ],
+      [
+        [
+          true,
+          false,
+          true,
+          false
+        ],
+        false
+      ],
+      [
+        [
+          true,
+          true,
+          false,
+          false
+        ],
+        false
+      ],
+      [
+        [
+          true,
+          true,
+          true,
+          true
+        ],
+        false
+      ]
+    ]
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "status": "blocked_external",
+  "eligible_decision_tasks": 0,
+  "required_tasks": 6,
+  "required_projects": 3,
+  "existing_public_restoration_candidates": 30,
+  "source_manifest": "evaluation/corpora/coding-real-v1/manifest.json",
+  "source_manifest_sha256": "81982c50ecd835d63f23f17ada2f0d24c0f64763ac83ac8b182939a9d29cd4f2",
+  "candidate_gap": "Existing public removal/repair tasks lack independently authored decision-history tasks and checker/gold reviews. No invented ADRs or independent attestations supplied.",
+  "missing": [
+    "Six eligible decision-dependent tasks with original licensed history from three pinned upstream projects",
+    "Independent task/checker authors and gold reviewers",
+    "Pinned authorized coding/Lore model identities",
+    "External authenticated OS isolation and egress evidence"
+  ],
+  "actual_model_attempts": 0,
+  "billed_cost_usd": null
+}

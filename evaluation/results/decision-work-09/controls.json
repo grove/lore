@@ -1,0 +1,1092 @@
+{
+  "arms": [
+    "baseline",
+    "fast",
+    "lore05",
+    "lore06",
+    "adaptive_no_reuse",
+    "adaptive_reuse"
+  ],
+  "cases_sha256": "fdcbdfc1b685e8a690c59cba864888fa3ae095186f85e6f74f04b00dd628d9b9",
+  "classification": "public_development_controls",
+  "controls": [
+    {
+      "case": "accepted-before-proposal",
+      "checks": {
+        "checks": [
+          {
+            "id": "probe-0",
+            "kind": "correctness",
+            "passed": true
+          }
+        ],
+        "provenance": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py",
+            "accepted-before-proposal",
+            "/private/var/folders/vq/593qxcm57l90w1dlpywl_7nw0000gn/T/lore-decision-control-p6ll14cc/source"
+          ],
+          "files_sha256": {
+            "/opt/homebrew/Cellar/python@3.14/3.14.8_2/Frameworks/Python.framework/Versions/3.14/bin/python3.14": "a39ba8658c8955a744ba1e87d2912bb019c5f4e93fcfd8e96263f891d15ec1aa",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py": "cfdb9dc0c6529bddf1297b36303371f9dcf656f4e71b3fc9c0a2a41cda83a758",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/controls.json": "351c3e3350cc30fdf7943fce71dc15289f9866fed500dc1c5d7a1a32896d8b3b"
+          }
+        },
+        "schema_version": 1
+      },
+      "control_passed": true,
+      "elapsed_seconds": 0.033,
+      "source_preserved": true,
+      "source_sha256": "825de82ed4d2b1593335e7b7eec35a7befc86e8db7e003c3bf9d76672a63943f",
+      "variant": "correct"
+    },
+    {
+      "case": "accepted-before-proposal",
+      "checks": {
+        "checks": [
+          {
+            "id": "probe-0",
+            "kind": "correctness",
+            "passed": false
+          }
+        ],
+        "provenance": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py",
+            "accepted-before-proposal",
+            "/private/var/folders/vq/593qxcm57l90w1dlpywl_7nw0000gn/T/lore-decision-control-tnqlmf8r/source"
+          ],
+          "files_sha256": {
+            "/opt/homebrew/Cellar/python@3.14/3.14.8_2/Frameworks/Python.framework/Versions/3.14/bin/python3.14": "a39ba8658c8955a744ba1e87d2912bb019c5f4e93fcfd8e96263f891d15ec1aa",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py": "cfdb9dc0c6529bddf1297b36303371f9dcf656f4e71b3fc9c0a2a41cda83a758",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/controls.json": "351c3e3350cc30fdf7943fce71dc15289f9866fed500dc1c5d7a1a32896d8b3b"
+          }
+        },
+        "schema_version": 1
+      },
+      "control_passed": true,
+      "elapsed_seconds": 0.031,
+      "source_preserved": true,
+      "source_sha256": "ec55e2268d646b1b38820ff90d88d0700c122e6942a8a612683f66002b19f91a",
+      "variant": "wrong"
+    },
+    {
+      "case": "accepted-before-proposal",
+      "checks": {
+        "checks": [
+          {
+            "id": "probe-0",
+            "kind": "correctness",
+            "passed": false
+          }
+        ],
+        "provenance": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py",
+            "accepted-before-proposal",
+            "/private/var/folders/vq/593qxcm57l90w1dlpywl_7nw0000gn/T/lore-decision-control-6dsgfti4/source"
+          ],
+          "files_sha256": {
+            "/opt/homebrew/Cellar/python@3.14/3.14.8_2/Frameworks/Python.framework/Versions/3.14/bin/python3.14": "a39ba8658c8955a744ba1e87d2912bb019c5f4e93fcfd8e96263f891d15ec1aa",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py": "cfdb9dc0c6529bddf1297b36303371f9dcf656f4e71b3fc9c0a2a41cda83a758",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/controls.json": "351c3e3350cc30fdf7943fce71dc15289f9866fed500dc1c5d7a1a32896d8b3b"
+          }
+        },
+        "schema_version": 1
+      },
+      "control_passed": true,
+      "elapsed_seconds": 0.031,
+      "source_preserved": true,
+      "source_sha256": "859cfc3c7529ee88597aad0e397c554103fc6b58d6963f82324c106e86f20904",
+      "variant": "unimplemented"
+    },
+    {
+      "case": "scoped-supersession",
+      "checks": {
+        "checks": [
+          {
+            "id": "probe-0",
+            "kind": "correctness",
+            "passed": true
+          },
+          {
+            "id": "probe-1",
+            "kind": "constraint",
+            "passed": true
+          },
+          {
+            "id": "probe-2",
+            "kind": "constraint",
+            "passed": true
+          }
+        ],
+        "provenance": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py",
+            "scoped-supersession",
+            "/private/var/folders/vq/593qxcm57l90w1dlpywl_7nw0000gn/T/lore-decision-control-y5mdrtq8/source"
+          ],
+          "files_sha256": {
+            "/opt/homebrew/Cellar/python@3.14/3.14.8_2/Frameworks/Python.framework/Versions/3.14/bin/python3.14": "a39ba8658c8955a744ba1e87d2912bb019c5f4e93fcfd8e96263f891d15ec1aa",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py": "cfdb9dc0c6529bddf1297b36303371f9dcf656f4e71b3fc9c0a2a41cda83a758",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/controls.json": "351c3e3350cc30fdf7943fce71dc15289f9866fed500dc1c5d7a1a32896d8b3b"
+          }
+        },
+        "schema_version": 1
+      },
+      "control_passed": true,
+      "elapsed_seconds": 0.032,
+      "source_preserved": true,
+      "source_sha256": "15c1eceb616d2391eeb787db288cf8d2b1b49c4fd55f98e1a16bdff54bdc1062",
+      "variant": "correct"
+    },
+    {
+      "case": "scoped-supersession",
+      "checks": {
+        "checks": [
+          {
+            "id": "probe-0",
+            "kind": "correctness",
+            "passed": true
+          },
+          {
+            "id": "probe-1",
+            "kind": "constraint",
+            "passed": false
+          },
+          {
+            "id": "probe-2",
+            "kind": "constraint",
+            "passed": true
+          }
+        ],
+        "provenance": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py",
+            "scoped-supersession",
+            "/private/var/folders/vq/593qxcm57l90w1dlpywl_7nw0000gn/T/lore-decision-control-mpuuk5o8/source"
+          ],
+          "files_sha256": {
+            "/opt/homebrew/Cellar/python@3.14/3.14.8_2/Frameworks/Python.framework/Versions/3.14/bin/python3.14": "a39ba8658c8955a744ba1e87d2912bb019c5f4e93fcfd8e96263f891d15ec1aa",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py": "cfdb9dc0c6529bddf1297b36303371f9dcf656f4e71b3fc9c0a2a41cda83a758",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/controls.json": "351c3e3350cc30fdf7943fce71dc15289f9866fed500dc1c5d7a1a32896d8b3b"
+          }
+        },
+        "schema_version": 1
+      },
+      "control_passed": true,
+      "elapsed_seconds": 0.03,
+      "source_preserved": true,
+      "source_sha256": "68f2fde2d67701220275bc74eb6a7af98ef944098d7b2b5e6edc65ea8cb495ee",
+      "variant": "wrong"
+    },
+    {
+      "case": "scoped-supersession",
+      "checks": {
+        "checks": [
+          {
+            "id": "probe-0",
+            "kind": "correctness",
+            "passed": false
+          },
+          {
+            "id": "probe-1",
+            "kind": "constraint",
+            "passed": false
+          },
+          {
+            "id": "probe-2",
+            "kind": "constraint",
+            "passed": false
+          }
+        ],
+        "provenance": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py",
+            "scoped-supersession",
+            "/private/var/folders/vq/593qxcm57l90w1dlpywl_7nw0000gn/T/lore-decision-control-4l8i9lxi/source"
+          ],
+          "files_sha256": {
+            "/opt/homebrew/Cellar/python@3.14/3.14.8_2/Frameworks/Python.framework/Versions/3.14/bin/python3.14": "a39ba8658c8955a744ba1e87d2912bb019c5f4e93fcfd8e96263f891d15ec1aa",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py": "cfdb9dc0c6529bddf1297b36303371f9dcf656f4e71b3fc9c0a2a41cda83a758",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/controls.json": "351c3e3350cc30fdf7943fce71dc15289f9866fed500dc1c5d7a1a32896d8b3b"
+          }
+        },
+        "schema_version": 1
+      },
+      "control_passed": true,
+      "elapsed_seconds": 0.033,
+      "source_preserved": true,
+      "source_sha256": "77b266654b7ee5e021949b69f5cd8232f44a231115234034ab524dce459e8b04",
+      "variant": "unimplemented"
+    },
+    {
+      "case": "rare-release-exception",
+      "checks": {
+        "checks": [
+          {
+            "id": "probe-0",
+            "kind": "correctness",
+            "passed": true
+          },
+          {
+            "id": "probe-1",
+            "kind": "constraint",
+            "passed": true
+          },
+          {
+            "id": "probe-2",
+            "kind": "constraint",
+            "passed": true
+          },
+          {
+            "id": "probe-3",
+            "kind": "constraint",
+            "passed": true
+          },
+          {
+            "id": "probe-4",
+            "kind": "constraint",
+            "passed": true
+          }
+        ],
+        "provenance": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py",
+            "rare-release-exception",
+            "/private/var/folders/vq/593qxcm57l90w1dlpywl_7nw0000gn/T/lore-decision-control-sifzf5nn/source"
+          ],
+          "files_sha256": {
+            "/opt/homebrew/Cellar/python@3.14/3.14.8_2/Frameworks/Python.framework/Versions/3.14/bin/python3.14": "a39ba8658c8955a744ba1e87d2912bb019c5f4e93fcfd8e96263f891d15ec1aa",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py": "cfdb9dc0c6529bddf1297b36303371f9dcf656f4e71b3fc9c0a2a41cda83a758",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/controls.json": "351c3e3350cc30fdf7943fce71dc15289f9866fed500dc1c5d7a1a32896d8b3b"
+          }
+        },
+        "schema_version": 1
+      },
+      "control_passed": true,
+      "elapsed_seconds": 0.031,
+      "source_preserved": true,
+      "source_sha256": "1065f053ad000766fcc27fe2f6462a2c9b808224b40ce8e2cbb8f259cc41bc3e",
+      "variant": "correct"
+    },
+    {
+      "case": "rare-release-exception",
+      "checks": {
+        "checks": [
+          {
+            "id": "probe-0",
+            "kind": "correctness",
+            "passed": false
+          },
+          {
+            "id": "probe-1",
+            "kind": "constraint",
+            "passed": true
+          },
+          {
+            "id": "probe-2",
+            "kind": "constraint",
+            "passed": true
+          },
+          {
+            "id": "probe-3",
+            "kind": "constraint",
+            "passed": true
+          },
+          {
+            "id": "probe-4",
+            "kind": "constraint",
+            "passed": true
+          }
+        ],
+        "provenance": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py",
+            "rare-release-exception",
+            "/private/var/folders/vq/593qxcm57l90w1dlpywl_7nw0000gn/T/lore-decision-control-lvf_gi85/source"
+          ],
+          "files_sha256": {
+            "/opt/homebrew/Cellar/python@3.14/3.14.8_2/Frameworks/Python.framework/Versions/3.14/bin/python3.14": "a39ba8658c8955a744ba1e87d2912bb019c5f4e93fcfd8e96263f891d15ec1aa",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py": "cfdb9dc0c6529bddf1297b36303371f9dcf656f4e71b3fc9c0a2a41cda83a758",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/controls.json": "351c3e3350cc30fdf7943fce71dc15289f9866fed500dc1c5d7a1a32896d8b3b"
+          }
+        },
+        "schema_version": 1
+      },
+      "control_passed": true,
+      "elapsed_seconds": 0.032,
+      "source_preserved": true,
+      "source_sha256": "ac6fb40cc68b503e296f41e392ba6c2622659fcb011016b3d03dce099b24da3a",
+      "variant": "wrong"
+    },
+    {
+      "case": "rare-release-exception",
+      "checks": {
+        "checks": [
+          {
+            "id": "probe-0",
+            "kind": "correctness",
+            "passed": false
+          },
+          {
+            "id": "probe-1",
+            "kind": "constraint",
+            "passed": false
+          },
+          {
+            "id": "probe-2",
+            "kind": "constraint",
+            "passed": false
+          },
+          {
+            "id": "probe-3",
+            "kind": "constraint",
+            "passed": false
+          },
+          {
+            "id": "probe-4",
+            "kind": "constraint",
+            "passed": false
+          }
+        ],
+        "provenance": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py",
+            "rare-release-exception",
+            "/private/var/folders/vq/593qxcm57l90w1dlpywl_7nw0000gn/T/lore-decision-control-htlhef36/source"
+          ],
+          "files_sha256": {
+            "/opt/homebrew/Cellar/python@3.14/3.14.8_2/Frameworks/Python.framework/Versions/3.14/bin/python3.14": "a39ba8658c8955a744ba1e87d2912bb019c5f4e93fcfd8e96263f891d15ec1aa",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py": "cfdb9dc0c6529bddf1297b36303371f9dcf656f4e71b3fc9c0a2a41cda83a758",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/controls.json": "351c3e3350cc30fdf7943fce71dc15289f9866fed500dc1c5d7a1a32896d8b3b"
+          }
+        },
+        "schema_version": 1
+      },
+      "control_passed": true,
+      "elapsed_seconds": 0.032,
+      "source_preserved": true,
+      "source_sha256": "600edc49398d4e7f5a5a115302e3689fcd8cbddf7be6054a0a1d58862d579d1f",
+      "variant": "unimplemented"
+    },
+    {
+      "case": "report-is-not-policy",
+      "checks": {
+        "checks": [
+          {
+            "id": "probe-0",
+            "kind": "correctness",
+            "passed": true
+          },
+          {
+            "id": "probe-1",
+            "kind": "constraint",
+            "passed": true
+          },
+          {
+            "id": "probe-2",
+            "kind": "constraint",
+            "passed": true
+          },
+          {
+            "id": "probe-3",
+            "kind": "constraint",
+            "passed": true
+          }
+        ],
+        "provenance": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py",
+            "report-is-not-policy",
+            "/private/var/folders/vq/593qxcm57l90w1dlpywl_7nw0000gn/T/lore-decision-control-nt2iqznl/source"
+          ],
+          "files_sha256": {
+            "/opt/homebrew/Cellar/python@3.14/3.14.8_2/Frameworks/Python.framework/Versions/3.14/bin/python3.14": "a39ba8658c8955a744ba1e87d2912bb019c5f4e93fcfd8e96263f891d15ec1aa",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py": "cfdb9dc0c6529bddf1297b36303371f9dcf656f4e71b3fc9c0a2a41cda83a758",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/controls.json": "351c3e3350cc30fdf7943fce71dc15289f9866fed500dc1c5d7a1a32896d8b3b"
+          }
+        },
+        "schema_version": 1
+      },
+      "control_passed": true,
+      "elapsed_seconds": 0.032,
+      "source_preserved": true,
+      "source_sha256": "8620c17553973c59cff1f93820b9f50a4407de905c836bc160c97e5b9f528c38",
+      "variant": "correct"
+    },
+    {
+      "case": "report-is-not-policy",
+      "checks": {
+        "checks": [
+          {
+            "id": "probe-0",
+            "kind": "correctness",
+            "passed": false
+          },
+          {
+            "id": "probe-1",
+            "kind": "constraint",
+            "passed": true
+          },
+          {
+            "id": "probe-2",
+            "kind": "constraint",
+            "passed": true
+          },
+          {
+            "id": "probe-3",
+            "kind": "constraint",
+            "passed": false
+          }
+        ],
+        "provenance": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py",
+            "report-is-not-policy",
+            "/private/var/folders/vq/593qxcm57l90w1dlpywl_7nw0000gn/T/lore-decision-control-qfa_9x5x/source"
+          ],
+          "files_sha256": {
+            "/opt/homebrew/Cellar/python@3.14/3.14.8_2/Frameworks/Python.framework/Versions/3.14/bin/python3.14": "a39ba8658c8955a744ba1e87d2912bb019c5f4e93fcfd8e96263f891d15ec1aa",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py": "cfdb9dc0c6529bddf1297b36303371f9dcf656f4e71b3fc9c0a2a41cda83a758",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/controls.json": "351c3e3350cc30fdf7943fce71dc15289f9866fed500dc1c5d7a1a32896d8b3b"
+          }
+        },
+        "schema_version": 1
+      },
+      "control_passed": true,
+      "elapsed_seconds": 0.033,
+      "source_preserved": true,
+      "source_sha256": "bf9223649c3ae82a21c0b8e11b1faf61df5a90ab0340cac488d95ff2ab628959",
+      "variant": "wrong"
+    },
+    {
+      "case": "report-is-not-policy",
+      "checks": {
+        "checks": [
+          {
+            "id": "probe-0",
+            "kind": "correctness",
+            "passed": false
+          },
+          {
+            "id": "probe-1",
+            "kind": "constraint",
+            "passed": false
+          },
+          {
+            "id": "probe-2",
+            "kind": "constraint",
+            "passed": false
+          },
+          {
+            "id": "probe-3",
+            "kind": "constraint",
+            "passed": false
+          }
+        ],
+        "provenance": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py",
+            "report-is-not-policy",
+            "/private/var/folders/vq/593qxcm57l90w1dlpywl_7nw0000gn/T/lore-decision-control-hqlzu48y/source"
+          ],
+          "files_sha256": {
+            "/opt/homebrew/Cellar/python@3.14/3.14.8_2/Frameworks/Python.framework/Versions/3.14/bin/python3.14": "a39ba8658c8955a744ba1e87d2912bb019c5f4e93fcfd8e96263f891d15ec1aa",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py": "cfdb9dc0c6529bddf1297b36303371f9dcf656f4e71b3fc9c0a2a41cda83a758",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/controls.json": "351c3e3350cc30fdf7943fce71dc15289f9866fed500dc1c5d7a1a32896d8b3b"
+          }
+        },
+        "schema_version": 1
+      },
+      "control_passed": true,
+      "elapsed_seconds": 0.031,
+      "source_preserved": true,
+      "source_sha256": "4ebf8bd574a62774c6a842bf11b2450c94b7cff82c361db652459db78528298f",
+      "variant": "unimplemented"
+    },
+    {
+      "case": "implementation-doc-conflict",
+      "checks": {
+        "checks": [
+          {
+            "id": "probe-0",
+            "kind": "correctness",
+            "passed": true
+          },
+          {
+            "id": "probe-1",
+            "kind": "constraint",
+            "passed": true
+          },
+          {
+            "id": "probe-2",
+            "kind": "constraint",
+            "passed": true
+          },
+          {
+            "id": "probe-3",
+            "kind": "constraint",
+            "passed": true
+          }
+        ],
+        "provenance": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py",
+            "implementation-doc-conflict",
+            "/private/var/folders/vq/593qxcm57l90w1dlpywl_7nw0000gn/T/lore-decision-control-zb4iy822/source"
+          ],
+          "files_sha256": {
+            "/opt/homebrew/Cellar/python@3.14/3.14.8_2/Frameworks/Python.framework/Versions/3.14/bin/python3.14": "a39ba8658c8955a744ba1e87d2912bb019c5f4e93fcfd8e96263f891d15ec1aa",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py": "cfdb9dc0c6529bddf1297b36303371f9dcf656f4e71b3fc9c0a2a41cda83a758",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/controls.json": "351c3e3350cc30fdf7943fce71dc15289f9866fed500dc1c5d7a1a32896d8b3b"
+          }
+        },
+        "schema_version": 1
+      },
+      "control_passed": true,
+      "elapsed_seconds": 0.031,
+      "source_preserved": true,
+      "source_sha256": "90e517b16bcac67cc7796f25d3b30c0914c8635be268505b8ce5f2632eea0527",
+      "variant": "correct"
+    },
+    {
+      "case": "implementation-doc-conflict",
+      "checks": {
+        "checks": [
+          {
+            "id": "probe-0",
+            "kind": "correctness",
+            "passed": false
+          },
+          {
+            "id": "probe-1",
+            "kind": "constraint",
+            "passed": false
+          },
+          {
+            "id": "probe-2",
+            "kind": "constraint",
+            "passed": true
+          },
+          {
+            "id": "probe-3",
+            "kind": "constraint",
+            "passed": true
+          }
+        ],
+        "provenance": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py",
+            "implementation-doc-conflict",
+            "/private/var/folders/vq/593qxcm57l90w1dlpywl_7nw0000gn/T/lore-decision-control-pjxga7a_/source"
+          ],
+          "files_sha256": {
+            "/opt/homebrew/Cellar/python@3.14/3.14.8_2/Frameworks/Python.framework/Versions/3.14/bin/python3.14": "a39ba8658c8955a744ba1e87d2912bb019c5f4e93fcfd8e96263f891d15ec1aa",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py": "cfdb9dc0c6529bddf1297b36303371f9dcf656f4e71b3fc9c0a2a41cda83a758",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/controls.json": "351c3e3350cc30fdf7943fce71dc15289f9866fed500dc1c5d7a1a32896d8b3b"
+          }
+        },
+        "schema_version": 1
+      },
+      "control_passed": true,
+      "elapsed_seconds": 0.032,
+      "source_preserved": true,
+      "source_sha256": "25ce9b37256fdfa86feddc4ef89d4e8630726b68b122fa34146ca147f59471f3",
+      "variant": "wrong"
+    },
+    {
+      "case": "implementation-doc-conflict",
+      "checks": {
+        "checks": [
+          {
+            "id": "probe-0",
+            "kind": "correctness",
+            "passed": false
+          },
+          {
+            "id": "probe-1",
+            "kind": "constraint",
+            "passed": false
+          },
+          {
+            "id": "probe-2",
+            "kind": "constraint",
+            "passed": false
+          },
+          {
+            "id": "probe-3",
+            "kind": "constraint",
+            "passed": false
+          }
+        ],
+        "provenance": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py",
+            "implementation-doc-conflict",
+            "/private/var/folders/vq/593qxcm57l90w1dlpywl_7nw0000gn/T/lore-decision-control-g1r_1oue/source"
+          ],
+          "files_sha256": {
+            "/opt/homebrew/Cellar/python@3.14/3.14.8_2/Frameworks/Python.framework/Versions/3.14/bin/python3.14": "a39ba8658c8955a744ba1e87d2912bb019c5f4e93fcfd8e96263f891d15ec1aa",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py": "cfdb9dc0c6529bddf1297b36303371f9dcf656f4e71b3fc9c0a2a41cda83a758",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/controls.json": "351c3e3350cc30fdf7943fce71dc15289f9866fed500dc1c5d7a1a32896d8b3b"
+          }
+        },
+        "schema_version": 1
+      },
+      "control_passed": true,
+      "elapsed_seconds": 0.03,
+      "source_preserved": true,
+      "source_sha256": "a4072a91addd99a2879266d0585664015e52e12cf84a7aa5753c35ea7f88043c",
+      "variant": "unimplemented"
+    },
+    {
+      "case": "rejected-resubmission",
+      "checks": {
+        "checks": [
+          {
+            "id": "probe-0",
+            "kind": "correctness",
+            "passed": true
+          },
+          {
+            "id": "probe-1",
+            "kind": "constraint",
+            "passed": true
+          },
+          {
+            "id": "probe-2",
+            "kind": "constraint",
+            "passed": true
+          },
+          {
+            "id": "probe-3",
+            "kind": "constraint",
+            "passed": true
+          }
+        ],
+        "provenance": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py",
+            "rejected-resubmission",
+            "/private/var/folders/vq/593qxcm57l90w1dlpywl_7nw0000gn/T/lore-decision-control-xc6j5w44/source"
+          ],
+          "files_sha256": {
+            "/opt/homebrew/Cellar/python@3.14/3.14.8_2/Frameworks/Python.framework/Versions/3.14/bin/python3.14": "a39ba8658c8955a744ba1e87d2912bb019c5f4e93fcfd8e96263f891d15ec1aa",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py": "cfdb9dc0c6529bddf1297b36303371f9dcf656f4e71b3fc9c0a2a41cda83a758",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/controls.json": "351c3e3350cc30fdf7943fce71dc15289f9866fed500dc1c5d7a1a32896d8b3b"
+          }
+        },
+        "schema_version": 1
+      },
+      "control_passed": true,
+      "elapsed_seconds": 0.032,
+      "source_preserved": true,
+      "source_sha256": "6228f929c3d608f11a8e640ff5deb46059f8ef48cd86e66182e1f1c6d9bf11d1",
+      "variant": "correct"
+    },
+    {
+      "case": "rejected-resubmission",
+      "checks": {
+        "checks": [
+          {
+            "id": "probe-0",
+            "kind": "correctness",
+            "passed": false
+          },
+          {
+            "id": "probe-1",
+            "kind": "constraint",
+            "passed": true
+          },
+          {
+            "id": "probe-2",
+            "kind": "constraint",
+            "passed": true
+          },
+          {
+            "id": "probe-3",
+            "kind": "constraint",
+            "passed": true
+          }
+        ],
+        "provenance": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py",
+            "rejected-resubmission",
+            "/private/var/folders/vq/593qxcm57l90w1dlpywl_7nw0000gn/T/lore-decision-control-lwotk5_f/source"
+          ],
+          "files_sha256": {
+            "/opt/homebrew/Cellar/python@3.14/3.14.8_2/Frameworks/Python.framework/Versions/3.14/bin/python3.14": "a39ba8658c8955a744ba1e87d2912bb019c5f4e93fcfd8e96263f891d15ec1aa",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py": "cfdb9dc0c6529bddf1297b36303371f9dcf656f4e71b3fc9c0a2a41cda83a758",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/controls.json": "351c3e3350cc30fdf7943fce71dc15289f9866fed500dc1c5d7a1a32896d8b3b"
+          }
+        },
+        "schema_version": 1
+      },
+      "control_passed": true,
+      "elapsed_seconds": 0.03,
+      "source_preserved": true,
+      "source_sha256": "11fd6a59509443859261b286c85d736342cad3dbe56142dddd1bc4227435a213",
+      "variant": "wrong"
+    },
+    {
+      "case": "rejected-resubmission",
+      "checks": {
+        "checks": [
+          {
+            "id": "probe-0",
+            "kind": "correctness",
+            "passed": false
+          },
+          {
+            "id": "probe-1",
+            "kind": "constraint",
+            "passed": false
+          },
+          {
+            "id": "probe-2",
+            "kind": "constraint",
+            "passed": false
+          },
+          {
+            "id": "probe-3",
+            "kind": "constraint",
+            "passed": false
+          }
+        ],
+        "provenance": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py",
+            "rejected-resubmission",
+            "/private/var/folders/vq/593qxcm57l90w1dlpywl_7nw0000gn/T/lore-decision-control-717c82py/source"
+          ],
+          "files_sha256": {
+            "/opt/homebrew/Cellar/python@3.14/3.14.8_2/Frameworks/Python.framework/Versions/3.14/bin/python3.14": "a39ba8658c8955a744ba1e87d2912bb019c5f4e93fcfd8e96263f891d15ec1aa",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py": "cfdb9dc0c6529bddf1297b36303371f9dcf656f4e71b3fc9c0a2a41cda83a758",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/controls.json": "351c3e3350cc30fdf7943fce71dc15289f9866fed500dc1c5d7a1a32896d8b3b"
+          }
+        },
+        "schema_version": 1
+      },
+      "control_passed": true,
+      "elapsed_seconds": 0.032,
+      "source_preserved": true,
+      "source_sha256": "f1890705bd98ff4f11bc627c0fcc03f42aa61c08c74514db33cf2ea6183f3766",
+      "variant": "unimplemented"
+    },
+    {
+      "case": "revision-reversion",
+      "checks": {
+        "checks": [
+          {
+            "id": "probe-0",
+            "kind": "correctness",
+            "passed": true
+          },
+          {
+            "id": "probe-1",
+            "kind": "constraint",
+            "passed": true
+          },
+          {
+            "id": "probe-2",
+            "kind": "constraint",
+            "passed": true
+          },
+          {
+            "id": "probe-3",
+            "kind": "constraint",
+            "passed": true
+          }
+        ],
+        "provenance": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py",
+            "revision-reversion",
+            "/private/var/folders/vq/593qxcm57l90w1dlpywl_7nw0000gn/T/lore-decision-control-i7hobr26/source"
+          ],
+          "files_sha256": {
+            "/opt/homebrew/Cellar/python@3.14/3.14.8_2/Frameworks/Python.framework/Versions/3.14/bin/python3.14": "a39ba8658c8955a744ba1e87d2912bb019c5f4e93fcfd8e96263f891d15ec1aa",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py": "cfdb9dc0c6529bddf1297b36303371f9dcf656f4e71b3fc9c0a2a41cda83a758",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/controls.json": "351c3e3350cc30fdf7943fce71dc15289f9866fed500dc1c5d7a1a32896d8b3b"
+          }
+        },
+        "schema_version": 1
+      },
+      "control_passed": true,
+      "elapsed_seconds": 0.032,
+      "source_preserved": true,
+      "source_sha256": "10b709db72cebf59dd1eeaa468069de2176643e0ac61e806f9678f0ffdd0a1bd",
+      "variant": "correct"
+    },
+    {
+      "case": "revision-reversion",
+      "checks": {
+        "checks": [
+          {
+            "id": "probe-0",
+            "kind": "correctness",
+            "passed": false
+          },
+          {
+            "id": "probe-1",
+            "kind": "constraint",
+            "passed": true
+          },
+          {
+            "id": "probe-2",
+            "kind": "constraint",
+            "passed": false
+          },
+          {
+            "id": "probe-3",
+            "kind": "constraint",
+            "passed": false
+          }
+        ],
+        "provenance": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py",
+            "revision-reversion",
+            "/private/var/folders/vq/593qxcm57l90w1dlpywl_7nw0000gn/T/lore-decision-control-f3y8_33v/source"
+          ],
+          "files_sha256": {
+            "/opt/homebrew/Cellar/python@3.14/3.14.8_2/Frameworks/Python.framework/Versions/3.14/bin/python3.14": "a39ba8658c8955a744ba1e87d2912bb019c5f4e93fcfd8e96263f891d15ec1aa",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py": "cfdb9dc0c6529bddf1297b36303371f9dcf656f4e71b3fc9c0a2a41cda83a758",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/controls.json": "351c3e3350cc30fdf7943fce71dc15289f9866fed500dc1c5d7a1a32896d8b3b"
+          }
+        },
+        "schema_version": 1
+      },
+      "control_passed": true,
+      "elapsed_seconds": 0.033,
+      "source_preserved": true,
+      "source_sha256": "abb167f0d4090d094df3274e25d10e2165f36065925d7027aa866cf0b4f594c5",
+      "variant": "wrong"
+    },
+    {
+      "case": "revision-reversion",
+      "checks": {
+        "checks": [
+          {
+            "id": "probe-0",
+            "kind": "correctness",
+            "passed": false
+          },
+          {
+            "id": "probe-1",
+            "kind": "constraint",
+            "passed": false
+          },
+          {
+            "id": "probe-2",
+            "kind": "constraint",
+            "passed": false
+          },
+          {
+            "id": "probe-3",
+            "kind": "constraint",
+            "passed": false
+          }
+        ],
+        "provenance": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py",
+            "revision-reversion",
+            "/private/var/folders/vq/593qxcm57l90w1dlpywl_7nw0000gn/T/lore-decision-control-oxn7_86i/source"
+          ],
+          "files_sha256": {
+            "/opt/homebrew/Cellar/python@3.14/3.14.8_2/Frameworks/Python.framework/Versions/3.14/bin/python3.14": "a39ba8658c8955a744ba1e87d2912bb019c5f4e93fcfd8e96263f891d15ec1aa",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py": "cfdb9dc0c6529bddf1297b36303371f9dcf656f4e71b3fc9c0a2a41cda83a758",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/controls.json": "351c3e3350cc30fdf7943fce71dc15289f9866fed500dc1c5d7a1a32896d8b3b"
+          }
+        },
+        "schema_version": 1
+      },
+      "control_passed": true,
+      "elapsed_seconds": 0.032,
+      "source_preserved": true,
+      "source_sha256": "ecceaa4b9b521b31c3d4911a1ecfdad09191144ad4b6fdc4a47500493a6c5f9c",
+      "variant": "unimplemented"
+    },
+    {
+      "case": "caller-permission-ceiling",
+      "checks": {
+        "checks": [
+          {
+            "id": "probe-0",
+            "kind": "correctness",
+            "passed": true
+          },
+          {
+            "id": "probe-1",
+            "kind": "constraint",
+            "passed": true
+          },
+          {
+            "id": "probe-2",
+            "kind": "constraint",
+            "passed": true
+          },
+          {
+            "id": "probe-3",
+            "kind": "constraint",
+            "passed": true
+          },
+          {
+            "id": "probe-4",
+            "kind": "constraint",
+            "passed": true
+          }
+        ],
+        "provenance": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py",
+            "caller-permission-ceiling",
+            "/private/var/folders/vq/593qxcm57l90w1dlpywl_7nw0000gn/T/lore-decision-control-68v66bga/source"
+          ],
+          "files_sha256": {
+            "/opt/homebrew/Cellar/python@3.14/3.14.8_2/Frameworks/Python.framework/Versions/3.14/bin/python3.14": "a39ba8658c8955a744ba1e87d2912bb019c5f4e93fcfd8e96263f891d15ec1aa",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py": "cfdb9dc0c6529bddf1297b36303371f9dcf656f4e71b3fc9c0a2a41cda83a758",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/controls.json": "351c3e3350cc30fdf7943fce71dc15289f9866fed500dc1c5d7a1a32896d8b3b"
+          }
+        },
+        "schema_version": 1
+      },
+      "control_passed": true,
+      "elapsed_seconds": 0.032,
+      "source_preserved": true,
+      "source_sha256": "893f4510e5ffe3fa6d53ac9b0f583758be4807bd8c188585f88c1c6f1c67f747",
+      "variant": "correct"
+    },
+    {
+      "case": "caller-permission-ceiling",
+      "checks": {
+        "checks": [
+          {
+            "id": "probe-0",
+            "kind": "correctness",
+            "passed": true
+          },
+          {
+            "id": "probe-1",
+            "kind": "constraint",
+            "passed": false
+          },
+          {
+            "id": "probe-2",
+            "kind": "constraint",
+            "passed": false
+          },
+          {
+            "id": "probe-3",
+            "kind": "constraint",
+            "passed": true
+          },
+          {
+            "id": "probe-4",
+            "kind": "constraint",
+            "passed": true
+          }
+        ],
+        "provenance": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py",
+            "caller-permission-ceiling",
+            "/private/var/folders/vq/593qxcm57l90w1dlpywl_7nw0000gn/T/lore-decision-control-80ngieo6/source"
+          ],
+          "files_sha256": {
+            "/opt/homebrew/Cellar/python@3.14/3.14.8_2/Frameworks/Python.framework/Versions/3.14/bin/python3.14": "a39ba8658c8955a744ba1e87d2912bb019c5f4e93fcfd8e96263f891d15ec1aa",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py": "cfdb9dc0c6529bddf1297b36303371f9dcf656f4e71b3fc9c0a2a41cda83a758",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/controls.json": "351c3e3350cc30fdf7943fce71dc15289f9866fed500dc1c5d7a1a32896d8b3b"
+          }
+        },
+        "schema_version": 1
+      },
+      "control_passed": true,
+      "elapsed_seconds": 0.031,
+      "source_preserved": true,
+      "source_sha256": "bba7b0a1d034867317d5742341a7b4fc814c46ce79e6f401b55a93e277d7a73e",
+      "variant": "wrong"
+    },
+    {
+      "case": "caller-permission-ceiling",
+      "checks": {
+        "checks": [
+          {
+            "id": "probe-0",
+            "kind": "correctness",
+            "passed": false
+          },
+          {
+            "id": "probe-1",
+            "kind": "constraint",
+            "passed": false
+          },
+          {
+            "id": "probe-2",
+            "kind": "constraint",
+            "passed": false
+          },
+          {
+            "id": "probe-3",
+            "kind": "constraint",
+            "passed": false
+          },
+          {
+            "id": "probe-4",
+            "kind": "constraint",
+            "passed": false
+          }
+        ],
+        "provenance": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py",
+            "caller-permission-ceiling",
+            "/private/var/folders/vq/593qxcm57l90w1dlpywl_7nw0000gn/T/lore-decision-control-godujces/source"
+          ],
+          "files_sha256": {
+            "/opt/homebrew/Cellar/python@3.14/3.14.8_2/Frameworks/Python.framework/Versions/3.14/bin/python3.14": "a39ba8658c8955a744ba1e87d2912bb019c5f4e93fcfd8e96263f891d15ec1aa",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/check.py": "cfdb9dc0c6529bddf1297b36303371f9dcf656f4e71b3fc9c0a2a41cda83a758",
+            "/private/tmp/lore-09-work/evaluation/corpora/decision-work-09/controls.json": "351c3e3350cc30fdf7943fce71dc15289f9866fed500dc1c5d7a1a32896d8b3b"
+          }
+        },
+        "schema_version": 1
+      },
+      "control_passed": true,
+      "elapsed_seconds": 0.032,
+      "source_preserved": true,
+      "source_sha256": "fdff11fc78021bb61bd6410bdbe3a8530074e51fd1918637f5ed76f45ff2b9dc",
+      "variant": "unimplemented"
+    }
+  ],
+  "productivity_benefit_established": false,
+  "provider_calls": 0,
+  "schema_version": 1,
+  "status": "passed"
+}
