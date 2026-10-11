@@ -271,6 +271,26 @@ enum Command {
 }
 #[derive(Subcommand)]
 enum ReviewCommand {
+    /// Preview an exact candidate interpretation; apply requires the preview digest.
+    Adjudicate {
+        id: String,
+        #[arg(long, value_parser = ["keep_separate", "reject_relation", "accept_relation"])]
+        decision: String,
+        #[arg(long)]
+        relation: Option<String>,
+        #[arg(long)]
+        evidence: Option<String>,
+        #[arg(long)]
+        reason: String,
+        #[arg(long, default_value = "caller")]
+        actor: String,
+        #[arg(long, default_value = "user", value_parser = ["user", "agent"])]
+        actor_kind: String,
+        #[arg(long)]
+        expect_context_digest: Option<String>,
+        #[arg(long, requires = "expect_context_digest")]
+        apply: bool,
+    },
     /// List pending questions, or all retained records with --all.
     List {
         #[arg(long)]
@@ -480,6 +500,7 @@ async fn run(cli: Cli) -> Result<i32> {
     } else if matches!(
         &cli.command,
         Command::Context { .. }
+            | Command::Review { .. }
             | Command::Evidence { .. }
             | Command::Memory { .. }
             | Command::Onboard { .. }
@@ -1027,6 +1048,33 @@ async fn run(cli: Cli) -> Result<i32> {
         }
         Command::Evidence { id } => emit(engine::evidence(&config, &id)?, cli.json)?,
         Command::Review { action } => match action {
+            Some(ReviewCommand::Adjudicate {
+                id,
+                decision,
+                relation,
+                evidence,
+                reason,
+                actor,
+                actor_kind,
+                expect_context_digest,
+                apply,
+            }) => emit(
+                engine::adjudicate_review(
+                    &config,
+                    &id,
+                    &lore::reviews::adjudication::Request {
+                        decision: &decision,
+                        relation: relation.as_deref(),
+                        evidence: evidence.as_deref(),
+                        reason: &reason,
+                        actor: &actor,
+                        actor_kind: &actor_kind,
+                        expect_digest: expect_context_digest.as_deref(),
+                    },
+                    apply,
+                )?,
+                cli.json,
+            )?,
             None | Some(ReviewCommand::List { all: false }) => {
                 let conn = storage::read_only(&config.state.join("state.db"))?;
                 emit(

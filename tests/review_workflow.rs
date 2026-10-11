@@ -247,3 +247,32 @@ fn migration_retains_legacy_queue_and_events_are_append_only() {
     assert_eq!(reviews::events(&db, "legacy").unwrap().len(), 2);
     assert!(reviews::manual(&db, "missing", "resolved", "Checked.", "tester").is_err());
 }
+
+#[tokio::test]
+async fn explicit_documentary_edge_is_confirmed_without_promoting_another_assertion() {
+    use reviews::adjudication::{self, Request};
+    let (_tmp, cfg, _model) = setup().await;
+    let conn = storage::read_only(&cfg.state.join("state.db")).unwrap();
+    let all = reviews::list(&conn, true).unwrap();
+    let exact = all
+        .iter()
+        .find(|r| r.category.as_deref() == Some("relationship"))
+        .unwrap();
+    let fact = storage::relation_facts(&conn)
+        .unwrap()
+        .into_iter()
+        .find(|f| f.kind == "supersedes" && f.active)
+        .unwrap();
+    let request = Request {
+        decision: "accept_relation",
+        relation: Some("supersedes"),
+        evidence: Some(&fact.evidence_id),
+        reason: "The explicit edge belongs to the other assertion in this source.",
+        actor: "fixture",
+        actor_kind: "user",
+        expect_digest: None,
+    };
+    let result = adjudication::decide(&conn, &exact.id, &request, false).unwrap();
+    assert_eq!(result["authority"], "human_advisory_interpretation");
+    assert_eq!(storage::relation_facts(&conn).unwrap().len(), 1);
+}
