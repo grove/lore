@@ -241,7 +241,8 @@ def execute(args, prompt: bytes, directory: Path, env: dict, event: dict, record
         if process.returncode or not terminal or len(messages) != 1 or not isinstance(messages[0], str):
             raise AdapterFailure("incomplete")
         answer = json.loads(messages[0])
-        if not isinstance(answer, dict) or set(answer) != {"schema_version", "files", "summary"}:
+        if (not isinstance(answer, dict) or set(answer) != {"schema_version", "files", "summary"}
+                or type(answer["schema_version"]) is not int or answer["schema_version"] != 1):
             raise AdapterFailure()
         used = terminal[0].get("usage") if len(terminal) == 1 else None
         cached = metering.integer(used.get("cached_input_tokens")) if isinstance(used, dict) else None

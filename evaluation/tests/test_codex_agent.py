@@ -82,7 +82,8 @@ class CodexProcessTests(unittest.TestCase):
                 self.assertIsNone(result["usage"]["billed_cost_usd"])
 
     def test_invalid_final_files_traversal_usage_spoof_and_oversize_fail(self):
-        for answer in ({"schema_version": 1, "files": {}, "summary": "x"},
+        for answer in ({"schema_version": True, "files": {"src/a.py": "x"}, "summary": "x"},
+                       {"schema_version": 1, "files": {}, "summary": "x"},
                        {"schema_version": 1, "files": {"../secret": "x"}, "summary": "x"},
                        {"schema_version": 1, "files": {"src/a.py": "x"}, "summary": " "},
                        {"schema_version": 1, "files": {"src/a.py": "x"}, "summary": "x", "usage": {}},
