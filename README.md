@@ -32,6 +32,17 @@ limits, and caching described in [the historical 0.6 guide](docs/V06.md).
 
 **New to Lore?** Start with [Learn Lore](docs/tutorial/README.md): seven practical lessons, a [fictional HarborPay classroom](examples/tutorial-project/README.md), exercises and an answer key. The first lessons work without a model, credentials or initialization. Optional later lessons cover durable knowledge, Codex/Claude Code integration, evidence, reviews and task feedback. This teaches **how to use Lore**; `lore onboard --mode tutorial` instead teaches you about **your project**.
 
+### Visualize your wiki locally
+
+Open a browser view of the **published** Lore wiki and its underlying, source-linked concept/decision graph:
+
+```sh
+lore visualize
+lore visualize --port 4400 --no-open
+```
+
+The viewer runs only on `127.0.0.1`, bundles browser assets, and does not invoke a model, refresh the registry or write sources. You must initialize and publish a project first. See [visualizer guide](docs/VISUALIZE.md) for evidence boundaries, resource caps and privacy notes.
+
 ### Adaptive project intelligence
 
 Ordinary initialized-project `lore context TASK` uses schema 5 and selects

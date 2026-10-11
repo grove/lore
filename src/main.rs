@@ -56,6 +56,13 @@ enum Command {
         )]
         expect_digest: Option<String>,
     },
+    /// Open a local, read-only graph and wiki reader (no inference).
+    Visualize {
+        #[arg(long, default_value_t = 4321, value_parser = clap::value_parser!(u16).range(1024..))]
+        port: u16,
+        #[arg(long)]
+        no_open: bool,
+    },
     /// Create configuration and build the initial wiki (existing config is preserved).
     Init {
         #[arg(long)]
@@ -528,6 +535,7 @@ async fn run(cli: Cli) -> Result<i32> {
             | Command::Memory { .. }
             | Command::Onboard { .. }
             | Command::Explore { .. }
+            | Command::Visualize { .. }
             | Command::Decisions { .. }
             | Command::Cases { .. }
             | Command::Baseline { .. }
@@ -599,6 +607,7 @@ async fn run(cli: Cli) -> Result<i32> {
     }
     match cli.command {
         Command::Integrate { .. } => unreachable!("integration is dispatched before configuration"),
+        Command::Visualize { port, no_open } => lore::visualize::run(&config, port, no_open)?,
         Command::Init { rebuild, .. } => {
             compile(
                 &config,
