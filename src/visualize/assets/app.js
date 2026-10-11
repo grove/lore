@@ -12,7 +12,7 @@ const canvas = $("graph");
 const ctx = canvas.getContext("2d");
 const labels = { pages: "Wiki pages", concepts: "Knowledge concepts", decisions: "Decisions & constraints" };
 const graphTitles = { pages: "Wiki relationships", concepts: "Concept connections", decisions: "Decision history & evidence" };
-const conceptTitleOrder = new Intl.Collator(undefined, { sensitivity: "accent" });
+const titleOrder = new Intl.Collator(undefined, { sensitivity: "accent" });
 let noticeTimer = null;
 
 function notice(message) {
@@ -74,9 +74,7 @@ function renderList() {
   const items = $("items");
   reset(items);
   const found = current().filter(matches);
-  if (state.mode === "concepts") {
-    found.sort((a, b) => conceptTitleOrder.compare(a.title, b.title) || a.id.localeCompare(b.id));
-  }
+  found.sort((a, b) => titleOrder.compare(a.title, b.title) || a.id.localeCompare(b.id));
   $("list-title").textContent = labels[state.mode];
   $("list-count").textContent = found.length + (found.length !== current().length ? "/" + current().length : "");
   for (const item of found) {
@@ -181,13 +179,28 @@ function paint() {
     ctx.beginPath();ctx.arc(item.x,item.y,r,0,Math.PI*2);ctx.fillStyle=base;ctx.fill();
     ctx.strokeStyle = active ? "#f5fbff" : "rgba(255,255,255,.3)";
     ctx.lineWidth = active ? 1.8 : 0.8;ctx.stroke();
-    ctx.font = (active ? "600 " : "500 ") + "10px system-ui, sans-serif";
-    ctx.textAlign="center";ctx.textBaseline="top";
-    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--text").trim();
-    const label = item.title.length > 25 ? item.title.slice(0,23) + "…" : item.title;
-    ctx.fillText(label,item.x,item.y+12);
   }
   ctx.globalAlpha=1;ctx.restore();
+  const occupied = [];
+  const points = state.points.map(item => ({...item, screenX:w/2+state.panX+item.x*state.zoom, screenY:h/2+state.panY+item.y*state.zoom}));
+  points.sort((a,b)=>Number(b.id===state.selected||b.id===state.hovered)-Number(a.id===state.selected||a.id===state.hovered));
+  ctx.font="500 11px system-ui, sans-serif";
+  ctx.textAlign="left";ctx.textBaseline="top";
+  ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue("--text").trim();
+  for(const item of points.filter(matches)) {
+    let label=item.title;
+    const maxWidth=Math.min(190,w-24);
+    while(label.length>1 && ctx.measureText(label).width>maxWidth)label=label.slice(0,-2)+"…";
+    const width=ctx.measureText(label).width;
+    const left=Math.max(8,Math.min(w-width-8,item.screenX-width/2));
+    for(const top of [item.screenY+14,item.screenY-27]) {
+      const box={left,top,right:left+width,bottom:top+14};
+      if(top<8 || box.bottom>h-8 || item.screenX<0 || item.screenX>w)continue;
+      if(occupied.some(other=>box.left<other.right+6 && box.right>other.left-6 && box.top<other.bottom+3 && box.bottom>other.top-3))continue;
+      if(points.some(point=>point.screenX>box.left-9 && point.screenX<box.right+9 && point.screenY>box.top-9 && point.screenY<box.bottom+9))continue;
+      ctx.fillText(label,left,top);occupied.push(box);break;
+    }
+  }
 }
 function worldPoint(event) {
   const rect = canvas.getBoundingClientRect();
@@ -213,7 +226,7 @@ canvas.addEventListener("pointermove",e=>{
     if(state.drag.moved) {state.panX=state.drag.panX+e.clientX-state.drag.x;state.panY=state.drag.panY+e.clientY-state.drag.y;paint();}
   } else {
     const found=hit(e)?.id||null;
-    if(found!==state.hovered){state.hovered=found;canvas.style.cursor=found?"pointer":"grab";paint();}
+    if(found!==state.hovered){state.hovered=found;canvas.title=state.points.find(item=>item.id===found)?.title||"";canvas.style.cursor=found?"pointer":"grab";paint();}
   }
 });
 canvas.addEventListener("pointerup",e=>{
@@ -247,7 +260,7 @@ function appendEvidence(parent, records) {
     card.append(info);parent.append(card);
   }
 }
-function addRelations(parent, relations) {
+function addRelations(parent, relations, records) {
   if(!relations || !relations.length)return;
   parent.append(node("div","evidence-label","Documentary relationships"));
   for(const rel of relations){
@@ -255,18 +268,18 @@ function addRelations(parent, relations) {
     const ref=rel.from===state.selected?rel.to:rel.from;
     const row=node("div","record-head");
     row.append(pill(rel.kind));
-    const button=node("button","inline-link",ref);
-    button.addEventListener("click",()=>{
-      if(state.mode==="decisions" && current().some(x=>x.id===ref))select(ref);
-      else notice("The related original record is not in the current bounded decision graph.");
-    });
+    const button=node("button","inline-link",records?.find(record=>record.id===ref)?.title||ref);
+    button.addEventListener("click",()=>select(ref));
     row.append(button);wrap.append(row);
     wrap.append(node("p",null,(rel.active?"Current documentary relation. ":"Historical documentary relation. ")+(rel.evidence_id?"Evidence: "+rel.evidence_id:"")));
     parent.append(wrap);
   }
 }
-async function select(id) {
-  if(!current().some(item=>item.id===id))return;
+async function select(id, updateHistory=true, anchor="") {
+  if(state.mode!=="decisions" && !current().some(item=>item.id===id))return;
+  const key={pages:"page",concepts:"concept",decisions:"record"}[state.mode];
+  const hash="#"+key+"="+encodeURIComponent(id)+(anchor?"&anchor="+encodeURIComponent(anchor):"");
+  if(updateHistory && location.hash!==hash)history.pushState(null,"",hash);
   state.selected=id;
   const generation=++state.sequence;
   renderList();paint();
@@ -274,22 +287,32 @@ async function select(id) {
   const body=$("reader-body"); reset(body);
   body.append(node("div","item-note","Loading original knowledge…"));
   $("reader-kind").textContent=state.mode==="pages"?"PUBLISHED WIKI":state.mode==="concepts"?"DERIVED CONCEPT":"DOCUMENTARY KNOWLEDGE";
-  $("reader-status").textContent=item.id;
+  $("reader-status").textContent=id;
   try {
     const endpoint=state.mode==="pages"?"page":state.mode==="concepts"?"concept":"record";
     const data=await request("/api/"+endpoint+"?id="+encodeURIComponent(id));
     if(generation!==state.sequence)return;
+    const selected=item || {title:data.record.subject,kind:data.record.kind,lifecycle:data.record.lifecycle};
     reset(body);
-    body.append(node("h2","doc-title",item.title));
+    body.append(node("h2","doc-title",selected.title));
     const caps=node("div");
-    caps.append(pill(item.kind||state.mode));
-    if(item.lifecycle)caps.append(pill(item.lifecycle));
+    caps.append(pill(selected.kind||state.mode));
+    if(selected.lifecycle)caps.append(pill(selected.lifecycle));
     body.append(caps);
-    if(item.summary)body.append(node("p","doc-desc",item.summary));
+    if(state.mode!=="decisions" && selected.summary)body.append(node("p","doc-desc",selected.summary));
     if(state.mode==="pages"){
       const holder=node("article","reader-markdown");
       // Sanitized on the server (raw HTML is escaped; dangerous link/image schemes disabled).
       holder.innerHTML=data.html;
+      holder.addEventListener("click",event=>{
+        const link=event.target.closest("a[href^='#ku_']");
+        if(!link)return;
+        const target=document.getElementById(link.hash.slice(1));
+        if(!target || !holder.contains(target))return;
+        event.preventDefault();
+        history.pushState(null,"","#page="+encodeURIComponent(id)+"&anchor="+encodeURIComponent(target.id));
+        target.scrollIntoView({block:"start"});
+      });
       body.append(holder);
     }else if(state.mode==="concepts"){
       const about=node("p","item-note","A derived navigation grouping, not an accepted policy or independent evidence.");
@@ -319,16 +342,18 @@ async function select(id) {
       body.append(node("div","item-note","Subject: "+record.subject+" · Scope: "+record.scope+" · Support: "+record.support_state));
       body.append(node("div","evidence-label","Original supporting evidence"));
       appendEvidence(body,record.evidence);
-      addRelations(body,data.relations);
+      addRelations(body,data.relations,data.related_records);
       body.append(node("p","item-note","A source report is not runtime verification. A proposal does not supersede an accepted decision without supporting authority."));
     }
     body.scrollTop=0;
+    if(window.matchMedia("(max-width:790px)").matches && updateHistory)$("reader-body").scrollIntoView({block:"start"});
+    if(anchor)document.getElementById(anchor)?.scrollIntoView({block:"start"});
   }catch(error){
     if(generation!==state.sequence)return;
     reset(body);body.append(node("p","error",error.message));
   }
 }
-function setMode(mode){
+function setMode(mode, selectDefault=true){
   if(!labels[mode] || !state.site)return;
   state.mode=mode;state.selected=null;state.sequence++;
   for(const t of document.querySelectorAll(".tab")){
@@ -339,7 +364,7 @@ function setMode(mode){
   $("search").value="";state.search="";
   renderList();layout();
   const preferred=mode==="pages"?current().find(p=>p.id==="index.md"):null;
-  if(preferred || current().length)select((preferred||current()[0]).id);
+  if(selectDefault && (preferred || current().length))select((preferred||current()[0]).id);
   else {reset($("reader-body"));$("reader-body").append(node("p","item-note","No material in this view."));}
 }
 for(const t of document.querySelectorAll(".tab")) t.addEventListener("click",()=>setMode(t.dataset.mode));
@@ -348,10 +373,18 @@ window.addEventListener("keydown",e=>{
   if(e.key==="/" && !(e.target instanceof HTMLInputElement)){e.preventDefault();$("search").focus();}
   if(e.key==="Escape" && document.activeElement===$("search")){$("search").value="";state.search="";renderList();paint();}
 });
-window.addEventListener("hashchange",()=>{
-  if(!location.hash.startsWith("#page=") || !state.site)return;
-  try{const id=decodeURIComponent(location.hash.slice(6));if(state.mode!=="pages")setMode("pages");select(id);}catch(_){}
-});
+function restoreRoute(){
+  if(!state.site)return;
+  const params=new URLSearchParams(location.hash.slice(1));
+  for(const [key,mode] of [["page","pages"],["concept","concepts"],["record","decisions"]]){
+    if(!params.has(key))continue;
+    if(state.mode!==mode)setMode(mode,false);
+    select(params.get(key),false,params.get("anchor")||"");return;
+  }
+  setMode("pages",false);select("index.md",false);
+}
+window.addEventListener("popstate",restoreRoute);
+window.addEventListener("hashchange",restoreRoute);
 $("theme").addEventListener("click",()=>{document.documentElement.classList.toggle("light");paint()});
 $("refresh").addEventListener("click",()=>loadSite(true));
 async function loadSite(refresh=false){
@@ -364,10 +397,8 @@ async function loadSite(refresh=false){
     $("revision").textContent=site.revision ? site.revision.slice(0,18) : "Documentary view";
     $("revision").title=site.revision||"";
     if(site.warnings?.length)notice(site.warnings.join(" · "));
-    setMode(state.mode);
-    if(location.hash.startsWith("#page=")){
-      try{select(decodeURIComponent(location.hash.slice(6)))}catch(_){}
-    }
+    setMode(state.mode,false);
+    restoreRoute();
     if(refresh)notice("Re-read the published wiki and registry. No inference was performed.");
   }catch(error){notice(error.message);if(!state.site){reset($("reader-body"));$("reader-body").append(node("p","error",error.message));}}
   finally{$("refresh").disabled=false;}

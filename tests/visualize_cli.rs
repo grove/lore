@@ -3,6 +3,97 @@ mod common;
 use common::*;
 use lore::engine::{self, UpdateOptions};
 
+#[tokio::test]
+async fn viewer_serves_citation_support_and_named_related_records_read_only() {
+    use std::sync::atomic::Ordering;
+
+    let (_dir, config, model) = project();
+    put(
+        &config,
+        "ADR-001.md",
+        "DECISION database: MySQL is the selected database.\n",
+    );
+    engine::update(&config, &model, None, UpdateOptions::default())
+        .await
+        .unwrap();
+    put(
+        &config,
+        "ADR-002.md",
+        "DECISION database: PostgreSQL is the selected database.\nREPORT rollout: The deployment was reported complete.\n",
+    );
+    engine::update(&config, &model, None, UpdateOptions::default())
+        .await
+        .unwrap();
+
+    let database = config.state.join("state.db");
+    let before = std::fs::read(&database).unwrap();
+    let calls = model.calls.load(Ordering::SeqCst);
+    let viewer = lore::visualize::Viewer::open(&config).unwrap();
+    let read_json = |path: &str| {
+        let (status, _, bytes) = viewer.reply(path).unwrap();
+        assert_eq!(status, 200);
+        serde_json::from_slice::<serde_json::Value>(&bytes).unwrap()
+    };
+    let site = read_json("/api/site");
+    for page in site["pages"].as_array().unwrap() {
+        assert!(!page["title"].as_str().unwrap().contains('/'));
+        let id = percent_encoding::utf8_percent_encode(
+            page["id"].as_str().unwrap(),
+            percent_encoding::NON_ALPHANUMERIC,
+        );
+        let rendered = read_json(&format!("/api/page?id={id}"));
+        let html = rendered["html"].as_str().unwrap();
+        assert!(!html.contains("about:blank"));
+        if html.contains("footnote-definition") {
+            assert!(html.contains("supporting source"), "{html}");
+        }
+    }
+    let decision = site["decisions"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|record| record["summary"].as_str().unwrap().contains("PostgreSQL"))
+        .unwrap();
+    let record = read_json(&format!(
+        "/api/record?id={}",
+        decision["id"].as_str().unwrap()
+    ));
+    assert!(!record["relations"].as_array().unwrap().is_empty());
+    for relation in record["relations"].as_array().unwrap() {
+        for endpoint in ["from", "to"] {
+            assert!(
+                record["related_records"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .any(|related| related["id"] == relation[endpoint]
+                        && related["title"].is_string())
+            );
+        }
+    }
+    let conn = lore::storage::read_only(&database).unwrap();
+    let graph = lore::knowledge::build(&conn, &lore::knowledge::ZoomOptions::default()).unwrap();
+    let report = graph
+        .knowledge
+        .iter()
+        .find(|record| record.kind == "reported_outcome")
+        .unwrap();
+    assert!(
+        !site["decisions"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|record| record["id"] == report.id)
+    );
+    assert_eq!(
+        read_json(&format!("/api/record?id={}", report.id))["record"]["subject"],
+        report.subject
+    );
+    assert!(viewer.reply("/api/record?id=unknown").is_err());
+    assert_eq!(model.calls.load(Ordering::SeqCst), calls);
+    assert_eq!(std::fs::read(database).unwrap(), before);
+}
+
 #[cfg(unix)]
 #[tokio::test]
 async fn ctrl_c_stops_visualizer_and_releases_listener() {
@@ -56,9 +147,9 @@ async fn ctrl_c_stops_visualizer_and_releases_listener() {
             stream
                 .write_all(b"GET / HTTP/1.1\r\nHost: localhost\r\n\r\n")
                 .unwrap();
-            let mut response = [0; 32];
-            let count = stream.read(&mut response).unwrap();
-            assert!(String::from_utf8_lossy(&response[..count]).starts_with("HTTP/1.1 200"));
+            let mut response = [0; 12];
+            stream.read_exact(&mut response).unwrap();
+            assert_eq!(&response, b"HTTP/1.1 200");
             ready = true;
             break;
         }

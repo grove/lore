@@ -86,7 +86,41 @@ impl Viewer {
                             util::digest(&source) == page.output_digest,
                             "published page changed during read"
                         );
-                        json!({"id":id,"html":render_markdown(&source,&id,&pages),"source_write":false})
+                        let support = graph
+                            .knowledge
+                            .iter()
+                            .map(|record| {
+                                let excerpts = record
+                                    .evidence
+                                    .iter()
+                                    .map(|evidence| {
+                                        let lines = evidence
+                                            .line_start
+                                            .map(|start| {
+                                                format!(
+                                                    " · lines {start}-{}",
+                                                    evidence.line_end.unwrap_or(start)
+                                                )
+                                            })
+                                            .unwrap_or_default();
+                                        format!(
+                                            "{}:{}{lines}\n{}\n{} supporting source",
+                                            evidence.root_id,
+                                            evidence.path,
+                                            evidence.excerpt,
+                                            if evidence.active {
+                                                "Current"
+                                            } else {
+                                                "Historical"
+                                            }
+                                        )
+                                    })
+                                    .collect::<Vec<_>>()
+                                    .join("\n\n");
+                                (record.id.clone(), excerpts)
+                            })
+                            .collect();
+                        json!({"id":id,"html":render_markdown(&source,&id,&pages,&support),"source_write":false})
                     }
                     "/api/concept" => {
                         let id = query_id(query)?;
@@ -115,7 +149,17 @@ impl Viewer {
                             .iter()
                             .filter(|r| r.from == id || r.to == id)
                             .collect();
-                        json!({"record":record,"relations":relations})
+                        let related_records: Vec<_> = graph
+                            .knowledge
+                            .iter()
+                            .filter(|record| {
+                                relations.iter().any(|relation| {
+                                    relation.from == record.id || relation.to == record.id
+                                })
+                            })
+                            .map(|record| json!({"id":record.id,"title":record.subject}))
+                            .collect();
+                        json!({"record":record,"relations":relations,"related_records":related_records})
                     }
                 };
                 Ok((
@@ -152,7 +196,10 @@ fn site(
     let mut page_nodes = Vec::new();
     let mut page_edges = Vec::new();
     for (id, page) in pages.iter().take(600) {
-        let title = id
+        let title = Path::new(id)
+            .file_name()
+            .and_then(|name| name.to_str())
+            .unwrap_or(id)
             .strip_suffix(".md")
             .unwrap_or(id)
             .replace(['-', '_'], " ");
@@ -244,8 +291,11 @@ fn render_markdown(
     source: &str,
     current: &str,
     pages: &BTreeMap<String, storage::StoredPage>,
+    support: &BTreeMap<String, String>,
 ) -> String {
     let ids: BTreeSet<_> = pages.keys().cloned().collect();
+    let mut links = Vec::new();
+    let mut footnote = None;
     let parser = Parser::new_ext(
         source,
         Options::ENABLE_TABLES
@@ -253,8 +303,22 @@ fn render_markdown(
             | Options::ENABLE_TASKLISTS
             | Options::ENABLE_FOOTNOTES,
     )
-    .map(|event| match event {
-        Event::Html(x) | Event::InlineHtml(x) => Event::Text(x),
+    .flat_map(|event| match event {
+        Event::Html(x) | Event::InlineHtml(x) => vec![Event::Text(x)],
+        Event::Start(Tag::FootnoteDefinition(id)) => {
+            footnote = support.get(id.as_ref());
+            vec![Event::Start(Tag::FootnoteDefinition(id))]
+        }
+        Event::End(TagEnd::FootnoteDefinition) => {
+            let mut events = Vec::new();
+            if let Some(excerpts) = footnote.take().filter(|text| !text.is_empty()) {
+                events.push(Event::Start(Tag::Paragraph));
+                events.push(Event::Text(excerpts.clone().into()));
+                events.push(Event::End(TagEnd::Paragraph));
+            }
+            events.push(Event::End(TagEnd::FootnoteDefinition));
+            events
+        }
         Event::Start(Tag::Link {
             link_type,
             dest_url,
@@ -274,21 +338,33 @@ fn render_markdown(
                     )
                 })
             };
-            Event::Start(Tag::Link {
-                link_type,
-                dest_url: target.unwrap_or_else(|| "about:blank".into()).into(),
-                title,
-                id,
-            })
+            links.push(target.is_some());
+            target
+                .map(|target| {
+                    vec![Event::Start(Tag::Link {
+                        link_type,
+                        dest_url: target.into(),
+                        title,
+                        id,
+                    })]
+                })
+                .unwrap_or_default()
+        }
+        Event::End(TagEnd::Link) => {
+            if links.pop().unwrap_or(false) {
+                vec![Event::End(TagEnd::Link)]
+            } else {
+                Vec::new()
+            }
         }
         Event::Start(Tag::Image {
             link_type: _,
             dest_url: _,
             title: _,
             id: _,
-        }) => Event::Text("Image omitted in local reader".into()),
-        Event::End(TagEnd::Image) => Event::Text("".into()),
-        other => other,
+        }) => vec![Event::Text("Image omitted in local reader".into())],
+        Event::End(TagEnd::Image) => Vec::new(),
+        other => vec![other],
     });
     let mut html_out = String::new();
     html::push_html(&mut html_out, parser);
@@ -405,6 +481,7 @@ mod tests {
             "<script>alert('x')</script>\n\n# Hello",
             "index.md",
             &BTreeMap::new(),
+            &BTreeMap::new(),
         );
         assert!(!rendered.contains("<script>"));
         assert!(rendered.contains("&lt;script&gt;"));
@@ -424,11 +501,31 @@ mod tests {
             "A documented rule.[^ku_example]\n\n## Sources\n\n[^ku_example]: Source: runbook.md, lines 4-6.\n",
             "index.md",
             &pages,
+            &BTreeMap::new(),
         );
         assert!(rendered.contains("footnote-reference"));
         assert!(rendered.contains("footnote-definition"), "{rendered}");
         assert!(rendered.contains(">1</sup>"));
         assert!(!rendered.contains(">ku_example<"));
         assert!(rendered.contains("runbook.md, lines 4-6"));
+    }
+    #[test]
+    fn source_citations_show_stored_support_without_unsafe_links() {
+        let support = BTreeMap::from([(
+            "ku_example".into(),
+            "source-1:runbook.md · lines 4-6\nDo not retry <script>".into(),
+        )]);
+        let rendered = render_markdown(
+            "A rule.[^ku_example]\n\n[^ku_example]: [source-1:runbook.md](../../docs/runbook.md).\n\n[Unsafe](javascript:alert) [External](https://example.test) [Missing](missing.md)",
+            "index.md",
+            &BTreeMap::new(),
+            &support,
+        );
+        assert!(!rendered.contains("about:blank"));
+        assert!(!rendered.contains("href=\"javascript:"));
+        assert!(!rendered.contains("href=\"https:"));
+        assert!(!rendered.contains("href=\"missing.md"));
+        assert!(rendered.contains("source-1:runbook.md"));
+        assert!(rendered.contains("Do not retry &lt;script&gt;"));
     }
 }
