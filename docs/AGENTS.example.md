@@ -1,5 +1,10 @@
 # Optional Lore instructions for a coding agent
 
+For a shorter block supporting both first-contact and initialized context, use
+`lore integrate codex` or `lore integrate claude-code`, then explicitly `--apply`.
+See [agent integration](AGENT_INTEGRATION.md) for preview, status and safe removal.
+The manual example below intentionally pins initialized schema 5.
+
 Copy the following block into the project's agent instructions, such as `AGENTS.md` for Codex or `CLAUDE.md` for Claude Code. Other command-capable agents can use the same commands. This example is documentation; installing Lore does not modify an instruction file automatically.
 
 ```markdown

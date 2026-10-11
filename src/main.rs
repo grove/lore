@@ -38,6 +38,22 @@ struct Cli {
 }
 #[derive(Subcommand)]
 enum Command {
+    /// Preview or explicitly install a short, permission-preserving agent instruction block.
+    Integrate {
+        #[arg(value_parser = ["codex", "claude-code"])]
+        agent: String,
+        #[arg(long, conflicts_with = "status")]
+        apply: bool,
+        #[arg(long, conflicts_with = "status")]
+        remove: bool,
+        #[arg(long)]
+        status: bool,
+        #[arg(
+            long,
+            help = "Require the exact before_digest returned by an earlier preview"
+        )]
+        expect_digest: Option<String>,
+    },
     /// Create configuration and build the initial wiki (existing config is preserved).
     Init {
         #[arg(long)]
@@ -367,6 +383,32 @@ async fn run_metered(cli: Cli, meter: lore::inference::usage::UsageSession) -> R
 }
 
 async fn run(cli: Cli) -> Result<i32> {
+    if let Command::Integrate {
+        agent,
+        apply,
+        remove,
+        status,
+        expect_digest,
+    } = &cli.command
+    {
+        ensure!(
+            cli.config.is_none(),
+            "integrate uses the current project root; omit --config and run there"
+        );
+        let root = std::env::current_dir()?;
+        emit(
+            lore::integrations::run(
+                &root,
+                agent,
+                *apply,
+                *remove,
+                *status,
+                expect_digest.as_deref(),
+            )?,
+            cli.json,
+        )?;
+        return Ok(0);
+    }
     let config_path = cli.config.clone().unwrap_or_else(|| "lore.yml".into());
     if let Command::Init {
         source,
@@ -512,6 +554,7 @@ async fn run(cli: Cli) -> Result<i32> {
         }
     }
     match cli.command {
+        Command::Integrate { .. } => unreachable!("integration is dispatched before configuration"),
         Command::Init { rebuild, .. } => {
             compile(
                 &config,
