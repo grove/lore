@@ -19,7 +19,8 @@ pub const SCHEMA_V5: &str = include_str!("../migrations/0005_source_provenance.s
 pub const SCHEMA_V6: &str = include_str!("../migrations/0006_native_observations.sql");
 pub const SCHEMA_V7: &str = include_str!("../migrations/0007_cross_source.sql");
 pub const SCHEMA_V8: &str = include_str!("../migrations/0008_provider_usage.sql");
-pub const SCHEMA_VERSION: i64 = 8;
+pub const SCHEMA_V9: &str = include_str!("../migrations/0009_review_adjudications.sql");
+pub const SCHEMA_VERSION: i64 = 9;
 pub fn migrate(conn: &Connection) -> rusqlite::Result<()> {
     conn.pragma_update(None, "foreign_keys", "ON")?;
     let version: i64 = conn.pragma_query_value(None, "user_version", |r| r.get(0))?;
@@ -50,6 +51,9 @@ pub fn migrate(conn: &Connection) -> rusqlite::Result<()> {
         }
         if version < 8 {
             conn.execute_batch(SCHEMA_V8)?;
+        }
+        if version < 9 {
+            conn.execute_batch(SCHEMA_V9)?;
         }
         Ok(())
     })();
@@ -132,7 +136,7 @@ pub fn read_only(path: &Path) -> Result<Connection> {
 /// Including the complete retained inventory detects newly relevant evidence,
 /// even when all of an old recommendation's original dependencies are unchanged.
 /// No source is reread, no registry row is changed and no model is called.
-pub fn registry_revision(conn: &Connection) -> Result<String> {
+pub(crate) fn documentary_revision(conn: &Connection) -> Result<String> {
     let mut heads = current_source_heads(conn)?;
     heads.sort_by(|a, b| a.id.cmp(&b.id));
     let mut knowledge = views(conn)?;
@@ -151,6 +155,15 @@ pub fn registry_revision(conn: &Connection) -> Result<String> {
         relationships,
         documentary,
     ))
+}
+pub fn registry_revision(conn: &Connection) -> Result<String> {
+    let documentary_revision = documentary_revision(conn)?;
+    let adjudications = crate::reviews::adjudication::projection(conn)?;
+    if adjudications.is_empty() {
+        Ok(documentary_revision)
+    } else {
+        util::json_digest(&(documentary_revision, adjudications))
+    }
 }
 pub fn stage_database(old: &Path, stage: &Path) -> Result<Connection> {
     if old.exists() {

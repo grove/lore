@@ -1,4 +1,5 @@
 //! Evidence-bound review lifecycle. Disposition never edits knowledge or evidence.
+pub mod adjudication;
 use crate::{storage, util};
 use anyhow::{Context, Result, ensure};
 use rusqlite::{Connection, OptionalExtension, params};
@@ -84,7 +85,7 @@ pub fn show(conn: &Connection, id: &str) -> Result<Value> {
         .find(|r| r.id == id)
         .context("review ID not found")?;
     Ok(
-        json!({"review":review,"history":events(conn,id)?,"qualification":"A review disposition is not independent verification and does not modify the knowledge graph."}),
+        json!({"review":review,"history":events(conn,id)?,"adjudications":adjudication::history(conn,id)?,"qualification":"A review disposition is not independent verification and does not modify the knowledge graph."}),
     )
 }
 fn review_id(key: &str) -> String {
@@ -265,7 +266,7 @@ fn transition(
         })
         .optional()?
         .context("review ID not found")?;
-    if old == next {
+    if old == next && code != "manual_adjudication" {
         return Ok(false);
     }
     conn.execute("INSERT INTO review_events(id,review_id,from_status,to_status,actor_type,actor,reason_code,note,evidence_id,context_digest,recorded_at) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11)",params![util::id("re"),id,old,next,actor_type,actor,code,note,evidence,fingerprint(conn,id)?,util::now()])?;
@@ -297,10 +298,13 @@ pub fn manual(conn: &Connection, id: &str, next: &str, reason: &str, actor: &str
 pub fn refresh(conn: &Connection) -> Result<usize> {
     backfill(conn)?;
     let facts = storage::relation_facts(conn)?;
-    let mut changed = 0;
+    let mut changed = adjudication::refresh(conn)?;
     for item in list(conn, true)? {
         let history = events(conn, &item.id)?;
         let Some(last) = history.last() else { continue };
+        if last.reason_code == "manual_adjudication_invalidated" {
+            continue;
+        }
         if let Some(comparison) = crate::imports::relationships::review_comparison(conn, &item.id)?
         {
             let now = fingerprint(conn, &item.id)?;
@@ -484,6 +488,9 @@ pub fn page(conn: &Connection) -> Result<storage::StoredPage> {
                 text.push_str(&format!(" Evidence: `{ev}`."));
             }
             text.push_str("\n\n");
+        }
+        for event in adjudication::history(conn, &item.id)? {
+            text.push_str(&format!("manual_adjudication (immutable history; current applicability must be revalidated):\n\n{}\n\n", util::markdown_text(&serde_json::to_string(&event)?)));
         }
     }
     if items.is_empty() {

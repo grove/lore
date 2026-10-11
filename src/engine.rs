@@ -204,9 +204,17 @@ fn make_plan(
         );
     }
     let pending = publish::has_pending(config);
+    let migration_needed = match conn {
+        Some(c) => {
+            c.pragma_query_value(None, "user_version", |r| r.get::<_, i64>(0))?
+                < storage::SCHEMA_VERSION
+        }
+        None => false,
+    };
     let status = Status {
         initialized,
         needs_update: !initialized
+            || migration_needed
             || configuration_changed
             || imports_changed
             || presentation_changed
@@ -663,7 +671,9 @@ pub fn audit(config: &ResolvedConfig) -> Result<Value> {
     }
     let mut q = conn.prepare("SELECT id,reason,status FROM review_items ORDER BY id")?;
     let reviews=q.query_map([],|r|Ok(json!({"id":r.get::<_,String>(0)?,"reason":r.get::<_,String>(1)?,"status":r.get::<_,String>(2)?})))?.collect::<rusqlite::Result<Vec<_>>>()?;
-    Ok(json!({"ok":issues.is_empty(),"issues":issues,"reviews":reviews,"status":status}))
+    Ok(
+        json!({"ok":issues.is_empty(),"issues":issues,"reviews":reviews,"manual_adjudications":crate::reviews::adjudication::projection(&conn)?,"status":status}),
+    )
 }
 /// Change review disposition without inference or graph mutation. Uses the
 /// same recoverable publication protocol as knowledge compilation.
@@ -673,6 +683,38 @@ pub fn change_review(
     state: &str,
     reason: &str,
     actor: &str,
+) -> Result<Value> {
+    publish_review(config, id, |conn| {
+        let changed = crate::reviews::manual(conn, id, state, reason, actor)?;
+        Ok(json!({"changed":changed,"review_id":id,"status":state,"model_calls":0}))
+    })
+}
+
+pub fn adjudicate_review(
+    config: &ResolvedConfig,
+    id: &str,
+    request: &crate::reviews::adjudication::Request<'_>,
+    apply: bool,
+) -> Result<Value> {
+    if apply {
+        publish_review(config, id, |conn| {
+            crate::reviews::adjudication::decide(conn, id, request, true)
+        })
+    } else {
+        let status = status(config)?;
+        ensure!(
+            status.initialized && !status.needs_update,
+            "run lore update before adjudication: source and published state must match"
+        );
+        let conn = storage::read_only(&config.state.join("state.db"))?;
+        crate::reviews::adjudication::decide(&conn, id, request, false)
+    }
+}
+
+fn publish_review(
+    config: &ResolvedConfig,
+    id: &str,
+    change: impl FnOnce(&Connection) -> Result<Value>,
 ) -> Result<Value> {
     let _lock = publish::ProjectLock::acquire(config)?;
     publish::recover(config)?;
@@ -695,10 +737,10 @@ pub fn change_review(
         &publish::stage_dir(config, &generation).join("state.db"),
     )?;
     conn.execute_batch("BEGIN IMMEDIATE")?;
-    let changed = crate::reviews::manual(&conn, id, state, reason, actor)?;
-    if !changed {
+    let mut result = change(&conn)?;
+    if result["changed"] != true {
         conn.execute_batch("ROLLBACK")?;
-        return Ok(json!({"changed":false,"review_id":id,"status":state,"model_calls":0}));
+        return Ok(result);
     }
     let detail = crate::reviews::show(&conn, id)?;
     let mut pages = old_pages.clone();
@@ -742,7 +784,8 @@ pub fn change_review(
     conn.execute_batch("COMMIT")?;
     conn.close().map_err(|(_, e)| e)?;
     publish::commit(config, &generation, &pages)?;
-    Ok(json!({"changed":true,"review_id":id,"status":state,"model_calls":0,"detail":detail}))
+    result["detail"] = detail;
+    Ok(result)
 }
 
 pub fn evidence(config: &ResolvedConfig, id: &str) -> Result<Value> {

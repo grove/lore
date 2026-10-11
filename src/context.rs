@@ -644,6 +644,7 @@ impl Assembly<'_> {
             discrepancies: vec![],
             recommended_verification: vec![],
         };
+        let adjudications = crate::reviews::adjudication::annotations(self.conn)?;
         let mut evidence_active: BTreeMap<String, bool> = BTreeMap::new();
         for group in self.groups {
             for id in &group.ids {
@@ -665,7 +666,10 @@ impl Assembly<'_> {
                     .review_bindings
                     .values()
                     .any(|bound| bound.contains(id));
-                let (item, section) = context_item(view, &edges, has_review, &self.reasons[id]);
+                let (mut item, section) = context_item(view, &edges, has_review, &self.reasons[id]);
+                if let Some(notes) = adjudications.get(id) {
+                    item.qualifications.extend(notes.iter().cloned());
+                }
                 result.sections.push(item, section);
             }
         }
