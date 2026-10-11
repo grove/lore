@@ -490,6 +490,83 @@ async fn detects_output_edits_and_requires_explicit_rebuild() {
     );
 }
 #[tokio::test]
+async fn restores_stored_output_without_models_and_preserves_incrementality() {
+    let (_dir, cfg, model) = project();
+    put(
+        &cfg,
+        "doc.md",
+        "# Database\nDECISION database: MySQL is the selected database.\n",
+    );
+    engine::update(&cfg, &model, None, UpdateOptions::default())
+        .await
+        .unwrap();
+    let conn = storage::read_only(&cfg.state.join("state.db")).unwrap();
+    let pages = storage::pages(&conn).unwrap();
+    let revision = storage::registry_revision(&conn).unwrap();
+    let generation = storage::meta(&conn, "generation").unwrap();
+    drop(conn);
+    let calls = model.calls.load(Ordering::SeqCst);
+    fs::write(cfg.wiki.join("index.md"), "human edit").unwrap();
+    fs::remove_file(cfg.wiki.join("topics/database.md")).unwrap();
+    fs::write(cfg.wiki.join("personal.md"), "keep me").unwrap();
+    assert!(publish::restore(&cfg).is_err());
+    assert_eq!(
+        fs::read_to_string(cfg.wiki.join("personal.md")).unwrap(),
+        "keep me"
+    );
+    assert_eq!(
+        fs::read_to_string(cfg.wiki.join("index.md")).unwrap(),
+        "human edit"
+    );
+    fs::remove_file(cfg.wiki.join("personal.md")).unwrap();
+    let refused = std::process::Command::new(env!("CARGO_BIN_EXE_lore"))
+        .args(["--config", cfg.config_path.to_str().unwrap(), "restore"])
+        .output()
+        .unwrap();
+    assert!(!refused.status.success());
+    assert!(String::from_utf8_lossy(&refused.stderr).contains("--discard-edits"));
+    assert_eq!(
+        fs::read_to_string(cfg.wiki.join("index.md")).unwrap(),
+        "human edit"
+    );
+    let restored = std::process::Command::new(env!("CARGO_BIN_EXE_lore"))
+        .args([
+            "--config",
+            cfg.config_path.to_str().unwrap(),
+            "--json",
+            "restore",
+            "--discard-edits",
+        ])
+        .env_remove("OPENAI_API_KEY")
+        .output()
+        .unwrap();
+    assert!(
+        restored.status.success(),
+        "{}",
+        String::from_utf8_lossy(&restored.stderr)
+    );
+    let report: serde_json::Value = serde_json::from_slice(&restored.stdout).unwrap();
+    assert_eq!(report["restored_pages"], pages.len());
+    assert_eq!(report["model_calls"], 0);
+    for page in pages.values() {
+        assert_eq!(
+            fs::read_to_string(cfg.wiki.join(&page.path)).unwrap(),
+            page.content
+        );
+    }
+    let conn = storage::read_only(&cfg.state.join("state.db")).unwrap();
+    assert_eq!(storage::registry_revision(&conn).unwrap(), revision);
+    assert_eq!(storage::meta(&conn, "generation").unwrap(), generation);
+    drop(conn);
+    assert!(!engine::status(&cfg).unwrap().needs_update);
+    let report = engine::update(&cfg, &model, None, UpdateOptions::default())
+        .await
+        .unwrap();
+    assert!(report.no_op);
+    assert_eq!(calls, model.calls.load(Ordering::SeqCst));
+}
+
+#[tokio::test]
 async fn audit_search_and_purge_operate_without_models() {
     let (_dir, cfg, model) = project();
     put(

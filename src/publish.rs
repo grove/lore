@@ -177,7 +177,7 @@ pub fn validate_existing(
     if !config.wiki.exists() {
         ensure!(
             old.is_empty() || rebuild,
-            "published wiki is missing; use --rebuild to regenerate it"
+            "published wiki is missing; run lore restore --discard-edits to restore stored pages without model calls"
         );
         return Ok(());
     }
@@ -194,13 +194,13 @@ pub fn validate_existing(
     found.remove(OWNER);
     ensure!(
         found == old.keys().cloned().collect(),
-        "wiki has missing or unmanaged files; preserve your edits elsewhere, then use --rebuild"
+        "wiki has missing or unmanaged files; preserve edits and unmanaged files elsewhere, then run lore restore --discard-edits to restore stored pages without model calls"
     );
     for page in old.values() {
         let text = util::read_limited(&page_path(&config.wiki, &page.path)?, 4_000_000)?;
         ensure!(
             util::digest(text) == page.output_digest,
-            "generated page was edited: {}; use --rebuild only to discard generated edits",
+            "generated page was edited: {}; preserve your edits elsewhere, then run lore restore --discard-edits to restore stored pages without model calls; use lore update --rebuild only to regenerate pages",
             page.path
         );
     }
@@ -324,6 +324,48 @@ fn install_slot(stage: &Path, target: &Path, backup: &Path) -> Result<()> {
         );
     }
     Ok(())
+}
+
+pub fn restore(config: &ResolvedConfig) -> Result<usize> {
+    let _lock = ProjectLock::acquire(config)?;
+    recover(config)?;
+    let conn = storage::read_only(&config.state.join("state.db"))?;
+    ensure!(
+        storage::meta(&conn, "initialized")?.as_deref() == Some("1"),
+        "no initialized publication to restore"
+    );
+    let generation =
+        storage::meta(&conn, "generation")?.context("stored publication generation is missing")?;
+    ensure!(
+        generation.starts_with("run_")
+            && generation.len() <= 80
+            && generation
+                .bytes()
+                .all(|byte| byte.is_ascii_alphanumeric() || byte == b'_'),
+        "invalid stored publication generation"
+    );
+    let pages = storage::pages(&conn)?;
+    ensure!(!pages.is_empty(), "no stored pages to restore");
+    validate_existing(config, &pages, true)?;
+    if config.wiki.exists() {
+        let mut found = BTreeSet::new();
+        walk_files(&config.wiki, &config.wiki, &mut found)?;
+        found.remove(OWNER);
+        ensure!(
+            found.iter().all(|path| pages.contains_key(path)),
+            "wiki has unmanaged files; preserve them elsewhere before restoring"
+        );
+    }
+    cleanup_abandoned(config)?;
+    let _stage = StageGuard::new(config, &generation)?;
+    conn.backup(
+        rusqlite::MAIN_DB,
+        stage_dir(config, &generation).join("state.db"),
+        None,
+    )?;
+    drop(conn);
+    commit(config, &generation, &pages)?;
+    Ok(pages.len())
 }
 
 pub fn commit(

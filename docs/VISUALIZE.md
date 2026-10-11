@@ -9,6 +9,8 @@ lore visualize --port 4400 --no-open
 
 Open `http://127.0.0.1:4321` when using the default port and `--no-open`. Stop with Ctrl+C; Lore closes the local listener and exits. The server binds **IPv4 loopback only**. It serves bundled HTML, CSS and JavaScript from the Lore binary, without external CDN calls, model inference, code execution, registry migrations or source writes. A local browser may still have extensions or network access outside Lore's control. The server is for a trusted local user; **do not expose or forward the port to a remote network**.
 
+If startup reports an edited or missing generated page, preserve any edits you need outside the wiki directory, then run `lore restore --discard-edits` followed by `lore visualize`. Restoration republishes stored pages without model calls; it does not refresh knowledge from changed sources. Unmanaged files must be moved elsewhere first. Use `lore update --rebuild` only when you intend to regenerate pages, potentially with model calls.
+
 The three browser views are:
 
 - **Wiki:** source-checked generated Markdown pages, represented as connected page links. The reader displays citations as numbered notes with readable source locations, suppresses raw HTML and images, and only makes recognized internal Markdown page links clickable.

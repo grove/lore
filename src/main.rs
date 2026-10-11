@@ -89,6 +89,15 @@ enum Command {
         )]
         rebuild: bool,
     },
+    /// Restore stored wiki pages without model calls or source processing.
+    Restore {
+        #[arg(
+            long,
+            required = true,
+            help = "Discard manual edits to generated pages"
+        )]
+        discard_edits: bool,
+    },
     /// Inspect source changes and output drift without model calls or writes.
     Status,
     /// Check evidence and integrity; --deep also re-runs semantic reconciliation.
@@ -547,6 +556,7 @@ async fn run(cli: Cli) -> Result<i32> {
             | Command::Onboard { .. }
             | Command::Explore { .. }
             | Command::Visualize { .. }
+            | Command::Restore { .. }
             | Command::Decisions { .. }
             | Command::Cases { .. }
             | Command::Baseline { .. }
@@ -572,6 +582,7 @@ async fn run(cli: Cli) -> Result<i32> {
         &cli.command,
         Command::Init { .. }
             | Command::Update { dry_run: false, .. }
+            | Command::Restore { .. }
             | Command::Audit { deep: true }
             | Command::Status
             | Command::Doctor { .. }
@@ -650,6 +661,19 @@ async fn run(cli: Cli) -> Result<i32> {
                     cli.json,
                 )
                 .await?;
+            }
+        }
+        Command::Restore { discard_edits: _ } => {
+            let pages = publish::restore(&config)?;
+            if cli.json {
+                emit(
+                    serde_json::json!({"restored_pages": pages, "model_calls": 0}),
+                    true,
+                )?;
+            } else {
+                println!(
+                    "Restored {pages} stored pages without model calls; generated edits discarded."
+                );
             }
         }
         Command::Status => emit(serde_json::to_value(engine::status(&config)?)?, cli.json)?,
