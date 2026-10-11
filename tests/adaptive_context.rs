@@ -77,6 +77,101 @@ async fn exact_retained_constant_bypasses_model_checkout_and_cache() {
     assert!(!config.state.join("context-cache").exists());
 }
 
+#[tokio::test]
+async fn similarly_named_constants_do_not_claim_an_exact_reference() {
+    for retained in [
+        "MAX_QUEUE_CAPACITY",
+        "QUEUE_CAPACITY_EXTRA",
+        "éQUEUE_CAPACITY",
+    ] {
+        let (_dir, config, model) = common::project();
+        common::put(
+            &config,
+            "queue.md",
+            &format!("DECISION queue: {retained} is 128 entries.\n"),
+        );
+        engine::update(&config, &model, None, UpdateOptions::default())
+            .await
+            .unwrap();
+        let conn = storage::read_only(&config.state.join("state.db")).unwrap();
+        let options = ContextOptions {
+            task: "What is QUEUE_CAPACITY?".into(),
+            paths: vec![],
+            max_tokens: 6000,
+        };
+        let selected = context::build_context(&conn, &options).unwrap();
+        assert!(!selected.empty, "fixture must retrieve the lookalike");
+        let result = adaptive::build(
+            &conn,
+            &config,
+            &options,
+            selected,
+            None,
+            &RunOptions::default(),
+        )
+        .await
+        .unwrap();
+        let result = serde_json::to_value(result.intelligence).unwrap();
+        assert_ne!(
+            result["mode"], "reference",
+            "{retained} is not the requested identifier"
+        );
+    }
+}
+
+#[tokio::test]
+async fn omitted_critical_group_prevents_decision_sufficient_reference() {
+    let (_dir, config, model) = common::project();
+    common::put(
+        &config,
+        "constant.md",
+        "DECISION worker: QUEUE_CAPACITY is 128 entries.\n",
+    );
+    let detail = "Preserve the queue exception and its deployment scope. ".repeat(25);
+    common::put(
+        &config,
+        "00-old.md",
+        &format!("DECISION queue: MySQL controls QUEUE_CAPACITY. {detail}\n"),
+    );
+    common::put(
+        &config,
+        "01-new.md",
+        &format!("DECISION queue: PostgreSQL controls QUEUE_CAPACITY. {detail}\n"),
+    );
+    engine::update(&config, &model, None, UpdateOptions::default())
+        .await
+        .unwrap();
+    let conn = storage::read_only(&config.state.join("state.db")).unwrap();
+    let options = ContextOptions {
+        task: "What is QUEUE_CAPACITY?".into(),
+        paths: vec![],
+        max_tokens: 1800,
+    };
+    let selected = context::build_context(&conn, &options).unwrap();
+    assert!(selected.omissions.critical_groups > 0);
+    assert!(
+        selected
+            .sections
+            .items()
+            .any(|item| item.statement.contains("128"))
+    );
+    let result = adaptive::build(
+        &conn,
+        &config,
+        &options,
+        selected,
+        None,
+        &RunOptions::default(),
+    )
+    .await
+    .unwrap();
+    let result = serde_json::to_value(result.intelligence).unwrap();
+    assert_ne!(
+        result["mode"], "reference",
+        "an omitted critical group cannot be decision-sufficient"
+    );
+}
+
 #[test]
 fn project_configuration_cannot_grant_host_capabilities() {
     let (_dir, mut config, _model) = common::project();

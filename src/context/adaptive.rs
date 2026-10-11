@@ -269,6 +269,7 @@ fn exact_reference(
         return Ok(None);
     };
     if selected.retrieval_truncated
+        || selected.omissions.critical_groups > 0
         || !selected.discrepancies.is_empty()
         || !selected.reviews.is_empty()
         || !selected.sections.needs_verification.is_empty()
@@ -277,7 +278,9 @@ fn exact_reference(
             .iter()
             .any(|relation| relation.kind == "contradicts")
         || !selected.sections.items().any(|item| {
-            item.statement.contains(symbol)
+            item.statement
+                .split(|c: char| !c.is_alphanumeric() && c != '_')
+                .any(|word| word == symbol)
                 && !item.evidence_ids.is_empty()
                 && item.support_state == "current_documentary_support"
                 && item.evidence_ids.iter().all(|id| {
