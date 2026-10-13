@@ -5,20 +5,18 @@
 **Requires completed `lore init`** in the classroom for commands below. The initial source-only path does not provide retained decision IDs or wiki pages.
 
 ```sh
-lore explore "charge attempts"
 lore decisions "charge submission"
 lore cases "duplicate refund"
 lore --json context "Improve retry safety without changing accepted policy"
 lore --json context "Change charge attempt logic" --fast
 ```
 
-- **`explore`** is a zoomable map of concepts and citations, not new authoritative policy.
 - **`decisions`** gathers retained choices, rationale, scope and exceptions.
 - **`cases`** shows documented examples and reported outcomes, not tests Lore executed.
 - **`context`** gives one preferred next action and constraints from evidence, with qualifications for assumptions and omitted material.
 - **`--fast`** uses deterministic, model-free compiled retrieval (schema 2). Initialized default context uses adaptive schema 5, possibly with model inference as permitted.
 
-Try `lore --json explore "charge attempts" --compact` to compare the optional compact schema. Read returned IDs rather than guessing them, then resolve a returned `ev_` or `ne_` evidence ID with `lore --json evidence ID`. Native imported `ne_` evidence is optional; the classroom supplies ordinary Markdown.
+Read returned IDs rather than guessing them, then resolve a returned `ev_` or `ne_` evidence ID with `lore --json evidence ID`. Existing `explore` navigation is non-core and slated for [#71](https://github.com/grove/lore/issues/71). Native imported `ne_` evidence is optional; the classroom supplies ordinary Markdown.
 
 ## What should be trusted?
 
