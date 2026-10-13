@@ -8,11 +8,7 @@ use lore::{
 use std::fs;
 #[tokio::test]
 async fn renaming_an_initialized_project_preserves_identity_and_ownership() {
-    use lore::{
-        engine::{self, UpdateOptions},
-        publish, storage,
-        visualize::Viewer,
-    };
+    use lore::{engine::{self, UpdateOptions}, publish, storage};
 
     let (_dir, mut cfg, model) = project();
     cfg.project_id = format!("project_{}", &util::digest(&cfg.config.project.name)[7..31]);
@@ -30,12 +26,7 @@ async fn renaming_an_initialized_project_preserves_identity_and_ownership() {
     let read = ResolvedConfig::load_for_read(&cfg.config_path).unwrap();
     assert_eq!(loaded.project_id, cfg.project_id);
     assert_eq!(read.project_id, cfg.project_id);
-    let viewer = Viewer::open(&read).unwrap();
-    let (_, _, bytes) = viewer.reply("/api/site").unwrap();
-    assert_eq!(
-        serde_json::from_slice::<serde_json::Value>(&bytes).unwrap()["project"],
-        "HarborPay"
-    );
+    assert_eq!(read.config.project.name, "HarborPay");
     assert_eq!(fs::read(&database).unwrap(), before);
     assert_eq!(
         fs::read(cfg.state.join(".lore-owned.json")).unwrap(),
@@ -56,15 +47,16 @@ async fn renaming_an_initialized_project_preserves_identity_and_ownership() {
     let mut mismatched = loaded.config.clone();
     mismatched.output.wiki_dir = other.wiki.clone();
     let mismatched = ResolvedConfig::resolve(mismatched, &cfg.config_path).unwrap();
+    let conn = storage::read_only(&database).unwrap();
+    let pages = storage::pages(&conn).unwrap();
+    assert!(!pages.is_empty());
+    // Publication ownership remains enforced without the browser reader.
     assert!(
-        Viewer::open(&mismatched)
-            .err()
-            .unwrap()
+        publish::validate_existing(&mismatched, &pages, false)
+            .unwrap_err()
             .to_string()
             .contains("another Lore project")
     );
-    let conn = storage::read_only(&database).unwrap();
-    assert!(!storage::pages(&conn).unwrap().is_empty());
     let knowledge_before = lore::knowledge::build(&conn, &lore::knowledge::ZoomOptions::default())
         .unwrap()
         .knowledge;
