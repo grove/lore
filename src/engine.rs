@@ -689,7 +689,11 @@ where
         "UPDATE runs SET phase='validating' WHERE id=?1",
         [&generation],
     )?;
-    progress(UpdateProgress::Phase("Validating retained knowledge"))?;
+    progress(UpdateProgress::Phase(if target_mode == OutputMode::Markdown {
+        "Validating generated output"
+    } else {
+        "Validating retained knowledge"
+    }))?;
     ensure!(
         sources::scan(config)?.digest == inventory.digest,
         "source inputs changed during compilation; rerun update (valid model results are cached)"
@@ -745,7 +749,11 @@ where
     report.pending_reviews = pending_reviews(&conn)?;
     report.usage = usage::summary();
     storage::save_provider_usage(&conn, &generation, &usage::events())?;
-    progress(UpdateProgress::Phase("Committing retained knowledge"))?;
+    progress(UpdateProgress::Phase(if target_mode == OutputMode::Markdown {
+        "Publishing compiled knowledge"
+    } else {
+        "Committing retained knowledge"
+    }))?;
     drop(runner);
     conn.execute_batch("COMMIT")?;
     conn.close().map_err(|(_, e)| e)?;
