@@ -32,7 +32,7 @@ lore init
 lore --json context "Add payment retry diagnostics"
 ```
 
-**Current limitation:** As of 0.9.0-rc.1, `init` and `update` also publish a generated Markdown wiki. Headless/registry-only default is **planned in [#70](https://github.com/grove/lore/issues/70)**; do not describe it as implemented or delete existing output. [First-run guide](tutorial/README.md).
+**Focused-release behavior:** New CLI-initialized projects use registry-only compilation by default. Generated Markdown requires explicit `output.mode: markdown` or new-project `init --publish-markdown`. Existing wiki projects keep publication until an explicit `update --migrate-output`; no existing pages are silently deleted. See [headless migration](HEADLESS_MIGRATION.md) and [first-run guide](tutorial/README.md). Historical 0.9.0-rc.1 always published pages.
 
 ## Ownership boundaries
 
@@ -49,7 +49,7 @@ A document may describe an accepted rule; code may appear to implement another r
 
 The **retained core** is: (1) document and decision ingestion; (2) exact quotations, provenance and versioned history; (3) decision lifecycle, scope, relationships and conflict review; (4) optional OpenWiki implementation observations; (5) bounded, permission-checked inspection; (6) task recommendations with checks/limitations; (7) evidence, decisions, cases, search and review drill-down; and (8) update, audit, recovery, retention, privacy and cost controls.
 
-The **non-core product surfaces** include the interactive lessons and assessments **retired by [#66](https://github.com/grove/lore/issues/66)**, the embedded browser/graph viewer **retired by [#67](https://github.com/grove/lore/issues/67)**, separate Guardian task advice **retired under [#68](https://github.com/grove/lore/issues/68)**, specialized task-feedback receipt drafting **retired in [#69](https://github.com/grove/lore/issues/69)**, mandatory wiki publication, redundant browse/read navigation and long-lived legacy context schemas. The remaining non-core surfaces stay available **where implemented today** until their linked removal issue changes the CLI. The retained `onboard` command now delegates to task context without learning-specific output; see the [#66 migration](LEARNING_MIGRATION.md). Do not replace them with a new tutorial engine, agent framework, website, generic navigation browser or code analyzer.
+The **non-core product surfaces** include the interactive lessons and assessments **retired by [#66](https://github.com/grove/lore/issues/66)**, the embedded browser/graph viewer **retired by [#67](https://github.com/grove/lore/issues/67)**, separate Guardian task advice **retired under [#68](https://github.com/grove/lore/issues/68)**, specialized task-feedback receipt drafting **retired in [#69](https://github.com/grove/lore/issues/69)**, mandatory wiki publication **retired under [#70](https://github.com/grove/lore/issues/70)**, redundant browse/read navigation and long-lived legacy context schemas. The remaining non-core surfaces stay available **where implemented today** until their linked removal issue changes the CLI. The retained `onboard` command now delegates to task context without learning-specific output; see the [#66 migration](LEARNING_MIGRATION.md). Do not replace them with a new tutorial engine, agent framework, website, generic navigation browser or code analyzer.
 
 ### Current command map (0.9.0-rc.1)
 
@@ -64,12 +64,12 @@ Every listed command has a core purpose or an explicit migration owner. This map
 | `cases QUERY` | Documented negative cases, procedures, rejected paths and reported outcomes |
 | `review` | Inspect/adjudicate conflicts and record dispositions without silently changing source authority |
 | `search QUERY` | Find retained facts and drill-down IDs; not a separate browsing product |
-| `init`, `update` | Explicit compile/refresh of retained evidence; **currently coupled to Markdown publication**, to be decoupled in [#70](https://github.com/grove/lore/issues/70) |
+| `init`, `update` | Explicit versioned evidence compilation; new projects are **registry_only**. Markdown export is optional via `output.mode: markdown`; migrations require `update --migrate-output` ([guide](HEADLESS_MIGRATION.md)) |
 | `status` | Read-only drift and freshness check before update |
 | `audit` | Evidence/integrity review; explicit `--deep` can invoke models |
 | `doctor` | Provider/configuration diagnostics; `--inference` makes synthetic provider requests |
 | `baseline`, `changes` | Deterministic retained-evidence history and A→B→A comparisons; kept after [#68](https://github.com/grove/lore/issues/68) |
-| `restore` | Recover currently published, Lore-owned output without inference; mode handling revisited in [#70](https://github.com/grove/lore/issues/70) |
+| `restore` | Reinstall stored pages only for **active Markdown** projects; returns a clear error in `registry_only` mode. Headless crash recovery happens automatically on `update` |
 | `memory` | Inspect/clear disposable investigation leads; retention and privacy housekeeping, not a second source of authority |
 | `purge` | Explicit managed-data deletion; never deletes original sources |
 | `onboard` | **Thin source-grounded orientation using the context pipeline**; former interactive lessons, exercise flags, separate schemas and caches retired in [#66](https://github.com/grove/lore/issues/66); [migration](LEARNING_MIGRATION.md) |
@@ -86,7 +86,7 @@ Every listed command has a core purpose or an explicit migration owner. This map
 - First-contact unpinned `context` selects bounded local documentary passages, preserves quoted source path/line/hash and makes no model call or automatic write. It cannot promise complete policy coverage.
 - Compiled evidence retains revisions and exact source quotations; imported OpenWiki or work reports are labeled as observations, not accepted rules. Automatic/assisted relationships and review are qualified, with failures and omissions surfaced.
 - Initialized `context` defaults to schema 5, supports bounded source reads under caller-owned grants and separates checked observations from hypotheses, reported outcomes and post-edit checks. `--fast` is model-free, read-only retrieval.
-- `init`/`update` are explicit, potentially costly operations; current publication has safety/recovery constraints. Privacy limits, permission ceilings, source integrity checks, audit, and deliberate retention/purge apply. Agent instruction installation is preview-first and writes only on `--apply`.
+- `init`/`update` are explicit, potentially costly operations; the staged registry always has recovery protection and optional Markdown publication retains its two-slot safety checks. Privacy limits, permission ceilings, source integrity checks, audit, and deliberate retention/purge apply. Agent instruction installation is preview-first and writes only on `--apply`.
 
 **Not established by these mechanics:** causal improvement in coding correctness, time saved or fewer regressions on real tasks; human learning/transfer gains; semantic accuracy of every model response; quality of Guardian alerts; independent execution or deployment verification; real-agent compliance with installed instructions; universal completeness when evidence is missing or budgets truncate selection. The independent decision-work pilot remains unmeasured; see [#2](https://github.com/grove/lore/issues/2), [evaluation status](../evaluation/PRODUCT_QUALITY_09.md), and the [current 0.9 guide](V09.md). Passing fixture/CI contracts does not prove user outcomes.
 
@@ -94,7 +94,7 @@ Every listed command has a core purpose or an explicit migration owner. This map
 
 1. **#65 was documentation-only.** Follow-ups #66–#69 remove interactive learning, embedded browser UI, separate Guardian advice and receipt drafting with explicit migration. No source material, persisted evidence, privacy grant, authority rule or OpenWiki opt-in status changes.
 2. **Inventory consumers and stored data first.** Each linked issue owns its actual CLI/code removal, tests and migration path; preserve historical original evidence and its authority/revision labels. Never silently promote imported reports into policy, rewrite user sources, or delete generated pages on upgrade.
-3. **Announce intentional breaking changes.** Document the last supported version, replacement command and affected flags/JSON contracts; use explicit errors after removal, not silent aliasing to a different authority or semantics. Maintain existing project publication behavior until deliberate opt-in migration per [#70](https://github.com/grove/lore/issues/70). Preserve model-free first contact and deterministic fast access per [#72](https://github.com/grove/lore/issues/72).
+3. **Announce intentional breaking changes.** Document the last supported version, replacement command and affected flags/JSON contracts; use explicit errors after removal, not silent aliasing to a different authority or semantics. Maintain old wiki projects' output until an explicit `--migrate-output`; no silent removal or overwrite ([#70](https://github.com/grove/lore/issues/70)). Preserve model-free first contact and deterministic fast access per [#72](https://github.com/grove/lore/issues/72).
 4. **Preserve integrity and grants.** Keep read/egress ceilings, review boundaries, source-digest/revision checks, A→B→A history, recovery, cancellation and cross-platform regression coverage. [#68](https://github.com/grove/lore/issues/68) removes Guardian *advice*, **not** the independent Guardian CI source-integrity harness and restoration tests.
 5. **Measure after simplification.** Do not promote source-gold fixtures, provider probes or pending study protocols to user benefit claims. Complete the existing independently checked real-world evaluation in [#2](https://github.com/grove/lore/issues/2) after the reduced surface stabilizes.
 
