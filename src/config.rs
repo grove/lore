@@ -95,16 +95,12 @@ pub struct SourceRoot {
     pub origin: Option<String>,
 }
 /// Publication is optional; the source registry is always retained.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum OutputMode {
     RegistryOnly,
+    #[default]
     Markdown,
-}
-impl Default for OutputMode {
-    fn default() -> Self {
-        Self::Markdown
-    }
 }
 impl OutputMode {
     pub fn as_str(self) -> &'static str {
