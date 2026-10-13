@@ -236,6 +236,10 @@ fn make_plan(
             stored_mode.as_str(),
             config.config.output.mode().as_str()
         ));
+    } else if initialized && stored_mode == OutputMode::RegistryOnly && config.wiki.exists() {
+        warnings.push(
+            "A wiki directory exists but registry_only mode does not update or validate it; any old exported pages may be stale.".into(),
+        );
     }
     let pending = publish::has_pending(config);
     let migration_needed = match conn {
