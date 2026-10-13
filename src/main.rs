@@ -64,7 +64,10 @@ enum Command {
         name: Option<String>,
         #[arg(long)]
         configure_only: bool,
-        #[arg(long, help = "Create a new project with explicit Markdown publication; never alters an existing config")]
+        #[arg(
+            long,
+            help = "Create a new project with explicit Markdown publication; never alters an existing config"
+        )]
         publish_markdown: bool,
         #[arg(
             long,
@@ -76,7 +79,11 @@ enum Command {
     Update {
         #[arg(long)]
         dry_run: bool,
-        #[arg(long, conflicts_with = "dry_run", help = "Explicitly adopt a changed output.mode while preserving existing wiki files")]
+        #[arg(
+            long,
+            conflicts_with = "dry_run",
+            help = "Explicitly adopt a changed output.mode while preserving existing wiki files"
+        )]
         migrate_output: bool,
         #[arg(long, help = "Bypass semantic caches and re-extract all sources")]
         refresh: bool,
