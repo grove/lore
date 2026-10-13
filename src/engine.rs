@@ -223,7 +223,10 @@ fn make_plan(
             output_modified = true;
             warnings.push(e.to_string());
         }
-    } else if !initialized && config.config.output.mode() == OutputMode::Markdown && config.wiki.exists() {
+    } else if !initialized
+        && config.config.output.mode() == OutputMode::Markdown
+        && config.wiki.exists()
+    {
         output_modified = true;
         warnings.push(
             "Existing output needs an explicit --rebuild because its baseline is unavailable."
