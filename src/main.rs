@@ -987,6 +987,72 @@ async fn run(cli: Cli) -> Result<i32> {
                 print!("{}", lore::companion::render_changes(&result));
             }
         }
+        Command::Memory { clear } => {
+            if clear {
+                let removed = context::memory::clear(&config)?;
+                println!(
+                    "{}",
+                    json!({"schema_version":1,"removed":removed,"sources_modified":false})
+                );
+            } else {
+                let conn = storage::read_only(&config.state.join("state.db"))?;
+                let (effective, _, _) = context::adaptive::authorized_config(
+                    &config,
+                    &context::decision::runtime::RunOptions::default(),
+                )?;
+                let result =
+                    context::memory::list(&effective, &storage::registry_revision(&conn)?)?;
+                if cli.json {
+                    println!("{}", serde_json::to_string(&result)?);
+                } else {
+                    println!("# Reusable investigation leads\n");
+                    for item in &result.findings {
+                        println!(
+                            "- {} — {} inspected files, {} investigation steps. Revalidation required.\n  `{}`",
+                            util::markdown_text(&item.question),
+                            item.inspected_files,
+                            item.investigation_steps,
+                            item.id
+                        );
+                    }
+                    if result.findings.is_empty() {
+                        println!("No current findings are available under this caller's grants.");
+                    }
+                }
+            }
+        }
+        Command::Read { topic } => {
+            let path = if topic == "index" || topic == "reviews" {
+                format!("{topic}.md")
+            } else {
+                util::safe_slug(&topic)?;
+                format!("topics/{topic}.md")
+            };
+            let text = util::read_limited(&publish::page_path(&config.wiki, &path)?, 4_000_000)?;
+            if cli.json {
+                emit(json!({"page":path,"content":text}), true)?;
+            } else {
+                print!("{text}");
+            }
+        }
+        Command::Feedback {
+            action:
+                FeedbackCommand::Draft {
+                    receipt,
+                    output,
+                    write,
+                    allow_file,
+                },
+        } => {
+            let result =
+                lore::feedback::draft(&config, &receipt, &allow_file, output.as_deref(), write)?;
+            if cli.json {
+                emit(result, true)?;
+            } else {
+                print!("{}", result["markdown"].as_str().unwrap());
+            }
+        }
+        Command::Evidence { id } => emit(engine::evidence(&config, &id)?, cli.json)?,
         Command::Review { action } => match action {
             Some(ReviewCommand::Adjudicate {
                 id,
