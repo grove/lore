@@ -41,7 +41,7 @@ lore status
 
 **Release reality:** 0.9.0-rc.1 is an engineering release candidate, **not** stable 0.9.0. Source binding, privacy and CLI behavior have deterministic/fixture checks; real-model coding improvements, human learning outcomes and Guardian alert usefulness are **not measured**. See the [0.9 guide](docs/V09.md), [engineering scorecard](evaluation/PRODUCT_QUALITY_09.md), and deferred [independent decision-task evaluation](https://github.com/grove/lore/issues/2).
 
-**Learn the CLI:** [static first-run task guide](docs/tutorial/README.md). **Need operational details?** Start below for installation, evidence provenance, provider configuration, existing wiki publication and current compatibility. Legacy reader, Guardian advice and feedback commands mentioned below remain in the 0.9.0-rc.1 product; interactive learning has been removed from the focused development line. Planned removals are mapped in [product scope](docs/PRODUCT_SCOPE.md).
+**Learn the CLI:** [static first-run task guide](docs/tutorial/README.md). **Need operational details?** Start below for installation, evidence provenance, provider configuration and current compatibility. New projects are registry-only; see the [mode and migration guide](docs/HEADLESS_MIGRATION.md) for optional Markdown publication. Legacy reader, Guardian advice and feedback commands mentioned below remain in the 0.9.0-rc.1 product; interactive learning has been removed from the focused development line. Planned removals are mapped in [product scope](docs/PRODUCT_SCOPE.md).
 
 ## Why a project needs more than a summary
 
@@ -79,7 +79,7 @@ lore init --configure-only --source ./docs --source ./plans --source ./issue-exp
 
 Edit `lore.yml` to select your source directories and models. The default is local-only Ollama with `gemma4:12b`; any suitable installed model with reliable structured JSON output can be selected instead. Start with a small representative set of documents, because first-time extraction and cross-document reconciliation can involve many model calls.
 
-`project.name` is an editable display name. Changing it preserves an initialized project's stored identity and knowledge, including projects initialized by older Lore versions. Generated wiki text and the registry's display name change on the next authorized `lore update`; the retired browser visualizer is not required. Keep the state and wiki directories together: ownership checks still reject a wiki belonging to a different project. New projects with copied configuration files receive distinct identities when their resolved state directories differ.
+`project.name` is an editable display name. Changing it preserves an initialized project's stored identity and knowledge, including projects initialized by older Lore versions. The registry's display name changes on the next authorized `lore update`; generated wiki text changes only when optional Markdown publication is enabled. The retired browser visualizer is not required. If Markdown mode is selected, ownership checks still reject a wiki belonging to a different project. New projects with copied configuration files receive distinct identities when their resolved state directories differ.
 
 ```bash
 ollama pull gemma4:12b
@@ -152,22 +152,22 @@ Lore stores embeddings for original knowledge units and imported observations in
 
 For Codex, Claude Code, and other command-capable agents, use the [optional agent instruction snippet](docs/AGENTS.example.md). Agents can inspect any returned snapshot with `lore --json evidence EVIDENCE_ID` and should verify implementation details in the actual code and tests.
 
-## Maintain compiled evidence (currently also publishes a wiki)
+## Maintain compiled evidence (wiki output is optional)
 
-After editing your sources, run `lore update`. Lore compares file and section fingerprints, re-extracts changed sections, finds related knowledge, and regenerates affected topic pages. A genuinely unchanged run makes no model calls and leaves wiki content byte-for-byte unchanged. It can therefore complete without API credentials or a running inference server when the configuration and successful baseline are unchanged. New documents are compared with existing knowledge even when that knowledge's original source files were not edited.
+After editing your sources, run `lore update`. Lore compares file and section fingerprints, re-extracts changed sections and finds related knowledge. **New projects default to registry-only mode:** no generated wiki pages, extra presentation inference or wiki directory. Existing Markdown projects retain publication until explicitly migrated. With `output.mode: markdown`, Lore also regenerates affected pages. A genuinely unchanged run makes no model calls and leaves the registry byte-for-byte unchanged. It can therefore complete without API credentials or a running inference server when the configuration and successful baseline are unchanged. New documents are compared with existing knowledge even when that knowledge's original source files were not edited.
 
 ```bash
 lore status
 lore update --dry-run
 lore update
 lore search "database migration"
-lore read database-strategy
+lore evidence EVIDENCE_ID
 lore audit
 ```
 
-`status`, `update --dry-run`, `context --fast`, search, reading, and the ordinary audit do not call a model. `audit --deep` performs a broader, model-assisted refresh and reconciliation; it can be expensive. `update --refresh` bypasses semantic caches and re-extracts all sources, which is useful after changing a model behind an unchanged model alias. `update --rebuild` regenerates pages and explicitly allows replacement of Lore-owned generated output, including manual edits, while retaining the knowledge history; it can make model calls. By default, Lore refuses to overwrite edited pages or unmanaged files.
+`status`, `update --dry-run`, `context --fast`, search, evidence reading and the ordinary audit do not call a model. `audit --deep` performs a broader, model-assisted refresh and reconciliation; it can be expensive. `update --refresh` bypasses semantic caches and re-extracts all sources, which is useful after changing a model behind an unchanged model alias. `update --rebuild` is **Markdown-mode only** and explicitly allows replacement of Lore-owned pages, including manual edits, while retaining knowledge history. Changing an existing project's `output.mode` additionally requires `lore update --migrate-output` (and `--rebuild` when enabling Markdown). See [migration](docs/HEADLESS_MIGRATION.md). By default, Lore refuses to overwrite edited pages or unmanaged files.
 
-To recover edited or missing generated pages without inference, preserve any edits you need outside the wiki directory, then run `lore restore --discard-edits`. This restores the last stored publication without processing sources, migrating the registry, or refreshing knowledge. It discards generated-page edits and refuses unmanaged files or unsafe paths. Run `lore status` afterwards to check whether source or configuration changes still need an incremental `lore update`.
+In an **actively published Markdown** project only, to recover edited or missing generated pages without inference, preserve any edits you need outside the wiki directory, then run `lore restore --discard-edits`. This restores the last stored publication without processing sources, migrating the registry, or refreshing knowledge. It discards generated-page edits and refuses unmanaged files or unsafe paths. Run `lore status` afterwards to check whether source or configuration changes still need an incremental `lore update`.
 
 The CLI also provides `lore evidence <evidence-id>` for an exact archived passage and `lore review` for unresolved questions. `lore review show <review-id>` displays the history and evidence binding; `resolve`, `dismiss` and `reopen` accept an explicit `--reason` and optional `--actor`. These actions record a disposition, not a new project fact, and make no model calls. Specific relationship questions can also close automatically when active evidence from the same source revision establishes the named replacement; withdrawn evidence reopens them. `--config path/to/lore.yml` selects another configuration, and the global `--json` option produces machine-readable results, including argument errors. Operational errors exit with code 1, argument errors with code 2, and audit findings with code 3.
 
@@ -197,7 +197,7 @@ is unchanged. Older checkpoint checksums remain readable. Consult the
 [Guardian removal migration](docs/GUARDIAN_MIGRATION.md) for source-history
 semantics, output budgets and the retained independent CI integrity gate.
 
-## Existing optional published-wiki view (planned headless default)
+## Optional generated Markdown publication
 
 The generated index now explains the project's major systems, documented design, decisions, future initiatives and open questions in cited paragraphs. It uses a bounded, representative selection from every topic; the detailed pages preserve the full extracted knowledge. An extra generative check reviews the overview for unsupported claims when synthesis verification is enabled. Decision links name documents rather than repeating topic titles, so two decisions on the same page appear as “ADR-027 explicitly replaces ADR-001.” The review-history page distinguishes pending questions from retained resolutions and makes the reason for each transition inspectable.
 
@@ -327,7 +327,7 @@ Native evidence uses stable `ne_…` IDs resolved by `lore --json evidence ID`; 
 
 Lore stores exact original excerpts rather than asking a model to invent a citation. A proposed quote must resolve unambiguously in the captured source bytes before it becomes evidence. SQLite keeps source observations and assertion histories append-only during normal operation, with current support maintained separately. Generated prose includes citations and explicit qualifications for historical evidence, proposals, unresolved conflicts, and reported outcomes. An optional second generative check reviews synthesis for unsupported claims; this is a fallible quality check, not a proof of truth.
 
-Updates run against a staged database and staged output. The existing published wiki is not rewritten piecemeal while model work is still underway. A recoverable journal handles interruptions during the final filesystem/database switch, and source changes detected during compilation cause the run to stop rather than publish a misleading successful baseline. Rerunning `update` recovers a pending publication and reuses valid cached model work where possible.
+Updates run against a staged database. Headless commits install only the validated registry; optional Markdown-mode commits also stage wiki output and never rewrite it piecemeal during model work. A mode-bound recoverable journal handles interruptions during the final filesystem/database switch, and source changes detected during compilation cause the run to stop rather than publish a misleading successful baseline. Rerunning `update` recovers a pending publication and reuses valid cached model work where possible.
 
 Deleting a source is not the same as deleting its retained history. To intentionally erase all Lore-managed evidence, cached responses, and generated pages, use `lore purge --all --yes`. This never modifies original sources. It is a logical deletion of managed files, not a guarantee of physical secure erasure on storage devices or removal from external backups. Treat `.lore/` and the generated wiki according to your project's confidentiality requirements.
 
