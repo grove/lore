@@ -368,7 +368,10 @@ async fn headless_review_disposition_commits_registry_without_publication() {
     assert!(!cfg.wiki.exists());
     let conn = storage::read_only(&db).unwrap();
     assert!(storage::evidence_snapshot(&conn, &evidence).is_ok());
-    assert_eq!(publish::stored_mode(&conn).unwrap(), OutputMode::RegistryOnly);
+    assert_eq!(
+        publish::stored_mode(&conn).unwrap(),
+        OutputMode::RegistryOnly
+    );
     assert!(storage::pages(&conn).unwrap().is_empty());
     assert!(reviews::events(&conn, &id).unwrap().len() >= 2);
     assert!(!engine::status(&cfg).unwrap().needs_update);
