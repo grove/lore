@@ -1,3 +1,5 @@
+> **Historical Guardian alert-quality protocol:** The standalone `lore guard` advice command was retired in [#68](https://github.com/grove/lore/issues/68). The **independent source-integrity gate remains active**: its pinned historical binary still runs the legacy command, while the candidate binary uses `lore context`. Historical alert scores remain archival, not claims about current task guidance. See [migration](../docs/GUARDIAN_MIGRATION.md).
+
 # Guardian longitudinal evaluation
 
 The guardian protocol replays successive retained source states through actual
