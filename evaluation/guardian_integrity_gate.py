@@ -86,6 +86,7 @@ def run(args: argparse.Namespace) -> dict:
                 binary=str(binaries[role]), output=output / name, config_template=None,
                 max_tokens=8000, timeout=120, allow_inspection=False, allow_hosted=False,
                 allow_checkout_egress=False, audit_strace=False, observe_filesystem=True,
+                advice_command="guard" if role == "baseline" else "context",
                 project=project, first_event=1, event_count=event_count)
             guardian.run(replay)
             report = guardian.assess(output / name)
