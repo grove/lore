@@ -85,7 +85,7 @@ fn semantic_key(
     current_support: bool,
 ) -> Result<String> {
     let mut support = BTreeSet::new();
-    // GUARD-REVERSION-001: A -> B -> A can leave the cumulative historical
+    // A -> B -> A can leave the cumulative historical
     // quote set unchanged. Compare the checkpoint's current source support so
     // restoring an earlier exception is still a meaningful change. Older
     // baselines retain their original conservative historical comparison.
@@ -266,7 +266,7 @@ fn cross_source_manifest(conn: &Connection, history: bool) -> Result<BTreeMap<St
 }
 
 // Keep all projections in one SQLite read snapshot, including on early return.
-// Dropping an asynchronous guardian request also releases its read transaction.
+// Dropping a comparison read never commits or mutates retained registry state.
 struct ReadSnapshot<'a>(&'a Connection);
 impl<'a> ReadSnapshot<'a> {
     fn begin(conn: &'a Connection) -> Result<Self> {
