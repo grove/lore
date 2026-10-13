@@ -966,28 +966,57 @@ def event_checks(record: dict, max_tokens: int) -> dict:
     guard = record.get("guard", {}).get("response") or {}
     saved = record.get("baseline_save", {}).get("response") or {}
     resolution = record.get("resolution", [])
-    ids = guard_citations(guard, changes)
+    advice_command = record.get("advice_command", "guard")
+    ids = guard_citations(guard, changes, advice_command=advice_command)
     cited = [entry.get("evidence_id") for entry in resolution]
     reference_integrity = original_evidence(changes, resolution)
-    if guard.get("intelligence") is not None:
-        try:
+    try:
+        if advice_command == "context":
+            shared.verify_relationship_sources(guard, {"results": resolution})
+        elif guard.get("intelligence") is not None:
             shared.verify_relationship_sources(guard["intelligence"], {"results": resolution})
-        except (ValueError, KeyError, TypeError):
-            reference_integrity = False
+    except (ValueError, KeyError, TypeError):
+        reference_integrity = False
     status = guard.get("assessment_status")
     nested = guard.get("intelligence")
-    status_consistent = (
-        status in ("no_documented_change", "change_budget_exhausted") and nested is None and not guard.get("advisories")
-        or status in ("partial_static_guidance", "source_reviewed_advisory") and isinstance(nested, dict)
-        and nested.get("schema_version") == 5 and isinstance(nested.get("intelligence"), dict)
-        and ((nested["intelligence"].get("brief", {}).get("generation_basis") == "model_assessed") == (status == "source_reviewed_advisory"))
-        and (status != "partial_static_guidance" or not guard.get("advisories"))
-    )
+    if advice_command == "context":
+        status_consistent = (
+            guard.get("schema_version") == 5 and isinstance(nested, dict)
+            and nested.get("schema_version") == 4
+            and nested.get("mode") in ("intelligent", "fast_fallback", "reference")
+            and nested.get("task") == "Assess current project constraints and risks for a behavior-preserving change"
+            and not any(key in guard for key in ("advisories", "assessment_status", "advisories_in_shared_guidance"))
+            and isinstance(guard.get("capabilities"), dict)
+            and guard["capabilities"].get("inspection") in ("granted", "disabled_by_caller", "not_granted", "outside_grant", "unavailable")
+        )
+    else:
+        status_consistent = (
+            status in ("no_documented_change", "change_budget_exhausted") and nested is None and not guard.get("advisories")
+            or status in ("partial_static_guidance", "source_reviewed_advisory") and isinstance(nested, dict)
+            and nested.get("schema_version") == 5 and isinstance(nested.get("intelligence"), dict)
+            and ((nested["intelligence"].get("brief", {}).get("generation_basis") == "model_assessed") == (status == "source_reviewed_advisory"))
+            and (status != "partial_static_guidance" or not guard.get("advisories"))
+        )
+    # Candidate subprocess argv must invoke the retained context path, including
+    # its budget and no-cache selection. Legacy fixture captures lack this field.
+    if "advice_command" in record:
+        expected = (["context", "Assess current project constraints and risks for a behavior-preserving change"]
+                    if advice_command == "context" else ["guard", "--since", "transition"])
+        expected.extend(["--max-tokens", str(max_tokens), "--no-cache"])
+        args = record.get("guard", {}).get("arguments")
+        if isinstance(args, list) and "--no-inspect" in args:
+            expected.append("--no-inspect")
+        invocation_bound = args == expected
+    else:
+        invocation_bound = advice_command == "guard"
     checks = {
         "response_hashes": all(response_hash_valid(record.get(key, {})) for key in ("baseline_save", "changes", "guard")),
-        "versioned_contracts": changes.get("schema_version") == guard.get("schema_version") == saved.get("schema_version") == 1
-            and guard.get("assessment_status") in ASSESSMENTS and status_consistent,
-        "explicit_baseline": changes.get("baseline") == guard.get("baseline") == saved.get("baseline") == "transition"
+        "versioned_contracts": changes.get("schema_version") == saved.get("schema_version") == 1
+            and (status_consistent if advice_command == "context" else
+                 guard.get("schema_version") == 1 and guard.get("assessment_status") in ASSESSMENTS and status_consistent),
+        "guidance_invocation_bound": invocation_bound,
+        "explicit_baseline": changes.get("baseline") == saved.get("baseline") == "transition"
+            and (advice_command == "context" or guard.get("baseline") == "transition")
             and changes.get("baseline_snapshot") == saved.get("snapshot") and changes.get("snapshot") == guard.get("snapshot")
             and all(isinstance(snapshot, dict) and all(isinstance(snapshot.get(key), str) and snapshot[key]
                 for key in ("project_id", "registry_revision")) for snapshot in (changes.get("baseline_snapshot"), changes.get("snapshot")))
@@ -1002,8 +1031,12 @@ def event_checks(record: dict, max_tokens: int) -> dict:
             and entry["response"].get("evidence_id", entry["response"].get("id")) == entry["evidence_id"] for entry in resolution),
         "original_evidence_and_endpoints": reference_integrity,
         "exact_checkpoint_states": exact_checkpoint_states(record, changes),
-        "no_execution_claims": guard.get("execution") is False and guard.get("source_write") is False
-            and changes.get("live_checkout_assessed") is False and saved.get("source_write") is False,
+        "no_execution_claims": (
+            (guard.get("capabilities", {}).get("execution") is False and
+             guard.get("capabilities", {}).get("source_write") is False)
+            if advice_command == "context" else
+            (guard.get("execution") is False and guard.get("source_write") is False)
+        ) and changes.get("live_checkout_assessed") is False and saved.get("source_write") is False,
     }
     # Legacy archives retain their original oracle. New captures must additionally
     # prove every command interval; a restore before apply_snapshot cannot vanish.
