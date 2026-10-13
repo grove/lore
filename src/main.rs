@@ -2,7 +2,7 @@ use anyhow::{Context, Result, ensure};
 use clap::{Parser, Subcommand};
 use indicatif::{ProgressBar, ProgressStyle};
 use lore::{
-    config::{Config, ResolvedConfig, SourceRoot},
+    config::{Config, OutputMode, ResolvedConfig, SourceRoot},
     context::{self, ContextOptions},
     engine::{self, UpdateOptions},
     http::HttpModel,
@@ -56,7 +56,7 @@ enum Command {
         )]
         expect_digest: Option<String>,
     },
-    /// Create configuration and build the initial wiki (existing config is preserved).
+    /// Configure and compile a decision registry (new projects are headless).
     Init {
         #[arg(long)]
         source: Vec<PathBuf>,
@@ -64,16 +64,20 @@ enum Command {
         name: Option<String>,
         #[arg(long)]
         configure_only: bool,
+        #[arg(long, help = "Create a new project with explicit Markdown publication; never alters an existing config")]
+        publish_markdown: bool,
         #[arg(
             long,
             help = "Explicitly replace Lore-owned generated output, discarding manual edits"
         )]
         rebuild: bool,
     },
-    /// Reconcile changed source sections and refresh affected wiki topics.
+    /// Refresh retained evidence and optionally publish generated Markdown.
     Update {
         #[arg(long)]
         dry_run: bool,
+        #[arg(long, conflicts_with = "dry_run", help = "Explicitly adopt a changed output.mode while preserving existing wiki files")]
+        migrate_output: bool,
         #[arg(long, help = "Bypass semantic caches and re-extract all sources")]
         refresh: bool,
         #[arg(
@@ -424,10 +428,11 @@ async fn run(cli: Cli) -> Result<i32> {
         source,
         name,
         configure_only,
+        publish_markdown,
         ..
     } = &cli.command
     {
-        bootstrap(&config_path, source, name.as_deref())?;
+        bootstrap(&config_path, source, name.as_deref(), *publish_markdown)?;
         if *configure_only {
             emit(
                 json!({"configured":true,"path":config_path,"next":"Edit the configuration, ensure the configured model is available, then run lore init."}),
@@ -582,6 +587,7 @@ async fn run(cli: Cli) -> Result<i32> {
             dry_run,
             refresh,
             rebuild,
+            migrate_output,
         } => {
             if dry_run {
                 emit(serde_json::to_value(engine::status(&config)?)?, cli.json)?;
@@ -592,6 +598,7 @@ async fn run(cli: Cli) -> Result<i32> {
                         rebuild,
                         refresh,
                         deep: false,
+                        migrate_output,
                     },
                     cli.json,
                 )
@@ -1140,11 +1147,16 @@ fn first_contact_result(
     }
     Ok(0)
 }
-fn bootstrap(path: &Path, sources: &[PathBuf], name: Option<&str>) -> Result<()> {
+fn bootstrap(
+    path: &Path,
+    sources: &[PathBuf],
+    name: Option<&str>,
+    publish_markdown: bool,
+) -> Result<()> {
     if path.exists() {
         ensure!(
-            sources.is_empty() && name.is_none(),
-            "configuration already exists; edit it rather than supplying new init sources/name"
+            sources.is_empty() && name.is_none() && !publish_markdown,
+            "configuration already exists; edit output.mode and run lore update --migrate-output for a deliberate mode change"
         );
         return Ok(());
     }
@@ -1157,6 +1169,11 @@ fn bootstrap(path: &Path, sources: &[PathBuf], name: Option<&str>) -> Result<()>
     util::reject_symlinks(parent)?;
     fs::create_dir_all(parent)?;
     let mut config = Config::default();
+    config.output.mode = Some(if publish_markdown {
+        OutputMode::Markdown
+    } else {
+        OutputMode::RegistryOnly
+    });
     config.project.name = name.map(str::to_owned).unwrap_or_else(|| {
         parent
             .file_name()
@@ -1490,7 +1507,12 @@ async fn compile(config: &ResolvedConfig, options: UpdateOptions, json_output: b
             );
         } else {
             println!(
-                "Published {} changed pages from {} processed sections. {} knowledge units; {} generative calls, {} cache hits, {} decision calls.",
+                "{} {} changed pages from {} processed sections. {} knowledge units; {} generative calls, {} cache hits, {} decision calls.",
+                if config.config.output.mode() == OutputMode::Markdown {
+                    "Published"
+                } else {
+                    "Compiled registry-only;"
+                },
                 report.changed_pages,
                 report.processed_sections,
                 report.knowledge_units,
