@@ -175,7 +175,9 @@ enum Command {
         clear: bool,
     },
     /// Source-grounded project orientation through the standard task-context pipeline.
-    #[command(after_help = "Interactive learning was retired. --mode, --hint, --show-solution, --answer, --lesson and --activity are no longer supported. Use lore context TASK for task guidance; use lore onboard [--topic TOPIC | --task TASK] for orientation. Previous lore.human_experience JSON responses are replaced with standard context/bootstrap contracts.")]
+    #[command(
+        after_help = "Interactive learning was retired. --mode, --hint, --show-solution, --answer, --lesson and --activity are no longer supported. Use lore context TASK for task guidance; use lore onboard [--topic TOPIC | --task TASK] for orientation. Previous lore.human_experience JSON responses are replaced with standard context/bootstrap contracts."
+    )]
     Onboard {
         #[arg(value_name = "GOAL", value_parser = human_goal)]
         goal: Option<String>,
@@ -189,7 +191,11 @@ enum Command {
         max_tokens: usize,
         #[arg(long)]
         no_cache: bool,
-        #[arg(long, conflicts_with = "no_inspect", help = "Grant bounded read-only inspection for this invocation")]
+        #[arg(
+            long,
+            conflicts_with = "no_inspect",
+            help = "Grant bounded read-only inspection for this invocation"
+        )]
         inspect: bool,
         #[arg(long)]
         no_inspect: bool,
