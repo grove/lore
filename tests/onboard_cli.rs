@@ -169,11 +169,9 @@ async fn topic_and_default_orientation_share_context_budget_and_provenance() {
         command.extend(args.clone());
         let raw = success(invoke(&config, &command));
         let parsed: AdaptiveResult = serde_json::from_str(&raw).unwrap();
-        let printed = success(invoke(&config, &{
-            let mut args = vec!["onboard", "--no-cache", "--no-inspect"];
-            args.extend(args);
-            args
-        }));
+        let mut markdown_args = vec!["onboard", "--no-cache", "--no-inspect"];
+        markdown_args.extend(args);
+        let printed = success(invoke(&config, &markdown_args));
         assert_eq!(parsed.schema_version, 5);
         assert_eq!(parsed.capabilities.inspection, "disabled_by_caller");
         assert!(!printed.contains("CHECKOUT_ONLY_ORIENTATION_SENTINEL"));
