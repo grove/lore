@@ -646,6 +646,7 @@ def run(args: argparse.Namespace) -> dict:
                       "registry_before": before_registry, "registry_query": query_registry,
                       "registry_after_queries": final_registry, "baseline_save": saved,
                       "materialization": build, "changes": changes, "guard": guidance, "advice_command": advice_command,
+                      "advice_inspection_granted": args.allow_inspection,
                       "resolution": resolution, "elapsed_seconds": round(time.monotonic() - started, 6)}
             cross.write_json(directory / "capture.json", record)
             records.append({"event_id": event["id"], "path": f"events/{event['id']}/capture.json",
@@ -988,6 +989,8 @@ def event_checks(record: dict, max_tokens: int) -> dict:
             and not any(key in guard for key in ("advisories", "assessment_status", "advisories_in_shared_guidance"))
             and isinstance(guard.get("capabilities"), dict)
             and guard["capabilities"].get("inspection") in ("granted", "disabled_by_caller", "not_granted", "outside_grant", "unavailable")
+            and (record.get("advice_inspection_granted") is not False
+                 or guard["capabilities"].get("inspection") == "disabled_by_caller")
         )
     else:
         status_consistent = (
@@ -1004,9 +1007,10 @@ def event_checks(record: dict, max_tokens: int) -> dict:
                     if advice_command == "context" else ["guard", "--since", "transition"])
         expected.extend(["--max-tokens", str(max_tokens), "--no-cache"])
         args = record.get("guard", {}).get("arguments")
-        if isinstance(args, list) and "--no-inspect" in args:
+        inspection_granted = record.get("advice_inspection_granted")
+        if inspection_granted is False:
             expected.append("--no-inspect")
-        invocation_bound = args == expected
+        invocation_bound = type(inspection_granted) is bool and args == expected
     else:
         invocation_bound = advice_command == "guard"
     checks = {
