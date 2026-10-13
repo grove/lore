@@ -295,7 +295,11 @@ async fn change_implications_use_shared_context_with_evidence_and_honest_fallbac
     assert!(!shared.capabilities.execution && !shared.capabilities.source_write);
     assert_eq!(value["intelligence"]["mode"], "fast_fallback");
     assert_eq!(value["intelligence"]["model_calls"], 0);
-    assert!(serde_json::to_string(&shared).unwrap().contains("emergency drains"));
+    assert!(
+        serde_json::to_string(&shared)
+            .unwrap()
+            .contains("emergency drains")
+    );
     assert_eq!(before, fs::read(config.state.join("state.db")).unwrap());
     assert!(conn.is_autocommit());
     let json = serde_json::to_string(&shared).unwrap() + "\n";
@@ -650,7 +654,6 @@ async fn imported_work_change_keeps_native_scope_and_never_becomes_no_change() {
     );
     assert_eq!(report.imported_evidence[0].record.statement, statement);
     assert!(companion::render_changes(&report).contains("production has not been checked"));
-
 }
 
 #[tokio::test]
@@ -689,8 +692,10 @@ async fn omitted_native_conditions_are_reported_without_silent_fallback() {
     assert!(!report.live_checkout_assessed);
     let json = serde_json::to_string(&report).unwrap() + "\n";
     let markdown = companion::render_changes(&report);
-    assert!(report.budget.used_tokens
-        >= context::count_tokens(&json).max(context::count_tokens(&markdown)));
+    assert!(
+        report.budget.used_tokens
+            >= context::count_tokens(&json).max(context::count_tokens(&markdown))
+    );
     assert!(report.budget.used_tokens <= limit.max_tokens);
 }
 
