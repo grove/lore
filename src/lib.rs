@@ -5,7 +5,6 @@ pub mod config;
 pub mod context;
 pub mod domain;
 pub mod engine;
-pub mod feedback;
 pub mod http;
 pub mod imports;
 pub mod inference;

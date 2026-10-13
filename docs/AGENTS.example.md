@@ -99,8 +99,10 @@ sources rather than inventing a result.
 
 Initialized, unpinned context uses schema 5. First contact before compilation uses the separate ephemeral source-only contract. `context --fast` and `evidence` remain model-free and read-only. Context guidance and embeddings use separate disposable local caches; `--no-cache` bypasses them. See [shared intelligence](SHARED_INTELLIGENCE.md) for the current grants and envelope, [the historical v0.6 guide](V06.md) for pinned schema-4 decisions, and [the v0.4 guide](V04.md) for native records.
 
-Lore 0.9 also offers evidence-bound [review adjudication](REVIEW_ADJUDICATION.md)
-and [task-feedback proposals](TASK_FEEDBACK.md). Preview before applying an
-adjudication and use its exact digest. A manual interpretation is not documentary
-authority; a task receipt is not proof that its checks ran. Review and explicitly
-write any proposed source note under the coding agent's own source-write grants.
+Lore also provides evidence-bound [review adjudication](REVIEW_ADJUDICATION.md).
+Preview an adjudication before applying it and use its exact digest.
+A manual interpretation is not documentary authority. Specialized task-feedback
+receipt drafting was retired in [#69](https://github.com/grove/lore/issues/69);
+see [migration](FEEDBACK_MIGRATION.md). Write only explicitly reviewed task
+notes through ordinary Markdown source roots and the coding agent's own
+source-write grants. A reported check or hash is not execution proof.

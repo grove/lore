@@ -76,7 +76,6 @@ jobs:
         run: |
           cargo run --release --locked -- --version
           cargo run --release --locked -- integrate --help
-          cargo run --release --locked -- feedback --help
           cargo run --release --locked -- review adjudicate --help
       - name: CLI help
         run: cargo run --release --locked -- --help
