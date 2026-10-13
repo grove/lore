@@ -1020,6 +1020,12 @@ async fn run(cli: Cli) -> Result<i32> {
                 config.config.output.mode() == OutputMode::Markdown,
                 "lore read is available only for an active Markdown project; use context, evidence, decisions or cases in registry_only mode"
             );
+            let conn = storage::read_only(&config.state.join("state.db"))?;
+            ensure!(
+                publish::stored_mode(&conn)? == OutputMode::Markdown,
+                "lore read requires a committed Markdown publication; complete output migration before reading pages"
+            );
+            drop(conn);
             let path = if topic == "index" || topic == "reviews" {
                 format!("{topic}.md")
             } else {
