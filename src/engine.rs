@@ -353,13 +353,47 @@ where
         };
         (plan, pages)
     };
-    publish::validate_existing(config, &old_pages, options.rebuild)?;
+    let target_mode = config.config.output.mode();
+    ensure!(
+        !options.rebuild || target_mode == OutputMode::Markdown,
+        "--rebuild only applies to Markdown publication; registry_only mode has no generated pages"
+    );
+    if plan.status.initialized {
+        ensure!(
+            plan.status.mode_change_required == options.migrate_output,
+            if plan.status.mode_change_required {
+                "output mode changed; explicitly run lore update --migrate-output after reviewing the migration"
+            } else {
+                "output mode is unchanged; omit --migrate-output"
+            }
+        );
+    } else {
+        ensure!(
+            !options.migrate_output,
+            "--migrate-output requires an initialized project"
+        );
+    }
+    if plan.stored_mode == OutputMode::Markdown && target_mode == OutputMode::Markdown {
+        publish::validate_existing(config, &old_pages, options.rebuild)?;
+    }
+    if plan.stored_mode == OutputMode::RegistryOnly && target_mode == OutputMode::Markdown {
+        ensure!(
+            options.rebuild,
+            "enabling Markdown output on a headless registry requires --migrate-output --rebuild; inspect any existing wiki before replacement"
+        );
+        publish::validate_existing(config, &old_pages, true)?;
+    }
     if !plan.status.needs_update && !options.refresh && !options.deep && !options.rebuild {
         let conn = storage::read_only(&old_path)?;
-        let degraded_overview = old_pages
-            .get("index.md")
-            .is_some_and(|page| page.content.contains(overview::DEGRADED_MARKER));
-        let degraded_topics = render::degraded_topics(&old_pages);
+        let degraded_overview = target_mode == OutputMode::Markdown
+            && old_pages
+                .get("index.md")
+                .is_some_and(|page| page.content.contains(overview::DEGRADED_MARKER));
+        let degraded_topics = if target_mode == OutputMode::Markdown {
+            render::degraded_topics(&old_pages)
+        } else {
+            Vec::new()
+        };
         let mut warnings = inventory.warnings;
         warnings.extend(crate::imports::relationships::warnings(&conn)?);
         if degraded_overview {
@@ -611,42 +645,51 @@ where
         "UPDATE runs SET phase='synthesizing' WHERE id=?1",
         [&generation],
     )?;
-    progress(UpdateProgress::Phase("Building topic and overview pages"))?;
-    let mut pages = render::build(
-        &mut runner,
-        &knowledge,
-        &old_pages,
-        options.rebuild
-            || options.refresh
-            || options.deep
-            || plan.status.configuration_changed
-            || plan.status.presentation_changed
-            // Captured source locators stay immutable after moves. Refresh
-            // presentation to point current-source links at their new paths.
-            || !plan.status.renamed_files.is_empty(),
-    )
-    .await?;
-    crate::imports::render::augment(&conn, &mut pages)?;
-    report.changed_pages = pages
-        .iter()
-        .filter(|(path, p)| {
-            old_pages
-                .get(*path)
-                .is_none_or(|old| old.output_digest != p.output_digest)
-        })
-        .count()
-        + old_pages.keys().filter(|p| !pages.contains_key(*p)).count();
-    storage::save_pages(&conn, &pages)?;
+    // Retained evidence is authoritative. Markdown synthesis and publication
+    // are optional; legacy stored pages stay untouched during headless updates.
+    let pages = if target_mode == OutputMode::Markdown {
+        progress(UpdateProgress::Phase("Building topic and overview pages"))?;
+        let mut pages = render::build(
+            &mut runner,
+            &knowledge,
+            &old_pages,
+            options.rebuild
+                || options.refresh
+                || options.deep
+                || plan.status.configuration_changed
+                || plan.status.presentation_changed
+                || plan.status.mode_change_required
+                // Captured source locators stay immutable after moves.
+                || !plan.status.renamed_files.is_empty(),
+        )
+        .await?;
+        crate::imports::render::augment(&conn, &mut pages)?;
+        report.changed_pages = pages
+            .iter()
+            .filter(|(path, p)| {
+                old_pages
+                    .get(*path)
+                    .is_none_or(|old| old.output_digest != p.output_digest)
+            })
+            .count()
+            + old_pages.keys().filter(|p| !pages.contains_key(*p)).count();
+        storage::save_pages(&conn, &pages)?;
+        pages
+    } else {
+        BTreeMap::new()
+    };
     conn.execute(
         "UPDATE runs SET phase='validating' WHERE id=?1",
         [&generation],
     )?;
-    progress(UpdateProgress::Phase("Validating generated output"))?;
+    progress(UpdateProgress::Phase("Validating retained knowledge"))?;
     ensure!(
         sources::scan(config)?.digest == inventory.digest,
         "source inputs changed during compilation; rerun update (valid model results are cached)"
     );
-    publish::validate_existing(config, &old_pages, options.rebuild)?;
+    if target_mode == OutputMode::Markdown {
+        publish::validate_existing(config, &old_pages, options.rebuild)?;
+    }
     let integrity: String = conn.query_row("PRAGMA integrity_check", [], |r| r.get(0))?;
     ensure!(integrity == "ok", "SQLite integrity check failed");
     ensure!(
@@ -664,7 +707,7 @@ where
     )?;
     for (k, v) in [
         ("initialized", "1"),
-        ("presentation_contract", citations::CONTRACT_VERSION),
+        ("output_mode", target_mode.as_str()),
         ("config_digest", config.fingerprint.as_str()),
         ("inventory_digest", inventory.digest.as_str()),
         ("import_inventory_digest", inventory.imports.digest.as_str()),
