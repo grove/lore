@@ -1,237 +1,47 @@
 # Lore
 
-**Understand your project. Make better changes.**
+**Know the decisions before changing the code.**
 
-Projects collect their history in architecture notes, ADRs, plans, issue exports, investigations, and previous agent experiences. Understanding a subject often means piecing together several sources written at different times for different reasons. Lore is a Rust command-line application that reads your project's Markdown directories and optional native knowledge snapshots, maintains evidence-backed project understanding, and uses the decisions, constraints, history, and open questions to recommend an approach for your next task. The same knowledge powers a linked, topic-oriented Markdown wiki.
+Lore is a local-first Rust CLI for **developers and coding agents preparing a code or architecture change**. Ask about one task and get a source-backed recommendation: applicable decisions and constraints, why they exist, rejected alternatives and reported failure cases, possible discrepancies with implementation observations, and the next defensible action. Lore advises; **you or your coding agent edit code, execute tests, and verify results**.
 
-**Lore 0.9.0-rc.1 adds agent integration, evidence-bound review adjudication
-and safe task-feedback proposals.** It preserves first contact without setup,
-schema-5 adaptive context, caller-owned permissions and nullable provider
-accounting. Exact-reference guidance now rejects lookalike identifiers and
-incomplete critical evidence groups. See [the 0.9 guide](docs/V09.md),
-[agent integration](docs/AGENT_INTEGRATION.md) and
-[engineering/empirical scorecard](evaluation/PRODUCT_QUALITY_09.md).
+### One task, before your first edit
 
-This is an engineering release candidate. Stable 0.9.0 remains unreleased:
-the genuine six-task/six-arm decision pilot and independent evidence are
-missing. Real-model coding gains, human contribution/transfer benefits and
-Guardian alert quality remain unmeasured. [0.8](docs/V08.md) and its
-[scorecard](evaluation/PRODUCT_QUALITY_08.md) retain historical evidence.
-
-`lore context "Implement payment retries"` continues to lead with one preferred
-approach and says whether to proceed, perform a specific check first, or resolve
-a material policy decision. It distinguishes exact project evidence, hypotheses,
-and general engineering principles. Opt-in `--inspect` reads relevant local source
-and tests; `--investigate` performs bounded follow-up inspections and revises the
-recommendation when evidence contradicts the original hypothesis. `--fast`
-preserves deterministic schema 2, and `--schema-version 3` retains the 0.5
-contract. Explicit schema 4 remains available with the privacy,
-limits, and caching described in [the historical 0.6 guide](docs/V06.md).
-
-## Learn Lore: a hands-on beginner course
-
-**New to Lore?** Start with [Learn Lore](docs/tutorial/README.md): seven practical lessons, a [fictional HarborPay classroom](examples/tutorial-project/README.md), exercises and an answer key. The first lessons work without a model, credentials or initialization. Optional later lessons cover durable knowledge, Codex/Claude Code integration, evidence, reviews and task feedback. This teaches **how to use Lore**; `lore onboard --mode tutorial` instead teaches you about **your project**.
-
-### Visualize your wiki locally
-
-Open a browser view of the **published** Lore wiki and its underlying, source-linked concept/decision graph:
+From the project's root:
 
 ```sh
-lore visualize
-lore visualize --port 4400 --no-open
+lore context "Add payment retry diagnostics without changing approved retry limits"
+lore --json context "Add payment retry diagnostics without changing approved retry limits"
 ```
 
-The viewer runs only on `127.0.0.1`, bundles browser assets, and does not invoke a model, refresh the registry or write sources. You must initialize and publish a project first. See [visualizer guide](docs/VISUALIZE.md) for evidence boundaries, resource caps and privacy notes.
+Without initialization, ordinary unpinned `context` returns **bounded, source-only navigation** with exact original citations, no model calls and no automatic writes. It does *not* inspect code or establish complete decision coverage. With a compiled registry, default context uses schema 5: review the preferred action, applicable scope and exceptions, readiness/blockers, exact evidence, alternatives, observed implementation seams and remaining checks. An observation is not proof of runtime behavior, and a proposal or reported outcome is not accepted policy. Use `lore evidence ID`, `lore decisions "retry policy"` and `lore cases "duplicate charge"` to inspect retained evidence **after initialization**.
 
-### Adaptive project intelligence
+### Make this a coding-agent habit (optional)
 
-Ordinary initialized-project `lore context TASK` uses schema 5 and selects
-automatic investigation within caller-owned standing grants. Explicit schemas
-3/4 and `--fast` retain their contracts. Agent integrations can pin
-`--schema-version 5`; see [the copyable agent instructions](docs/AGENTS.example.md).
-Human and agent experiences share a complete retained-registry snapshot and the
-existing evidence/decision runtime. Exact supported symbolic lookups avoid
-unnecessary model calls. Investigative findings are revision-bound, revalidated
-and retention-limited; `lore memory` lists available leads and `lore memory
---clear` discards them. See [the shared intelligence guide](docs/SHARED_INTELLIGENCE.md)
-and [implementation tracker](docs/IMPLEMENTATION_TRACKER.md) for grants, contracts
-and the distinction between verified mechanics and unmeasured product outcomes.
-
-### Start immediately, before initialization
-
-From the project directory, ask for local guidance immediately:
-
-```bash
-lore context "Change retry handling"
-lore --json context "What is QUEUE_CAPACITY?"
-lore onboard
-lore onboard --task "Improve dispatch diagnostics"
+```sh
+lore integrate codex               # preview AGENTS.md instructions; no writes
+lore integrate codex --apply       # explicitly install the managed block
+# Or: lore integrate claude-code --apply  (CLAUDE.md)
 ```
 
-Without a configuration or compiled registry, these unpinned commands use an
-ephemeral `bootstrap_source_only` response. No model, account, setup questionnaire,
-network request, configuration write, cache write or source modification is
-needed. Lore reads root Markdown plus `docs/`, ADR, decision, design, RFC and
-architecture/specification directories. A valid existing configuration narrows
-that scope to its Markdown roots inside the project. Native imports and external
-configured roots remain available through the explicit `lore init` compilation
-path. Missing explicitly selected configurations, invalid configuration, denied
-paths and pending publication are errors, with no silent root substitution.
+The installed instructions ask the agent to consult `lore context TASK` before meaningful edits. They do not run an agent, initialize Lore, grant permission to inspect or edit code, or guarantee compliance. See the [agent integration contract](docs/AGENT_INTEGRATION.md).
 
-Each included passage preserves its exact source text, relative path, line span
-and full-file SHA-256. The selected-source digest identifies this ephemeral
-documentary selection; it is not a retained-registry revision. Guidance leads
-with a local navigation target and says when evidence is missing. Documentation
-alone does not establish runtime behavior, accepted policy or learner mastery.
-Path hints, exact symbols, Markdown headings and relevant source fragments guide
-selection. A complete parent section and its descendants stay together with the
-document preamble, sibling exceptions, scope and history, and linked local
-sections. Ambiguous grouping retains the full document. Whole bundles that cannot
-fit are reported as omitted; included passages are never silently shortened.
-Other relevant qualifications may remain in omitted source groups, so this
-ephemeral navigation is not a complete policy assessment.
+### Build lasting evidence only when you need it
 
-Discovery honors local `.gitignore` and configured exclusions, skips symlinks,
-hidden/vendor/build/cache/generated directories and published output, and never
-scans source code merely because `--inspect` or an environment grant is present.
-It reads at most **256 files, 8 MiB total, 1 MiB per file, and eight directory
-levels**, counting configuration and local ignore bytes in the read envelope.
-Directory enumeration is additionally bounded to 16,384 entries and two seconds
-per directory. Truncation is explicit. Both the complete JSON and Markdown must
-fit `--max-tokens`; a smaller-than-envelope budget returns an actionable error.
-
-JSON uses `contract: lore.bootstrap_context` or `lore.bootstrap_onboard`,
-`schema_version: 1`, and `mode: bootstrap_source_only`. Explicit
-`--schema-version 3/4/5` and `--fast` retain their established contracts and return
-`uninitialized_project` until `lore init` succeeds. Tutorial, hint, answer and
-transfer modes likewise require compiled intelligence. `--no-inspect` and
-`--no-cache` remain compatible with the read-only documentary first-contact path.
-Run `lore init --configure-only` to create an editable configuration deliberately,
-or `lore init` when ready to compile durable project intelligence.
-
-### Understand and learn a compiled project
-
-`lore onboard` gives an immediate source-grounded orientation. It uses the same
-evidence, decisions, static observations and permission boundary as adaptive
-agent context. You can start with a workflow or go directly to a contribution:
-
-```bash
-lore onboard
-lore onboard --topic "Explain payment dispatch"
-lore onboard --task "Improve dispatch diagnostics without changing ordering"
-lore onboard --topic "Teach me dispatch queues" --mode tutorial
-lore onboard --topic "Exact dispatch limits" --mode reference
-lore --json onboard --no-inspect
+```sh
+lore init --configure-only --source ./docs
+# Review lore.yml, provider costs and privacy grants first.
+lore init
+lore context "Change retry handling" --inspect
+lore status
 ```
 
-Explanation, how-to, tutorial and reference modes follow the request's intent;
-an explicit `--mode` overrides it. Tutorials offer optional hints, a lesson-bound
-answer comparison and a distinct practice activity. Ordinary task guidance does
-not require a lesson, account or learner profile. Complete source conditions and
-honest provider-unavailable fallbacks remain available. Read the
-[human experience guide](docs/HUMAN_EXPERIENCE.md) and the separate
-[human/agent evaluation protocol](evaluation/SHARED_INTELLIGENCE.md).
+`init`/`update` can invoke the configured model. `--inspect` explicitly permits bounded read-only checkout inspection; it never executes tests. Existing compiled projects support model-free `lore context "TASK" --fast`. **OpenWiki is optional**: its local exports can provide implementation observations, but it is not a mandatory service, accepted-decision authority, or a hidden dependency. Markdown alone is enough.
 
-### Understand decisions and documented cases
+**Product contract:** [What Lore owns, the retained command map, and migration policy](docs/PRODUCT_SCOPE.md). The focus is task guidance, not a tutorial platform, web browser, code wiki or project monitoring product. Current non-core commands still exist in 0.9.0-rc.1; [#66](https://github.com/grove/lore/issues/66) through [#73](https://github.com/grove/lore/issues/73) track staged removals and migrations. Nothing in this scope decision changes runtime contracts.
 
-`lore decisions QUERY` organizes retained choices, rationale, alternatives,
-conditions and historical transitions. `lore cases QUERY` shows source-reported
-outcomes, documented procedures, rejected approaches and relevant work history:
+**Release reality:** 0.9.0-rc.1 is an engineering release candidate, **not** stable 0.9.0. Source binding, privacy and CLI behavior have deterministic/fixture checks; real-model coding improvements, human learning outcomes and Guardian alert usefulness are **not measured**. See the [0.9 guide](docs/V09.md), [engineering scorecard](evaluation/PRODUCT_QUALITY_09.md), and deferred [independent decision-task evaluation](https://github.com/grove/lore/issues/2).
 
-```bash
-lore decisions "payment retry policy"
-lore --json decisions "payment retry policy" --max-tokens 12000
-lore cases "payment retries during failover"
-```
-
-Both commands use the existing registry without a model provider. Each passage
-keeps its original source, lifecycle and scope; missing rationale remains
-unknown, and a reported outcome is not a runtime verification. Complete views
-are omitted with an explanation when they exceed the output budget. See the
-[decision lenses and cases guide](docs/DECISION_LENSES.md).
-
-### Explore concepts and original evidence
-
-`lore explore` opens a bounded navigation view over the same retained knowledge.
-Concepts can overlap, have several parents and reach different depths. Exact
-facts remain directly searchable even when their navigation node does not fit:
-
-```bash
-lore explore
-lore explore "payment retries"
-lore explore "MAX_RETRIES"
-lore --json explore "payment retries" --max-tokens 8000
-lore --json explore "payment retries" --compact --max-tokens 1500
-lore explore --node RETURNED_VIEW_ID
-```
-
-The deterministic view preserves complete source-linked conditions and
-documentary relationships, reports omitted groups, and performs no inference or
-code execution. A disposable revision-aware cache avoids rewriting unchanged
-views; `--no-cache` bypasses it. See the [Knowledge Zoom guide](docs/KNOWLEDGE_ZOOM.md)
-for direct source drill-down, grouping limits and the distinction between
-navigation and evidence authority.
-
-The optional `--compact` response uses exploration schema 2 to retain complete
-source records, original quotations, and mandatory relationship endpoints with
-less envelope overhead. It reports a budget limitation when a complete evidence
-obligation cannot fit. Plain `lore explore` retains schema 1; initialized context
-uses adaptive schema 5 by default.
-
-## Vision
-
-**Lore's long-term goal is to make everyone working in a project more capable—newcomers, experienced developers, maintainers and coding agents.**
-
-Lore's goal is not more documentation. It is to connect evidence, code observations, decisions and historical experience; investigate what matters; and present the right understanding or practical guidance for each user's goal. **Newcomer onboarding is the flagship human learning experience. Decision-ready, automatically investigated context is the flagship coding-agent experience.** Experienced developers and maintainers get direct answers, applicable constraints and informed trade-offs without entering a tutorial.
-
-Humans should get inviting project tours and explanations when learning, and concise decisions and project guidance when working. Coding agents should receive compact machine-readable task intelligence—one preferred approach, relevant constraints, actual investigations, inspected implementation seams and completion checks—instead of rediscovering intent or reading a wiki. **Both use the same versioned knowledge, evidence, permissions and applicability rules**, distinguishing accepted decisions, proposals, reports and observations.
-
-The CLI, task-context interface, native snapshot adapters, and generated Markdown wiki are the foundation. A richer reading experience, conversational grounded questions and answers, and live source synchronization remain future directions. Read the [full vision](VISION.md) for the product principles, intended experience, and measures of success.
-
-## Knowledge Experience direction
-
-Lore is developing a shared project intelligence experience for everyone. Two
-flagship journeys guide the implementation and its independent evaluations:
-
-- **Human learning:** [Developer Onboarding design](docs/DEVELOPER_ONBOARDING_DESIGN.md) — a newcomer gets an immediate project orientation and source-grounded tour, practices a concept, makes a correct first change and tackles a distinct related task with less help.
-- **Agent productivity:** [Coding-Agent Intelligence design](docs/CODING_AGENT_INTELLIGENCE_DESIGN.md) — any coding agent receives a compact, evidence-bound task package with automatically investigated context, explicit constraints, implementation guidance and honest completion criteria.
-
-An experienced developer or maintainer can ask directly for advice or explanation. There is **no mandatory tutorial, learner profile, special agent framework or parallel knowledge registry**.
-
-The [Knowledge Experience architecture](docs/KNOWLEDGE_EXPERIENCE_DESIGN.md) combines adaptive-depth Knowledge Zoom, Diátaxis (tutorial-first **when learning is requested**), decision conditions and cases. The [Autonomous Assistance contract](docs/AUTONOMOUS_ASSISTANCE_DESIGN.md) defines permitted investigation, and the [phased roadmap](docs/KNOWLEDGE_EXPERIENCE_ROADMAP.md) starts with **one shared engine and two small user journeys**, then measures learning and agent outcomes independently. The guides above describe implemented commands; the [implementation tracker](docs/IMPLEMENTATION_TRACKER.md) distinguishes those mechanics from planned work and outcomes still requiring evaluation. The existing evidence registry, privacy and CLI compatibility remain foundational.
-
-## Evaluating Lore
-
-Lore's CLI is available, but we are still validating how accurately **real inference models** understand heterogeneous project documents. The [evaluation toolkit](evaluation/README.md) includes a controlled, evolving project with reviewed source checkpoints, Lore's own documentation, and pinned public OpenWiki and LLM Wiki corpora. It can run local Ollama or explicitly authorized hosted OpenAI inference, report provenance and incremental-update checks, and produce a human review sheet. Automated fixture tests and source hashes cannot establish semantic correctness, so [the baseline](evaluation/BASELINE.md) clearly separates what is already measured from the quality and billing data we still need to collect.
-
-The [Knowledge Zoom comparison](evaluation/KNOWLEDGE_ZOOM.md) preserves the
-historical constrained-budget failures and records the 0.7 regression work,
-including 24 source-pinned documentary cases with a separate AI-agent review of
-their source quotations, critical conditions, and scope. That review is an
-engineering source-gold check; it is not a human usefulness study or evidence of
-a causal graph advantage.
-
-The [adaptive coding-task comparison](evaluation/ADAPTIVE_TASKS.md) retains six
-matched configurations, independent executable checks, explicit reuse controls,
-and all repair/investigation costs. The [0.8 study wrapper](evaluation/EXPERIMENT_08.md)
-adds sealed source/model/command pins, external readiness gates and complete
-denominators for failed, refused, cancelled or interrupted work. Its actual
-[readiness receipt](evaluation/results/experiment-08-readiness/README.md) is
-not_run: six public pilot tasks and 36 planned assignments, with zero actual
-coding attempts or provider calls. The [30 public coding candidates](evaluation/REAL_CODING_TASKS.md)
-remain development input, and the [human protocol](evaluation/HUMAN_ONBOARDING.md)
-has twelve planned positions and zero real participants.
-
-The historical [0.7 Guardian captures](evaluation/results/guardian-debug-2026-10-10/README.md)
-exercise sixty synthetic transitions per full run; both full captures failed
-strict source-integrity checks when deleted files reappeared. Those failures
-remain intact. The 0.8 investigation reproduced restoration in a zero-Lore
-control and adds per-command source observations plus a dedicated clean-runner
-gate for baseline, candidate, repeated candidate and no-Lore cohorts. The
-[longitudinal protocol](evaluation/GUARDIAN_LONGITUDINAL.md) explains the writer
-attribution limits. The [0.8 scorecard](evaluation/PRODUCT_QUALITY_08.md) records
-final integrity results separately from unmeasured independent alert quality;
-the [0.7 scorecard](evaluation/PRODUCT_QUALITY_07.md) preserves the earlier record.
+**Learn the CLI:** [first-run task guide](docs/tutorial/README.md). **Need operational details?** Start below for installation, evidence provenance, provider configuration, existing wiki publication and current compatibility. Legacy reader, learning, Guardian advice and feedback commands mentioned below are present behavior, *not* recommended new product entry points; planned removals are mapped in [product scope](docs/PRODUCT_SCOPE.md).
 
 ## Why a project needs more than a summary
 
@@ -269,7 +79,7 @@ lore init --configure-only --source ./docs --source ./plans --source ./issue-exp
 
 Edit `lore.yml` to select your source directories and models. The default is local-only Ollama with `gemma4:12b`; any suitable installed model with reliable structured JSON output can be selected instead. Start with a small representative set of documents, because first-time extraction and cross-document reconciliation can involve many model calls.
 
-`project.name` is an editable display name. Changing it preserves an initialized project's stored identity and knowledge, including projects initialized by older Lore versions. The visualizer uses the new name immediately; generated wiki text and the registry's display name change on the next authorized `lore update`. Keep the state and wiki directories together: ownership checks still reject a wiki belonging to a different project. New projects with copied configuration files receive distinct identities when their resolved state directories differ.
+`project.name` is an editable display name. Changing it preserves an initialized project's stored identity and knowledge, including projects initialized by older Lore versions. The currently supported visualizer uses the new name immediately; generated wiki text and the registry's display name change on the next authorized `lore update`. Keep the state and wiki directories together: ownership checks still reject a wiki belonging to a different project. New projects with copied configuration files receive distinct identities when their resolved state directories differ.
 
 ```bash
 ollama pull gemma4:12b
@@ -282,7 +92,7 @@ in interactive terminals. When stderr is redirected, it writes progress messages
 there instead; `--json` keeps progress output disabled so stdout remains valid
 JSON.
 
-The result is ordinary Markdown under `lore/`, with an index and topic pages. Lore keeps its database, exact evidence snapshots, and reusable inference results under `.lore/`. Add `.lore/` to your project's `.gitignore`; it contains potentially sensitive copied project material. Review generated pages before publishing them, just as you would review other documentation.
+**In 0.9.0-rc.1**, the result is ordinary Markdown under `lore/`, with an index and topic pages. Registry-only initialization is planned in [#70](https://github.com/grove/lore/issues/70), not available yet. Lore keeps its database, exact evidence snapshots, and reusable inference results under `.lore/`. Add `.lore/` to your project's `.gitignore`; it contains potentially sensitive copied project material. Review generated pages before publishing them, just as you would review other documentation.
 
 ## Retrieve context for your next change
 
@@ -342,7 +152,7 @@ Lore stores embeddings for original knowledge units and imported observations in
 
 For Codex, Claude Code, and other command-capable agents, use the [optional agent instruction snippet](docs/AGENTS.example.md). Agents can inspect any returned snapshot with `lore --json evidence EVIDENCE_ID` and should verify implementation details in the actual code and tests.
 
-## Keep the wiki current
+## Maintain compiled evidence (currently also publishes a wiki)
 
 After editing your sources, run `lore update`. Lore compares file and section fingerprints, re-extracts changed sections, finds related knowledge, and regenerates affected topic pages. A genuinely unchanged run makes no model calls and leaves wiki content byte-for-byte unchanged. It can therefore complete without API credentials or a running inference server when the configuration and successful baseline are unchanged. New documents are compared with existing knowledge even when that knowledge's original source files were not edited.
 
@@ -361,9 +171,9 @@ To recover edited or missing generated pages without inference, preserve any edi
 
 The CLI also provides `lore evidence <evidence-id>` for an exact archived passage and `lore review` for unresolved questions. `lore review show <review-id>` displays the history and evidence binding; `resolve`, `dismiss` and `reopen` accept an explicit `--reason` and optional `--actor`. These actions record a disposition, not a new project fact, and make no model calls. Specific relationship questions can also close automatically when active evidence from the same source revision establishes the named replacement; withdrawn evidence reopens them. `--config path/to/lore.yml` selects another configuration, and the global `--json` option produces machine-readable results, including argument errors. Operational errors exit with code 1, argument errors with code 2, and audit findings with code 3.
 
-## Follow project changes and investigate their implications
+## Compare historical changes (legacy Guardian advice)
 
-Save a named comparison point, update the ordinary registry as project sources
+Use retained baselines and change reports for deterministic history. The separate `guard` advisory command is legacy and slated for [#68](https://github.com/grove/lore/issues/68); prefer task advice from `context`. Save a named comparison point, update the ordinary registry as project sources
 evolve, then ask what changed or how those changes affect a task:
 
 ```bash
@@ -390,7 +200,7 @@ summaries retain all original citations and distinct actions. The guardian is an
 on-demand advisory command; an unavailable model or an empty alert list does not
 establish that the project is safe.
 
-## An overview you can follow back to evidence
+## Existing optional published-wiki view (planned headless default)
 
 The generated index now explains the project's major systems, documented design, decisions, future initiatives and open questions in cited paragraphs. It uses a bounded, representative selection from every topic; the detailed pages preserve the full extracted knowledge. An extra generative check reviews the overview for unsupported claims when synthesis verification is enabled. Decision links name documents rather than repeating topic titles, so two decisions on the same page appear as “ADR-027 explicitly replaces ADR-001.” The review-history page distinguishes pending questions from retained resolutions and makes the reason for each transition inspectable.
 
@@ -474,9 +284,9 @@ sources:
 
 Roots default to `material: primary`. Mark generated or secondary summaries as `derived`; `origin` is optional descriptive provenance supplied by you, not a fetched or verified upstream source. Imported OpenWiki Markdown uses the ordinary source pipeline. Lore preserves its origin and derived status, and context does not treat derived-only evidence as independent verification of code behavior. For native OpenWiki Claims, use the 0.4 import configuration below. Keep the Markdown-only path when the upstream format is unsupported. Each input must have one owner: do not configure the same OpenWiki directory as both a Markdown root and a native import.
 
-## Connect OpenWiki, Engram, and Beads
+## Optional native imports: OpenWiki, Beads and legacy Engram
 
-Set `schema_version: 2` and add only the imports you use:
+Set `schema_version: 2` and add only the imports you use. OpenWiki is an optional implementation-observation producer; the existing native Engram adapter is slated for [#73](https://github.com/grove/lore/issues/73), with historical evidence migration required before retirement:
 
 ```yaml
 schema_version: 2
@@ -542,4 +352,4 @@ contracts and separate fixture results from actual product outcomes. See
 for operational behavior, and [the current scorecard](evaluation/PRODUCT_QUALITY_07.md)
 for measured results and limitations.
 
-Lore is inspired by [OpenWiki](https://github.com/langchain-ai/openwiki) and research on grounded generation, provenance, and incremental knowledge maintenance. It is licensed under the [Apache License 2.0](LICENSE).
+Lore's primary job and future command ownership are defined in [the product contract](docs/PRODUCT_SCOPE.md). Lore is inspired by [OpenWiki](https://github.com/langchain-ai/openwiki) and research on grounded generation, provenance, and incremental knowledge maintenance. It is licensed under the [Apache License 2.0](LICENSE).

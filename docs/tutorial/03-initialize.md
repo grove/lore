@@ -34,10 +34,10 @@ After successful initialization:
 lore status
 lore --json context "Change production charge attempt policy"
 lore search "charge"
-lore read index
+lore decisions "charge submission"
 ```
 
-Lore now has a durable SQLite registry in `.lore/` and generated Markdown in `lore/`. These are *derived* material, not a replacement for original source files.
+In 0.9.0-rc.1, Lore has a durable SQLite registry in `.lore/` and also publishes generated Markdown in `lore/`. Headless compilation is planned in [#70](https://github.com/grove/lore/issues/70), not available yet. These are *derived* material, not a replacement for original source files.
 
 After deliberately editing a classroom Markdown source, run:
 

@@ -1,6 +1,6 @@
 # Lesson 5 — Give a coding agent project context
 
-**Goal:** Safely integrate Lore with Codex or Claude Code and understand what integration actually does.
+**Goal:** Make `lore context TASK` the default pre-edit habit for a coding agent, with explicit, optional instructions. Integration does not grant permissions or run the agent.
 
 Work from the **root of your disposable classroom project**. You do not need `lore init` to preview/install the instruction block.
 

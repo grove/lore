@@ -1,10 +1,14 @@
-# Learn Lore — a hands-on guide for new users
+# Start with one task — Lore first-run guide
 
-**Start here if you want to learn how to use Lore itself.** Lore's `onboard --mode tutorial` instead teaches *a project's concepts*. This course teaches the Lore tool.
+**For developers and coding agents about to change code:** use `lore context TASK` first. Lore returns source-backed decisions, constraints, relevant history and a next defensible action; your agent or developer still owns edits, tests and delivery. See the [authoritative product scope](../PRODUCT_SCOPE.md).
 
-**Audience:** Newcomers with a terminal and basic Git familiarity. **Time:** about 60–90 minutes, optionally spread across sessions. Lessons 1–2 and the sample Python tests require **no model, account, API key or network service** after Lore is installed. Lessons involving compiled intelligence require a configured inference provider and can consume time/tokens.
+**No setup needed:** from your project's root run `lore context "Change retry handling without violating accepted policy"`. This uninitialized response is bounded, source-only guidance with original quoted evidence—not a complete compiled decision assessment, verified implementation, or a mandatory wiki. To install optional agent instructions, preview `lore integrate codex` or `lore integrate claude-code`, then explicitly `--apply`. To compile durable knowledge, configure `lore init` deliberately with a reviewed model and permission budget. OpenWiki is optional.
 
-## Seven lessons
+**Detailed learning material below is a *tool-usage course*, not the primary product workflow.** Lore 0.9.0-rc.1 still exposes interactive lessons, a browser view and Guardian advice; they are scheduled for separate changes ([#66](https://github.com/grove/lore/issues/66), [#67](https://github.com/grove/lore/issues/67), [#68](https://github.com/grove/lore/issues/68)). This guide is not announcing command removals.
+
+**Audience:** New CLI users with terminal and Git familiarity. The optional seven lessons take roughly 60–90 minutes. First contact needs no model, account, key or network service after installation; compiled guidance may invoke explicitly configured inference.
+
+## Optional in-depth lessons
 
 1. [What Lore is](01-meet-lore.md) — its job, source authority and limits.
 2. [Your first five minutes](02-first-contact.md) — run zero-setup Lore against a complete fictional project.
@@ -28,7 +32,6 @@ Then **copy** the standalone practice project to a disposable directory, rather 
 ```sh
 cp -R examples/tutorial-project /tmp/lore-classroom
 cd /tmp/lore-classroom
-lore --json onboard
 lore context "Can we raise the production charge limit to five?"
 ```
 
@@ -47,4 +50,4 @@ If the destination exists, choose a new empty one; do **not** blindly overwrite 
 
 **Documentation scope:** This course reflects Lore **0.9.0-rc.1**. The release is an engineering candidate; genuine coding-agent productivity and human-onboarding outcomes have not yet been measured. [0.9 release status](../../evaluation/PRODUCT_QUALITY_09.md).
 
-**Need a shortcut?** If you're using Lore only for code changes, complete lessons 1, 2, 3 and 5. For maintainers, focus on 1–4 and 6–7. The [command cheat sheet](07-workflows.md#cheat-sheet) is at the end.
+**Need a shortcut?** If you're using Lore only for code changes, complete lessons 1, 2, 3 and 5. For maintainers, focus on the task workflow, decisions and evidence; consult lessons 1–4 and 6–7 for detail. The [command cheat sheet](07-workflows.md#cheat-sheet) is at the end.
