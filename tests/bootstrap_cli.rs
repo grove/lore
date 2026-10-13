@@ -118,6 +118,32 @@ fn ordinary_commands_work_without_config_provider_or_documents() {
 }
 
 #[test]
+fn onboard_task_is_exactly_the_same_model_free_first_contact_as_context() {
+    let (_temp, root) = root();
+    put(
+        &root,
+        "docs/ADR-001.md",
+        "# Retry policy\nThree attempts with the same key.\n",
+    );
+    let before = snapshot(&root);
+    let task = "Change retry diagnostics";
+    let context = success(&invoke(
+        &root,
+        &["--json", "context", task, "--max-tokens", "6000"],
+    ));
+    let onboard = success(&invoke(
+        &root,
+        &["--json", "onboard", "--task", task, "--max-tokens", "6000"],
+    ));
+    assert_eq!(onboard, context);
+    assert_eq!(onboard["contract"], "lore.bootstrap_context");
+    assert_eq!(onboard["mode"], "bootstrap_source_only");
+    assert_eq!(onboard["model_calls"], 0);
+    assert_eq!(onboard["source_write"], false);
+    assert_eq!(snapshot(&root), before);
+}
+
+#[test]
 fn readme_evidence_is_exact_hash_bound_and_never_creates_state() {
     let (_temp, root) = root();
     let text = "# Ledger\r\n\r\nLedger manages transfers.\r\nRetries must preserve idempotency.\r\nExcept: canceled transfers are never retried.\r\n";
@@ -474,7 +500,7 @@ fn explicit_missing_and_invalid_config_never_fall_back_to_cwd() {
 }
 
 #[test]
-fn pinned_context_and_learning_contracts_require_initialization() {
+fn pinned_context_requires_initialization_and_removed_learning_flags_fail_explicitly() {
     let (_temp, root) = root();
     put(&root, "README.md", "# Purpose\nA tiny project.\n");
     for schema in ["3", "4", "5"] {
@@ -487,13 +513,23 @@ fn pinned_context_and_learning_contracts_require_initialization() {
         );
         assert!(result["error"].as_str().unwrap().contains("lore init"));
     }
+    error(
+        &invoke(&root, &["--json", "context", "read docs", "--fast"]),
+        "uninitialized_project",
+    );
     for args in [
-        vec!["--json", "context", "read docs", "--fast"],
         vec!["--json", "onboard", "--mode", "tutorial"],
         vec!["--json", "onboard", "--activity", "transfer"],
         vec!["--json", "onboard", "--answer", "My answer"],
+        vec!["--json", "onboard", "--hint", "1"],
+        vec!["--json", "onboard", "--show-solution"],
+        vec!["--json", "onboard", "--lesson", "blake3:legacy"],
     ] {
-        error(&invoke(&root, &args), "uninitialized_project");
+        let result = error(&invoke(&root, &args), "invalid_arguments");
+        assert!(
+            result["error"].as_str().unwrap().contains(args[2]),
+            "a retired learning flag must fail explicitly: {result}"
+        );
     }
     assert!(!root.join("lore.yml").exists());
 }

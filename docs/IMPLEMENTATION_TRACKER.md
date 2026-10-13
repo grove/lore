@@ -1,3 +1,5 @@
+> **Historical implementation tracker.** Rows documenting `src/experience`, lesson contracts, learning modes, human_experience test suites and the old onboarding schema describe 0.9.0-rc.1 development, **not the focused post-[#66](https://github.com/grove/lore/issues/66) implementation**. The dedicated learning engine and those tests are removed; `onboard` uses schema-5 context or model-free bootstrap context. See [migration](LEARNING_MIGRATION.md) and [current product scope](PRODUCT_SCOPE.md).
+
 # Lore implementation tracker
 
 ## 0.9 release candidate

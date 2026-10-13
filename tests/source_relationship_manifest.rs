@@ -9,7 +9,6 @@ use lore::{
     },
     domain::ImportKind,
     engine::{self, UpdateOptions},
-    experience::{self, ExperienceMode, ExperienceOptions},
     imports::{
         self, Inventory, SourceBatch,
         adapters::{AdapterRecord, ImportBatch, NativeEvidence, ObservationKind, ObservationScope},
@@ -47,16 +46,6 @@ fn options(max_tokens: usize) -> ContextOptions {
         task: TASK.into(),
         paths: Vec::new(),
         max_tokens,
-    }
-}
-
-fn human_options() -> ExperienceOptions {
-    ExperienceOptions {
-        goal: Some(TASK.into()),
-        mode: ExperienceMode::Explanation,
-        max_tokens: 16_000,
-        run: run_options(),
-        ..Default::default()
     }
 }
 
@@ -309,97 +298,6 @@ async fn source_status_review_qualifications_and_complete_endpoints_survive_shar
     assert_eq!(calls, fixture.model.calls.load(Ordering::SeqCst));
     assert_eq!(writes, fixture.conn.total_changes());
     assert_eq!(revision, storage::registry_revision(&fixture.conn).unwrap());
-}
-
-#[tokio::test]
-async fn human_views_keep_the_same_source_manifest_and_qualify_endpoint_claims() {
-    let fixture = Fixture::new().await;
-    let shared = fixture.shared(8_000).await;
-    let expected = serde_json::to_value(&shared.source_relationships).unwrap();
-    let result = experience::build(
-        &fixture.conn,
-        &fixture.config,
-        &human_options(),
-        shared,
-        None,
-    )
-    .await
-    .unwrap();
-    assert_eq!(
-        serde_json::to_value(&result.source_relationships).unwrap(),
-        expected
-    );
-    let rule = result
-        .orientation
-        .constraints
-        .iter()
-        .find(|claim| claim.text == RULE)
-        .unwrap();
-    assert!(rule.qualifications.iter().any(|q| q == QUALIFICATION));
-    assert!(rule.qualifications.iter().any(|q| q == DISPOSITION));
-    let markdown = experience::render_markdown(&result);
-    assert!(markdown.contains(QUALIFICATION) && markdown.contains(DISPOSITION));
-    let actual = context::count_tokens(&(serde_json::to_string(&result).unwrap() + "\n"))
-        .max(context::count_tokens(&markdown));
-    assert!(
-        actual <= result.budget.used_tokens
-            && result.budget.used_tokens <= result.budget.max_tokens
-    );
-    for evidence in result
-        .source_relationships
-        .evidence
-        .iter()
-        .map(|e| &e.id)
-        .chain(
-            result
-                .source_relationships
-                .imported_evidence
-                .iter()
-                .map(|e| &e.id),
-        )
-    {
-        assert!(markdown.contains(&format!("### Source {evidence}")));
-    }
-}
-
-#[tokio::test]
-async fn human_adapter_rejects_forged_qualifications_status_revisions_and_missing_group_members() {
-    let fixture = Fixture::new().await;
-    let original = fixture.shared(8_000).await;
-    let calls = fixture.model.calls.load(Ordering::SeqCst);
-    for mutation in 0..7 {
-        let mut changed = original.clone();
-        let manifest = &mut changed.source_relationships;
-        match mutation {
-            0 => manifest.relations[0].qualifications.clear(),
-            1 => manifest.relations[0].upstream_active = Some(true),
-            2 => manifest.discrepancies[0]
-                .qualifications
-                .retain(|q| q != DISPOSITION),
-            3 => manifest.observations.clear(),
-            4 => {
-                manifest.knowledge_revisions.insert(
-                    fixture.relation.to.as_ref().unwrap().id.clone(),
-                    manifest.evidence[0].source_revision_id.clone(),
-                );
-            }
-            5 => manifest.imported_evidence.clear(),
-            _ => *manifest = adaptive::SourceRelationships::default(),
-        }
-        assert!(
-            experience::build(
-                &fixture.conn,
-                &fixture.config,
-                &human_options(),
-                changed,
-                Some(&fixture.model)
-            )
-            .await
-            .is_err()
-        );
-        assert!(fixture.conn.is_autocommit());
-    }
-    assert_eq!(calls, fixture.model.calls.load(Ordering::SeqCst));
 }
 
 #[tokio::test]

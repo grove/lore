@@ -1,4 +1,4 @@
-# HarborPay — a fictional learning project
+# HarborPay — a fictional first-contact project
 
 HarborPay is a **small, invented project for learning Lore**. It is not a payment service. Its Python code makes no network requests and handles no real payments.
 
@@ -22,4 +22,4 @@ python3 -m unittest discover -s tests -v
 
 The tests use only Python's standard library. Running them is a separate action; a Lore inspection or suggestion does not mean these tests ran.
 
-Go back to the [Learn Lore course](../../docs/tutorial/README.md) from the original Lore repository. If you copied this directory elsewhere, use the tutorial files in that original clone.
+Return to the [static first-run guide](../../docs/tutorial/README.md) from your original Lore checkout. If you copied this directory elsewhere, follow that original guide for the supported CLI workflow.

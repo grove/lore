@@ -24,8 +24,8 @@ import decision_tasks as decision
 
 PROTOCOL = "shared-intelligence-v1"
 EXPERIENCES = ("fast", "schema3", "schema4", "adaptive", "onboard", "adaptive_no_inspect", "onboard_no_inspect")
-HUMAN_CRITERIA = ("purpose_accuracy", "concepts_and_architecture", "workflow_accuracy",
-                  "critical_conditions_preserved", "source_attribution", "useful_next_step")
+HUMAN_CRITERIA = ("decision_accuracy", "applicable_scope", "critical_conditions_preserved",
+                  "history_and_alternatives", "source_attribution", "useful_next_step")
 
 
 def intelligence(response: dict, experience: str) -> dict:
@@ -38,9 +38,9 @@ def intelligence(response: dict, experience: str) -> dict:
 
 
 def invocation_calls(response: dict, experience: str) -> int:
-    # Human presentation performs its own bounded generation and support check
-    # after the shared core; those calls must not disappear from cost records.
-    return cross.model_calls(response if experience.startswith("onboard") else intelligence(response, experience))
+    # Onboard uses precisely the same context inference budget; there is no
+    # independent human-presentation generation or answer assessor.
+    return cross.model_calls(intelligence(response, experience))
 
 
 def arguments(experience: str, task: str, max_tokens: int) -> list[str]:
@@ -86,20 +86,6 @@ def snapshot_manifest(response: dict) -> dict:
     if any(not isinstance(value, str) or not value for value in snapshot.values()):
         raise ValueError("Shared response has an empty project/revision identity")
     return snapshot
-
-
-def generated_reference_ids(value, prefix: str) -> set[str]:
-    """Only generated claim text is a citation; caller goals and excerpts are data."""
-    ids = set()
-    if isinstance(value, dict):
-        if "basis" in value and isinstance(value.get("text"), str):
-            ids.update(word for word in re.findall(r"\w+", value["text"]) if word.startswith(prefix))
-        for child in value.values():
-            ids.update(generated_reference_ids(child, prefix))
-    elif isinstance(value, list):
-        for child in value:
-            ids.update(generated_reference_ids(child, prefix))
-    return ids
 
 
 def verify_source_relationships(response: dict) -> tuple[set[str], set[str]]:
@@ -283,26 +269,12 @@ def verify_relationship_sources(response: dict, resolution: dict) -> None:
 
 
 def verify_shared_references(response: dict, experience: str, source: Path) -> dict:
+    # A thin onboard response has no separate generated presentation claims.
+    # All evidence and observations resolve through the shared context plus
+    # its closure-checked source relationship manifest.
     core = intelligence(response, experience)
     checked = decision.verify_observations(core, source)
-    source_evidence, _ = verify_source_relationships(response)
-    if experience.startswith("onboard"):
-        presentation = {key: value for key, value in response.items()
-                        if key not in ("intelligence", "source_relationships")}
-        # Human presentation must use the same closed evidence manifest as the
-        # agent core. A valid ID elsewhere in the registry is insufficient.
-        evidence = cross.cited_ids({"evidence": core.get("evidence", []),
-                                    "imported_evidence": core.get("imported_evidence", [])})
-        evidence |= source_evidence
-        required = cross.cited_ids(presentation)
-        required |= generated_reference_ids(presentation, "ev_") | generated_reference_ids(presentation, "ne_")
-        if not required <= evidence:
-            raise ValueError("Human presentation cites evidence absent from the shared manifest")
-        observations = {item["id"] for item in core.get("inspection", {}).get("observations", [])}
-        observations |= decision.retained_observation_ids(core)
-        required_observations = decision.observation_ids(presentation) | generated_reference_ids(presentation, "co_")
-        if not required_observations <= observations:
-            raise ValueError("Human presentation cites an unmanifested observation")
+    verify_source_relationships(response)
     return checked
 
 
@@ -317,12 +289,11 @@ def budget_valid(response: dict) -> bool:
 def response_checks(response: dict, experience: str, task: str, source: Path) -> dict:
     core = intelligence(response, experience)
     shared = experience.startswith(("adaptive", "onboard"))
-    human = experience.startswith("onboard")
-    schema = 1 if human else 5 if shared else 2 if experience == "fast" else int(experience[-1])
+    schema = 5 if shared else 2 if experience == "fast" else int(experience[-1])
     checks = {
         "explicit_schema": response.get("schema_version") == schema,
         "shared_core_schema": not shared or core.get("schema_version") == 4,
-        "task_bound": human or core.get("task") == task,
+        "task_bound": core.get("task") == task,
         "reported_output_budget_valid": budget_valid(response),
         "legacy_fast_model_free": experience != "fast" or cross.model_calls(core) == 0,
         "model_call_accounting": cross.model_calls(core) >= 0,
@@ -335,14 +306,12 @@ def response_checks(response: dict, experience: str, task: str, source: Path) ->
         checks["no_execution_capability"] = capabilities.get("execution") is False and capabilities.get("source_write") is False
         checks["explicit_inspection_capability"] = capabilities.get("inspection") in (
             "granted", "not_granted", "disabled_by_caller", "outside_grant")
-    if human:
-        orientation = response.get("orientation")
-        checks["human_orientation_present"] = isinstance(orientation, dict) and all(
-            key in orientation for key in ("purpose", "concepts", "architecture", "workflow", "constraints", "next_exploration"))
-        checks["generation_basis_explicit"] = isinstance(response.get("generation_basis"), str) and bool(response["generation_basis"])
-        presentation_calls = response.get("presentation_model_calls")
-        checks["complete_human_call_accounting"] = (type(presentation_calls) is int and presentation_calls >= 0
-            and invocation_calls(response, experience) == cross.model_calls(core) + presentation_calls)
+    if experience.startswith("onboard"):
+        retired = ("orientation", "tutorial", "feedback", "first_task",
+                   "revision_key", "presentation_revalidation", "presentation_model_calls",
+                   "presentation_status", "generation_basis")
+        checks["no_legacy_learning_contract"] = all(key not in response for key in retired)
+        checks["single_context_model_budget"] = invocation_calls(response, experience) == cross.model_calls(core)
     if core.get("schema_version") == 4:
         egress = core.get("checkout_egress", {})
         checks["checkout_egress_contract"] = (type(egress.get("allowed")) is bool
@@ -357,7 +326,7 @@ def response_checks(response: dict, experience: str, task: str, source: Path) ->
     elif core.get("schema_version") == 3:
         checks["honest_generation_mode"] = core.get("mode") in ("intelligent", "fast_fallback")
     verify_shared_references(response, experience, source)
-    checks["exact_source_observations_and_closed_human_references"] = True
+    checks["exact_source_observations_and_closed_relationships"] = True
     if experience.endswith("_no_inspect"):
         inspection = core.get("inspection", {})
         checks["inspection_veto"] = (not inspection.get("observations")
@@ -589,9 +558,9 @@ def assess(directory: Path) -> dict:
         try:
             adaptive = snapshot_manifest(sample["experiences"]["adaptive"]["response"])
             human = snapshot_manifest(sample["experiences"]["onboard"]["response"])
-            checks["human_and_agent_share_snapshot"] = adaptive == human
+            checks["onboard_and_agent_share_snapshot"] = adaptive == human
         except (ValueError, KeyError, TypeError):
-            checks["human_and_agent_share_snapshot"] = False
+            checks["onboard_and_agent_share_snapshot"] = False
         failures = [name for name, passed in checks.items() if not passed]
         issues.extend(f"{case_id}: {name}" for name in failures)
         results.append({"case_id": case_id, "mechanical_contracts_passed": not failures, "checks": checks})

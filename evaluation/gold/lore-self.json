@@ -5,7 +5,7 @@
     {
       "id": "lore-purpose",
       "source": "docs:README.md",
-      "needle": "Rust command-line application that reads your project's Markdown directories",
+      "needle": "Lore is a local-first Rust CLI for **developers and coding agents preparing a code or architecture change**.",
       "kind": "observation",
       "lifecycle": "unknown"
     },
