@@ -126,8 +126,8 @@ impl SourceRelationships {
             .collect()
     }
 
-    /// Recheck a shared result before a human adapter uses its source IDs.
-    /// A matching registry digest alone does not authenticate caller-supplied
+    /// Recheck retained source relationships and their original evidence.
+    /// A matching registry digest alone does not authenticate
     /// relation reasons, qualifications, endpoint fields or evidence metadata.
     pub(crate) fn validate(&self, conn: &Connection) -> Result<EvidenceCatalog> {
         if self.is_empty() {
@@ -296,60 +296,6 @@ impl SourceRelationships {
             );
         }
         EvidenceCatalog::validate(conn, &self.context())
-    }
-
-    /// Manifest-internal validity cannot detect deletion of the whole field.
-    /// Check the registry's current incident relationships for every source
-    /// record actually retained by a presentation, including evidence-only
-    /// premises whose optional schema-4 fact was removed during packing.
-    pub(crate) fn validate_retained(
-        &self,
-        conn: &Connection,
-        records: &BTreeSet<String>,
-    ) -> Result<()> {
-        ensure!(
-            records.len() <= MAX_EVIDENCE,
-            "too many retained relationship premises"
-        );
-        if records.is_empty() {
-            ensure!(
-                self.is_empty(),
-                "relationship manifest has no retained premises"
-            );
-            return Ok(());
-        }
-        let available: bool = conn.query_row(
-            "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='cross_source_evaluations')",
-            [], |row| row.get(0),
-        )?;
-        if !available {
-            ensure!(self.is_empty(), "relationship registry is unavailable");
-            return Ok(());
-        }
-        let parameters = (1..=records.len())
-            .map(|n| format!("?{n}"))
-            .collect::<Vec<_>>()
-            .join(",");
-        let mut query = conn.prepare(&format!(
-            "SELECT DISTINCT r.id FROM cross_source_relations r JOIN cross_source_current c ON c.input_signature=r.input_signature JOIN cross_source_evaluations e ON e.input_signature=r.input_signature WHERE e.from_id IN ({parameters}) OR e.to_id IN ({parameters}) ORDER BY r.id LIMIT {}",
-            MAX_RELATIONS + 1,
-        ))?;
-        let expected = query
-            .query_map(rusqlite::params_from_iter(records.iter()), |row| {
-                row.get::<_, String>(0)
-            })?
-            .collect::<rusqlite::Result<BTreeSet<_>>>()?;
-        ensure!(
-            expected.len() <= MAX_RELATIONS
-                && expected
-                    == self
-                        .relations
-                        .iter()
-                        .map(|r| r.id.clone())
-                        .collect::<BTreeSet<_>>(),
-            "retained source records have an omitted source relationship group; rebuild shared intelligence"
-        );
-        Ok(())
     }
 
     // Reuse the established evidence validator and native renderer with a
