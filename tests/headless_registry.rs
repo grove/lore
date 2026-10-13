@@ -114,12 +114,6 @@ async fn headless_registry_has_all_read_only_cli_surfaces_and_genuine_no_op() {
     let root = &cfg.base;
     for args in [
         vec!["context", "Preserve queue order", "--fast"],
-        vec![
-            "context",
-            "Preserve queue order",
-            "--no-inspect",
-            "--no-cache",
-        ],
         vec!["evidence", evidence.as_str()],
         vec!["decisions", "queue"],
         vec!["cases", "queue"],
@@ -134,6 +128,19 @@ async fn headless_registry_has_all_read_only_cli_surfaces_and_genuine_no_op() {
     let state = engine::status(&cfg).unwrap();
     assert!(state.initialized && !state.needs_update && !state.output_modified);
     assert_eq!(state.output_mode, OutputMode::RegistryOnly);
+    assert_eq!(fs::read(&db).unwrap(), before);
+
+    // Exercise the initialized schema-5 advice path without probing an
+    // external model, which offline CI is not authorized to contact.
+    let mut read_config = cfg.config.clone();
+    read_config.models.generative.enabled = false;
+    fs::write(&cfg.config_path, serde_yaml::to_string(&read_config).unwrap()).unwrap();
+    let guidance = read_json(cli(
+        root,
+        &["context", "Preserve queue order", "--no-inspect", "--no-cache"],
+    ));
+    assert_eq!(guidance["schema_version"], 5);
+    assert_eq!(guidance["capabilities"]["inspection"], "disabled_by_caller");
     assert_eq!(fs::read(&db).unwrap(), before);
 }
 
