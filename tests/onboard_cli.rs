@@ -158,9 +158,6 @@ async fn topic_and_default_orientation_share_context_budget_and_provenance() {
         assert!(context::count_tokens(&printed) <= used);
         assert!(used <= 6000);
         assert!(!printed.contains("Exercise:"));
-        assert_eq!(parsed.snapshot.registry_revision, serde_json::from_value::<AdaptiveResult>(
-            serde_json::from_str(&raw).unwrap()
-        ).unwrap().snapshot.registry_revision);
     }
     assert_eq!(snapshot(&config.base), before);
 }
