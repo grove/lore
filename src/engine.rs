@@ -10,7 +10,7 @@ mod source_context;
 mod synthesis;
 mod timeline;
 use crate::{
-    config::ResolvedConfig,
+    config::{OutputMode, ResolvedConfig},
     domain::{self, Extraction},
     inference::{DecisionModel, GenerativeModel, usage},
     publish,
@@ -30,6 +30,8 @@ pub struct UpdateOptions {
     pub rebuild: bool,
     pub refresh: bool,
     pub deep: bool,
+    /// Explicitly accept a changed output.mode on an initialized project.
+    pub migrate_output: bool,
 }
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum UpdateProgress {
@@ -104,10 +106,13 @@ pub struct Status {
     pub configuration_changed: bool,
     pub presentation_changed: bool,
     pub output_modified: bool,
+    pub output_mode: OutputMode,
+    pub mode_change_required: bool,
     pub warnings: Vec<String>,
 }
 struct Plan {
     status: Status,
+    stored_mode: OutputMode,
     matches: BTreeMap<(String, String), SourceHead>,
     removed: Vec<SourceHead>,
 }
@@ -198,8 +203,14 @@ fn make_plan(
         }
         None => !inventory.imports.sources.is_empty(),
     };
+    let stored_mode = if initialized {
+        publish::stored_mode(conn.unwrap())?
+    } else {
+        config.config.output.mode()
+    };
+    let mode_change_required = initialized && stored_mode != config.config.output.mode();
     let presentation_changed = match conn {
-        Some(c) if initialized => {
+        Some(c) if initialized && config.config.output.mode() == OutputMode::Markdown => {
             storage::meta(c, "presentation_contract")?.as_deref()
                 != Some(citations::CONTRACT_VERSION)
         }
@@ -207,17 +218,24 @@ fn make_plan(
     };
     let mut warnings = inventory.warnings.clone();
     let mut output_modified = false;
-    if initialized {
+    if initialized && stored_mode == OutputMode::Markdown {
         if let Err(e) = publish::validate_existing(config, &storage::pages(conn.unwrap())?, false) {
             output_modified = true;
             warnings.push(e.to_string());
         }
-    } else if config.wiki.exists() {
+    } else if !initialized && config.config.output.mode() == OutputMode::Markdown && config.wiki.exists() {
         output_modified = true;
         warnings.push(
             "Existing output needs an explicit --rebuild because its baseline is unavailable."
                 .into(),
         );
+    }
+    if mode_change_required {
+        warnings.push(format!(
+            "Output mode change from {} to {} requires explicit lore update --migrate-output; existing wiki files are never removed implicitly.",
+            stored_mode.as_str(),
+            config.config.output.mode().as_str()
+        ));
     }
     let pending = publish::has_pending(config);
     let migration_needed = match conn {
@@ -234,6 +252,7 @@ fn make_plan(
             || configuration_changed
             || imports_changed
             || presentation_changed
+            || mode_change_required
             || pending
             || output_modified
             || !new_files.is_empty()
@@ -254,10 +273,13 @@ fn make_plan(
         configuration_changed,
         presentation_changed,
         output_modified,
+        output_mode: config.config.output.mode(),
+        mode_change_required,
         warnings,
     };
     Ok(Plan {
         status,
+        stored_mode,
         matches,
         removed,
     })
