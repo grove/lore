@@ -415,7 +415,10 @@ async fn interrupted_headless_journal_rolls_forward_only_the_validated_database(
     let staging = publish::stage_dir(&cfg, generation).join("state.db");
     let conn = storage::stage_database(&old_path, &staging).unwrap();
     storage::set_meta(&conn, "generation", generation).unwrap();
-    assert_eq!(publish::stored_mode(&conn).unwrap(), OutputMode::RegistryOnly);
+    assert_eq!(
+        publish::stored_mode(&conn).unwrap(),
+        OutputMode::RegistryOnly
+    );
     conn.close().map_err(|(_, error)| error).unwrap();
 
     // Model a process interrupted immediately after the durable journal is
@@ -442,7 +445,17 @@ async fn interrupted_headless_journal_rolls_forward_only_the_validated_database(
         storage::meta(&conn, "generation").unwrap().as_deref(),
         Some(generation)
     );
-    assert_eq!(publish::stored_mode(&conn).unwrap(), OutputMode::RegistryOnly);
-    assert!(!publish::recover(&cfg).unwrap(), "recovery must be idempotent");
-    assert!(!cfg.state.join(format!("previous-{generation}.db")).exists());
+    assert_eq!(
+        publish::stored_mode(&conn).unwrap(),
+        OutputMode::RegistryOnly
+    );
+    assert!(
+        !publish::recover(&cfg).unwrap(),
+        "recovery must be idempotent"
+    );
+    assert!(
+        !cfg.state
+            .join(format!("previous-{generation}.db"))
+            .exists()
+    );
 }
