@@ -246,23 +246,6 @@ enum Command {
         #[arg(long, default_value_t = 8_000, value_parser = view_budget)]
         max_tokens: usize,
     },
-    /// Investigate consequential project risks and return source-linked advice.
-    Guard {
-        #[arg(long, value_parser = baseline_name)]
-        since: String,
-        #[arg(long, value_parser = human_goal)]
-        task: Option<String>,
-        #[arg(long, default_value_t = 8_000, value_parser = guardian_budget)]
-        max_tokens: usize,
-        #[arg(long)]
-        no_cache: bool,
-        #[arg(long, conflicts_with = "no_inspect")]
-        inspect: bool,
-        #[arg(long)]
-        no_inspect: bool,
-        #[arg(long, conflicts_with = "no_inspect")]
-        allow_checkout_egress: bool,
-    },
     /// Inspect and disposition review questions; never edits source knowledge.
     Review {
         #[command(subcommand)]
@@ -538,7 +521,6 @@ async fn run(cli: Cli) -> Result<i32> {
             | Command::Cases { .. }
             | Command::Baseline { .. }
             | Command::Changes { .. }
-            | Command::Guard { .. }
     ) {
         ResolvedConfig::load_for_read(&config_path)
     } else {
@@ -1003,39 +985,6 @@ async fn run(cli: Cli) -> Result<i32> {
                 println!("{}", serde_json::to_string(&result)?);
             } else {
                 print!("{}", lore::companion::render_changes(&result));
-            }
-        }
-        Command::Guard {
-            since,
-            task,
-            max_tokens,
-            no_cache,
-            inspect,
-            no_inspect,
-            allow_checkout_egress,
-        } => {
-            let conn = storage::read_only(&config.state.join("state.db"))?;
-            let result = lore::companion::guard(
-                &config,
-                &conn,
-                &lore::companion::ChangeOptions {
-                    since,
-                    task,
-                    max_tokens,
-                },
-                &context::decision::runtime::RunOptions {
-                    inspect,
-                    investigate: false,
-                    no_inspect,
-                    no_cache,
-                    allow_checkout_egress,
-                },
-            )
-            .await?;
-            if cli.json {
-                println!("{}", serde_json::to_string(&result)?);
-            } else {
-                print!("{}", lore::companion::render_guard(&result));
             }
         }
         Command::Memory { clear } => {
@@ -1634,15 +1583,6 @@ fn view_budget(value: &str) -> std::result::Result<usize, String> {
     let budget = context_budget(value)?;
     if budget < 512 {
         Err("complete project views require --max-tokens between 512 and 100000".into())
-    } else {
-        Ok(budget)
-    }
-}
-
-fn guardian_budget(value: &str) -> std::result::Result<usize, String> {
-    let budget = context_budget(value)?;
-    if budget < 1024 {
-        Err("guard --max-tokens must be 1024..100000".into())
     } else {
         Ok(budget)
     }

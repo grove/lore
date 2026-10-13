@@ -475,7 +475,7 @@ def configuration(template: Path | None, project: str) -> dict:
     return value
 
 
-def guard_citations(guard: dict, changes: dict) -> set[str]:
+def guard_citations(guard: dict, changes: dict, *, advice_command: str = "guard") -> set[str]:
     # Native original payloads are data. Their arbitrary upstream keys do not
     # mint evidence references in Lore's output contract.
     def documentary_ids(report):
@@ -484,9 +484,16 @@ def guard_citations(guard: dict, changes: dict) -> set[str]:
         ids.update(item["evidence_id"] for item in report.get("imported_evidence", []))
         return ids
     ids = documentary_ids(changes)
-    ids.update(cross.cited_ids(guard.get("advisories", [])))
-    if guard.get("intelligence") is not None:
-        ids.update(shared.response_citations(guard["intelligence"]))
+    if advice_command == "context":
+        # Candidate replay consumes the existing versioned task-context contract.
+        ids.update(shared.response_citations(guard))
+    elif advice_command == "guard":
+        # Frozen 0.7 binaries keep their original historical advisory oracle.
+        ids.update(cross.cited_ids(guard.get("advisories", [])))
+        if guard.get("intelligence") is not None:
+            ids.update(shared.response_citations(guard["intelligence"]))
+    else:
+        raise ValueError("Unknown safety replay command")
     return ids
 
 
@@ -497,6 +504,9 @@ def run(args: argparse.Namespace) -> dict:
     binary = str(Path(args.binary).resolve(strict=True))
     if output.exists():
         raise ValueError("Use a fresh guardian run directory")
+    advice_command = getattr(args, "advice_command", "context")
+    if advice_command not in ("guard", "context"):
+        raise ValueError("Unknown historical or current safety replay command")
     if not 1024 <= args.max_tokens <= 100000 or not 1 <= args.timeout <= 86400:
         raise ValueError("Invalid guardian output or timeout bound")
     if args.allow_checkout_egress and not args.allow_inspection:
@@ -607,16 +617,19 @@ def run(args: argparse.Namespace) -> dict:
             changes = not_run_after_cancel(["changes"]) if stopped else call(["changes", "--since", "transition", "--max-tokens", str(args.max_tokens)],
                              trace=directory / "changes.trace" if args.audit_strace else None)
             stopped |= changes.get("error") == "cancelled"
-            guard_args = ["guard", "--since", "transition", "--max-tokens", str(args.max_tokens), "--no-cache"]
+            if advice_command == "guard":
+                advice_args = ["guard", "--since", "transition", "--max-tokens", str(args.max_tokens), "--no-cache"]
+            else:
+                advice_args = ["context", "Assess current project constraints and risks for a behavior-preserving change", "--max-tokens", str(args.max_tokens), "--no-cache"]
             if not args.allow_inspection:
-                guard_args.append("--no-inspect")
-            guarded = not_run_after_cancel(guard_args) if stopped else call(guard_args,
+                advice_args.append("--no-inspect")
+            guidance = not_run_after_cancel(advice_args) if stopped else call(advice_args,
                              trace=directory / "guard.trace" if args.audit_strace else None,
                              network_granted=args.allow_hosted or args.config_template is not None)
-            stopped |= guarded.get("error") == "cancelled"
+            stopped |= guidance.get("error") == "cancelled"
             changes_value = changes.get("response") or {}
-            guard_value = guarded.get("response") or {}
-            ids = guard_citations(guard_value, changes_value) if not changes.get("error") and not guarded.get("error") else set()
+            guidance_value = guidance.get("response") or {}
+            ids = guard_citations(guidance_value, changes_value, advice_command=advice_command) if not changes.get("error") and not guidance.get("error") else set()
             resolution = []
             for evidence_id in sorted(ids):
                 resolved = call(["evidence", evidence_id])
@@ -632,7 +645,8 @@ def run(args: argparse.Namespace) -> dict:
                       "sources_after_queries": source_fingerprint(workspace, all_source_names),
                       "registry_before": before_registry, "registry_query": query_registry,
                       "registry_after_queries": final_registry, "baseline_save": saved,
-                      "materialization": build, "changes": changes, "guard": guarded,
+                      "materialization": build, "changes": changes, "guard": guidance, "advice_command": advice_command,
+                      "advice_inspection_granted": args.allow_inspection,
                       "resolution": resolution, "elapsed_seconds": round(time.monotonic() - started, 6)}
             cross.write_json(directory / "capture.json", record)
             records.append({"event_id": event["id"], "path": f"events/{event['id']}/capture.json",
@@ -650,7 +664,7 @@ def run(args: argparse.Namespace) -> dict:
               "events_manifest_sha256": prepared["events_manifest_sha256"], "prepared": prepared,
               "binary_sha256": coding.hash_file(Path(binary)), "binary": binary,
               "compiler_mode": "synthetic_explicit_records" if compiled else "configured_live_provider",
-              "max_tokens": args.max_tokens, "counts": prepared["counts"], "initialization": initialization,
+              "max_tokens": args.max_tokens, "advice_command": advice_command, "counts": prepared["counts"], "initialization": initialization,
               "permissions": {"inspection": args.allow_inspection, "hosted_egress": args.allow_hosted,
                               "checkout_egress": args.allow_checkout_egress, "repository_execution": False},
               "audit_requested": args.audit_strace, "integrity_version": 1,
@@ -676,7 +690,7 @@ def merge_runs(prepared_directory: Path, directories: list[Path], output: Path) 
     expected = {state["event"]["id"] for project in prepared["projects"] for state in project["states"][1:]}
     bound_fields = ("schema_version", "protocol", "fixture_only", "held_out", "label_provenance",
                     "prepared_sha256", "events_manifest_sha256", "binary_sha256", "compiler_mode",
-                    "max_tokens", "permissions", "audit_requested", "integrity_version", "filesystem_observer_requested",
+                    "max_tokens", "advice_command", "permissions", "audit_requested", "integrity_version", "filesystem_observer_requested",
                     "collector_source_sha256")
     merged, captures, components, initializations = None, {}, [], []
     elapsed = 0.0
@@ -953,28 +967,60 @@ def event_checks(record: dict, max_tokens: int) -> dict:
     guard = record.get("guard", {}).get("response") or {}
     saved = record.get("baseline_save", {}).get("response") or {}
     resolution = record.get("resolution", [])
-    ids = guard_citations(guard, changes)
+    advice_command = record.get("advice_command", "guard")
+    ids = guard_citations(guard, changes, advice_command=advice_command)
     cited = [entry.get("evidence_id") for entry in resolution]
     reference_integrity = original_evidence(changes, resolution)
-    if guard.get("intelligence") is not None:
-        try:
+    try:
+        if advice_command == "context":
+            shared.verify_relationship_sources(guard, {"results": resolution})
+        elif guard.get("intelligence") is not None:
             shared.verify_relationship_sources(guard["intelligence"], {"results": resolution})
-        except (ValueError, KeyError, TypeError):
-            reference_integrity = False
+    except (ValueError, KeyError, TypeError):
+        reference_integrity = False
     status = guard.get("assessment_status")
     nested = guard.get("intelligence")
-    status_consistent = (
-        status in ("no_documented_change", "change_budget_exhausted") and nested is None and not guard.get("advisories")
-        or status in ("partial_static_guidance", "source_reviewed_advisory") and isinstance(nested, dict)
-        and nested.get("schema_version") == 5 and isinstance(nested.get("intelligence"), dict)
-        and ((nested["intelligence"].get("brief", {}).get("generation_basis") == "model_assessed") == (status == "source_reviewed_advisory"))
-        and (status != "partial_static_guidance" or not guard.get("advisories"))
-    )
+    if advice_command == "context":
+        status_consistent = (
+            guard.get("schema_version") == 5 and isinstance(nested, dict)
+            and nested.get("schema_version") == 4
+            and nested.get("mode") in ("intelligent", "fast_fallback", "reference")
+            and nested.get("task") == "Assess current project constraints and risks for a behavior-preserving change"
+            and not any(key in guard for key in ("advisories", "assessment_status", "advisories_in_shared_guidance"))
+            and isinstance(guard.get("capabilities"), dict)
+            and guard["capabilities"].get("inspection") in ("granted", "disabled_by_caller", "not_granted", "outside_grant", "unavailable")
+            and (record.get("advice_inspection_granted") is not False
+                 or guard["capabilities"].get("inspection") == "disabled_by_caller")
+        )
+    else:
+        status_consistent = (
+            status in ("no_documented_change", "change_budget_exhausted") and nested is None and not guard.get("advisories")
+            or status in ("partial_static_guidance", "source_reviewed_advisory") and isinstance(nested, dict)
+            and nested.get("schema_version") == 5 and isinstance(nested.get("intelligence"), dict)
+            and ((nested["intelligence"].get("brief", {}).get("generation_basis") == "model_assessed") == (status == "source_reviewed_advisory"))
+            and (status != "partial_static_guidance" or not guard.get("advisories"))
+        )
+    # Candidate subprocess argv must invoke the retained context path, including
+    # its budget and no-cache selection. Legacy fixture captures lack this field.
+    if "advice_command" in record:
+        expected = (["context", "Assess current project constraints and risks for a behavior-preserving change"]
+                    if advice_command == "context" else ["guard", "--since", "transition"])
+        expected.extend(["--max-tokens", str(max_tokens), "--no-cache"])
+        args = record.get("guard", {}).get("arguments")
+        inspection_granted = record.get("advice_inspection_granted")
+        if inspection_granted is False:
+            expected.append("--no-inspect")
+        invocation_bound = type(inspection_granted) is bool and args == expected
+    else:
+        invocation_bound = advice_command == "guard"
     checks = {
         "response_hashes": all(response_hash_valid(record.get(key, {})) for key in ("baseline_save", "changes", "guard")),
-        "versioned_contracts": changes.get("schema_version") == guard.get("schema_version") == saved.get("schema_version") == 1
-            and guard.get("assessment_status") in ASSESSMENTS and status_consistent,
-        "explicit_baseline": changes.get("baseline") == guard.get("baseline") == saved.get("baseline") == "transition"
+        "versioned_contracts": changes.get("schema_version") == saved.get("schema_version") == 1
+            and (status_consistent if advice_command == "context" else
+                 guard.get("schema_version") == 1 and guard.get("assessment_status") in ASSESSMENTS and status_consistent),
+        "guidance_invocation_bound": invocation_bound,
+        "explicit_baseline": changes.get("baseline") == saved.get("baseline") == "transition"
+            and (advice_command == "context" or guard.get("baseline") == "transition")
             and changes.get("baseline_snapshot") == saved.get("snapshot") and changes.get("snapshot") == guard.get("snapshot")
             and all(isinstance(snapshot, dict) and all(isinstance(snapshot.get(key), str) and snapshot[key]
                 for key in ("project_id", "registry_revision")) for snapshot in (changes.get("baseline_snapshot"), changes.get("snapshot")))
@@ -989,8 +1035,12 @@ def event_checks(record: dict, max_tokens: int) -> dict:
             and entry["response"].get("evidence_id", entry["response"].get("id")) == entry["evidence_id"] for entry in resolution),
         "original_evidence_and_endpoints": reference_integrity,
         "exact_checkpoint_states": exact_checkpoint_states(record, changes),
-        "no_execution_claims": guard.get("execution") is False and guard.get("source_write") is False
-            and changes.get("live_checkout_assessed") is False and saved.get("source_write") is False,
+        "no_execution_claims": (
+            (guard.get("capabilities", {}).get("execution") is False and
+             guard.get("capabilities", {}).get("source_write") is False)
+            if advice_command == "context" else
+            (guard.get("execution") is False and guard.get("source_write") is False)
+        ) and changes.get("live_checkout_assessed") is False and saved.get("source_write") is False,
     }
     # Legacy archives retain their original oracle. New captures must additionally
     # prove every command interval; a restore before apply_snapshot cannot vanish.
@@ -1068,6 +1118,8 @@ def assess(directory: Path, review_files: list[Path] | None = None) -> dict:
         record = read_json(path)
         if run.get("integrity_version") is not None and record.get("integrity_version") != run["integrity_version"]:
             raise ValueError("A new capture cannot omit its per-command source-integrity ledger")
+        if record.get("advice_command", "guard") != run.get("advice_command", "guard"):
+            raise ValueError("Safety replay guidance mode differs from its sealed run")
         if record.get("event_id") != event_id or record.get("event") != expected[event_id]:
             raise ValueError("Captured event label differs from the pinned source manifest")
         project_id, before, after = endpoints[event_id]
@@ -1113,7 +1165,9 @@ def assess(directory: Path, review_files: list[Path] | None = None) -> dict:
         for check, passed in checks.items():
             if not passed:
                 failures[check] += 1
-        status = guard.get("assessment_status", "command_failed")
+        guidance_mode = record.get("advice_command", "guard")
+        status = ("task_context" if guidance_mode == "context" and response_hash_valid(record.get("guard", {}))
+                  else guard.get("assessment_status", "command_failed"))
         statuses[status] += 1
         count = len(guard.get("advisories", []))
         high = sum(advisory.get("severity") == "high" for advisory in guard.get("advisories", []))
@@ -1129,7 +1183,9 @@ def assess(directory: Path, review_files: list[Path] | None = None) -> dict:
         omitted = sum(changes.get(key, 0) for key in ("omitted_changes", "omitted_relationship_changes", "omitted_imported_changes", "omitted_cross_source_changes"))
         reviewers = reviews[event_id]
         reviewed = len(reviewers) >= 2 and all(item["label_confirmed"] and item["source_identity_confirmed"] for item in reviewers)
-        available = all(checks.values()) and status == "source_reviewed_advisory" and not omitted and not changes.get("retrieval_truncated", False) and not guard.get("advisories_in_shared_guidance", 0)
+        # Current task guidance is not a second advisory product and has no
+        # Guardian alerts to score. Historical quality claims remain unmeasured.
+        available = guidance_mode == "guard" and all(checks.values()) and status == "source_reviewed_advisory" and not omitted and not changes.get("retrieval_truncated", False) and not guard.get("advisories_in_shared_guidance", 0)
         correctly_alerted = False
         if label["alert_necessity"] == "required":
             required += 1
@@ -1154,7 +1210,8 @@ def assess(directory: Path, review_files: list[Path] | None = None) -> dict:
         try:
             if not response_hash_valid(record.get("guard", {})):
                 raise ValueError("A failed guardian may have made unreported provider calls")
-            calls = shared.invocation_calls(guard["intelligence"], "adaptive") if guard.get("intelligence") is not None else 0
+            calls = (shared.invocation_calls(guard, "adaptive") if guidance_mode == "context"
+                     else shared.invocation_calls(guard["intelligence"], "adaptive") if guard.get("intelligence") is not None else 0)
         except (KeyError, TypeError, ValueError):
             calls, usage_known = None, False
         if calls is not None:
@@ -1196,7 +1253,8 @@ def assess(directory: Path, review_files: list[Path] | None = None) -> dict:
                "same_reference_duplicate_alerts": duplicate_alerts,
                "independently_actionable_alert_rate": ratio(actionable, reviewed_alerts),
                "material_changes_with_false_absence": false_absence,
-               "guard_model_calls": total_model_calls if usage_known else None,
+               "guard_model_calls": total_model_calls if usage_known and run.get("advice_command", "guard") == "guard" else None,
+               "context_model_calls": total_model_calls if usage_known and run.get("advice_command") == "context" else None,
                "compilation_model_calls": total_compilation_calls if usage_known else None,
                "total_model_calls": total_model_calls + total_compilation_calls if usage_known else None,
                "provider_tokens": 0 if usage_known and total_model_calls + total_compilation_calls == 0 else None,
@@ -1204,7 +1262,7 @@ def assess(directory: Path, review_files: list[Path] | None = None) -> dict:
                "end_to_end_p50_seconds": sorted(elapsed)[len(elapsed) // 2] if elapsed else None,
                "end_to_end_p95_seconds": p95, "initialization_and_compilation": run["initialization"],
                "product_efficacy_measured": efficacy_measured,
-               "product_quality_gate_pass": efficacy_measured and not failures and audit_complete and precision >= .90 and recall >= .85 and benign_alerts == 0 and duplicate_alerts == 0,
+               "product_quality_gate_pass": run.get("advice_command", "guard") == "guard" and efficacy_measured and not failures and audit_complete and precision >= .90 and recall >= .85 and benign_alerts == 0 and duplicate_alerts == 0,
                "limitations": ["Synthetic/debug labels are not independent real-project evidence.",
                    "Provider-unavailable, budget-limited, and failed transitions remain in coverage denominators.",
                    "An empty alert list does not establish project safety.",
@@ -1224,6 +1282,8 @@ def main(argv: list[str] | None = None) -> int:
     command.add_argument("--events", type=Path, default=DEFAULT_EVENTS)
     command.add_argument("--output", type=Path, required=True)
     command = sub.add_parser("run")
+    command.add_argument("--advice-command", choices=("context", "guard"), default="context",
+                         help="Candidate replay uses context; guard is only for frozen historical binaries")
     command.add_argument("--prepared", type=Path, required=True)
     command.add_argument("--output", type=Path, required=True)
     command.add_argument("--binary", required=True)

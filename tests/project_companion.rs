@@ -2,7 +2,7 @@ mod common;
 
 use lore::{
     companion::{self, Baseline, ChangeOptions},
-    context::{self, decision::runtime::RunOptions},
+    context::{self, ContextOptions, adaptive, decision::runtime::RunOptions},
     domain::{AssertionProposal, ImportKind},
     engine::{self, UpdateOptions},
     imports::{
@@ -48,7 +48,7 @@ fn rewrite(config: &lore::config::ResolvedConfig, mut baseline: Baseline) {
 }
 
 #[tokio::test]
-async fn explicit_baseline_and_cosmetic_source_change_do_not_create_consequential_alerts() {
+async fn explicit_baseline_and_cosmetic_source_change_do_not_create_consequential_changes() {
     let (_dir, config, model) = common::project();
     common::put(
         &config,
@@ -83,13 +83,8 @@ async fn explicit_baseline_and_cosmetic_source_change_do_not_create_consequentia
     assert!(changed.registry_changed);
     assert!(changed.changes.is_empty(), "{:?}", changed.changes);
     let calls = model.calls.load(Ordering::SeqCst);
-    let advisory = companion::guard(&config, &conn, &options(), &RunOptions::default())
-        .await
-        .unwrap();
-    assert_eq!(advisory.assessment_status, "no_documented_change");
-    assert!(advisory.advisories.is_empty() && advisory.intelligence.is_none());
-    assert!(!advisory.execution && !advisory.source_write);
     assert_eq!(calls, model.calls.load(Ordering::SeqCst));
+    assert!(conn.is_autocommit());
 }
 
 #[tokio::test]
@@ -263,7 +258,7 @@ async fn constrained_reports_omit_complete_records_and_account_for_all_output() 
 }
 
 #[tokio::test]
-async fn guardian_preserves_useful_shared_fallback_and_never_claims_clean_checkout() {
+async fn change_implications_use_shared_context_with_evidence_and_honest_fallback() {
     let (_dir, mut config, model) = common::project();
     common::put(
         &config,
@@ -277,14 +272,15 @@ async fn guardian_preserves_useful_shared_fallback_and_never_claims_clean_checko
     let conn = storage::read_only(&config.state.join("state.db")).unwrap();
     companion::save_baseline(&config, &conn, "joined", false).unwrap();
     let before = fs::read(config.state.join("state.db")).unwrap();
-    let query = ChangeOptions {
-        task: Some("Change queue admission diagnostics without changing order".into()),
-        ..options()
-    };
-    let result = companion::guard(
+    let task = "Change queue admission diagnostics without changing order";
+    let shared = adaptive::run(
         &config,
         &conn,
-        &query,
+        &ContextOptions {
+            task: task.into(),
+            paths: Vec::new(),
+            max_tokens: 8_000,
+        },
         &RunOptions {
             no_inspect: true,
             no_cache: true,
@@ -293,34 +289,26 @@ async fn guardian_preserves_useful_shared_fallback_and_never_claims_clean_checko
     )
     .await
     .unwrap();
-    assert_eq!(result.assessment_status, "partial_static_guidance");
-    assert!(!result.execution && !result.source_write && result.advisories.is_empty());
-    let shared = result.intelligence.as_ref().unwrap();
-    assert_eq!(
-        result.snapshot.registry_revision,
-        shared.snapshot.registry_revision
-    );
+    let value = serde_json::to_value(&shared).unwrap();
+    assert_eq!(shared.schema_version, 5);
     assert_eq!(shared.capabilities.inspection, "disabled_by_caller");
+    assert!(!shared.capabilities.execution && !shared.capabilities.source_write);
+    assert_eq!(value["intelligence"]["mode"], "fast_fallback");
+    assert_eq!(value["intelligence"]["model_calls"], 0);
     assert!(
-        serde_json::to_string(shared)
+        serde_json::to_string(&shared)
             .unwrap()
             .contains("emergency drains")
     );
-    assert!(
-        result
-            .warnings
-            .iter()
-            .any(|s| s.contains("not a clean bill"))
-    );
     assert_eq!(before, fs::read(config.state.join("state.db")).unwrap());
     assert!(conn.is_autocommit());
-    let json = serde_json::to_string(&result).unwrap() + "\n";
-    let markdown = companion::render_guard(&result);
+    let json = serde_json::to_string(&shared).unwrap() + "\n";
+    let markdown = adaptive::render(&shared);
     assert!(
-        result.budget.used_tokens
+        shared.budget.used_tokens
             >= context::count_tokens(&json).max(context::count_tokens(&markdown))
     );
-    assert!(result.budget.used_tokens <= query.max_tokens);
+    assert!(shared.budget.used_tokens <= 8_000);
 }
 
 #[cfg(unix)]
@@ -587,65 +575,6 @@ async fn captured_current_membership_cannot_name_another_revision_or_duplicate_s
     }
 }
 
-// GUARD-SCOPE-001: high-impact scope must survive the six-topic limit even
-// when proposal names sort earlier alphabetically.
-#[tokio::test]
-async fn guardian_selects_accepted_constraints_before_alphabetical_proposal_noise() {
-    let (_dir, mut config, model) = common::project();
-    common::put(
-        &config,
-        "initial.md",
-        "DECISION identity: Identity checks remain required.\n",
-    );
-    engine::update(&config, &model, None, UpdateOptions::default())
-        .await
-        .unwrap();
-    {
-        let conn = storage::read_only(&config.state.join("state.db")).unwrap();
-        companion::save_baseline(&config, &conn, "joined", false).unwrap();
-    }
-    for index in 0..6 {
-        common::put(
-            &config,
-            &format!("proposal-{index}.md"),
-            &format!(
-                "PLAN alpha-{index}: A proposed demonstration widget {index} may change its heading.\n"
-            ),
-        );
-    }
-    common::put(
-        &config,
-        "security.md",
-        "DECISION zulu-security: Production exports must redact all identity tokens before persistence.\n",
-    );
-    engine::update(&config, &model, None, UpdateOptions::default())
-        .await
-        .unwrap();
-    config.config.models.generative.enabled = false;
-    let conn = storage::read_only(&config.state.join("state.db")).unwrap();
-    let guarded = companion::guard(
-        &config,
-        &conn,
-        &options(),
-        &RunOptions {
-            no_inspect: true,
-            no_cache: true,
-            ..Default::default()
-        },
-    )
-    .await
-    .unwrap();
-    let shared = serde_json::to_value(guarded.intelligence.unwrap()).unwrap();
-    let task = shared["intelligence"]["task"].as_str().unwrap();
-    assert!(task.contains("zulu-security"), "{task}");
-    assert!(
-        guarded
-            .warnings
-            .iter()
-            .any(|warning| warning.contains("omitted 1 other topic"))
-    );
-}
-
 fn native_work(
     config: &lore::config::ResolvedConfig,
     conn: &rusqlite::Connection,
@@ -694,7 +623,7 @@ fn native_work(
 }
 
 #[tokio::test]
-async fn imported_work_change_keeps_native_scope_and_prevents_false_no_change_guardian() {
+async fn imported_work_change_keeps_native_scope_and_never_becomes_no_change() {
     let (_dir, mut config, model) = common::project();
     common::put(
         &config,
@@ -725,31 +654,10 @@ async fn imported_work_change_keeps_native_scope_and_prevents_false_no_change_gu
     );
     assert_eq!(report.imported_evidence[0].record.statement, statement);
     assert!(companion::render_changes(&report).contains("production has not been checked"));
-    let guarded = companion::guard(
-        &config,
-        &conn,
-        &options(),
-        &RunOptions {
-            no_inspect: true,
-            no_cache: true,
-            ..Default::default()
-        },
-    )
-    .await
-    .unwrap();
-    assert_ne!(guarded.assessment_status, "no_documented_change");
-    assert!(guarded.intelligence.is_some());
-    assert!(!guarded.execution && !guarded.source_write);
-    assert!(
-        guarded
-            .warnings
-            .iter()
-            .any(|warning| warning.contains("not a clean bill"))
-    );
 }
 
 #[tokio::test]
-async fn omitted_native_conditions_produce_an_explicit_unassessed_guardian_status() {
+async fn omitted_native_conditions_are_reported_without_silent_fallback() {
     let (_dir, mut config, model) = common::project();
     common::put(
         &config,
@@ -781,19 +689,18 @@ async fn omitted_native_conditions_produce_an_explicit_unassessed_guardian_statu
         report.imported_evidence.is_empty(),
         "omission removes the complete native group"
     );
-    let guarded = companion::guard(&config, &conn, &limit, &RunOptions::default())
-        .await
-        .unwrap();
-    assert_eq!(guarded.assessment_status, "change_budget_exhausted");
-    assert!(guarded.intelligence.is_none());
-    assert!(!guarded.execution && !guarded.source_write);
-    let used = context::count_tokens(&(serde_json::to_string(&guarded).unwrap() + "\n"))
-        .max(context::count_tokens(&companion::render_guard(&guarded)));
-    assert!(guarded.budget.used_tokens >= used && guarded.budget.used_tokens <= limit.max_tokens);
+    assert!(!report.live_checkout_assessed);
+    let json = serde_json::to_string(&report).unwrap() + "\n";
+    let markdown = companion::render_changes(&report);
+    assert!(
+        report.budget.used_tokens
+            >= context::count_tokens(&json).max(context::count_tokens(&markdown))
+    );
+    assert!(report.budget.used_tokens <= limit.max_tokens);
 }
 
 #[tokio::test]
-async fn relationship_only_revisions_and_withdrawal_keep_original_caveats_and_current_guard() {
+async fn relationship_only_revisions_and_withdrawal_keep_original_caveats() {
     let (_dir, mut config, model) = common::project();
     common::put(
         &config,
@@ -899,29 +806,6 @@ async fn relationship_only_revisions_and_withdrawal_keep_original_caveats_and_cu
     assert!(markdown.contains(&util::markdown_text(&id)) && markdown.contains(qualification));
     assert!(markdown.contains("at immutable revision"));
     assert!(!markdown.contains("No consequential retained-knowledge change"));
-    let guarded = companion::guard(
-        &config,
-        &conn,
-        &options(),
-        &RunOptions {
-            no_inspect: true,
-            no_cache: true,
-            ..Default::default()
-        },
-    )
-    .await
-    .unwrap();
-    assert_ne!(guarded.assessment_status, "no_documented_change");
-    assert!(!guarded.execution && !guarded.source_write);
-    let shared = serde_json::to_string(guarded.intelligence.as_ref().unwrap()).unwrap();
-    assert!(shared.contains(&id) && shared.contains(qualification));
-    assert!(
-        guarded
-            .warnings
-            .iter()
-            .any(|warning| warning.contains("before-and-after source payloads"))
-    );
-
     // Reconsidering the same endpoint revisions is a paired interpretation
     // revision, not an invented documentary or native record change.
     let saved = companion::save_baseline(&config, &conn, "joined", true).unwrap();
@@ -1251,22 +1135,6 @@ async fn interpretation_budget_omits_complete_pairs_and_tampered_endpoint_eviden
     assert!(small.evidence.is_empty() && small.imported_evidence.is_empty());
     assert_eq!(small.omitted_cross_source_changes, 1);
     assert_change_budget(&small);
-    let guarded = companion::guard(
-        &config,
-        &conn,
-        &limit,
-        &RunOptions {
-            no_inspect: true,
-            no_cache: true,
-            ..Default::default()
-        },
-    )
-    .await
-    .unwrap();
-    assert_eq!(guarded.assessment_status, "change_budget_exhausted");
-    assert!(guarded.intelligence.is_none());
-    assert!(!guarded.execution && !guarded.source_write);
-
     // A source-shaped stored payload and a recomputed checkpoint checksum do
     // not make evidence from another immutable revision an endpoint witness.
     let (_unrelated, evidence) = captured_support(

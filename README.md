@@ -171,34 +171,31 @@ To recover edited or missing generated pages without inference, preserve any edi
 
 The CLI also provides `lore evidence <evidence-id>` for an exact archived passage and `lore review` for unresolved questions. `lore review show <review-id>` displays the history and evidence binding; `resolve`, `dismiss` and `reopen` accept an explicit `--reason` and optional `--actor`. These actions record a disposition, not a new project fact, and make no model calls. Specific relationship questions can also close automatically when active evidence from the same source revision establishes the named replacement; withdrawn evidence reopens them. `--config path/to/lore.yml` selects another configuration, and the global `--json` option produces machine-readable results, including argument errors. Operational errors exit with code 1, argument errors with code 2, and audit findings with code 3.
 
-## Compare historical changes (legacy Guardian advice)
+## Compare historical changes and get task guidance
 
-Use retained baselines and change reports for deterministic history. The separate `guard` advisory command is legacy and slated for [#68](https://github.com/grove/lore/issues/68); prefer task advice from `context`. Save a named comparison point, update the ordinary registry as project sources
-evolve, then ask what changed or how those changes affect a task:
+Use the retained baseline and change-report commands for deterministic, source-backed history. **The standalone `lore guard` advisory workflow has been retired in [#68](https://github.com/grove/lore/issues/68).** The existing `lore context TASK` is the single task-advice interface. Save a named comparison point before sources change, refresh compiled knowledge deliberately, then inspect the historical delta and ask a concrete task question:
 
 ```bash
 lore baseline save joined
 lore update
 lore changes --since joined
-lore guard --since joined --task "Improve payment dispatch diagnostics"
+lore context "Improve payment dispatch diagnostics without changing accepted retry policy" --no-inspect
 lore baseline remove joined
 ```
 
-Change reports preserve the original before/after evidence, conditions,
-documentary relationships and imported source status. The advisory guardian
-uses the shared investigation engine and your existing host grants before
-offering source-linked guidance. Baselines are explicit local checkpoints;
-`--replace` deliberately refreshes one. Read the
-[project companion guide](docs/PROJECT_COMPANION.md) for snapshot scope, current
-relationship qualifications, complete output limits and partial-result status.
+Change reports preserve original before/after evidence, conditions, documentary
+relationships and imported source status. `context` uses the current knowledge
+snapshot; it **does not** read the named baseline automatically. Review the
+historical change report and citations when the delta matters. A task response
+can include permitted bounded investigation, constraints, risks, blockers and
+required checks, without claiming that code or production was verified.
 
 New checkpoints retain current evidence membership separately from immutable
-history, so a condition that changes A→B→A stays visible even when the short
-summary is unchanged. Older checkpoint checksums remain readable. Automatic
-advisory scope gives accepted constraints priority, and overlapping risk/blocker
-summaries retain all original citations and distinct actions. The guardian is an
-on-demand advisory command; an unavailable model or an empty alert list does not
-establish that the project is safe.
+history, so a condition that changes A→B→A remains visible even when the summary
+is unchanged. Older checkpoint checksums remain readable. Consult the
+[project companion guide](docs/PROJECT_COMPANION.md) and
+[Guardian removal migration](docs/GUARDIAN_MIGRATION.md) for source-history
+semantics, output budgets and the retained independent CI integrity gate.
 
 ## Existing optional published-wiki view (planned headless default)
 

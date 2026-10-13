@@ -72,7 +72,6 @@ jobs:
         run: |
           cargo run --release --locked -- baseline --help
           cargo run --release --locked -- changes --help
-          cargo run --release --locked -- guard --help
       - name: Lore 0.9 release CLI contracts
         run: |
           cargo run --release --locked -- --version
