@@ -8,7 +8,10 @@ use lore::{
 use std::fs;
 #[tokio::test]
 async fn renaming_an_initialized_project_preserves_identity_and_ownership() {
-    use lore::{engine::{self, UpdateOptions}, publish, storage};
+    use lore::{
+        engine::{self, UpdateOptions},
+        publish, storage,
+    };
 
     let (_dir, mut cfg, model) = project();
     cfg.project_id = format!("project_{}", &util::digest(&cfg.config.project.name)[7..31]);
