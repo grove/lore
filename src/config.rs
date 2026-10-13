@@ -101,6 +101,11 @@ pub enum OutputMode {
     RegistryOnly,
     Markdown,
 }
+impl Default for OutputMode {
+    fn default() -> Self {
+        Self::Markdown
+    }
+}
 impl OutputMode {
     pub fn as_str(self) -> &'static str {
         match self {
