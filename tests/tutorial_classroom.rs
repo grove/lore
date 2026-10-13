@@ -1,4 +1,4 @@
-//! Offline beginner-course smoke checks against the shipped classroom files.
+//! Offline, source-only first-contact smoke checks against a bundled practice project.
 //! No provider, model, network request or registry compilation is required.
 use serde_json::Value;
 use std::{
@@ -48,7 +48,7 @@ fn zero_setup_classroom_onboard_and_context_do_not_write_or_call_models() {
     let (_tmp, root) = classroom();
     let before = fs::read_dir(&root).unwrap().count();
     for (args, contract) in [
-        (vec!["--json", "onboard"], "lore.bootstrap_onboard"),
+        (vec!["--json", "onboard"], "lore.bootstrap_context"),
         (
             vec![
                 "--json",
