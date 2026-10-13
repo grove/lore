@@ -396,3 +396,53 @@ async fn headless_review_disposition_commits_registry_without_publication() {
     assert!(reviews::events(&conn, &id).unwrap().len() >= 2);
     assert!(!engine::status(&cfg).unwrap().needs_update);
 }
+
+#[tokio::test]
+async fn interrupted_headless_journal_rolls_forward_only_the_validated_database() {
+    let (_dir, cfg, model) = headless_project();
+    put(
+        &cfg,
+        "queue.md",
+        "DECISION queue: Preserve queue order.\n",
+    );
+    engine::update(&cfg, &model, None, UpdateOptions::default())
+        .await
+        .unwrap();
+    let old_path = cfg.state.join("state.db");
+    let prior = fs::read(&old_path).unwrap();
+    let generation = "run_headless_recovery_test";
+    let _guard = publish::StageGuard::new(&cfg, generation).unwrap();
+    let staging = publish::stage_dir(&cfg, generation).join("state.db");
+    let conn = storage::stage_database(&old_path, &staging).unwrap();
+    storage::set_meta(&conn, "generation", generation).unwrap();
+    assert_eq!(publish::stored_mode(&conn).unwrap(), OutputMode::RegistryOnly);
+    conn.close().unwrap();
+
+    // Model a process interrupted immediately after the durable journal is
+    // written, before the staged DB can replace the installed DB. The next
+    // update/recover rolls forward without touching any wiki output.
+    let journal = serde_json::json!({
+        "project_id": cfg.project_id,
+        "generation": generation,
+        "wiki": cfg.wiki,
+        "mode": "registry_only"
+    });
+    fs::write(
+        cfg.state.join("publication.json"),
+        serde_json::to_vec(&journal).unwrap(),
+    )
+    .unwrap();
+    assert!(publish::has_pending(&cfg));
+    assert_eq!(fs::read(&old_path).unwrap(), prior);
+    assert!(publish::recover(&cfg).unwrap());
+    assert!(!publish::has_pending(&cfg));
+    assert!(!cfg.wiki.exists());
+    let conn = storage::read_only(&old_path).unwrap();
+    assert_eq!(
+        storage::meta(&conn, "generation").unwrap().as_deref(),
+        Some(generation)
+    );
+    assert_eq!(publish::stored_mode(&conn).unwrap(), OutputMode::RegistryOnly);
+    assert!(!publish::recover(&cfg).unwrap(), "recovery must be idempotent");
+    assert!(!cfg.state.join(format!("previous-{generation}.db")).exists());
+}
