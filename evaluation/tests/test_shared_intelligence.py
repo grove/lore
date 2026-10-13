@@ -31,17 +31,11 @@ def fixture_response(project: Path, experience: str, task: str) -> dict:
         core["inspection"]["observations"] = [observation(path.relative_to(project).as_posix(), path.read_bytes())]
         core["inspection"]["budget"]["files_read"] = 1
     if experience.startswith(("onboard", "adaptive")):
-        response = {"schema_version": 1 if experience.startswith("onboard") else 5,
+        response = {"schema_version": 5,
             "intelligence": core, "snapshot": {"project_id": "fixture-project", "registry_revision": "fixture-revision"},
             "budget": budget, "capabilities": {
                 "inspection": "disabled_by_caller" if experience.endswith("_no_inspect") else "granted",
                 "checkout_egress": False, "hosted_egress": False, "execution": False, "source_write": False}}
-        if experience.startswith("onboard"):
-            claim = {"basis": "documentary", "text": "A source-grounded fixture claim.",
-                "evidence_ids": ["ev_fixture"], "observation_ids": [], "qualifications": []}
-            response.update(project="fixture", goal=task, mode="explanation",
-                generation_basis="deterministic_fixture", model_calls=0, presentation_model_calls=0,
-                orientation={key: [copy.deepcopy(claim)] for key in ("purpose", "concepts", "architecture", "workflow", "constraints", "next_exploration")})
         return response
     return core
 
@@ -136,8 +130,6 @@ def fixture_run(root: Path, *, with_relationships=False):
         response = fixture_response(project, experience, task)
         if with_relationships and experience.startswith(("adaptive", "onboard")):
             response["source_relationships"] = copy.deepcopy(relationship_manifest)
-            if experience.startswith("onboard"):
-                response["orientation"]["workflow"][0]["evidence_ids"] = ["ev_relationship", "ne_queue"]
         return response, 0.01
     with patch.object(shared.bench, "subprocess_json", side_effect=cli), \
             patch.object(shared.coding, "registry_content", return_value=registry_fixture()):
@@ -193,22 +185,23 @@ class SharedIntelligenceTests(unittest.TestCase):
                 record = cross.read_json(review)
                 self.assertTrue(all(slot["complete"] is False for slot in record["assessments"]))
 
-    def test_human_claim_references_must_resolve_in_shared_source_manifests(self):
+    def test_onboard_uses_the_context_contract_without_a_second_presentation(self):
         with tempfile.TemporaryDirectory() as temporary:
             project = Path(temporary).resolve()
             (project / "src").mkdir()
             (project / "src/example.py").write_text("value = 'følge'\n", encoding="utf-8")
-            original = fixture_response(project, "onboard", "Understand the workflow")
-            self.assertEqual(shared.verify_shared_references(original, "onboard", project)["checked"], 1)
-            for field, value in (("evidence_ids", ["ev_not_in_core"]), ("observation_ids", ["co_invented"]),
-                                 ("text", "Inspect co_inline_fabrication."), ("text", "Based on ev_inline_fabrication.")):
-                invalid = copy.deepcopy(original)
-                invalid["orientation"]["workflow"][0][field] = value
-                with self.assertRaises(ValueError, msg=field):
-                    shared.verify_shared_references(invalid, "onboard", project)
-            # A caller mentioning an identifier is input data, not a citation.
-            original["goal"] = "What does co_caller_literal mean?"
-            shared.verify_shared_references(original, "onboard", project)
+            task = "Understand the workflow"
+            response = fixture_response(project, "onboard", task)
+            self.assertEqual(response["schema_version"], 5)
+            self.assertEqual(shared.verify_shared_references(response, "onboard", project)["checked"], 1)
+            checks = shared.response_checks(response, "onboard", task, project)
+            self.assertTrue(checks["task_bound"])
+            self.assertTrue(checks["no_legacy_learning_contract"])
+            self.assertTrue(checks["single_context_model_budget"])
+            for key in ("orientation", "feedback", "tutorial", "presentation_model_calls"):
+                retired = copy.deepcopy(response)
+                retired[key] = {}
+                self.assertFalse(shared.response_checks(retired, "onboard", task, project)["no_legacy_learning_contract"])
 
     def test_source_snapshot_output_and_noop_tampering_fail_reassessment(self):
         for change in ("source", "snapshot", "observation", "no_op", "schema", "execution", "restriction"):
@@ -277,18 +270,13 @@ class SharedIntelligenceTests(unittest.TestCase):
             response = fixture_response(project, "onboard_no_inspect", "Understand queue ordering")
             manifest, originals = relationship_fixture()
             response["source_relationships"] = manifest
-            response["orientation"]["workflow"][0]["evidence_ids"] = ["ev_relationship", "ne_queue"]
             self.assertEqual(shared.verify_shared_references(response, "onboard_no_inspect", project)["checked"], 0)
             self.assertEqual(shared.response_citations(response), {"ev_fixture", "ev_relationship", "ne_queue"})
             shared.verify_relationship_sources(response, fixture_resolution(originals))
-            # Metadata can contain source-native identifiers or example prose.
-            # Neither grants evidence or static-observation citations to a claim.
-            for field, value in (("evidence_ids", ["upstream_external_17"]),
-                                 ("observation_ids", ["co_source_literal"])):
-                forged = copy.deepcopy(response)
-                forged["orientation"]["workflow"][0][field] = value
-                with self.assertRaises(ValueError):
-                    shared.verify_shared_references(forged, "onboard_no_inspect", project)
+            altered = copy.deepcopy(response)
+            altered["source_relationships"]["evidence"][0]["current"] = "unverified"
+            with self.assertRaises(ValueError):
+                shared.verify_shared_references(altered, "onboard_no_inspect", project)
 
     def test_relationship_manifest_rejects_dangling_revisions_evidence_and_lost_qualifications(self):
         mutations = {
