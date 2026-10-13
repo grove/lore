@@ -869,8 +869,14 @@ fn publish_review(
         plan.status.initialized && !plan.status.needs_update,
         "run lore update before changing review state: sources, configuration and output must match the baseline"
     );
-    let old_pages = storage::pages(&old)?;
-    publish::validate_existing(config, &old_pages, false)?;
+    let mode = config.config.output.mode();
+    let old_pages = if mode == OutputMode::Markdown {
+        let pages = storage::pages(&old)?;
+        publish::validate_existing(config, &pages, false)?;
+        pages
+    } else {
+        BTreeMap::new()
+    };
     drop(old);
     publish::cleanup_abandoned(config)?;
     let generation = util::id("run");
@@ -886,27 +892,32 @@ fn publish_review(
         return Ok(result);
     }
     let detail = crate::reviews::show(&conn, id)?;
-    let mut pages = old_pages.clone();
-    let rp = crate::reviews::page(&conn)?;
-    pages.insert(rp.path.clone(), rp);
-    let index = pages
-        .get_mut("index.md")
-        .context("missing project overview")?;
-    let start = index
-        .content
-        .find(crate::reviews::START)
-        .context("run lore update to add review status to the overview")?;
-    let end = index.content[start..]
-        .find(crate::reviews::END)
-        .context("invalid overview review marker")?
-        + start
-        + crate::reviews::END.len();
-    index
-        .content
-        .replace_range(start..end, &crate::reviews::status_block(&conn)?);
-    index.output_digest = util::digest(&index.content);
-    crate::imports::render::augment(&conn, &mut pages)?;
-    storage::save_pages(&conn, &pages)?;
+    let pages = if mode == OutputMode::Markdown {
+        let mut pages = old_pages.clone();
+        let rp = crate::reviews::page(&conn)?;
+        pages.insert(rp.path.clone(), rp);
+        let index = pages
+            .get_mut("index.md")
+            .context("missing project overview")?;
+        let start = index
+            .content
+            .find(crate::reviews::START)
+            .context("run lore update to add review status to the overview")?;
+        let end = index.content[start..]
+            .find(crate::reviews::END)
+            .context("invalid overview review marker")?
+            + start
+            + crate::reviews::END.len();
+        index
+            .content
+            .replace_range(start..end, &crate::reviews::status_block(&conn)?);
+        index.output_digest = util::digest(&index.content);
+        crate::imports::render::augment(&conn, &mut pages)?;
+        storage::save_pages(&conn, &pages)?;
+        pages
+    } else {
+        BTreeMap::new()
+    };
     conn.execute("INSERT INTO runs(id,project_id,phase,source_inventory_digest,started_at,finished_at) VALUES(?1,?2,'completed',?3,?4,?4)",params![generation,config.project_id,inventory.digest,util::now()])?;
     let wiki_digest = util::json_digest(
         &pages
@@ -914,19 +925,27 @@ fn publish_review(
             .map(|(p, v)| (p, &v.output_digest))
             .collect::<Vec<_>>(),
     )?;
-    conn.execute(
-        "INSERT INTO publications VALUES(?1,?2,?3,?4)",
-        params![generation, generation, wiki_digest, util::now()],
-    )?;
+    if mode == OutputMode::Markdown {
+        conn.execute(
+            "INSERT INTO publications VALUES(?1,?2,?3,?4)",
+            params![generation, generation, wiki_digest, util::now()],
+        )?;
+    }
     storage::set_meta(&conn, "generation", &generation)?;
     ensure!(
         sources::scan(config)?.digest == inventory.digest,
         "source documents changed while updating a review"
     );
-    publish::validate_existing(config, &old_pages, false)?;
+    if mode == OutputMode::Markdown {
+        publish::validate_existing(config, &old_pages, false)?;
+    }
     conn.execute_batch("COMMIT")?;
     conn.close().map_err(|(_, e)| e)?;
-    publish::commit(config, &generation, &pages)?;
+    if mode == OutputMode::Markdown {
+        publish::commit(config, &generation, &pages)?;
+    } else {
+        publish::commit_registry(config, &generation)?;
+    }
     result["detail"] = detail;
     Ok(result)
 }
