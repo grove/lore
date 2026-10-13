@@ -37,7 +37,7 @@ fn success(output: Output) -> Value {
 }
 
 #[tokio::test]
-async fn named_baseline_changes_and_guard_form_a_complete_read_only_source_workflow() {
+async fn named_baseline_changes_and_context_preserve_read_only_source_workflow() {
     let (_dir, mut config, model) = common::project();
     common::put(
         &config,
@@ -83,30 +83,28 @@ async fn named_baseline_changes_and_guard_form_a_complete_read_only_source_workf
             .contains("never include identity tokens")
     );
     let before = fs::read(config.state.join("state.db")).unwrap();
+    // Task implications now use the same source-backed context contract as
+    // other coding tasks. The named baseline is an independent history view.
     let output = invoke(
         &config,
         &[
-            "guard",
-            "--since",
-            "joined",
-            "--task",
+            "context",
             "Improve queue diagnostics",
+            "--max-tokens",
+            "8000",
             "--no-inspect",
             "--no-cache",
         ],
     );
     let text = String::from_utf8(output.stdout.clone()).unwrap();
-    let guarded = success(output);
-    assert_eq!(guarded["schema_version"], 1);
-    assert_eq!(guarded["execution"], false);
-    assert_eq!(guarded["source_write"], false);
-    assert_eq!(guarded["assessment_status"], "partial_static_guidance");
-    assert_eq!(
-        guarded["intelligence"]["capabilities"]["inspection"],
-        "disabled_by_caller"
-    );
+    let guidance = success(output);
+    assert_eq!(guidance["schema_version"], 5);
+    assert_eq!(guidance["capabilities"]["execution"], false);
+    assert_eq!(guidance["capabilities"]["source_write"], false);
+    assert_eq!(guidance["capabilities"]["inspection"], "disabled_by_caller");
+    assert!(text.contains("never include identity tokens"));
     let actual_tokens = context::count_tokens(&text);
-    let reported_tokens = guarded["budget"]["used_tokens"].as_u64().unwrap() as usize;
+    let reported_tokens = guidance["budget"]["used_tokens"].as_u64().unwrap() as usize;
     assert!(actual_tokens <= reported_tokens);
     assert!(reported_tokens <= 8000);
     assert_eq!(before, fs::read(config.state.join("state.db")).unwrap());
@@ -124,10 +122,17 @@ fn traversal_and_invalid_budgets_are_rejected_before_configuration_loading() {
         vec!["baseline", "save", "../escape"],
         vec!["changes", "--since", "joined", "--max-tokens", "511"],
         vec!["guard", "--since", "joined", "--max-tokens", "1023"],
+        vec!["guard", "--since", "joined"],
     ] {
         let output = invoke(&config, &args);
         assert_eq!(output.status.code(), Some(2));
         let error: Value = serde_json::from_slice(&output.stdout).unwrap();
         assert_eq!(error["code"], "invalid_arguments");
+        if args[0] == "guard" {
+            assert!(
+                error["error"].as_str().unwrap().contains("guard"),
+                "a removed advisory command must fail explicitly"
+            );
+        }
     }
 }
