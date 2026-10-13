@@ -49,11 +49,11 @@ A document may describe an accepted rule; code may appear to implement another r
 
 The **retained core** is: (1) document and decision ingestion; (2) exact quotations, provenance and versioned history; (3) decision lifecycle, scope, relationships and conflict review; (4) optional OpenWiki implementation observations; (5) bounded, permission-checked inspection; (6) task recommendations with checks/limitations; (7) evidence, decisions, cases, search and review drill-down; and (8) update, audit, recovery, retention, privacy and cost controls.
 
-The **non-core product surfaces** are interactive lessons and assessments, an embedded browser/graph viewer, separate Guardian task advice, specialized task-feedback receipt drafting, mandatory wiki publication, redundant browse/read navigation and long-lived legacy context schemas. They remain available **where implemented today** until their linked removal issue actually changes the CLI. Do not replace them with a new tutorial engine, agent framework, website, generic navigation browser or code analyzer.
+The **non-core product surfaces** include the interactive lessons and assessments **retired by [#66](https://github.com/grove/lore/issues/66)**, an embedded browser/graph viewer, separate Guardian task advice, specialized task-feedback receipt drafting, mandatory wiki publication, redundant browse/read navigation and long-lived legacy context schemas. The other surfaces remain available **where implemented today** until their linked removal issue changes the CLI. The retained `onboard` command now delegates to task context without learning-specific output; see the [#66 migration](LEARNING_MIGRATION.md). Do not replace them with a new tutorial engine, agent framework, website, generic navigation browser or code analyzer.
 
 ### Current command map (0.9.0-rc.1)
 
-Every presently exposed command has a reason to exist *now*, or an explicit migration owner. This is a map of current CLI behavior and intended direction, not a list of removals already made.
+Every listed command has a core purpose or an explicit migration owner. This maps the **focused development line**; the historical 0.9.0-rc.1 release includes additional learning flags/contracts documented as retired in [the migration guide](LEARNING_MIGRATION.md).
 
 | Command | Core use, maintenance reason, or planned migration |
 | --- | --- |
@@ -72,7 +72,7 @@ Every presently exposed command has a reason to exist *now*, or an explicit migr
 | `restore` | Recover currently published, Lore-owned output without inference; mode handling revisited in [#70](https://github.com/grove/lore/issues/70) |
 | `memory` | Inspect/clear disposable investigation leads; retention and privacy housekeeping, not a second source of authority |
 | `purge` | Explicit managed-data deletion; never deletes original sources |
-| `onboard` | Existing project orientation plus **legacy interactive learning**; keep a thin orientation or migrate to `context` in [#66](https://github.com/grove/lore/issues/66) |
+| `onboard` | **Thin source-grounded orientation using the context pipeline**; former interactive lessons, exercise flags, separate schemas and caches retired in [#66](https://github.com/grove/lore/issues/66); [migration](LEARNING_MIGRATION.md) |
 | `visualize` | Existing embedded browser viewer; remove in [#67](https://github.com/grove/lore/issues/67); use CLI evidence or optional OpenWiki UI |
 | `guard` | Existing separate advisory path; retire in [#68](https://github.com/grove/lore/issues/68); use `context` with `baseline`/`changes` |
 | `feedback draft` | Existing task-outcome receipt writer; retire in [#69](https://github.com/grove/lore/issues/69); manually review Markdown then `update` |
@@ -93,7 +93,7 @@ Every presently exposed command has a reason to exist *now*, or an explicit migr
 
 ## Removal and migration policy
 
-1. **Do not remove anything as part of #65.** This PR changes documentation only: no source material, persisted evidence, privacy grant, authority rule, CLI compatibility or release claim changes. OpenWiki stays opt-in.
+1. **#65 was documentation-only.** Follow-up #66 removes only interactive learning code and incompatible learning-specific flags/results with explicit migration. No source material, persisted evidence, privacy grant, authority rule or OpenWiki opt-in status changes.
 2. **Inventory consumers and stored data first.** Each linked issue owns its actual CLI/code removal, tests and migration path; preserve historical original evidence and its authority/revision labels. Never silently promote imported reports into policy, rewrite user sources, or delete generated pages on upgrade.
 3. **Announce intentional breaking changes.** Document the last supported version, replacement command and affected flags/JSON contracts; use explicit errors after removal, not silent aliasing to a different authority or semantics. Maintain existing project publication behavior until deliberate opt-in migration per [#70](https://github.com/grove/lore/issues/70). Preserve model-free first contact and deterministic fast access per [#72](https://github.com/grove/lore/issues/72).
 4. **Preserve integrity and grants.** Keep read/egress ceilings, review boundaries, source-digest/revision checks, A→B→A history, recovery, cancellation and cross-platform regression coverage. [#68](https://github.com/grove/lore/issues/68) removes Guardian *advice*, **not** the independent Guardian CI source-integrity harness and restoration tests.
