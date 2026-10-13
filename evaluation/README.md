@@ -1,5 +1,6 @@
 # Evaluating Lore 0.8
 
+> **Historic evaluation inventory:** interactive human-learning protocols and retired onboarding contracts remain preserved for traceability, not claimed as current features after [#66](https://github.com/grove/lore/issues/66). See [migration](../docs/LEARNING_MIGRATION.md).\n
 For the 0.9 engineering workflow and the still-unrun independent coding study,
 start with [Empirical usefulness](EMPIRICAL_USEFULNESS_09.md). Read-only status
 delegates to the existing sealed protocol; public controls do not establish
@@ -32,7 +33,7 @@ captures. No unavailable provider is scored as a successful quiet guardian.
 Initialized projects now use adaptive context schema 5 by default. Explicit
 schema 4, schema 3 and deterministic `--fast` schema 2 remain compatibility
 controls; consuming agents can pin `--schema-version 5`. Uncompiled context and
-onboarding use distinct `lore.bootstrap_context`/`lore.bootstrap_onboard`
+onboarding historically used distinct `lore.bootstrap_context`/`lore.bootstrap_onboard`
 contracts. Compact exploration schema 2 still requires `--compact`. Frozen
 baseline captures are retained rather than rewritten for the new default.
 
