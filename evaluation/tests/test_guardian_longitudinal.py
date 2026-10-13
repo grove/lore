@@ -241,6 +241,50 @@ class GuardianLongitudinalTests(unittest.TestCase):
     def test_read_only_zero_call_fixture_satisfies_mechanical_contract(self):
         self.assertTrue(all(guardian.event_checks(record_fixture(), 8000).values()))
 
+    def test_candidate_context_replay_keeps_exact_history_and_inspection_veto(self):
+        # A candidate has no Guardian advice product. The independent integrity
+        # oracle still validates its true schema-5 context response, source
+        # revision identity, source integrity and original evidence.
+        record = record_fixture()
+        record["advice_command"] = "context"
+        record["advice_inspection_granted"] = False
+        record["guard"] = invocation({
+            "schema_version": 5,
+            "snapshot": copy.deepcopy(record["changes"]["response"]["snapshot"]),
+            "capabilities": {"inspection": "disabled_by_caller", "hosted_egress": False,
+                             "checkout_egress": False, "execution": False, "source_write": False},
+            "intelligence": {"schema_version": 4, "mode": "fast_fallback", "model_calls": 0,
+                             "task": "Assess current project constraints and risks for a behavior-preserving change"},
+            "budget": {"max_tokens": 8000, "used_tokens": 300, "tokenizer": "cl100k_base"},
+        })
+        record["guard"]["arguments"] = [
+            "context", "Assess current project constraints and risks for a behavior-preserving change",
+            "--max-tokens", "8000", "--no-cache", "--no-inspect"]
+        assert all(guardian.event_checks(record, 8000).values()), guardian.event_checks(record, 8000)
+
+        modified = copy.deepcopy(record)
+        modified["guard"]["arguments"].remove("--no-inspect")
+        self.assertFalse(guardian.event_checks(modified, 8000)["guidance_invocation_bound"])
+
+        modified = copy.deepcopy(record)
+        modified["guard"]["arguments"][0] = "guard"
+        self.assertFalse(guardian.event_checks(modified, 8000)["guidance_invocation_bound"])
+
+        modified = copy.deepcopy(record)
+        modified["guard"]["response"]["schema_version"] = 1
+        modified["guard"] = invocation(modified["guard"]["response"]) | {"arguments": record["guard"]["arguments"]}
+        self.assertFalse(guardian.event_checks(modified, 8000)["versioned_contracts"])
+
+        modified = copy.deepcopy(record)
+        modified["guard"]["response"]["snapshot"]["registry_revision"] = "other"
+        modified["guard"] = invocation(modified["guard"]["response"]) | {"arguments": record["guard"]["arguments"]}
+        self.assertFalse(guardian.event_checks(modified, 8000)["explicit_baseline"])
+
+        modified = copy.deepcopy(record)
+        modified["guard"]["response"]["capabilities"]["source_write"] = True
+        modified["guard"] = invocation(modified["guard"]["response"]) | {"arguments": record["guard"]["arguments"]}
+        self.assertFalse(guardian.event_checks(modified, 8000)["no_execution_claims"])
+
     def test_absent_provider_cannot_be_reclassified_as_model_assessed(self):
         record = record_fixture(status="partial_static_guidance", required=True)
         self.assertTrue(all(guardian.event_checks(record, 8000).values()))
