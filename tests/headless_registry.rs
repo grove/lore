@@ -6,7 +6,7 @@ use lore::{
     config::{OutputMode, ResolvedConfig},
     context,
     engine::{self, UpdateOptions, UpdateProgress},
-    publish, storage,
+    publish, reviews, storage,
 };
 use serde_json::Value;
 use std::{
@@ -322,4 +322,54 @@ async fn interrupted_and_source_mutated_headless_updates_cannot_commit_partial_r
             .unwrap()
             .contains("original bound")
     );
+}
+
+#[tokio::test]
+async fn headless_review_disposition_commits_registry_without_publication() {
+    let (_dir, cfg, model) = headless_project();
+    put(
+        &cfg,
+        "queue.md",
+        "DECISION queue: Preserve the accepted queue order.\n",
+    );
+    engine::update(&cfg, &model, None, UpdateOptions::default())
+        .await
+        .unwrap();
+    let db = cfg.state.join("state.db");
+    let initial = storage::read_only(&db).unwrap();
+    let evidence = storage::views(&initial).unwrap()[0].evidence[0].id.clone();
+    drop(initial);
+    {
+        // Exercise the same pending-review lifecycle in a project with no
+        // generated overview/review pages.
+        let conn = rusqlite::Connection::open(&db).unwrap();
+        storage::review(
+            &conn,
+            &cfg.project_id,
+            "manual:headless-queue-order",
+            "The accepted queue constraint needs a scoped review",
+        )
+        .unwrap();
+    }
+    let conn = storage::read_only(&db).unwrap();
+    let id = reviews::list(&conn, false).unwrap()[0].id.clone();
+    drop(conn);
+    let calls = model.calls.load(Ordering::SeqCst);
+    let result = engine::change_review(
+        &cfg,
+        &id,
+        "resolved",
+        "The documented policy remains unchanged; production still needs testing.",
+        "fixture-reviewer",
+    )
+    .unwrap();
+    assert_eq!(result["changed"], true);
+    assert_eq!(calls, model.calls.load(Ordering::SeqCst));
+    assert!(!cfg.wiki.exists());
+    let conn = storage::read_only(&db).unwrap();
+    assert!(storage::evidence_snapshot(&conn, &evidence).is_ok());
+    assert_eq!(publish::stored_mode(&conn).unwrap(), OutputMode::RegistryOnly);
+    assert!(storage::pages(&conn).unwrap().is_empty());
+    assert!(reviews::events(&conn, &id).unwrap().len() >= 2);
+    assert!(!engine::status(&cfg).unwrap().needs_update);
 }
