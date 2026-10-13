@@ -1,5 +1,7 @@
 # Lore 0.9 — Implementation Plan
 
+> **Archived implementation proposal:** The receipt authoring command, `src/feedback.rs`, and `docs/TASK_FEEDBACK.md` described in section 9 were retired under [issue #69](https://github.com/grove/lore/issues/69). These examples are historical, not current product commands. See [feedback migration](FEEDBACK_MIGRATION.md) for the normal reviewed Markdown + `lore update` replacement. The independent coding-checker outcome evaluation remains intact.
+
 **Theme:** From project intelligence to demonstrably better engineering outcomes
 **Repository:** https://github.com/grove/lore
 **Planning date:** 2026-10-11
