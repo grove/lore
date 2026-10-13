@@ -1,9 +1,8 @@
-//! Recoverable two-slot publication. SQLite and the wiki cannot share a single
-//! atomic transaction, so an immutable journal allows interrupted installs to
-//! roll forward. Neither the previous output nor its baseline is changed before
-//! all inference, evidence validation and staging have succeeded.
+//! Recoverable registry commits with optional two-slot Markdown publication.
+//! The durable journal tracks the *selected* mode. No stage reaches the live
+//! registry/wiki until inference, evidence checks and staging have succeeded.
 use crate::{
-    config::ResolvedConfig,
+    config::{OutputMode, ResolvedConfig},
     storage::{self, StoredPage},
     util,
 };
@@ -29,6 +28,9 @@ struct Journal {
     project_id: String,
     generation: String,
     wiki: PathBuf,
+    /// Old pending journals have no mode and must still finish both slots.
+    #[serde(default)]
+    mode: OutputMode,
 }
 
 pub struct ProjectLock {
@@ -230,6 +232,15 @@ fn walk_files(root: &Path, path: &Path, out: &mut BTreeSet<String>) -> Result<()
 pub fn has_pending(config: &ResolvedConfig) -> bool {
     config.state.join(JOURNAL).exists()
 }
+/// Legacy registries predate the publication-mode marker. They are Markdown
+/// projects even when their configured wiki is missing or has been edited.
+pub fn stored_mode(conn: &rusqlite::Connection) -> Result<OutputMode> {
+    match storage::meta(conn, "output_mode")?.as_deref() {
+        None | Some("markdown") => Ok(OutputMode::Markdown),
+        Some("registry_only") => Ok(OutputMode::RegistryOnly),
+        Some(_) => anyhow::bail!("invalid retained output mode; refusing publication"),
+    }
+}
 fn stage_wiki(config: &ResolvedConfig, generation: &str) -> Result<PathBuf> {
     Ok(config
         .wiki
@@ -273,20 +284,35 @@ pub fn recover(config: &ResolvedConfig) -> Result<bool> {
     let db_stage = stage_dir(config, generation).join("state.db");
     let db_target = config.state.join("state.db");
     let db_backup = config.state.join(format!("previous-{generation}.db"));
-    install_slot(&wiki_stage, &config.wiki, &wiki_backup)?;
+    if journal.mode == OutputMode::Markdown {
+        install_slot(&wiki_stage, &config.wiki, &wiki_backup)?;
+    } else {
+        ensure!(
+            !wiki_stage.exists() && !wiki_backup.exists(),
+            "registry-only journal cannot install wiki output"
+        );
+    }
     install_slot(&db_stage, &db_target, &db_backup)?;
-    let owner = check_owner(&config.wiki, &config.project_id)?;
-    ensure!(
-        owner.generation == *generation,
-        "wiki generation does not match journal"
-    );
+    if journal.mode == OutputMode::Markdown {
+        let owner = check_owner(&config.wiki, &config.project_id)?;
+        ensure!(
+            owner.generation == *generation,
+            "wiki generation does not match journal"
+        );
+    }
     {
         let conn = storage::read_only(&db_target)?;
         ensure!(
             storage::meta(&conn, "generation")?.as_deref() == Some(generation.as_str()),
             "database generation does not match journal"
         );
-        validate_existing(config, &storage::pages(&conn)?, false)?;
+        ensure!(
+            stored_mode(&conn)? == journal.mode,
+            "database publication mode does not match journal"
+        );
+        if journal.mode == OutputMode::Markdown {
+            validate_existing(config, &storage::pages(&conn)?, false)?;
+        }
     }
     if wiki_backup.exists() {
         check_owner(&wiki_backup, &config.project_id)?;
@@ -327,9 +353,17 @@ fn install_slot(stage: &Path, target: &Path, backup: &Path) -> Result<()> {
 }
 
 pub fn restore(config: &ResolvedConfig) -> Result<usize> {
+    ensure!(
+        config.config.output.mode() == OutputMode::Markdown,
+        "restore is unavailable in registry_only mode; no wiki is actively published"
+    );
     let _lock = ProjectLock::acquire(config)?;
     recover(config)?;
     let conn = storage::read_only(&config.state.join("state.db"))?;
+    ensure!(
+        stored_mode(&conn)? == OutputMode::Markdown,
+        "restore requires an active Markdown publication; migrate output mode explicitly"
+    );
     ensure!(
         storage::meta(&conn, "initialized")?.as_deref() == Some("1"),
         "no initialized publication to restore"
@@ -398,6 +432,24 @@ pub fn commit(
         })?,
     )?;
     util::sync_directory(&wiki_stage)?;
+    commit_staged(config, generation, OutputMode::Markdown)
+}
+
+/// Atomically promote the validated staged registry without touching a wiki
+/// directory or creating a browser/publication artifact.
+pub fn commit_registry(config: &ResolvedConfig, generation: &str) -> Result<()> {
+    ensure!(
+        !has_pending(config),
+        "recover previous registry commit before committing another"
+    );
+    ensure!(
+        !stage_wiki(config, generation)?.exists(),
+        "registry-only commit cannot install staged wiki output"
+    );
+    commit_staged(config, generation, OutputMode::RegistryOnly)
+}
+
+fn commit_staged(config: &ResolvedConfig, generation: &str, mode: OutputMode) -> Result<()> {
     let db = stage_dir(config, generation).join("state.db");
     ensure!(db.is_file(), "staged database missing");
     // Windows FlushFileBuffers requires write access, even when no bytes change.
@@ -410,6 +462,7 @@ pub fn commit(
         project_id: config.project_id.clone(),
         generation: generation.to_owned(),
         wiki: config.wiki.clone(),
+        mode,
     };
     util::atomic_write(&config.state.join(JOURNAL), &serde_json::to_vec(&journal)?)?;
     recover(config)?;
