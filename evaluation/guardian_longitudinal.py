@@ -475,7 +475,7 @@ def configuration(template: Path | None, project: str) -> dict:
     return value
 
 
-def guard_citations(guard: dict, changes: dict) -> set[str]:
+def guard_citations(guard: dict, changes: dict, *, advice_command: str = "guard") -> set[str]:
     # Native original payloads are data. Their arbitrary upstream keys do not
     # mint evidence references in Lore's output contract.
     def documentary_ids(report):
@@ -484,9 +484,16 @@ def guard_citations(guard: dict, changes: dict) -> set[str]:
         ids.update(item["evidence_id"] for item in report.get("imported_evidence", []))
         return ids
     ids = documentary_ids(changes)
-    ids.update(cross.cited_ids(guard.get("advisories", [])))
-    if guard.get("intelligence") is not None:
-        ids.update(shared.response_citations(guard["intelligence"]))
+    if advice_command == "context":
+        # Candidate replay consumes the existing versioned task-context contract.
+        ids.update(shared.response_citations(guard))
+    elif advice_command == "guard":
+        # Frozen 0.7 binaries keep their original historical advisory oracle.
+        ids.update(cross.cited_ids(guard.get("advisories", [])))
+        if guard.get("intelligence") is not None:
+            ids.update(shared.response_citations(guard["intelligence"]))
+    else:
+        raise ValueError("Unknown safety replay command")
     return ids
 
 
@@ -497,6 +504,9 @@ def run(args: argparse.Namespace) -> dict:
     binary = str(Path(args.binary).resolve(strict=True))
     if output.exists():
         raise ValueError("Use a fresh guardian run directory")
+    advice_command = getattr(args, "advice_command", "context")
+    if advice_command not in ("guard", "context"):
+        raise ValueError("Unknown historical or current safety replay command")
     if not 1024 <= args.max_tokens <= 100000 or not 1 <= args.timeout <= 86400:
         raise ValueError("Invalid guardian output or timeout bound")
     if args.allow_checkout_egress and not args.allow_inspection:
@@ -607,16 +617,19 @@ def run(args: argparse.Namespace) -> dict:
             changes = not_run_after_cancel(["changes"]) if stopped else call(["changes", "--since", "transition", "--max-tokens", str(args.max_tokens)],
                              trace=directory / "changes.trace" if args.audit_strace else None)
             stopped |= changes.get("error") == "cancelled"
-            guard_args = ["guard", "--since", "transition", "--max-tokens", str(args.max_tokens), "--no-cache"]
+            if advice_command == "guard":
+                advice_args = ["guard", "--since", "transition", "--max-tokens", str(args.max_tokens), "--no-cache"]
+            else:
+                advice_args = ["context", "Assess current project constraints and risks for a behavior-preserving change", "--max-tokens", str(args.max_tokens), "--no-cache"]
             if not args.allow_inspection:
-                guard_args.append("--no-inspect")
-            guarded = not_run_after_cancel(guard_args) if stopped else call(guard_args,
+                advice_args.append("--no-inspect")
+            guidance = not_run_after_cancel(advice_args) if stopped else call(advice_args,
                              trace=directory / "guard.trace" if args.audit_strace else None,
                              network_granted=args.allow_hosted or args.config_template is not None)
-            stopped |= guarded.get("error") == "cancelled"
+            stopped |= guidance.get("error") == "cancelled"
             changes_value = changes.get("response") or {}
-            guard_value = guarded.get("response") or {}
-            ids = guard_citations(guard_value, changes_value) if not changes.get("error") and not guarded.get("error") else set()
+            guidance_value = guidance.get("response") or {}
+            ids = guard_citations(guidance_value, changes_value, advice_command=advice_command) if not changes.get("error") and not guidance.get("error") else set()
             resolution = []
             for evidence_id in sorted(ids):
                 resolved = call(["evidence", evidence_id])
@@ -632,7 +645,7 @@ def run(args: argparse.Namespace) -> dict:
                       "sources_after_queries": source_fingerprint(workspace, all_source_names),
                       "registry_before": before_registry, "registry_query": query_registry,
                       "registry_after_queries": final_registry, "baseline_save": saved,
-                      "materialization": build, "changes": changes, "guard": guarded,
+                      "materialization": build, "changes": changes, "guard": guidance, "advice_command": advice_command,
                       "resolution": resolution, "elapsed_seconds": round(time.monotonic() - started, 6)}
             cross.write_json(directory / "capture.json", record)
             records.append({"event_id": event["id"], "path": f"events/{event['id']}/capture.json",
@@ -650,7 +663,7 @@ def run(args: argparse.Namespace) -> dict:
               "events_manifest_sha256": prepared["events_manifest_sha256"], "prepared": prepared,
               "binary_sha256": coding.hash_file(Path(binary)), "binary": binary,
               "compiler_mode": "synthetic_explicit_records" if compiled else "configured_live_provider",
-              "max_tokens": args.max_tokens, "counts": prepared["counts"], "initialization": initialization,
+              "max_tokens": args.max_tokens, "advice_command": advice_command, "counts": prepared["counts"], "initialization": initialization,
               "permissions": {"inspection": args.allow_inspection, "hosted_egress": args.allow_hosted,
                               "checkout_egress": args.allow_checkout_egress, "repository_execution": False},
               "audit_requested": args.audit_strace, "integrity_version": 1,
@@ -676,7 +689,7 @@ def merge_runs(prepared_directory: Path, directories: list[Path], output: Path) 
     expected = {state["event"]["id"] for project in prepared["projects"] for state in project["states"][1:]}
     bound_fields = ("schema_version", "protocol", "fixture_only", "held_out", "label_provenance",
                     "prepared_sha256", "events_manifest_sha256", "binary_sha256", "compiler_mode",
-                    "max_tokens", "permissions", "audit_requested", "integrity_version", "filesystem_observer_requested",
+                    "max_tokens", "advice_command", "permissions", "audit_requested", "integrity_version", "filesystem_observer_requested",
                     "collector_source_sha256")
     merged, captures, components, initializations = None, {}, [], []
     elapsed = 0.0
@@ -1068,6 +1081,8 @@ def assess(directory: Path, review_files: list[Path] | None = None) -> dict:
         record = read_json(path)
         if run.get("integrity_version") is not None and record.get("integrity_version") != run["integrity_version"]:
             raise ValueError("A new capture cannot omit its per-command source-integrity ledger")
+        if record.get("advice_command", "guard") != run.get("advice_command", "guard"):
+            raise ValueError("Safety replay guidance mode differs from its sealed run")
         if record.get("event_id") != event_id or record.get("event") != expected[event_id]:
             raise ValueError("Captured event label differs from the pinned source manifest")
         project_id, before, after = endpoints[event_id]
@@ -1224,6 +1239,8 @@ def main(argv: list[str] | None = None) -> int:
     command.add_argument("--events", type=Path, default=DEFAULT_EVENTS)
     command.add_argument("--output", type=Path, required=True)
     command = sub.add_parser("run")
+    command.add_argument("--advice-command", choices=("context", "guard"), default="context",
+                         help="Candidate replay uses context; guard is only for frozen historical binaries")
     command.add_argument("--prepared", type=Path, required=True)
     command.add_argument("--output", type=Path, required=True)
     command.add_argument("--binary", required=True)
