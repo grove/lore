@@ -94,17 +94,42 @@ pub struct SourceRoot {
     #[serde(default)]
     pub origin: Option<String>,
 }
+/// Publication is optional; the source registry is always retained.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum OutputMode {
+    RegistryOnly,
+    Markdown,
+}
+impl OutputMode {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::RegistryOnly => "registry_only",
+            Self::Markdown => "markdown",
+        }
+    }
+}
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct Output {
     pub wiki_dir: PathBuf,
     pub state_dir: PathBuf,
+    /// Missing means legacy Markdown publication; old projects keep their
+    /// output behavior. Newly bootstrapped projects write registry_only.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mode: Option<OutputMode>,
+}
+impl Output {
+    pub fn mode(&self) -> OutputMode {
+        self.mode.unwrap_or(OutputMode::Markdown)
+    }
 }
 impl Default for Output {
     fn default() -> Self {
         Self {
             wiki_dir: "./lore".into(),
             state_dir: "./.lore".into(),
+            mode: None,
         }
     }
 }
@@ -479,10 +504,15 @@ impl ResolvedConfig {
                 );
             }
         }
+        // Publication mode is an operational concern, not an extraction
+        // contract. Exclude it from the pre-existing semantic fingerprint,
+        // preserving old projects' no-op behavior across this upgrade.
+        let mut semantic_config = config.clone();
+        semantic_config.output.mode = None;
         let fingerprint = util::json_digest(&(
             env!("CARGO_PKG_VERSION"),
             "pipeline-v12-native-observations",
-            &config,
+            &semantic_config,
         ))?;
         let project_id = format!(
             "project_{}",
