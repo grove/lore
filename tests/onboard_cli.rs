@@ -27,7 +27,11 @@ async fn fixture() -> (tempfile::TempDir, ResolvedConfig) {
         "dispatch.md",
         "DECISION dispatch: Harbor separates dispatch from worker execution so that a slow tenant cannot exhaust every worker.\n",
     );
-    put(&config, "capacity.md", &format!("DECISION dispatch: {CONDITION}\n"));
+    put(
+        &config,
+        "capacity.md",
+        &format!("DECISION dispatch: {CONDITION}\n"),
+    );
     engine::update(&config, &model, None, UpdateOptions::default())
         .await
         .unwrap();
@@ -88,7 +92,10 @@ fn snapshot(root: &Path) -> BTreeMap<PathBuf, Vec<u8>> {
             if kind.is_dir() {
                 walk(root, &path, entries);
             } else {
-                entries.insert(path.strip_prefix(root).unwrap().to_owned(), fs::read(path).unwrap());
+                entries.insert(
+                    path.strip_prefix(root).unwrap().to_owned(),
+                    fs::read(path).unwrap(),
+                );
             }
         }
     }
@@ -104,11 +111,28 @@ async fn initialized_orientation_is_shared_schema_five_context_without_writes() 
     let task = "Refactor dispatch without changing tenant ordering";
     let raw_onboard = success(invoke(
         &config,
-        &["--json", "onboard", "--task", task, "--max-tokens", "6000", "--no-inspect", "--no-cache"],
+        &[
+            "--json",
+            "onboard",
+            "--task",
+            task,
+            "--max-tokens",
+            "6000",
+            "--no-inspect",
+            "--no-cache",
+        ],
     ));
     let raw_context = success(invoke(
         &config,
-        &["--json", "context", task, "--max-tokens", "6000", "--no-inspect", "--no-cache"],
+        &[
+            "--json",
+            "context",
+            task,
+            "--max-tokens",
+            "6000",
+            "--no-inspect",
+            "--no-cache",
+        ],
     ));
     let onboard: Value = serde_json::from_str(&raw_onboard).unwrap();
     let context: Value = serde_json::from_str(&raw_context).unwrap();
@@ -116,7 +140,10 @@ async fn initialized_orientation_is_shared_schema_five_context_without_writes() 
     assert_eq!(onboard["schema_version"], 5);
     assert_eq!(onboard["snapshot"], context["snapshot"]);
     assert_eq!(onboard["capabilities"], context["capabilities"]);
-    assert_eq!(onboard["source_relationships"], context["source_relationships"]);
+    assert_eq!(
+        onboard["source_relationships"],
+        context["source_relationships"]
+    );
     assert_eq!(onboard["intelligence"], context["intelligence"]);
     assert_eq!(onboard["capabilities"]["inspection"], "disabled_by_caller");
     assert_eq!(onboard["capabilities"]["hosted_egress"], false);
@@ -142,14 +169,11 @@ async fn topic_and_default_orientation_share_context_budget_and_provenance() {
         command.extend(args.clone());
         let raw = success(invoke(&config, &command));
         let parsed: AdaptiveResult = serde_json::from_str(&raw).unwrap();
-        let printed = success(invoke(
-            &config,
-            &{
-                let mut args = vec!["onboard", "--no-cache", "--no-inspect"];
-                args.extend(args);
-                args
-            },
-        ));
+        let printed = success(invoke(&config, &{
+            let mut args = vec!["onboard", "--no-cache", "--no-inspect"];
+            args.extend(args);
+            args
+        }));
         assert_eq!(parsed.schema_version, 5);
         assert_eq!(parsed.capabilities.inspection, "disabled_by_caller");
         assert!(!printed.contains("CHECKOUT_ONLY_ORIENTATION_SENTINEL"));
@@ -184,7 +208,10 @@ fn removed_learning_arguments_reject_before_configuration_access() {
         assert_eq!(output.status.code(), Some(2), "{args:?}");
         let error: Value = serde_json::from_slice(&output.stdout).unwrap();
         assert_eq!(error["code"], "invalid_arguments", "{args:?}");
-        assert!(error["error"].as_str().unwrap().contains(args[0]), "{error}");
+        assert!(
+            error["error"].as_str().unwrap().contains(args[0]),
+            "{error}"
+        );
     }
     assert!(!missing.exists());
 }
