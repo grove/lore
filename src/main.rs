@@ -1016,6 +1016,10 @@ async fn run(cli: Cli) -> Result<i32> {
             }
         }
         Command::Read { topic } => {
+            ensure!(
+                config.config.output.mode() == OutputMode::Markdown,
+                "lore read is available only for an active Markdown project; use context, evidence, decisions or cases in registry_only mode"
+            );
             let path = if topic == "index" || topic == "reviews" {
                 format!("{topic}.md")
             } else {
