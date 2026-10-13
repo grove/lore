@@ -200,6 +200,10 @@ async fn legacy_wiki_is_preserved_until_explicit_headless_migration() {
     .unwrap();
     assert!(!migrated.no_op && migrated.changed_pages == 0);
     assert_eq!(wiki_before, fs::read(cfg.wiki.join("index.md")).unwrap());
+    assert!(
+        !cli(&cfg.base, &["read", "index"]).status.success(),
+        "detached wiki pages must not masquerade as current retained guidance"
+    );
     assert_eq!(
         publish::stored_mode(&storage::read_only(&cfg.state.join("state.db")).unwrap()).unwrap(),
         OutputMode::RegistryOnly
