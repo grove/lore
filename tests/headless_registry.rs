@@ -134,10 +134,19 @@ async fn headless_registry_has_all_read_only_cli_surfaces_and_genuine_no_op() {
     // external model, which offline CI is not authorized to contact.
     let mut read_config = cfg.config.clone();
     read_config.models.generative.enabled = false;
-    fs::write(&cfg.config_path, serde_yaml::to_string(&read_config).unwrap()).unwrap();
+    fs::write(
+        &cfg.config_path,
+        serde_yaml::to_string(&read_config).unwrap(),
+    )
+    .unwrap();
     let guidance = read_json(cli(
         root,
-        &["context", "Preserve queue order", "--no-inspect", "--no-cache"],
+        &[
+            "context",
+            "Preserve queue order",
+            "--no-inspect",
+            "--no-cache",
+        ],
     ));
     assert_eq!(guidance["schema_version"], 5);
     assert_eq!(guidance["capabilities"]["inspection"], "disabled_by_caller");
