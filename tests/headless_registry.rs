@@ -9,7 +9,11 @@ use lore::{
     publish, storage,
 };
 use serde_json::Value;
-use std::{fs, process::{Command, Output}, sync::atomic::Ordering};
+use std::{
+    fs,
+    process::{Command, Output},
+    sync::atomic::Ordering,
+};
 
 fn headless_project() -> (tempfile::TempDir, ResolvedConfig, FakeModel) {
     let (dir, mut config, model) = project();
@@ -38,8 +42,12 @@ fn cli(dir: &std::path::Path, args: &[&str]) -> Output {
 }
 
 fn read_json(out: Output) -> Value {
-    assert!(out.status.success(), "stdout={} stderr={}",
-        String::from_utf8_lossy(&out.stdout), String::from_utf8_lossy(&out.stderr));
+    assert!(
+        out.status.success(),
+        "stdout={} stderr={}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
+    );
     serde_json::from_slice(&out.stdout).unwrap()
 }
 
@@ -51,10 +59,15 @@ fn new_cli_config_is_headless_but_explicit_markdown_is_available() {
     ] {
         let dir = tempfile::tempdir().unwrap();
         fs::create_dir(dir.path().join("docs")).unwrap();
-        fs::write(dir.path().join("docs/decision.md"),
-            "DECISION queue: Preserve queue order.\n").unwrap();
+        fs::write(
+            dir.path().join("docs/decision.md"),
+            "DECISION queue: Preserve queue order.\n",
+        )
+        .unwrap();
         let mut args = vec!["init", "--configure-only"];
-        if flag { args.push("--publish-markdown"); }
+        if flag {
+            args.push("--publish-markdown");
+        }
         let configured = read_json(cli(dir.path(), &args));
         assert_eq!(configured["configured"], true);
         let cfg = ResolvedConfig::load_for_read(&dir.path().join("lore.yml")).unwrap();
@@ -67,14 +80,22 @@ fn new_cli_config_is_headless_but_explicit_markdown_is_available() {
 #[tokio::test]
 async fn headless_registry_has_all_read_only_cli_surfaces_and_genuine_no_op() {
     let (_dir, cfg, model) = headless_project();
-    put(&cfg, "decision.md",
-        "DECISION queue: Preserve the accepted FIFO admission order.\n");
-    let first = engine::update(&cfg, &model, None, UpdateOptions::default()).await.unwrap();
+    put(
+        &cfg,
+        "decision.md",
+        "DECISION queue: Preserve the accepted FIFO admission order.\n",
+    );
+    let first = engine::update(&cfg, &model, None, UpdateOptions::default())
+        .await
+        .unwrap();
     assert!(!first.no_op && first.changed_pages == 0);
     assert!(!cfg.wiki.exists(), "headless compilation wrote a wiki");
     let db = cfg.state.join("state.db");
     let conn = storage::read_only(&db).unwrap();
-    assert_eq!(publish::stored_mode(&conn).unwrap(), OutputMode::RegistryOnly);
+    assert_eq!(
+        publish::stored_mode(&conn).unwrap(),
+        OutputMode::RegistryOnly
+    );
     assert!(storage::pages(&conn).unwrap().is_empty());
     assert!(!storage::views(&conn).unwrap().is_empty());
     let evidence = storage::views(&conn).unwrap()[0].evidence[0].id.clone();
@@ -82,7 +103,9 @@ async fn headless_registry_has_all_read_only_cli_surfaces_and_genuine_no_op() {
 
     let before = fs::read(&db).unwrap();
     let calls = model.calls.load(Ordering::SeqCst);
-    let next = engine::update(&cfg, &model, None, UpdateOptions::default()).await.unwrap();
+    let next = engine::update(&cfg, &model, None, UpdateOptions::default())
+        .await
+        .unwrap();
     assert!(next.no_op && next.model_calls == 0 && next.changed_pages == 0);
     assert_eq!(calls, model.calls.load(Ordering::SeqCst));
     assert_eq!(before, fs::read(&db).unwrap());
@@ -91,7 +114,12 @@ async fn headless_registry_has_all_read_only_cli_surfaces_and_genuine_no_op() {
     let root = &cfg.base;
     for args in [
         vec!["context", "Preserve queue order", "--fast"],
-        vec!["context", "Preserve queue order", "--no-inspect", "--no-cache"],
+        vec![
+            "context",
+            "Preserve queue order",
+            "--no-inspect",
+            "--no-cache",
+        ],
         vec!["evidence", evidence.as_str()],
         vec!["decisions", "queue"],
         vec!["cases", "queue"],
@@ -112,35 +140,63 @@ async fn headless_registry_has_all_read_only_cli_surfaces_and_genuine_no_op() {
 #[tokio::test]
 async fn legacy_wiki_is_preserved_until_explicit_headless_migration() {
     let (_dir, mut cfg, model) = project(); // Old output.mode is absent.
-    put(&cfg, "queue.md",
-        "DECISION queue: The queue must preserve order.\n");
-    engine::update(&cfg, &model, None, UpdateOptions::default()).await.unwrap();
+    put(
+        &cfg,
+        "queue.md",
+        "DECISION queue: The queue must preserve order.\n",
+    );
+    engine::update(&cfg, &model, None, UpdateOptions::default())
+        .await
+        .unwrap();
     assert!(cfg.wiki.join("index.md").exists());
     let wiki_before = fs::read(cfg.wiki.join("index.md")).unwrap();
     let db_before = fs::read(cfg.state.join("state.db")).unwrap();
 
     cfg.config.output.mode = Some(OutputMode::RegistryOnly);
-    fs::write(&cfg.config_path, serde_yaml::to_string(&cfg.config).unwrap()).unwrap();
+    fs::write(
+        &cfg.config_path,
+        serde_yaml::to_string(&cfg.config).unwrap(),
+    )
+    .unwrap();
     let cfg = ResolvedConfig::load(&cfg.config_path).unwrap();
     let state = engine::status(&cfg).unwrap();
     assert!(state.mode_change_required && state.needs_update);
     let calls = model.calls.load(Ordering::SeqCst);
-    assert!(engine::update(&cfg, &model, None, UpdateOptions::default()).await.is_err());
+    assert!(
+        engine::update(&cfg, &model, None, UpdateOptions::default())
+            .await
+            .is_err()
+    );
     assert_eq!(calls, model.calls.load(Ordering::SeqCst));
     assert_eq!(db_before, fs::read(cfg.state.join("state.db")).unwrap());
     assert_eq!(wiki_before, fs::read(cfg.wiki.join("index.md")).unwrap());
 
-    let migrated = engine::update(&cfg, &model, None, UpdateOptions {
-        migrate_output: true,
-        ..UpdateOptions::default()
-    }).await.unwrap();
+    let migrated = engine::update(
+        &cfg,
+        &model,
+        None,
+        UpdateOptions {
+            migrate_output: true,
+            ..UpdateOptions::default()
+        },
+    )
+    .await
+    .unwrap();
     assert!(!migrated.no_op && migrated.changed_pages == 0);
     assert_eq!(wiki_before, fs::read(cfg.wiki.join("index.md")).unwrap());
-    assert_eq!(publish::stored_mode(&storage::read_only(&cfg.state.join("state.db")).unwrap()).unwrap(),
-        OutputMode::RegistryOnly);
+    assert_eq!(
+        publish::stored_mode(&storage::read_only(&cfg.state.join("state.db")).unwrap()).unwrap(),
+        OutputMode::RegistryOnly
+    );
     assert!(publish::restore(&cfg).is_err());
-    put(&cfg, "new.md", "DECISION queue: Emergency drains are exceptions.\n");
-    engine::update(&cfg, &model, None, UpdateOptions::default()).await.unwrap();
+    put(
+        &cfg,
+        "new.md",
+        "DECISION queue: Emergency drains are exceptions.\n",
+    );
+    engine::update(&cfg, &model, None, UpdateOptions::default())
+        .await
+        .unwrap();
     assert_eq!(wiki_before, fs::read(cfg.wiki.join("index.md")).unwrap());
     assert!(!engine::status(&cfg).unwrap().needs_update);
 }
@@ -148,56 +204,106 @@ async fn legacy_wiki_is_preserved_until_explicit_headless_migration() {
 #[tokio::test]
 async fn headless_to_markdown_is_explicit_and_restorable() {
     let (_dir, mut cfg, model) = headless_project();
-    put(&cfg, "queue.md", "DECISION queue: Preserve accepted order.\n");
-    engine::update(&cfg, &model, None, UpdateOptions::default()).await.unwrap();
+    put(
+        &cfg,
+        "queue.md",
+        "DECISION queue: Preserve accepted order.\n",
+    );
+    engine::update(&cfg, &model, None, UpdateOptions::default())
+        .await
+        .unwrap();
     assert!(!cfg.wiki.exists());
     cfg.config.output.mode = Some(OutputMode::Markdown);
-    fs::write(&cfg.config_path, serde_yaml::to_string(&cfg.config).unwrap()).unwrap();
+    fs::write(
+        &cfg.config_path,
+        serde_yaml::to_string(&cfg.config).unwrap(),
+    )
+    .unwrap();
     let cfg = ResolvedConfig::load(&cfg.config_path).unwrap();
     assert!(engine::status(&cfg).unwrap().mode_change_required);
-    assert!(engine::update(&cfg, &model, None, UpdateOptions::default()).await.is_err());
-    assert!(engine::update(&cfg, &model, None, UpdateOptions {
-        migrate_output: true, ..UpdateOptions::default()
-    }).await.is_err(), "switching to Markdown requires explicit rebuild");
-    engine::update(&cfg, &model, None, UpdateOptions {
-        migrate_output: true, rebuild: true, ..UpdateOptions::default()
-    }).await.unwrap();
+    assert!(
+        engine::update(&cfg, &model, None, UpdateOptions::default())
+            .await
+            .is_err()
+    );
+    assert!(
+        engine::update(
+            &cfg,
+            &model,
+            None,
+            UpdateOptions {
+                migrate_output: true,
+                ..UpdateOptions::default()
+            }
+        )
+        .await
+        .is_err(),
+        "switching to Markdown requires explicit rebuild"
+    );
+    engine::update(
+        &cfg,
+        &model,
+        None,
+        UpdateOptions {
+            migrate_output: true,
+            rebuild: true,
+            ..UpdateOptions::default()
+        },
+    )
+    .await
+    .unwrap();
     assert!(cfg.wiki.join("index.md").exists());
-    assert_eq!(publish::stored_mode(&storage::read_only(&cfg.state.join("state.db")).unwrap()).unwrap(),
-        OutputMode::Markdown);
+    assert_eq!(
+        publish::stored_mode(&storage::read_only(&cfg.state.join("state.db")).unwrap()).unwrap(),
+        OutputMode::Markdown
+    );
     assert!(publish::restore(&cfg).is_ok());
 }
 
 #[tokio::test]
 async fn interrupted_and_source_mutated_headless_updates_cannot_commit_partial_registry() {
     let (_dir, cfg, model) = headless_project();
-    put(&cfg, "rule.md", "DECISION queue: Preserve the original bound.\n");
-    engine::update(&cfg, &model, None, UpdateOptions::default()).await.unwrap();
+    put(
+        &cfg,
+        "rule.md",
+        "DECISION queue: Preserve the original bound.\n",
+    );
+    engine::update(&cfg, &model, None, UpdateOptions::default())
+        .await
+        .unwrap();
     let db = cfg.state.join("state.db");
     let before = fs::read(&db).unwrap();
-    put(&cfg, "rule.md", "DECISION queue: A new bound is proposed.\n");
+    put(
+        &cfg,
+        "rule.md",
+        "DECISION queue: A new bound is proposed.\n",
+    );
 
-    let interrupted = engine::update_with_progress(
-        &cfg, &model, None, UpdateOptions::default(), |event| {
+    let interrupted =
+        engine::update_with_progress(&cfg, &model, None, UpdateOptions::default(), |event| {
             if event == UpdateProgress::Phase("Validating retained knowledge") {
                 anyhow::bail!("simulated cancellation before commit");
             }
             Ok(())
-        },
-    ).await;
+        })
+        .await;
     assert!(interrupted.is_err());
     assert_eq!(fs::read(&db).unwrap(), before);
     assert!(!publish::has_pending(&cfg));
     assert!(!cfg.wiki.exists());
 
-    let mutated = engine::update_with_progress(
-        &cfg, &model, None, UpdateOptions::default(), |event| {
+    let mutated =
+        engine::update_with_progress(&cfg, &model, None, UpdateOptions::default(), |event| {
             if event == UpdateProgress::Phase("Validating retained knowledge") {
-                put(&cfg, "rule.md", "DECISION queue: Mutated during compilation.\n");
+                put(
+                    &cfg,
+                    "rule.md",
+                    "DECISION queue: Mutated during compilation.\n",
+                );
             }
             Ok(())
-        },
-    ).await;
+        })
+        .await;
     assert!(mutated.is_err());
     assert_eq!(fs::read(&db).unwrap(), before);
     assert!(!publish::has_pending(&cfg));
@@ -206,8 +312,14 @@ async fn interrupted_and_source_mutated_headless_updates_cannot_commit_partial_r
         &storage::read_only(&db).unwrap(),
         &context::ContextOptions {
             task: "Preserve the original bound".into(),
-            paths: vec![], max_tokens: 6000,
+            paths: vec![],
+            max_tokens: 6000,
         },
-    ).unwrap();
-    assert!(serde_json::to_string(&remaining).unwrap().contains("original bound"));
+    )
+    .unwrap();
+    assert!(
+        serde_json::to_string(&remaining)
+            .unwrap()
+            .contains("original bound")
+    );
 }
