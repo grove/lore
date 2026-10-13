@@ -120,7 +120,11 @@ fn ordinary_commands_work_without_config_provider_or_documents() {
 #[test]
 fn onboard_task_is_exactly_the_same_model_free_first_contact_as_context() {
     let (_temp, root) = root();
-    put(&root, "docs/ADR-001.md", "# Retry policy\nThree attempts with the same key.\n");
+    put(
+        &root,
+        "docs/ADR-001.md",
+        "# Retry policy\nThree attempts with the same key.\n",
+    );
     let before = snapshot(&root);
     let task = "Change retry diagnostics";
     let context = success(&invoke(
@@ -509,7 +513,10 @@ fn pinned_context_requires_initialization_and_removed_learning_flags_fail_explic
         );
         assert!(result["error"].as_str().unwrap().contains("lore init"));
     }
-    error(&invoke(&root, &["--json", "context", "read docs", "--fast"]), "uninitialized_project");
+    error(
+        &invoke(&root, &["--json", "context", "read docs", "--fast"]),
+        "uninitialized_project",
+    );
     for args in [
         vec!["--json", "onboard", "--mode", "tutorial"],
         vec!["--json", "onboard", "--activity", "transfer"],
