@@ -39,17 +39,17 @@ fn retained_decision_evidence_and_safety_commands_remain_exposed() {
     assert!(output.status.success());
     let help = String::from_utf8(output.stdout).unwrap();
     for command in [
-        "context", "evidence", "decisions", "cases", "review", "search",
-        "status", "audit", "init", "update", "integrate",
+        "context", "evidence", "decisions", "cases", "review", "search", "status", "audit",
+        "init", "update", "integrate",
     ] {
         assert!(
             help.lines()
-                .any(|line| line.trim_start().starts_with(&format!("{command} "))),
+                .any(|line| line.split_whitespace().next() == Some(command)),
             "CLI lost the required {command} entry point"
         );
     }
     assert!(
-        !help.lines().any(|line| line.trim_start().starts_with("visualize ")),
+        !help.lines().any(|line| line.split_whitespace().next() == Some("visualize")),
         "retired browser command is still advertised"
     );
 }
