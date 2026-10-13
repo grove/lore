@@ -416,15 +416,15 @@ async fn interrupted_headless_journal_rolls_forward_only_the_validated_database(
     let conn = storage::stage_database(&old_path, &staging).unwrap();
     storage::set_meta(&conn, "generation", generation).unwrap();
     assert_eq!(publish::stored_mode(&conn).unwrap(), OutputMode::RegistryOnly);
-    conn.close().unwrap();
+    conn.close().map_err(|(_, error)| error).unwrap();
 
     // Model a process interrupted immediately after the durable journal is
     // written, before the staged DB can replace the installed DB. The next
     // update/recover rolls forward without touching any wiki output.
     let journal = serde_json::json!({
-        "project_id": cfg.project_id,
+        "project_id": cfg.project_id.clone(),
         "generation": generation,
-        "wiki": cfg.wiki,
+        "wiki": cfg.wiki.clone(),
         "mode": "registry_only"
     });
     fs::write(
