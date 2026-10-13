@@ -49,7 +49,7 @@ A document may describe an accepted rule; code may appear to implement another r
 
 The **retained core** is: (1) document and decision ingestion; (2) exact quotations, provenance and versioned history; (3) decision lifecycle, scope, relationships and conflict review; (4) optional OpenWiki implementation observations; (5) bounded, permission-checked inspection; (6) task recommendations with checks/limitations; (7) evidence, decisions, cases, search and review drill-down; and (8) update, audit, recovery, retention, privacy and cost controls.
 
-The **non-core product surfaces** include the interactive lessons and assessments **retired by [#66](https://github.com/grove/lore/issues/66)**, an embedded browser/graph viewer, separate Guardian task advice, specialized task-feedback receipt drafting, mandatory wiki publication, redundant browse/read navigation and long-lived legacy context schemas. The other surfaces remain available **where implemented today** until their linked removal issue changes the CLI. The retained `onboard` command now delegates to task context without learning-specific output; see the [#66 migration](LEARNING_MIGRATION.md). Do not replace them with a new tutorial engine, agent framework, website, generic navigation browser or code analyzer.
+The **non-core product surfaces** include the interactive lessons and assessments **retired by [#66](https://github.com/grove/lore/issues/66)**, the embedded browser/graph viewer **retired by [#67](https://github.com/grove/lore/issues/67)**, separate Guardian task advice, specialized task-feedback receipt drafting, mandatory wiki publication, redundant browse/read navigation and long-lived legacy context schemas. The remaining non-core surfaces stay available **where implemented today** until their linked removal issue changes the CLI. The retained `onboard` command now delegates to task context without learning-specific output; see the [#66 migration](LEARNING_MIGRATION.md). Do not replace them with a new tutorial engine, agent framework, website, generic navigation browser or code analyzer.
 
 ### Current command map (0.9.0-rc.1)
 
@@ -73,10 +73,11 @@ Every listed command has a core purpose or an explicit migration owner. This map
 | `memory` | Inspect/clear disposable investigation leads; retention and privacy housekeeping, not a second source of authority |
 | `purge` | Explicit managed-data deletion; never deletes original sources |
 | `onboard` | **Thin source-grounded orientation using the context pipeline**; former interactive lessons, exercise flags, separate schemas and caches retired in [#66](https://github.com/grove/lore/issues/66); [migration](LEARNING_MIGRATION.md) |
-| `visualize` | Existing embedded browser viewer; remove in [#67](https://github.com/grove/lore/issues/67); use CLI evidence or optional OpenWiki UI |
 | `guard` | Existing separate advisory path; retire in [#68](https://github.com/grove/lore/issues/68); use `context` with `baseline`/`changes` |
 | `feedback draft` | Existing task-outcome receipt writer; retire in [#69](https://github.com/grove/lore/issues/69); manually review Markdown then `update` |
 | `explore`, `read` | Existing navigation / published-wiki lookup; retire in [#71](https://github.com/grove/lore/issues/71); use `context`, `search`, `evidence`, `decisions`, `cases` |
+
+**Retired:** `lore visualize`, its HTTP routes, and browser assets were removed under [#67](https://github.com/grove/lore/issues/67). See the [visualizer migration](VISUALIZER_MIGRATION.md) for supported CLI guidance/evidence access and optional external OpenWiki code-wiki presentation. No alternate browser UI was introduced.
 
 **Compatibility-specific forms** are tracked separately in [#72](https://github.com/grove/lore/issues/72): uninitialized bootstrap schema 1, `--fast` schema 2, initialized default schema 5, and currently explicit legacy schemas 3/4. No new response framework or schema is called for. `--json`, `--config` and task flags are options, not separate products.
 
@@ -93,7 +94,7 @@ Every listed command has a core purpose or an explicit migration owner. This map
 
 ## Removal and migration policy
 
-1. **#65 was documentation-only.** Follow-up #66 removes only interactive learning code and incompatible learning-specific flags/results with explicit migration. No source material, persisted evidence, privacy grant, authority rule or OpenWiki opt-in status changes.
+1. **#65 was documentation-only.** Follow-ups #66 and #67 remove interactive learning and the embedded browser UI with explicit migration. No source material, persisted evidence, privacy grant, authority rule or OpenWiki opt-in status changes.
 2. **Inventory consumers and stored data first.** Each linked issue owns its actual CLI/code removal, tests and migration path; preserve historical original evidence and its authority/revision labels. Never silently promote imported reports into policy, rewrite user sources, or delete generated pages on upgrade.
 3. **Announce intentional breaking changes.** Document the last supported version, replacement command and affected flags/JSON contracts; use explicit errors after removal, not silent aliasing to a different authority or semantics. Maintain existing project publication behavior until deliberate opt-in migration per [#70](https://github.com/grove/lore/issues/70). Preserve model-free first contact and deterministic fast access per [#72](https://github.com/grove/lore/issues/72).
 4. **Preserve integrity and grants.** Keep read/egress ceilings, review boundaries, source-digest/revision checks, A→B→A history, recovery, cancellation and cross-platform regression coverage. [#68](https://github.com/grove/lore/issues/68) removes Guardian *advice*, **not** the independent Guardian CI source-integrity harness and restoration tests.

@@ -56,13 +56,6 @@ enum Command {
         )]
         expect_digest: Option<String>,
     },
-    /// Open a local, read-only graph and wiki reader (no inference).
-    Visualize {
-        #[arg(long, default_value_t = 4321, value_parser = clap::value_parser!(u16).range(1024..))]
-        port: u16,
-        #[arg(long)]
-        no_open: bool,
-    },
     /// Create configuration and build the initial wiki (existing config is preserved).
     Init {
         #[arg(long)]
@@ -421,19 +414,13 @@ async fn run_metered(cli: Cli, meter: lore::inference::usage::UsageSession) -> R
     // Command dispatch includes every async CLI branch. Keep that future on
     // the heap before the cancellation and task-local scopes embed it; their
     // combined stack frame otherwise also crowds argument parsing on Windows.
-    let is_visualizer = matches!(&cli.command, Command::Visualize { .. });
     let operation = Box::pin(run(cli));
     let result = meter
         .scope(async move {
             tokio::select! {
                 result = operation => result,
                 _ = tokio::signal::ctrl_c() => {
-                    if is_visualizer {
-                        println!("Lore visualizer stopped.");
-                        Ok(0)
-                    } else {
-                        Err(anyhow::anyhow!("cancelled; run update to recover any pending publication"))
-                    }
+                    Err(anyhow::anyhow!("cancelled; run update to recover any pending publication"))
                 }
             }
         })
@@ -546,7 +533,6 @@ async fn run(cli: Cli) -> Result<i32> {
             | Command::Memory { .. }
             | Command::Onboard { .. }
             | Command::Explore { .. }
-            | Command::Visualize { .. }
             | Command::Restore { .. }
             | Command::Decisions { .. }
             | Command::Cases { .. }
@@ -620,9 +606,6 @@ async fn run(cli: Cli) -> Result<i32> {
     }
     match cli.command {
         Command::Integrate { .. } => unreachable!("integration is dispatched before configuration"),
-        Command::Visualize { port, no_open } => {
-            lore::visualize::run(&config, port, no_open).await?
-        }
         Command::Init { rebuild, .. } => {
             compile(
                 &config,
