@@ -144,7 +144,20 @@ async fn initialized_orientation_is_shared_schema_five_context_without_writes() 
         onboard["source_relationships"],
         context["source_relationships"]
     );
-    assert_eq!(onboard["intelligence"], context["intelligence"]);
+    // The two invocations use the same decision pipeline, but elapsed wall-clock
+    // time is measured independently and is not part of the decision contract.
+    let mut onboard_intelligence = onboard["intelligence"].clone();
+    let mut context_intelligence = context["intelligence"].clone();
+    for result in [&mut onboard_intelligence, &mut context_intelligence] {
+        assert!(
+            result["investigation"]["budget"]["elapsed_ms"]
+                .as_u64()
+                .is_some(),
+            "the investigation budget must still report measured elapsed time"
+        );
+        result["investigation"]["budget"]["elapsed_ms"] = Value::from(0);
+    }
+    assert_eq!(onboard_intelligence, context_intelligence);
     assert_eq!(onboard["capabilities"]["inspection"], "disabled_by_caller");
     assert_eq!(onboard["capabilities"]["hosted_egress"], false);
     assert_eq!(onboard["capabilities"]["execution"], false);
