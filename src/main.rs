@@ -246,23 +246,6 @@ enum Command {
         #[arg(long, default_value_t = 8_000, value_parser = view_budget)]
         max_tokens: usize,
     },
-    /// Investigate consequential project risks and return source-linked advice.
-    Guard {
-        #[arg(long, value_parser = baseline_name)]
-        since: String,
-        #[arg(long, value_parser = human_goal)]
-        task: Option<String>,
-        #[arg(long, default_value_t = 8_000, value_parser = guardian_budget)]
-        max_tokens: usize,
-        #[arg(long)]
-        no_cache: bool,
-        #[arg(long, conflicts_with = "no_inspect")]
-        inspect: bool,
-        #[arg(long)]
-        no_inspect: bool,
-        #[arg(long, conflicts_with = "no_inspect")]
-        allow_checkout_egress: bool,
-    },
     /// Inspect and disposition review questions; never edits source knowledge.
     Review {
         #[command(subcommand)]
@@ -538,7 +521,6 @@ async fn run(cli: Cli) -> Result<i32> {
             | Command::Cases { .. }
             | Command::Baseline { .. }
             | Command::Changes { .. }
-            | Command::Guard { .. }
     ) {
         ResolvedConfig::load_for_read(&config_path)
     } else {
@@ -1005,105 +987,6 @@ async fn run(cli: Cli) -> Result<i32> {
                 print!("{}", lore::companion::render_changes(&result));
             }
         }
-        Command::Guard {
-            since,
-            task,
-            max_tokens,
-            no_cache,
-            inspect,
-            no_inspect,
-            allow_checkout_egress,
-        } => {
-            let conn = storage::read_only(&config.state.join("state.db"))?;
-            let result = lore::companion::guard(
-                &config,
-                &conn,
-                &lore::companion::ChangeOptions {
-                    since,
-                    task,
-                    max_tokens,
-                },
-                &context::decision::runtime::RunOptions {
-                    inspect,
-                    investigate: false,
-                    no_inspect,
-                    no_cache,
-                    allow_checkout_egress,
-                },
-            )
-            .await?;
-            if cli.json {
-                println!("{}", serde_json::to_string(&result)?);
-            } else {
-                print!("{}", lore::companion::render_guard(&result));
-            }
-        }
-        Command::Memory { clear } => {
-            if clear {
-                let removed = context::memory::clear(&config)?;
-                println!(
-                    "{}",
-                    json!({"schema_version":1,"removed":removed,"sources_modified":false})
-                );
-            } else {
-                let conn = storage::read_only(&config.state.join("state.db"))?;
-                let (effective, _, _) = context::adaptive::authorized_config(
-                    &config,
-                    &context::decision::runtime::RunOptions::default(),
-                )?;
-                let result =
-                    context::memory::list(&effective, &storage::registry_revision(&conn)?)?;
-                if cli.json {
-                    println!("{}", serde_json::to_string(&result)?);
-                } else {
-                    println!("# Reusable investigation leads\n");
-                    for item in &result.findings {
-                        println!(
-                            "- {} — {} inspected files, {} investigation steps. Revalidation required.\n  `{}`",
-                            util::markdown_text(&item.question),
-                            item.inspected_files,
-                            item.investigation_steps,
-                            item.id
-                        );
-                    }
-                    if result.findings.is_empty() {
-                        println!("No current findings are available under this caller's grants.");
-                    }
-                }
-            }
-        }
-        Command::Read { topic } => {
-            let path = if topic == "index" || topic == "reviews" {
-                format!("{topic}.md")
-            } else {
-                util::safe_slug(&topic)?;
-                format!("topics/{topic}.md")
-            };
-            let text = util::read_limited(&publish::page_path(&config.wiki, &path)?, 4_000_000)?;
-            if cli.json {
-                emit(json!({"page":path,"content":text}), true)?;
-            } else {
-                print!("{text}");
-            }
-        }
-        Command::Feedback {
-            action:
-                FeedbackCommand::Draft {
-                    receipt,
-                    output,
-                    write,
-                    allow_file,
-                },
-        } => {
-            let result =
-                lore::feedback::draft(&config, &receipt, &allow_file, output.as_deref(), write)?;
-            if cli.json {
-                emit(result, true)?;
-            } else {
-                print!("{}", result["markdown"].as_str().unwrap());
-            }
-        }
-        Command::Evidence { id } => emit(engine::evidence(&config, &id)?, cli.json)?,
         Command::Review { action } => match action {
             Some(ReviewCommand::Adjudicate {
                 id,
@@ -1634,15 +1517,6 @@ fn view_budget(value: &str) -> std::result::Result<usize, String> {
     let budget = context_budget(value)?;
     if budget < 512 {
         Err("complete project views require --max-tokens between 512 and 100000".into())
-    } else {
-        Ok(budget)
-    }
-}
-
-fn guardian_budget(value: &str) -> std::result::Result<usize, String> {
-    let budget = context_budget(value)?;
-    if budget < 1024 {
-        Err("guard --max-tokens must be 1024..100000".into())
     } else {
         Ok(budget)
     }
