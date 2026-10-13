@@ -230,13 +230,12 @@ struct Scanner {
     paths: Vec<String>,
 }
 
-/// Produce the same bounded, source-only evidence for context and onboarding.
+/// Produce bounded, source-only context for tasks and project orientation.
 /// All filesystem access is local and read-only; no provider is constructed.
 pub fn run(
     root: &Path,
     configuration: Option<&ConfigurationSnapshot>,
     options: &ContextOptions,
-    onboard: bool,
 ) -> Result<BootstrapResult> {
     context::validate_options(options)?;
     util::reject_symlinks(root)
@@ -355,7 +354,7 @@ pub fn run(
     });
     let preferred = scanner.groups.first().map(|g| g.source.path.clone());
     let mut result = BootstrapResult {
-        contract: if onboard { "lore.bootstrap_onboard" } else { "lore.bootstrap_context" }.into(),
+        contract: "lore.bootstrap_context".into(),
         schema_version: 1,
         mode: "bootstrap_source_only".into(),
         task: options.task.clone(),
@@ -376,9 +375,6 @@ pub fn run(
         budget: ContextBudget { max_tokens: options.max_tokens, used_tokens: 0, tokenizer: "cl100k_base".into() },
     };
     result.limitations.extend(scanner.warnings.iter().cloned());
-    if onboard {
-        result.limitations.push("Source-only orientation does not establish a verified workflow, completed exercise or learner mastery.".into());
-    }
     set_action(&mut result, preferred.as_deref());
     measure(&mut result)?;
     if result.budget.used_tokens > options.max_tokens {
@@ -1104,12 +1100,7 @@ fn measure(result: &mut BootstrapResult) -> Result<()> {
 /// Portable Markdown, with excerpts in inert fences preserving exact bytes.
 pub fn render(result: &BootstrapResult) -> String {
     let mut out = format!(
-        "# {}\n\n{}\n\n",
-        if result.contract == "lore.bootstrap_onboard" {
-            "Project orientation from local sources"
-        } else {
-            "Task context from local sources"
-        },
+        "# Task context from local sources\n\n{}\n\n",
         util::markdown_text(&result.best_next_action)
     );
     for evidence in &result.evidence {
@@ -1168,7 +1159,6 @@ mod tests {
                 paths: Vec::new(),
                 max_tokens: 3000,
             },
-            false,
         );
         assert_eq!(
             result
