@@ -59,7 +59,7 @@ lore decisions "retry policy"
 lore cases "duplicate charge"
 ```
 
-`init` builds the retained evidence registry and, **in 0.9.0-rc.1**, also publishes generated Markdown pages. Headless compilation is separately planned under [#70](https://github.com/grove/lore/issues/70). Compiled `context` uses schema-5 intelligence by default or a labeled deterministic fallback; `context "TASK" --fast` is explicitly model-free schema-2 retrieval **only after** initialization. Exact retained quotations are available with `lore evidence ID`. OpenWiki snapshots are optional; source Markdown is enough to get started.
+`init` builds the retained evidence registry; **new projects now default to `output.mode: registry_only`** and do not create wiki pages. If you need optional Markdown export, create a new config with `lore init --configure-only --publish-markdown --source ./docs` or choose `output.mode: markdown`. Existing wiki projects keep their output until explicitly migrated ([guide](../HEADLESS_MIGRATION.md)); 0.9.0-rc.1 always published pages. Compiled `context` uses schema-5 intelligence by default or a labeled deterministic fallback; `context "TASK" --fast` is explicitly model-free schema-2 retrieval **only after** initialization. Exact retained quotations are available with `lore evidence ID`. OpenWiki snapshots are optional; source Markdown is enough to get started.
 
 A call to `lore update` may invoke configured models; `lore status` is read-only. Keep `.lore/` private and excluded from version control, because it may contain source evidence and model responses.
 
