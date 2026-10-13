@@ -213,11 +213,6 @@ enum Command {
         )]
         compact: bool,
     },
-    /// Draft a reviewable investigation note from a bounded task outcome receipt.
-    Feedback {
-        #[command(subcommand)]
-        action: FeedbackCommand,
-    },
     /// Explain recorded choices, conditions, alternatives and historical transitions.
     Decisions {
         #[arg(value_parser = human_goal)]
@@ -311,21 +306,6 @@ enum ReviewCommand {
         reason: String,
         #[arg(long, default_value = "user")]
         actor: String,
-    },
-}
-
-#[derive(Subcommand)]
-enum FeedbackCommand {
-    Draft {
-        #[arg(long)]
-        receipt: PathBuf,
-        #[arg(long, requires = "write")]
-        output: Option<PathBuf>,
-        #[arg(long, requires = "output")]
-        write: bool,
-        /// Allow hashing only this exact changed project file; never execute it.
-        #[arg(long)]
-        allow_file: Vec<String>,
     },
 }
 
@@ -511,7 +491,6 @@ async fn run(cli: Cli) -> Result<i32> {
         &cli.command,
         Command::Context { .. }
             | Command::Review { .. }
-            | Command::Feedback { .. }
             | Command::Evidence { .. }
             | Command::Memory { .. }
             | Command::Onboard { .. }
@@ -1033,23 +1012,6 @@ async fn run(cli: Cli) -> Result<i32> {
                 emit(json!({"page":path,"content":text}), true)?;
             } else {
                 print!("{text}");
-            }
-        }
-        Command::Feedback {
-            action:
-                FeedbackCommand::Draft {
-                    receipt,
-                    output,
-                    write,
-                    allow_file,
-                },
-        } => {
-            let result =
-                lore::feedback::draft(&config, &receipt, &allow_file, output.as_deref(), write)?;
-            if cli.json {
-                emit(result, true)?;
-            } else {
-                print!("{}", result["markdown"].as_str().unwrap());
             }
         }
         Command::Evidence { id } => emit(engine::evidence(&config, &id)?, cli.json)?,
