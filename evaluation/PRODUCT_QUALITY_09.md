@@ -48,7 +48,7 @@ it does not weaken the required behavior. Initial oversized/source-order fixture
 attempts and a sandbox listener failure are documented alongside successful runs.
 Historical 0.7/0.8 receipts and the original 0.9 baseline capture remain unchanged.
 
-Final boundary review reproduced a blocking FIFO open in optional feedback-file
+**Historical 0.9.0-rc.1 validation (pre-[#69](https://github.com/grove/lore/issues/69) removal):** Final boundary review reproduced a blocking FIFO open in optional feedback-file
 hashing. The repaired implementation rejects non-regular files before opening
 and uses nonblocking/no-follow Unix opens. The new regression and all seven
 feedback tests pass. A fresh full suite, optimized build and contract capture
@@ -63,7 +63,7 @@ Feedback never treats supplied hashes/attestations as proof of execution or
 independence. It omits private narratives/checker material and leaves disclosure-
 reviewed lesson wording to the caller. No new dependency or authoritative store
 was added. See [adjudication](../docs/REVIEW_ADJUDICATION.md) and
-[feedback](../docs/TASK_FEEDBACK.md).
+[retired task-feedback migration](../docs/FEEDBACK_MIGRATION.md).
 
 ## Empirical gates still missing
 
