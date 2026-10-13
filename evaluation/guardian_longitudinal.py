@@ -1161,7 +1161,9 @@ def assess(directory: Path, review_files: list[Path] | None = None) -> dict:
         for check, passed in checks.items():
             if not passed:
                 failures[check] += 1
-        status = guard.get("assessment_status", "command_failed")
+        guidance_mode = record.get("advice_command", "guard")
+        status = ("task_context" if guidance_mode == "context" and response_hash_valid(record.get("guard", {}))
+                  else guard.get("assessment_status", "command_failed"))
         statuses[status] += 1
         count = len(guard.get("advisories", []))
         high = sum(advisory.get("severity") == "high" for advisory in guard.get("advisories", []))
@@ -1177,7 +1179,9 @@ def assess(directory: Path, review_files: list[Path] | None = None) -> dict:
         omitted = sum(changes.get(key, 0) for key in ("omitted_changes", "omitted_relationship_changes", "omitted_imported_changes", "omitted_cross_source_changes"))
         reviewers = reviews[event_id]
         reviewed = len(reviewers) >= 2 and all(item["label_confirmed"] and item["source_identity_confirmed"] for item in reviewers)
-        available = all(checks.values()) and status == "source_reviewed_advisory" and not omitted and not changes.get("retrieval_truncated", False) and not guard.get("advisories_in_shared_guidance", 0)
+        # Current task guidance is not a second advisory product and has no
+        # Guardian alerts to score. Historical quality claims remain unmeasured.
+        available = guidance_mode == "guard" and all(checks.values()) and status == "source_reviewed_advisory" and not omitted and not changes.get("retrieval_truncated", False) and not guard.get("advisories_in_shared_guidance", 0)
         correctly_alerted = False
         if label["alert_necessity"] == "required":
             required += 1
@@ -1202,7 +1206,8 @@ def assess(directory: Path, review_files: list[Path] | None = None) -> dict:
         try:
             if not response_hash_valid(record.get("guard", {})):
                 raise ValueError("A failed guardian may have made unreported provider calls")
-            calls = shared.invocation_calls(guard["intelligence"], "adaptive") if guard.get("intelligence") is not None else 0
+            calls = (shared.invocation_calls(guard, "adaptive") if guidance_mode == "context"
+                     else shared.invocation_calls(guard["intelligence"], "adaptive") if guard.get("intelligence") is not None else 0)
         except (KeyError, TypeError, ValueError):
             calls, usage_known = None, False
         if calls is not None:
@@ -1244,7 +1249,8 @@ def assess(directory: Path, review_files: list[Path] | None = None) -> dict:
                "same_reference_duplicate_alerts": duplicate_alerts,
                "independently_actionable_alert_rate": ratio(actionable, reviewed_alerts),
                "material_changes_with_false_absence": false_absence,
-               "guard_model_calls": total_model_calls if usage_known else None,
+               "guard_model_calls": total_model_calls if usage_known and run.get("advice_command", "guard") == "guard" else None,
+               "context_model_calls": total_model_calls if usage_known and run.get("advice_command") == "context" else None,
                "compilation_model_calls": total_compilation_calls if usage_known else None,
                "total_model_calls": total_model_calls + total_compilation_calls if usage_known else None,
                "provider_tokens": 0 if usage_known and total_model_calls + total_compilation_calls == 0 else None,
@@ -1252,7 +1258,7 @@ def assess(directory: Path, review_files: list[Path] | None = None) -> dict:
                "end_to_end_p50_seconds": sorted(elapsed)[len(elapsed) // 2] if elapsed else None,
                "end_to_end_p95_seconds": p95, "initialization_and_compilation": run["initialization"],
                "product_efficacy_measured": efficacy_measured,
-               "product_quality_gate_pass": efficacy_measured and not failures and audit_complete and precision >= .90 and recall >= .85 and benign_alerts == 0 and duplicate_alerts == 0,
+               "product_quality_gate_pass": run.get("advice_command", "guard") == "guard" and efficacy_measured and not failures and audit_complete and precision >= .90 and recall >= .85 and benign_alerts == 0 and duplicate_alerts == 0,
                "limitations": ["Synthetic/debug labels are not independent real-project evidence.",
                    "Provider-unavailable, budget-limited, and failed transitions remain in coverage denominators.",
                    "An empty alert list does not establish project safety.",
