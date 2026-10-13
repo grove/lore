@@ -1082,4 +1082,3 @@ pub fn render_changes(result: &ChangeReport) -> String {
     }
     text
 }
-
