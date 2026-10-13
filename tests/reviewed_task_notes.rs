@@ -24,7 +24,8 @@ async fn reviewed_task_note_is_ordinary_reported_evidence_and_withdrawal_keeps_h
 
     // A receipt created by an old producer remains caller-owned data.
     // Nothing automatically parses or authorizes its embedded assertions.
-    let original_receipt = br#"{"contract":"lore.task_outcome","schema_version":1,"reported_checks":{"passed":9}}"#;
+    let original_receipt =
+        br#"{"contract":"lore.task_outcome","schema_version":1,"reported_checks":{"passed":9}}"#;
     let receipt_path = cfg.base.join("task-outcome.json");
     fs::write(&receipt_path, original_receipt).unwrap();
 
@@ -49,7 +50,10 @@ async fn reviewed_task_note_is_ordinary_reported_evidence_and_withdrawal_keeps_h
         .expect("ordinary Markdown task report was not ingested");
     assert_eq!(note.lifecycle, "completed");
     assert_ne!(note.kind, "decision");
-    assert!(note.statement.contains("independent approval are still unverified"));
+    assert!(
+        note.statement
+            .contains("independent approval are still unverified")
+    );
     let evidence = note.evidence[0].id.clone();
     let captured = storage::evidence_snapshot(&conn, &evidence).unwrap();
     assert!(captured.excerpt.contains("REPORT queue:"));
@@ -85,8 +89,13 @@ async fn reviewed_task_note_is_ordinary_reported_evidence_and_withdrawal_keeps_h
         .unwrap();
     let conn = storage::read_only(&cfg.state.join("state.db")).unwrap();
     assert!(storage::evidence_snapshot(&conn, &evidence).is_ok());
-    assert!(!storage::views(&conn).unwrap().iter().flat_map(|v| &v.evidence)
-        .any(|e| e.id == evidence && e.active));
+    assert!(
+        !storage::views(&conn)
+            .unwrap()
+            .iter()
+            .flat_map(|v| &v.evidence)
+            .any(|e| e.id == evidence && e.active)
+    );
     assert_eq!(fs::read(&receipt_path).unwrap(), original_receipt);
 }
 
@@ -94,9 +103,23 @@ async fn reviewed_task_note_is_ordinary_reported_evidence_and_withdrawal_keeps_h
 fn removed_feedback_drafting_rejects_without_configuration_or_file_writes() {
     let project = tempfile::tempdir().unwrap();
     for args in [
-        vec!["--json", "feedback", "draft", "--receipt", "task-outcome.json"],
-        vec!["--json", "feedback", "draft", "--receipt", "task-outcome.json",
-             "--output", "docs/task-note.md", "--write"],
+        vec![
+            "--json",
+            "feedback",
+            "draft",
+            "--receipt",
+            "task-outcome.json",
+        ],
+        vec![
+            "--json",
+            "feedback",
+            "draft",
+            "--receipt",
+            "task-outcome.json",
+            "--output",
+            "docs/task-note.md",
+            "--write",
+        ],
     ] {
         let output = Command::new(env!("CARGO_BIN_EXE_lore"))
             .current_dir(project.path())
@@ -116,8 +139,14 @@ fn removed_feedback_drafting_rejects_without_configuration_or_file_writes() {
     }
 
     let help = Command::new(env!("CARGO_BIN_EXE_lore"))
-        .arg("--help").output().unwrap();
+        .arg("--help")
+        .output()
+        .unwrap();
     assert!(help.status.success());
-    assert!(!String::from_utf8(help.stdout).unwrap().lines()
-        .any(|line| line.split_whitespace().next() == Some("feedback")));
+    assert!(
+        !String::from_utf8(help.stdout)
+            .unwrap()
+            .lines()
+            .any(|line| line.split_whitespace().next() == Some("feedback"))
+    );
 }
