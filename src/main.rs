@@ -634,6 +634,7 @@ async fn run(cli: Cli) -> Result<i32> {
                         refresh: true,
                         deep: true,
                         rebuild: false,
+                        migrate_output: false,
                     },
                     cli.json,
                 )
