@@ -606,7 +606,8 @@ fn every_returned_view_fits_its_full_json_and_markdown_budget_without_slicing_fa
                 assert!(result.budget.used_tokens >= used);
                 assert!(result.budget.used_tokens <= limit);
                 assert!(used <= limit);
-                bounded_omission |= result.coverage.omitted_complete_items > 0;
+                bounded_omission |= result.coverage.omitted_complete_items > 0
+                    || result.context.omissions.critical_groups > 0;
                 for lens in result.lenses {
                     retained = true;
                     let facet = lens
@@ -636,7 +637,7 @@ fn every_returned_view_fits_its_full_json_and_markdown_budget_without_slicing_fa
     assert!(retained);
     assert!(
         bounded_omission,
-        "bounded mode must disclose omitted whole lenses"
+        "bounded mode must disclose omitted whole lenses or source groups"
     );
 }
 

@@ -268,8 +268,7 @@ fn exact_reference(
     let Some(symbol) = exact_symbol(&options.task) else {
         return Ok(None);
     };
-    if selected.retrieval_truncated
-        || selected.omissions.critical_groups > 0
+    if selected.decision_incomplete()
         || !selected.discrepancies.is_empty()
         || !selected.reviews.is_empty()
         || !selected.sections.needs_verification.is_empty()

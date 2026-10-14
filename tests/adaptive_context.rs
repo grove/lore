@@ -172,6 +172,57 @@ async fn omitted_critical_group_prevents_decision_sufficient_reference() {
     );
 }
 
+#[tokio::test]
+async fn omitted_singleton_guidance_prevents_exact_reference() {
+    let (_dir, config, model) = common::project();
+    common::put(
+        &config,
+        "constant.md",
+        "DECISION worker: QUEUE_CAPACITY is 128 entries.\n",
+    );
+    common::put(
+        &config,
+        "limit.md",
+        &format!(
+            "DECISION worker: QUEUE_CAPACITY requires a deployment check. {}\n",
+            "Preserve the exception for isolated installations. ".repeat(75)
+        ),
+    );
+    engine::update(&config, &model, None, UpdateOptions::default())
+        .await
+        .unwrap();
+    let calls = model.calls.load(Ordering::SeqCst);
+    let conn = storage::read_only(&config.state.join("state.db")).unwrap();
+    let options = ContextOptions {
+        task: "What is QUEUE_CAPACITY?".into(),
+        paths: vec![],
+        max_tokens: 1800,
+    };
+    let selected = context::build_context(&conn, &options).unwrap();
+    assert!(
+        selected
+            .sections
+            .items()
+            .any(|item| item.statement.contains("128"))
+    );
+    assert_eq!(selected.omissions.knowledge_units, 1);
+    assert_eq!(selected.omissions.critical_groups, 1);
+    let result = adaptive::build(
+        &conn,
+        &config,
+        &options,
+        selected,
+        Some(&model),
+        &RunOptions::default(),
+    )
+    .await
+    .unwrap();
+    let value = serde_json::to_value(result.intelligence).unwrap();
+    assert_eq!(value["mode"], "fast_fallback");
+    assert_eq!(value["investigation_status"], "incomplete_retrieval");
+    assert_eq!(model.calls.load(Ordering::SeqCst), calls);
+}
+
 #[test]
 fn project_configuration_cannot_grant_host_capabilities() {
     let (_dir, mut config, _model) = common::project();

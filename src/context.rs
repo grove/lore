@@ -202,6 +202,17 @@ pub struct ContextResult {
     pub recommended_verification: Vec<imports::ContextVerification>,
 }
 
+impl ContextResult {
+    /// Absence from bounded context cannot establish absence of a task constraint.
+    pub(crate) fn decision_incomplete(&self) -> bool {
+        self.retrieval_truncated
+            || self.omissions.knowledge_units > 0
+            || self.omissions.imported_observations > 0
+            || self.omissions.critical_groups > 0
+            || self.omissions.source_warnings > 0
+    }
+}
+
 #[derive(Clone, Copy)]
 enum Section {
     Constraints,
@@ -312,6 +323,21 @@ fn conflict(kind: &str) -> bool {
     matches!(kind, "contradicts" | "suspected_conflict")
 }
 
+fn complete_relation(fact: &storage::RelationFact, a: &KnowledgeView, b: &KnowledgeView) -> bool {
+    critical(&fact.kind)
+        || (fact.active
+            && matches!(fact.kind.as_str(), "related_to" | "elaborates")
+            && retrieval::expandable(a)
+            && retrieval::expandable(b)
+            && retrieval::same_scope(a, b)
+            && (fact.kind == "elaborates"
+                || [a, b].iter().any(|view| {
+                    view.lifecycle == "rejected"
+                        || view.kind == "constraint"
+                            && matches!(view.lifecycle.as_str(), "accepted" | "active")
+                })))
+}
+
 fn assemble(
     conn: &Connection,
     options: &ContextOptions,
@@ -358,7 +384,16 @@ fn assemble(
         .collect();
     scores.extend(native.scores.iter().map(|(id, score)| (id.clone(), *score)));
     let mut adjacency: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    for fact in facts.iter().filter(|f| critical(&f.kind)) {
+    for fact in facts.iter().filter(|f| {
+        critical(&f.kind)
+            || (f.active
+                && scores.contains_key(&f.from)
+                && scores.contains_key(&f.to)
+                && views
+                    .get(&f.from)
+                    .zip(views.get(&f.to))
+                    .is_some_and(|(a, b)| complete_relation(f, a, b)))
+    }) {
         adjacency
             .entry(fact.from.clone())
             .or_default()
@@ -367,6 +402,22 @@ fn assemble(
             .entry(fact.to.clone())
             .or_default()
             .insert(fact.from.clone());
+    }
+    // Only retrieved, source-bound families qualify: sharing a document alone
+    // must not bind unrelated decisions or escape candidate/expansion limits.
+    for (index, hit) in hits.iter().enumerate() {
+        for other in &hits[index + 1..] {
+            if retrieval::same_family(&hit.knowledge, &other.knowledge) {
+                adjacency
+                    .entry(hit.knowledge.id.clone())
+                    .or_default()
+                    .insert(other.knowledge.id.clone());
+                adjacency
+                    .entry(other.knowledge.id.clone())
+                    .or_default()
+                    .insert(hit.knowledge.id.clone());
+            }
+        }
     }
     // A cross-source relationship is useful only with all its endpoints and
     // evidence. Budget entire connected groups, including documentary intent
@@ -476,7 +527,7 @@ fn assemble(
             .filter_map(|id| scores.get(id))
             .copied()
             .fold(0.0, f64::max);
-        let is_critical = ids.len() > 1 || has_conflict;
+        let is_critical = ids.len() > 1 || has_conflict || priority < 3;
         groups.push(Group {
             ids,
             priority,
@@ -778,13 +829,13 @@ impl Assembly<'_> {
         }
         imports::populate(self.conn, self.native, selected, self.reasons, &mut result)?;
         if result.omissions.knowledge_units > 0 || result.omissions.imported_observations > 0 {
-            result.warnings.push("Some relevant knowledge was omitted. Increase --max-tokens or narrow the task; complete records and critical relationship groups are kept together.".into());
+            result.warnings.push("Retrieved candidates were omitted by budget or excluded for unsupported evidence. This does not establish that no applicable constraint exists. Increase --max-tokens or narrow the task; complete evidence groups are kept together.".into());
         }
         if result.retrieval_truncated {
-            result.warnings.push("Retrieval reached a search or expansion bound. Omission counts cover retrieved candidates only; narrow the task or add a specific --path to inspect other knowledge.".into());
+            result.warnings.push("Retrieval reached a search or expansion bound. Unselected records could not be assessed; absence here does not establish that no applicable constraint exists. Omission counts cover retrieved candidates only; narrow the task or add a specific --path.".into());
         }
         if result.omissions.critical_groups > 0 {
-            result.warnings.push("Relevant conflict, review, or decision-history groups could not be included. This context is incomplete for a decision.".into());
+            result.warnings.push("Relevant constraints, conditions, alternatives, conflict, review, or decision-history groups could not be included. This context is incomplete for a decision.".into());
         }
         if result.omissions.unsupported_units > 0 {
             result.warnings.push(

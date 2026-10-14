@@ -8,3 +8,4 @@ evaluation/corpora/zoom-frozen-v1/** -text
 evaluation/corpora/coding-real-v1/** -text
 evaluation/corpora/guardian/** -text
 tests/fixtures/openwiki-freshness/** -text whitespace=cr-at-eol
+tests/fixtures/critical-retrieval/** -text

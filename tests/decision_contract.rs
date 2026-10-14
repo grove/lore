@@ -364,3 +364,16 @@ fn public_validation_rechecks_retained_facts_instead_of_trusting_selected_text()
         "Dispatch no longer preserves ordering.".into();
     assert!(fixture.validate(draft, &[]).is_err());
 }
+
+#[test]
+fn incomplete_retrieval_cannot_validate_a_proceed_draft() {
+    for incomplete in 0..3 {
+        let mut fixture = Fixture::new();
+        match incomplete {
+            0 => fixture.selected.retrieval_truncated = true,
+            1 => fixture.selected.omissions.knowledge_units = 1,
+            _ => fixture.selected.omissions.critical_groups = 1,
+        }
+        assert!(fixture.validate(fixture.draft(), &[]).is_err());
+    }
+}

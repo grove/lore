@@ -660,6 +660,18 @@ async fn build(
             );
         }
     };
+    if selected.decision_incomplete() {
+        return small_fallback(
+            conn,
+            options,
+            &selected,
+            &budget,
+            &egress,
+            "not_assessed",
+            "incomplete_retrieval",
+            "Task evidence is incomplete: unselected or omitted records could contain constraints, exceptions or counterevidence. Resolve retrieval bounds and budget omissions before relying on decision readiness.",
+        );
+    }
     let mut sources = intelligence::evidence_input(&selected, &retained);
     let mut session = discover(config, options, &selected)?;
     session.check_openwiki(&selected.imported_evidence);
@@ -752,7 +764,7 @@ async fn build(
                     "hit",
                     None,
                 );
-                if let Some(result) = fit(result)?
+                if let Some(result) = fit(result, &retained.required_records)?
                     && budget.ensure_time().is_ok()
                 {
                     usage::cached(model.descriptor(), "decision_context")
@@ -1130,7 +1142,7 @@ async fn build(
         cache_status,
         None,
     );
-    let Some(mut result) = fit(result)? else {
+    let Some(mut result) = fit(result, &retained.required_records)? else {
         return small_fallback(
             conn,
             options,
@@ -1176,7 +1188,7 @@ async fn build(
             result.warnings.push(
                 "Local decision cache unavailable; this validated briefing remains usable.".into(),
             );
-            if let Some(result) = fit(result)? {
+            if let Some(result) = fit(result, &retained.required_records)? {
                 return Ok(DecisionContextResult::Brief(result));
             }
             return small_fallback(
@@ -1284,7 +1296,7 @@ fn fallback(
         brief_items_omitted: 0,
         warnings: selected.warnings.clone(),
     };
-    if let Some(result) = fit(result)? {
+    if let Some(result) = fit(result, &retained.required_records)? {
         return Ok(DecisionContextResult::Brief(result));
     }
     small_fallback(
@@ -1320,6 +1332,7 @@ fn small_fallback(
             },
         )?;
         context.schema_version = DECISION_SCHEMA_VERSION;
+        context.retrieval_truncated |= selected.retrieval_truncated;
         context.model_calls = budget.model_calls();
         context.budget.max_tokens = options.max_tokens;
         for warning in &selected.warnings {
@@ -1378,7 +1391,10 @@ pub(crate) fn measure(result: &mut DecisionContextResult) -> Result<()> {
     ))
 }
 
-fn fit(mut result: DecisionResult) -> Result<Option<DecisionResult>> {
+fn fit(
+    mut result: DecisionResult,
+    required_records: &BTreeSet<String>,
+) -> Result<Option<DecisionResult>> {
     loop {
         let (mut evidence, mut observations) = referenced_ids(&result.brief);
         for check in &result.inspection.checkout_freshness {
@@ -1423,11 +1439,12 @@ fn fit(mut result: DecisionResult) -> Result<Option<DecisionResult>> {
         } else if !next.brief.heuristics.is_empty() {
             next.brief.heuristics.pop();
         } else if let Some(i) = next.brief.facts.iter().rposition(|fact| {
-            !next
-                .brief
-                .constraints
-                .iter()
-                .any(|c| c.knowledge_id == fact.record.record_id)
+            !required_records.contains(&fact.record.record_id)
+                && !next
+                    .brief
+                    .constraints
+                    .iter()
+                    .any(|c| c.knowledge_id == fact.record.record_id)
         }) {
             next.brief.facts.remove(i);
         } else if next.brief.completion_criteria.len() > 1 {

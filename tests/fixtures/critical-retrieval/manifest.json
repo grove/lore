@@ -1,0 +1,409 @@
+{
+  "records": [
+    {
+      "id": "ku_delivery",
+      "source": "delivery.md",
+      "source_sha256": "431148782806c162ba8fd7f06ac139e87d2a035f35326b0d7d57373d95741f72",
+      "section": "delivery",
+      "quote": "Redelivery schedules failed envelopes. See identity.md for the stable key requirement.",
+      "topic": "delivery",
+      "subject": "messenger",
+      "kind": "design",
+      "lifecycle": "active",
+      "scope": "production",
+      "state": "current",
+      "evidence_id": "ev_56b319f1272b9acf48d45d5c49f99650b3beadfa7b8e04534ce724d26816a80d"
+    },
+    {
+      "id": "ku_identity",
+      "source": "identity.md",
+      "source_sha256": "c35682a2dac189b8837744d00b3e02e4ed8e2b80d08b47317bd4847a46954b3c",
+      "section": "identity",
+      "quote": "An event key must remain unchanged throughout its lifecycle.",
+      "topic": "identity",
+      "subject": "event identity",
+      "kind": "constraint",
+      "lifecycle": "accepted",
+      "scope": "production",
+      "state": "current",
+      "evidence_id": "ev_0cf3959d3537e61500e687c112fe1a2398a8f381357b0239bf5d42c4493a0c2a"
+    },
+    {
+      "id": "ku_release",
+      "source": "release.md",
+      "source_sha256": "ff058309f86b9ccbb704b7125a402428e26aa8533c21816ea63542fb7ffdfdc1",
+      "section": "release",
+      "quote": "Publishing deployment artifacts requires a signature.",
+      "topic": "release",
+      "subject": "artifact admission",
+      "kind": "constraint",
+      "lifecycle": "accepted",
+      "scope": "production",
+      "state": "current",
+      "evidence_id": "ev_b4db9f7c84d8fb550d949ce7a6d0362282ed902eee1dea0eb8df948c638349f4"
+    },
+    {
+      "id": "ku_exception",
+      "source": "release.md",
+      "source_sha256": "ff058309f86b9ccbb704b7125a402428e26aa8533c21816ea63542fb7ffdfdc1",
+      "section": "exception",
+      "quote": "Air-gapped rehearsals may use unsigned bundles only when isolated from production; externally reachable rehearsals still require attestation.",
+      "topic": "release",
+      "subject": "artifact admission",
+      "kind": "constraint",
+      "lifecycle": "accepted",
+      "scope": "production",
+      "state": "current",
+      "evidence_id": "ev_98b9d706df9162c80fa3e843692efb25533e692b35ec0c9e253072173a8d7914"
+    },
+    {
+      "id": "ku_chosen",
+      "source": "choice.md",
+      "source_sha256": "7b43b7684d15f49bd32a2461eaac2292a44f106e975029639e11fcba528e8e93",
+      "section": "chosen",
+      "quote": "Zephyr uses a bounded spool; the broadcast alternative was rejected.",
+      "topic": "choice",
+      "subject": "delivery strategy",
+      "kind": "decision",
+      "lifecycle": "accepted",
+      "scope": "production",
+      "state": "current",
+      "evidence_id": "ev_c48195a839aa078970e96fe48cdd87d8d55d693f7ad23a94a5f4a04c0a21400e"
+    },
+    {
+      "id": "ku_rejected",
+      "source": "rejected.md",
+      "source_sha256": "e6b0167e447f0fc759b25ead25916e6ae6fe4f63a93c791ab704c1bca1fbf44e",
+      "section": "rejected",
+      "quote": "Broadcast was rejected because duplicates escape the stable-key boundary.",
+      "topic": "choice",
+      "subject": "delivery strategy",
+      "kind": "decision",
+      "lifecycle": "rejected",
+      "scope": "production",
+      "state": "current",
+      "evidence_id": "ev_aff034c9cdff0f157b6a7469d63b61c8c057e53fa8a4dcc3ea95c837310beafc"
+    },
+    {
+      "id": "ku_path",
+      "source": "path.md",
+      "source_sha256": "77ff207fce03f04038192b20f6624baf986cf1f2b49cb5d4b32cf55a6c809de7",
+      "section": "path",
+      "quote": "Preserve instrument identifiers in `src/labs/cycle.rs`.",
+      "topic": "controls",
+      "subject": "instrument identity",
+      "kind": "constraint",
+      "lifecycle": "accepted",
+      "scope": "production",
+      "state": "current",
+      "evidence_id": "ev_2ad9afc1113e8bbb515178a637b1d8a3cc2a1b06fdd8714211acd22660e323b5"
+    },
+    {
+      "id": "ku_policy",
+      "source": "policy.md",
+      "source_sha256": "2b89ae0bb2ae9527f8ac444ed474b75f0370412dfc06619c21b4c323043817d4",
+      "section": "policy",
+      "quote": "Nebula permits remote delivery. The isolation contract records contrary evidence.",
+      "topic": "policy",
+      "subject": "remote delivery",
+      "kind": "decision",
+      "lifecycle": "accepted",
+      "scope": "production",
+      "state": "current",
+      "evidence_id": "ev_b75fb4e864b96590cd0e54d77306486aee67745725c1c6f93d8078dd115a00bb"
+    },
+    {
+      "id": "ku_counter",
+      "source": "counter.md",
+      "source_sha256": "545d58da414395aee69aeb9950b413a65bc3e032f311111e987a05ed80a2e4ed",
+      "section": "counter",
+      "quote": "The isolation contract forbids external communication in restricted installations.",
+      "topic": "isolation",
+      "subject": "external communication",
+      "kind": "constraint",
+      "lifecycle": "accepted",
+      "scope": "production",
+      "state": "current",
+      "evidence_id": "ev_cd9251cd70b6a81a9503d54af8902f4175f9996c4d2c4937a871612f31ce3e5a"
+    },
+    {
+      "id": "ku_noise_0",
+      "source": "noise-0.md",
+      "source_sha256": "592c46dd01ffab4f9aa1fd64865c8d5cdb896b8d8b5206523517d57893bc7f60",
+      "section": "noise_0",
+      "quote": "Redelivery publishing zephyr nebula describes an implementation detail.",
+      "topic": "noise-0",
+      "subject": "detail-0",
+      "kind": "design",
+      "lifecycle": "active",
+      "scope": "production",
+      "state": "current",
+      "evidence_id": "ev_64400e7e3b540ad2e5cbb8b1e7265646c17d1b3f255eff900fab51c5128b5620"
+    },
+    {
+      "id": "ku_noise_1",
+      "source": "noise-1.md",
+      "source_sha256": "0bc92637188e25783ddcab607d8b3a7cef832c422d6ab450cd0571e8cbf016c5",
+      "section": "noise_1",
+      "quote": "Redelivery publishing zephyr nebula describes an implementation detail.",
+      "topic": "noise-1",
+      "subject": "detail-1",
+      "kind": "design",
+      "lifecycle": "active",
+      "scope": "production",
+      "state": "current",
+      "evidence_id": "ev_05c4729df406d0ec2b0fb25156a4587c51b8b95e984250ecbd898c6500583475"
+    },
+    {
+      "id": "ku_noise_2",
+      "source": "noise-2.md",
+      "source_sha256": "6235b223ae3db955a56382667c6d97d00088f5b354794493de7b0a0074b979c0",
+      "section": "noise_2",
+      "quote": "Redelivery publishing zephyr nebula describes an implementation detail.",
+      "topic": "noise-2",
+      "subject": "detail-2",
+      "kind": "design",
+      "lifecycle": "active",
+      "scope": "production",
+      "state": "current",
+      "evidence_id": "ev_30f01c939696bde45df94dd86b654fd5cd7ec7e5908ada403762abbcc738e7f0"
+    },
+    {
+      "id": "ku_noise_3",
+      "source": "noise-3.md",
+      "source_sha256": "a83338193489a32f95a2989c985a0233ab8c7b406ffc671e73624fa4475d47e9",
+      "section": "noise_3",
+      "quote": "Redelivery publishing zephyr nebula describes an implementation detail.",
+      "topic": "noise-3",
+      "subject": "detail-3",
+      "kind": "design",
+      "lifecycle": "active",
+      "scope": "production",
+      "state": "current",
+      "evidence_id": "ev_0ac2d360f017c125b5d25dc0f9c0bddacb51ee1c2a078742de4208f55302bea9"
+    },
+    {
+      "id": "ku_noise_4",
+      "source": "noise-4.md",
+      "source_sha256": "b2bf3909e09fb04e487089fdb7def9f860c0130e43422f703e4a9603850bc5e5",
+      "section": "noise_4",
+      "quote": "Redelivery publishing zephyr nebula describes an implementation detail.",
+      "topic": "noise-4",
+      "subject": "detail-4",
+      "kind": "design",
+      "lifecycle": "active",
+      "scope": "production",
+      "state": "current",
+      "evidence_id": "ev_0f67ca6093ce9ec2dbc33c46a0548854b2fa8b584b310d6b99d4f3c9983369ad"
+    },
+    {
+      "id": "ku_noise_5",
+      "source": "noise-5.md",
+      "source_sha256": "2cd859423adf70b94048124669514812a14d92e331d589591e7603b46a57f19e",
+      "section": "noise_5",
+      "quote": "Redelivery publishing zephyr nebula describes an implementation detail.",
+      "topic": "noise-5",
+      "subject": "detail-5",
+      "kind": "design",
+      "lifecycle": "active",
+      "scope": "production",
+      "state": "current",
+      "evidence_id": "ev_20d83752602a027fe5c9a5eb5ee944885472654a1c856ed71b05edaa7c4d2a2e"
+    },
+    {
+      "id": "ku_staging",
+      "source": "staging.md",
+      "source_sha256": "08988329be5467217d604e6d045350c20519200b7843175e23c899a5ae8255df",
+      "section": "staging",
+      "quote": "Sandbar handles staging rollout.",
+      "topic": "rollout",
+      "subject": "deployments",
+      "kind": "design",
+      "lifecycle": "active",
+      "scope": "staging",
+      "state": "current",
+      "evidence_id": "ev_db4b6f423bf3aa6234f833a98ccf9f4abd0c5fc28eeb1053cec153c6dd278f00"
+    },
+    {
+      "id": "ku_production",
+      "source": "production.md",
+      "source_sha256": "5bd64a337873c1a2930ca3078ece163cabc086f1f6635f579d2e98d44cb89a38",
+      "section": "production",
+      "quote": "Every rollout must obtain a production permit.",
+      "topic": "rollout",
+      "subject": "deployments",
+      "kind": "constraint",
+      "lifecycle": "accepted",
+      "scope": "production",
+      "state": "current",
+      "evidence_id": "ev_aab39a9564067e55222ec5bf0a5fbfba72371f8dc9cbab9c99d7aed7ad59c911"
+    },
+    {
+      "id": "ku_aurora",
+      "source": "aurora.md",
+      "source_sha256": "f9c2085577a44cb3ecbbb1a72b9874f8e9a48119c5e08c65fa6c5de690274101",
+      "section": "aurora",
+      "quote": "Aurora schedules background work.",
+      "topic": "background",
+      "subject": "work boundary",
+      "kind": "design",
+      "lifecycle": "active",
+      "scope": "production",
+      "state": "current",
+      "evidence_id": "ev_58354955155f60467e0edab21d966f48ba7d37d3ea324b9c8283695b613f1d6c"
+    },
+    {
+      "id": "ku_withdrawn",
+      "source": "withdrawn.md",
+      "source_sha256": "f80b2d5ad6b13816df9626eff2789b03660ac72a3f3863c5c29160467b9182c8",
+      "section": "withdrawn",
+      "quote": "Work must use the earlier lock protocol.",
+      "topic": "background",
+      "subject": "work boundary",
+      "kind": "constraint",
+      "lifecycle": "accepted",
+      "scope": "production",
+      "state": "withdrawn",
+      "evidence_id": "ev_0c3da964a48e5224c8f26980af779817166f17c089aaa514d67753ec9c08b473"
+    },
+    {
+      "id": "ku_unsupported",
+      "source": "unsupported.md",
+      "source_sha256": "8ebd4b6b96e90b57c3ed0f7171dffeb7fb7cd2c951327dadf262e3d22575bb00",
+      "section": "unsupported",
+      "quote": "Work must enable unrestricted access.",
+      "topic": "background",
+      "subject": "work boundary",
+      "kind": "constraint",
+      "lifecycle": "accepted",
+      "scope": "production",
+      "state": "unsupported",
+      "evidence_id": "ev_cf716f12a0507d4950b98930a05544abd7f4e84bca75245f18acb10c490bc4d1"
+    }
+  ],
+  "relations": [
+    {
+      "from_id": "ku_delivery",
+      "to_id": "ku_identity",
+      "kind": "related_to"
+    },
+    {
+      "from_id": "ku_chosen",
+      "to_id": "ku_rejected",
+      "kind": "related_to"
+    },
+    {
+      "from_id": "ku_policy",
+      "to_id": "ku_counter",
+      "kind": "contradicts"
+    }
+  ],
+  "cases": [
+    {
+      "name": "buried accepted constraint",
+      "task": "Implement redelivery",
+      "paths": [],
+      "max_tokens": 2600,
+      "required": [
+        "ku_delivery",
+        "ku_identity"
+      ],
+      "excluded": [],
+      "required_evidence_ids": [
+        "ev_56b319f1272b9acf48d45d5c49f99650b3beadfa7b8e04534ce724d26816a80d",
+        "ev_0cf3959d3537e61500e687c112fe1a2398a8f381357b0239bf5d42c4493a0c2a"
+      ]
+    },
+    {
+      "name": "adjacent exception",
+      "task": "Change publishing",
+      "paths": [],
+      "max_tokens": 2600,
+      "required": [
+        "ku_release",
+        "ku_exception"
+      ],
+      "excluded": [],
+      "required_evidence_ids": [
+        "ev_b4db9f7c84d8fb550d949ce7a6d0362282ed902eee1dea0eb8df948c638349f4",
+        "ev_98b9d706df9162c80fa3e843692efb25533e692b35ec0c9e253072173a8d7914"
+      ]
+    },
+    {
+      "name": "rejected alternative",
+      "task": "Extend zephyr",
+      "paths": [],
+      "max_tokens": 2600,
+      "required": [
+        "ku_chosen",
+        "ku_rejected"
+      ],
+      "excluded": [],
+      "required_evidence_ids": [
+        "ev_c48195a839aa078970e96fe48cdd87d8d55d693f7ad23a94a5f4a04c0a21400e",
+        "ev_aff034c9cdff0f157b6a7469d63b61c8c057e53fa8a4dcc3ea95c837310beafc"
+      ]
+    },
+    {
+      "name": "different vocabulary with path hint",
+      "task": "Make a change",
+      "paths": [
+        "src/labs/cycle.rs"
+      ],
+      "max_tokens": 2600,
+      "required": [
+        "ku_path"
+      ],
+      "excluded": [],
+      "required_evidence_ids": [
+        "ev_2ad9afc1113e8bbb515178a637b1d8a3cc2a1b06fdd8714211acd22660e323b5"
+      ]
+    },
+    {
+      "name": "ranked-out counterevidence",
+      "task": "Enable nebula",
+      "paths": [],
+      "max_tokens": 2600,
+      "required": [
+        "ku_policy",
+        "ku_counter"
+      ],
+      "excluded": [],
+      "required_evidence_ids": [
+        "ev_b75fb4e864b96590cd0e54d77306486aee67745725c1c6f93d8078dd115a00bb",
+        "ev_cd9251cd70b6a81a9503d54af8902f4175f9996c4d2c4937a871612f31ce3e5a"
+      ]
+    },
+    {
+      "name": "negative: scope mismatch",
+      "task": "Change sandbar",
+      "paths": [],
+      "max_tokens": 2600,
+      "required": [
+        "ku_staging"
+      ],
+      "excluded": [
+        "ku_production"
+      ],
+      "required_evidence_ids": [
+        "ev_db4b6f423bf3aa6234f833a98ccf9f4abd0c5fc28eeb1053cec153c6dd278f00"
+      ]
+    },
+    {
+      "name": "negative: withdrawn and unsupported",
+      "task": "Change aurora",
+      "paths": [],
+      "max_tokens": 2600,
+      "required": [
+        "ku_aurora"
+      ],
+      "excluded": [
+        "ku_withdrawn",
+        "ku_unsupported"
+      ],
+      "required_evidence_ids": [
+        "ev_58354955155f60467e0edab21d966f48ba7d37d3ea324b9c8283695b613f1d6c"
+      ]
+    }
+  ]
+}
