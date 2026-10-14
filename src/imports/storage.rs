@@ -128,8 +128,9 @@ pub fn persist(conn: &Connection, project: &str, inventory: &Inventory) -> Resul
             changes.retired += 1;
         }
     }
+    // Retired Engram inputs keep their last diagnostics alongside frozen history.
     let configured = conn
-        .prepare("SELECT import_id FROM native_import_state ORDER BY import_id")?
+        .prepare("SELECT s.import_id FROM native_import_state s JOIN native_imports i ON i.id=s.import_id WHERE i.kind<>'engram' ORDER BY s.import_id")?
         .query_map([], |r| r.get::<_, String>(0))?
         .collect::<rusqlite::Result<Vec<_>>>()?;
     for id in configured {

@@ -288,6 +288,8 @@ def run(args: argparse.Namespace) -> dict:
               "provider": args.provider, "model": args.model, "projects": [],
               "upstream_snapshot_creation_cost": None,
               "cost_scope": "Measured Lore preparation, mutations, and retrieval. Creating upstream snapshots is not measured by the bundled fixture run.",
+              "native_import_kinds": ["openwiki", "beads"],
+              "engram_intake_retired": True,
               "incremental_benefit_measured": False,
               "billed_cost_usd": args.billed_cost_usd,
               "billing_source": args.billing_source if args.billed_cost_usd is not None else None}
@@ -300,7 +302,6 @@ def run(args: argparse.Namespace) -> dict:
         project_config["project"]["name"] = name
         project_config["imports"] = [
             {"id": "implementation", "kind": "openwiki", "path": "./openwiki"},
-            {"id": "agent-memory", "kind": "engram", "path": "./imports/engram.json", "project": name},
             {"id": "work-history", "kind": "beads", "path": "./imports/beads.jsonl", "include_memories": False},
         ]
         write_json(project / "lore.yml", project_config)

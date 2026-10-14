@@ -1,5 +1,7 @@
 # Lore implementation guide
 
+Native Engram intake described in this historical guide is retired in the focused development line. Existing evidence stays readable; see [migration and rollback](ENGRAM_MIGRATION.md). OpenWiki, Beads and ordinary Markdown remain supported.
+
 ## Status and execution model
 
 The initial compiler is implemented as one Rust package with a library and a `lore` binary. The library separates source parsing, evidence storage, provider HTTP clients, semantic reconciliation, rendering, and recoverable publication. `DESIGN.md` remains the broader architectural specification; this guide describes what the current implementation actually does. Features listed as future directions in the design, such as direct issue-tracker connectors and independent implementation verification, are not implied by the presence of the CLI.

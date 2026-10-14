@@ -973,11 +973,18 @@ pub fn evidence(config: &ResolvedConfig, id: &str) -> Result<Value> {
     let conn = storage::read_only(&config.state.join("state.db"))?;
     if id.starts_with("ne_") {
         let snapshot = crate::imports::evidence(&conn, id)?;
+        let historical_engram = snapshot.origin == domain::ImportKind::Engram;
         let mut value = serde_json::to_value(snapshot)?;
         value["evidence_type"] = json!("structured_native_record");
-        value["qualification"] = json!(
-            "A retained native record with a verified content hash and resolvable record pointers. Upstream verification applies only to its recorded revision; current imported status is not proof of the current implementation."
-        );
+        value["qualification"] = if historical_engram {
+            json!(
+                "Native Engram intake is retired. This is a retained historical recollection with its original authority, payload and relationship judgments; it is not accepted policy or proof of current implementation."
+            )
+        } else {
+            json!(
+                "A retained native record with a verified content hash and resolvable record pointers. Upstream verification applies only to its recorded revision; current imported status is not proof of the current implementation."
+            )
+        };
         return Ok(value);
     }
     let snapshot = storage::evidence_snapshot(&conn, id)?;

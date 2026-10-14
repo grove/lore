@@ -281,9 +281,9 @@ sources:
 
 Roots default to `material: primary`. Mark generated or secondary summaries as `derived`; `origin` is optional descriptive provenance supplied by you, not a fetched or verified upstream source. Imported OpenWiki Markdown uses the ordinary source pipeline. Lore preserves its origin and derived status, and context does not treat derived-only evidence as independent verification of code behavior. For native OpenWiki Claims, use the 0.4 import configuration below. Keep the Markdown-only path when the upstream format is unsupported. Each input must have one owner: do not configure the same OpenWiki directory as both a Markdown root and a native import.
 
-## Optional native imports: OpenWiki, Beads and legacy Engram
+## Optional native imports: OpenWiki and Beads
 
-Set `schema_version: 2` and add only the imports you use. OpenWiki is an optional implementation-observation producer; the existing native Engram adapter is slated for [#73](https://github.com/grove/lore/issues/73), with historical evidence migration required before retirement:
+Set `schema_version: 2` and add only the imports you use. OpenWiki is an optional implementation-observation producer. Native Engram intake is retired; existing evidence remains readable with its original recollection labels. See the [historical migration and rollback guide](docs/ENGRAM_MIGRATION.md). For new notes, use deliberately reviewed Markdown sources and preserve their actual authority.
 
 ```yaml
 schema_version: 2
@@ -298,10 +298,6 @@ imports:
   - id: implementation
     kind: openwiki
     path: ./openwiki
-  - id: agent-memory
-    kind: engram
-    path: ./imports/engram.json
-    project: payments
   - id: work-history
     kind: beads
     path: ./imports/beads.jsonl
@@ -311,7 +307,6 @@ imports:
 Prepare local snapshots with your upstream tools, then update Lore:
 
 ```bash
-engram export ./imports/engram.json --project payments
 bd export -o ./imports/beads.jsonl
 lore update
 lore context "Implement payment retries"
@@ -335,8 +330,8 @@ Deleting a source is not the same as deleting its retained history. To intention
 
 Run `cargo test --all-targets --locked` for the offline compiler, provider, database, source-boundary, retrieval, context-budget, and CLI tests. No real API credentials or installed model weights are needed for these tests. The implementation deliberately favors correctness and inspectable history over maximum throughput: source processing is sequential, candidate comparisons are exhaustive in bounded batches, and topic pages are regenerated as coherent units. These choices can make large first-time compilations expensive. The current automatic supersession guard recognizes explicit English replacement wording and predecessor references; less explicit or differently worded cases remain reviewable instead of being guessed.
 
-Lore reads local Markdown and optional native snapshots from OpenWiki, Engram,
-and Beads. Direct tracker connectors, bidirectional writes, runtime/deployment
+Lore reads local Markdown and optional native snapshots from OpenWiki and
+Beads, and retains previously imported Engram history. Direct tracker connectors, bidirectional writes, runtime/deployment
 verification, a hosted service, and a graph editor remain outside 0.7. Static
 checkout inspection retains explicit limits and caller-owned egress safeguards;
 Lore does not autonomously execute repository commands. Cross-source comparisons

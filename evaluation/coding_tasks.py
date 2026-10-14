@@ -415,7 +415,6 @@ def config_for_case(args: argparse.Namespace, case: dict, project: Path) -> dict
     if "base_project" in case:
         config["imports"] = [
             {"id": "implementation", "kind": "openwiki", "path": "./openwiki"},
-            {"id": "agent-memory", "kind": "engram", "path": "./imports/engram.json", "project": case["base_project"]},
             {"id": "work-history", "kind": "beads", "path": "./imports/beads.jsonl", "include_memories": False}]
     else:
         config["imports"] = case.get("imports", [])

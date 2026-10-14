@@ -504,6 +504,9 @@ pub(super) fn retrieve_hybrid(
 
 pub(super) fn qualifications(observation: &ImportedObservation) -> Vec<String> {
     let mut qualifications = Vec::new();
+    if observation.origin == ImportKind::Engram {
+        qualifications.push("Native Engram intake is retired; this retained recollection is read-only history, not accepted policy or current implementation evidence.".into());
+    }
     if !observation.current {
         qualifications.push("This record is absent from the latest imported snapshot; retain it as historical evidence only.".into());
     }

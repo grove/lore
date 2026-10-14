@@ -303,7 +303,7 @@ fn migration_from_eight_is_transactional_and_read_only_does_not_upgrade() {
     assert_eq!(
         db.pragma_query_value(None, "user_version", |r| r.get::<_, i64>(0))
             .unwrap(),
-        9
+        storage::SCHEMA_VERSION
     );
 }
 

@@ -1,5 +1,7 @@
 # Lore 0.5 coding-task evaluation
 
+New Lore runs import OpenWiki and Beads from cross-source fixtures. Native Engram intake is retired; original exports and older results remain historical fixtures. Configuration hashes bind each run to its actual import set; account for the intake difference when comparing older runs.
+
 The 0.5 extension compares **completed implementations**, not just retrieved
 text. It reuses `benchmark.py` for model configuration and real Lore execution,
 and `cross_source.py` for copied snapshots, byte fingerprints, and exact

@@ -1,7 +1,6 @@
 use lore::{
     config::{ImportKind, ImportSource},
     imports::adapters::{self, ObservationKind, ObservationVerification},
-    util,
 };
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -69,15 +68,6 @@ fn sidecar(root: &Path, verified: bool) -> Value {
         sidecar["verification"] = json!({ "by":"openwiki/0.7.1", "at":"2026-10-01T12:00:00Z" });
     }
     sidecar
-}
-
-fn engram_observation(id: i64, sync_id: &str, session: &str, project: Option<&str>) -> Value {
-    json!({
-        "id": id, "sync_id": sync_id, "session_id": session,
-        "title":"Retry discovery", "content":"Changing retries needs [policy review](docs/adr-017.md).",
-        "type":"discovery", "project":project, "scope":"project", "topic_key":"payment-retry-policy",
-        "created_at":"2026-09-30 12:00:00", "updated_at":"2026-10-01 12:00:00", "revision_count":2
-    })
 }
 
 #[test]
@@ -255,111 +245,17 @@ fn modified_page_scope_cannot_qualify_claims_verified_for_a_previous_page() {
 }
 
 #[test]
-fn engram_project_filter_honors_explicit_ownership_before_session_fallback() {
+fn engram_intake_is_retired_even_for_valid_or_missing_exports() {
     let directory = temporary_snapshot();
     let path = directory.path().join("engram.json");
-    let export = json!({
-        "version":"0.2.0", "exported_at":"2026-10-01T12:00:00Z",
-        "sessions":[{"id":"s-payments","project":"payments"},{"id":"s-other","project":"other"}],
-        "observations":[
-            engram_observation(1,"obs-own","s-other",Some("payments")),
-            engram_observation(2,"obs-inherited","s-payments",None),
-            engram_observation(3,"obs-other","s-payments",Some("other")),
-            engram_observation(4,"obs-unscoped","unknown",None)
-        ],
-        "prompts":[{"content":"Do not import prompts as curated memories"}]
-    });
-    write_json(&path, &export);
-    let mut config = source(ImportKind::Engram);
-    config.project = Some("payments".into());
-    let batch = adapters::read(&config, &path, LIMIT).unwrap();
-    assert_eq!(
-        batch
-            .records
-            .iter()
-            .map(|record| record.native_id.as_str())
-            .collect::<Vec<_>>(),
-        vec!["obs-inherited", "obs-own"]
-    );
-    for record in &batch.records {
-        assert_eq!(record.kind, ObservationKind::Recollection);
-        assert_eq!(record.verification, ObservationVerification::Reported);
-        assert_eq!(record.subject, "payment-retry-policy");
-        assert_eq!(record.scope.repository.as_deref(), Some("payments"));
-        assert_eq!(
-            record.native_record.pointer("/content").unwrap(),
-            &json!(record.statement)
-        );
-    }
-}
-
-#[test]
-fn engram_timestamp_only_reexport_is_identical_and_native_relationship_judgments_are_preserved() {
-    let directory = temporary_snapshot();
-    let path = directory.path().join("engram.json");
-    let relation = json!({
-        "sync_id":"rel-new-old", "source_id":"obs-new", "target_id":"obs-old", "relation":"supersedes",
-        "judgment_status":"judged", "marked_by_actor":"agent:example", "marked_by_kind":"agent",
-        "created_at":"2026-10-01 12:00:00", "updated_at":"2026-10-01 12:00:00"
-    });
-    let pending = json!({"sync_id":"rel-pending", "source_id":"obs-old", "target_id":"obs-new", "relation":"pending", "judgment_status":"pending"});
-    let mut export = json!({"version":"0.2.0", "exported_at":"first", "observations":[engram_observation(1,"obs-new","s",None),engram_observation(2,"obs-old","s",None)], "relations":[relation,pending]});
-    write_json(&path, &export);
-    let config = source(ImportKind::Engram);
-    let first = adapters::read(&config, &path, LIMIT).unwrap();
-    export["exported_at"] = json!("second");
-    write_json(&path, &export);
-    let second = adapters::read(&config, &path, LIMIT).unwrap();
-    assert_eq!(first, second);
-    assert_eq!(first.records[0].relationships[0].native_record, relation);
-    assert!(first.records[0].relationships[0].active);
-    assert!(!first.records[1].relationships[0].active);
-    assert!(
-        first
-            .records
-            .iter()
-            .all(|record| record.verification == ObservationVerification::Reported)
-    );
-    assert_eq!(
-        util::json_digest(&first).unwrap(),
-        util::json_digest(&second).unwrap()
-    );
-}
-
-#[test]
-fn engram_legacy_numeric_identity_survives_content_edits_and_tombstones() {
-    let directory = temporary_snapshot();
-    let path = directory.path().join("engram.json");
-    let mut export = json!({"version":"0.1.0", "sessions":null, "observations":[{"id":17,"title":"Old title","content":"First content"}], "prompts":null});
-    write_json(&path, &export);
-    let config = source(ImportKind::Engram);
-    let first = adapters::read(&config, &path, LIMIT).unwrap();
-    export["observations"][0]["title"] = json!("New title");
-    export["observations"][0]["content"] = json!("Second content");
-    export["observations"][0]["deleted_at"] = json!("2026-10-01 13:00:00");
-    write_json(&path, &export);
-    let second = adapters::read(&config, &path, LIMIT).unwrap();
-    assert_eq!(first.records[0].native_id, "observation:17");
-    assert_eq!(first.records[0].native_id, second.records[0].native_id);
-    assert_eq!(second.records[0].lifecycle, "deleted");
-    assert_ne!(
-        first.records[0].native_record,
-        second.records[0].native_record
-    );
-}
-
-#[test]
-fn engram_rejects_unknown_versions_duplicate_identity_and_missing_observations() {
-    let directory = temporary_snapshot();
-    let path = directory.path().join("engram.json");
-    let config = source(ImportKind::Engram);
-    for invalid in [
-        json!({"version":"0.3.0","observations":[]}),
-        json!({"version":"0.2.0"}),
-        json!({"version":"0.2.0","observations":[engram_observation(1,"obs-duplicate","s",None),engram_observation(2,"obs-duplicate","s",None)]}),
-    ] {
-        write_json(&path, &invalid);
-        assert!(adapters::read(&config, &path, LIMIT).is_err());
+    for contents in [None, Some(r#"{"version":"0.2.0","observations":[]}"#)] {
+        if let Some(contents) = contents {
+            fs::write(&path, contents).unwrap();
+        }
+        let error = adapters::read(&source(ImportKind::Engram), &path, LIMIT).unwrap_err();
+        let message = format!("{error:#}");
+        assert!(message.contains("Native Engram imports are retired"));
+        assert!(message.contains("Markdown"));
     }
 }
 
@@ -443,9 +339,9 @@ fn beads_rejects_unknown_record_types_malformed_lines_and_version_envelopes() {
 fn missing_and_oversized_input_fail_instead_of_becoming_an_empty_snapshot() {
     let directory = temporary_snapshot();
     let path = directory.path().join("snapshot.json");
-    assert!(adapters::read(&source(ImportKind::Engram), &path, LIMIT).is_err());
-    write_json(&path, &json!({"version":"0.2.0","observations":[]}));
-    assert!(adapters::read(&source(ImportKind::Engram), &path, 10).is_err());
+    assert!(adapters::read(&source(ImportKind::Beads), &path, LIMIT).is_err());
+    fs::write(&path, "{\"id\":\"a\",\"title\":\"A long title\"}").unwrap();
+    assert!(adapters::read(&source(ImportKind::Beads), &path, 10).is_err());
 }
 
 #[test]
@@ -455,13 +351,9 @@ fn bundled_cross_project_evaluation_snapshots_have_resolvable_native_evidence() 
         let root = corpus.join(project).join("initial");
         for (kind, relative) in [
             (ImportKind::Openwiki, "openwiki"),
-            (ImportKind::Engram, "imports/engram.json"),
             (ImportKind::Beads, "imports/beads.jsonl"),
         ] {
-            let mut config = source(kind);
-            if kind == ImportKind::Engram {
-                config.project = Some(project.into());
-            }
+            let config = source(kind);
             let batch = adapters::read(&config, &root.join(relative), LIMIT).unwrap();
             assert!(!batch.records.is_empty(), "{project}: {relative}");
             for record in batch.records {
@@ -481,7 +373,7 @@ fn rejects_symlinked_inputs_and_descendants_without_reading_outside_the_snapshot
     write_json(&target, &json!({"version":"0.2.0","observations":[]}));
     let link = directory.path().join("link.json");
     symlink(&target, &link).unwrap();
-    assert!(adapters::read(&source(ImportKind::Engram), &link, LIMIT).is_err());
+    assert!(adapters::read(&source(ImportKind::Beads), &link, LIMIT).is_err());
     let root = directory.path().join("openwiki");
     wiki(&root);
     symlink(&target, root.join(".claims/payments/unsafe.json")).unwrap();

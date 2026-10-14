@@ -13,6 +13,8 @@ use std::path::PathBuf;
 
 pub use storage::{evidence, views, warnings};
 
+pub const ENGRAM_RETIRED: &str = "Native Engram imports are retired. Existing imported evidence remains read-only history; for new information, review a Markdown note and configure it as an ordinary source root, preserving its recollection/proposal labels and using material: derived for generated summaries. See docs/ENGRAM_MIGRATION.md.";
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ImportedObservation {
     /// Stable identity within one configured native source, across revisions.
@@ -63,6 +65,21 @@ pub fn scan(config: &ResolvedConfig) -> Result<Inventory> {
             .iter()
             .find(|s| &s.id == id)
             .context("resolved native import has no configuration")?;
+        if source.kind == ImportKind::Engram {
+            let state = config.state.join("state.db");
+            let historical = if state.exists() {
+                let conn = crate::storage::read_only(&state)?;
+                storage::available(&conn)? && conn.query_row(
+                    "SELECT EXISTS(SELECT 1 FROM native_imports WHERE id=?1 AND project_id=?2 AND kind='engram')",
+                    rusqlite::params![id, config.project_id], |row| row.get::<_, bool>(0),
+                )?
+            } else {
+                false
+            };
+            ensure!(historical, "Import {id}: {ENGRAM_RETIRED}");
+            warnings.push(format!("Import {id}: {ENGRAM_RETIRED}"));
+            continue;
+        }
         let batch = adapters::read(source, path, config.config.processing.max_file_bytes)?;
         for record in &batch.records {
             validate_record(record).with_context(|| {
