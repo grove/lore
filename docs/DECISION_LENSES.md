@@ -215,3 +215,8 @@ person understands the project better, completes a first task sooner, or
 transfers the lesson to a distinct task. The independent source review and real
 human outcome gates in `evaluation/SHARED_INTELLIGENCE.md` remain separate and
 unmeasured until the corresponding reviews and participant results are recorded.
+
+The [decision applicability matrix](../tests/fixtures/decision-applicability/README.md)
+records original passages, scope, lifecycle, current versus historical support,
+and actual, possible or inapplicable contradictions. It also checks complete
+conflict groups under compression, A→B→A history, and advisory review authority.

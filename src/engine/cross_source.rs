@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::collections::{BTreeMap, BTreeSet};
 
-const CONTRACT: &str = "cross-source-v1";
+pub(super) const CONTRACT: &str = "cross-source-v2";
 const MAX_TERMS: usize = 48;
 const MAX_POSTING: usize = 256;
 const MAX_CANDIDATES: usize = 12;
@@ -594,6 +594,14 @@ async fn compare(
             qualification,
             qualifiers,
         ))
+    } else if scope(from).environment.is_none() || scope(to).environment.is_none() {
+        Some(new_relation(
+            from,
+            Some(to),
+            "uncertain",
+            "Runtime environment is not established for both sources. Confirm the applicable environment and current source revisions before treating these statements as agreement or disagreement.".into(),
+            qualifiers,
+        ))
     } else if normalize(subject(from)) == normalize(subject(to)) && statement(from) == statement(to)
     {
         Some(new_relation(from,Some(to),"consistent_with","The two source statements are textually identical. Repeated representations do not provide independent confirmation of the underlying behavior.".into(),qualifiers))
@@ -1092,7 +1100,14 @@ mod tests {
         statement: &str,
         environment: &str,
     ) -> String {
-        document_about(conn, config, statement, environment, "worker-concurrency")
+        document_about(
+            conn,
+            config,
+            statement,
+            environment,
+            "worker-concurrency",
+            "decision",
+        )
     }
 
     fn document_about(
@@ -1101,6 +1116,7 @@ mod tests {
         statement: &str,
         environment: &str,
         subject: &str,
+        kind: &str,
     ) -> String {
         let chunk = Chunk {
             key: "policy".into(),
@@ -1130,7 +1146,7 @@ mod tests {
             topic_title: subject.into(),
             subject: subject.into(),
             statement: statement.into(),
-            kind: "decision".into(),
+            kind: kind.into(),
             lifecycle: "accepted".into(),
             scope: format!("repository: project; component: worker; environment: {environment}"),
             effective_at: String::new(),
@@ -1272,6 +1288,131 @@ mod tests {
             serde_json::to_value(storage::views(&conn).unwrap()).unwrap()
         );
         assert_eq!(relationships::history(&conn).unwrap().len(), 1);
+    }
+
+    #[tokio::test]
+    async fn applicability_matrix_keeps_scope_authority_and_exact_revisions() {
+        for (name, environment, component, statement, expected) in [
+            (
+                "staging exception",
+                Some("staging"),
+                "worker",
+                "The worker concurrency limit is five.",
+                None,
+            ),
+            (
+                "other component",
+                Some("production"),
+                "scheduler",
+                "The worker concurrency limit is five.",
+                None,
+            ),
+            (
+                "imported claim versus accepted constraint",
+                Some("production"),
+                "worker",
+                "The worker concurrency limit is five.",
+                Some("potential_discrepancy"),
+            ),
+            (
+                "unknown environment disagreement",
+                None,
+                "worker",
+                "The worker concurrency limit is five.",
+                Some("uncertain"),
+            ),
+            (
+                "unknown environment agreement",
+                None,
+                "worker",
+                "The worker concurrency limit is three.",
+                Some("uncertain"),
+            ),
+        ] {
+            let (_dir, config, conn) = fixture();
+            let unit = document_about(
+                &conn,
+                &config,
+                "The worker concurrency limit is three.",
+                "production",
+                "worker-concurrency",
+                "constraint",
+            );
+            let before = serde_json::to_value(storage::views(&conn).unwrap()).unwrap();
+            let mut claim = record("limit", ObservationKind::Implementation, statement);
+            claim.scope.environment = environment.map(str::to_owned);
+            claim.scope.component = Some(component.into());
+            persist(
+                &conn,
+                &config,
+                vec![batch("implementation", ImportKind::Openwiki, vec![claim])],
+            );
+            run(&config, &conn, &Model::new()).await;
+            assert_eq!(
+                before,
+                serde_json::to_value(storage::views(&conn).unwrap()).unwrap(),
+                "{name}: imported reports cannot change policy"
+            );
+            let relations = relationships::relations(&conn).unwrap();
+            assert_eq!(
+                relations.first().map(|r| r.kind.as_str()),
+                expected,
+                "{name}"
+            );
+            let observation = imports::views(&conn).unwrap().remove(0);
+            let native = imports::evidence(&conn, &observation.evidence_id).unwrap();
+            assert!(native.current, "{name}");
+            assert_eq!(native.record.statement, statement);
+            assert_eq!(native.record.scope.environment.as_deref(), environment);
+            assert_eq!(
+                native.record.evidence[1].revision.as_deref(),
+                Some("upstream-file-version-1")
+            );
+            let context = crate::context::build_context(
+                &conn,
+                &crate::context::ContextOptions {
+                    task: "worker concurrency".into(),
+                    paths: vec![],
+                    max_tokens: 16_000,
+                },
+            )
+            .unwrap();
+            if let Some(expected) = expected {
+                let relation = &relations[0];
+                assert_eq!(relation.to.as_ref().unwrap().id, unit);
+                assert_eq!(relation.from.revision_id, observation.snapshot_id);
+                assert_eq!(relation.evidence_ids.len(), 2);
+                assert!(context.discrepancies.iter().any(|d| d.kind == expected));
+                assert!(
+                    context
+                        .recommended_verification
+                        .iter()
+                        .any(|v| v.relationship_id.as_ref() == Some(&relation.id)
+                            && v.action.contains("scope"))
+                );
+                assert!(
+                    relation
+                        .qualifications
+                        .iter()
+                        .any(|q| q.contains("does not verify"))
+                );
+                assert!(relation.review_id.as_ref().is_some_and(|id| {
+                    reviews::list(&conn, true)
+                        .unwrap()
+                        .iter()
+                        .any(|r| &r.id == id)
+                }));
+            } else {
+                assert!(context.discrepancies.is_empty(), "{name}");
+                assert!(
+                    context
+                        .recommended_verification
+                        .iter()
+                        .all(|v| !v.record_ids.contains(&unit)),
+                    "{name}: no cross-scope policy check"
+                );
+            }
+        }
     }
 
     #[tokio::test]
@@ -1608,6 +1749,46 @@ mod tests {
         assert_eq!(imports::views(&conn).unwrap().len(), 2);
         assert!(storage::views(&conn).unwrap().is_empty());
         assert_eq!(model.calls.load(Ordering::SeqCst), 0);
+        let observations = imports::views(&conn).unwrap();
+        for observation in &observations {
+            let evidence = imports::evidence(&conn, &observation.evidence_id).unwrap();
+            assert!(evidence.current);
+            assert_eq!(
+                evidence.record.statement,
+                "The worker concurrency limit is three."
+            );
+            assert_eq!(evidence.record.evidence[1].locator, "src/workers.rs");
+            assert_eq!(
+                evidence.record.evidence[1].revision.as_deref(),
+                Some("upstream-file-version-1")
+            );
+        }
+        for max_tokens in [12_000, 4_000, 1_000] {
+            let context = crate::context::build_context(
+                &conn,
+                &crate::context::ContextOptions {
+                    task: "worker concurrency".into(),
+                    paths: vec![],
+                    max_tokens,
+                },
+            )
+            .unwrap();
+            assert!(
+                context.imported_observations.len() == 2
+                    || context.imported_observations.is_empty()
+            );
+            if context.imported_observations.len() == 2 {
+                assert_eq!(context.imported_evidence.len(), 2);
+                assert!(
+                    context
+                        .cross_source_relations
+                        .iter()
+                        .any(|r| r.reason.contains("Shared upstream evidence"))
+                );
+            } else {
+                assert_eq!(context.omissions.imported_observations, 2);
+            }
+        }
     }
 
     #[tokio::test]
@@ -1683,6 +1864,7 @@ mod tests {
             "The worker concurrency limit is seven.",
             "production",
             "worker-settings",
+            "decision",
         );
         run(&config, &conn, &model).await;
         let relations = relationships::relations(&conn).unwrap();
