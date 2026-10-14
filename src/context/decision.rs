@@ -8,7 +8,7 @@ pub mod runtime;
 
 use super::{
     ContextResult, display_text,
-    inspection::{CodeObservation, validate_observation},
+    inspection::{CodeObservation, InspectionReport, validate_observation},
     intelligence::{
         Confidence, ConstraintDisposition, EvidenceCatalog, KnownContext, RiskCategory, Severity,
     },
@@ -1101,12 +1101,12 @@ pub(crate) fn deterministic_fallback(
 ) -> DecisionBrief {
     // This intentionally makes no unsupported policy judgment. The one required
     // check distinguishes a preserving change from a request needing a decision.
-    let record = catalog
+    let adopted = catalog
         .retained
         .constraints
         .keys()
-        .find_map(|id| catalog.retained.known.get(id))
-        .or_else(|| catalog.retained.known.values().next());
+        .find_map(|id| catalog.retained.known.get(id));
+    let record = adopted.or_else(|| catalog.retained.known.values().next());
     let evidence_ids = record
         .map(|record| record.evidence_ids.clone())
         .unwrap_or_default();
@@ -1121,10 +1121,20 @@ pub(crate) fn deterministic_fallback(
         evidence_ids: evidence_ids.clone(),
         observation_ids: observation_ids.clone(),
     };
-    let target = record
-        .map(|record| format!("the retained rule: {}", record.statement))
-        .unwrap_or_else(|| "the existing interface and externally visible outcomes".into());
-    let check = format!("Determine whether {task} can preserve {target}");
+    let check = if let Some(rule) = adopted {
+        format!(
+            "Determine whether {task} can preserve the retained rule: {}",
+            rule.statement
+        )
+    } else if record.is_some() {
+        format!(
+            "Check current project sources to establish which constraints apply to {task}; retained reports and historical records alone do not establish an adopted rule."
+        )
+    } else {
+        format!(
+            "No relevant retained evidence was found for {task}. Add a precise path or project source, then retrieve context again before choosing an implementation."
+        )
+    };
     let constraints = catalog.retained.constraints.iter().map(|(id, evidence)| DecisionConstraint {
         knowledge_id: id.clone(), disposition: ConstraintDisposition::Preserved,
         explanation: "Keep this adopted rule as the implementation boundary; a request that changes it needs an explicit decision.".into(),
@@ -1132,7 +1142,7 @@ pub(crate) fn deterministic_fallback(
     }).collect();
     DecisionBrief {
         readiness: ActionReadiness::ProceedAfterCheck, change_kind: ChangeKind::BehaviorPreserving,
-        preferred_approach: advice(format!("Start {task} with a reversible implementation that preserves the retained project rules.")),
+        preferred_approach: advice(if adopted.is_some() { format!("Check whether {task} preserves the retained project rules before choosing an implementation.") } else { format!("Establish the applicable project rules for {task} before choosing an implementation.") }),
         rationale: advice(format!("Fresh model assessment is unavailable: {reason}")),
         main_tradeoff: advice("Preserving established outcomes narrows the change, while any intended policy change still needs an explicit decision.".into()),
         next_action: advice(check.clone()),
@@ -1168,15 +1178,45 @@ fn advice_line(label: &str, advice: &EvidenceAdvice) -> String {
     )
 }
 
+fn render_fact(fact: &ProjectFact) -> String {
+    let record = &fact.record;
+    let provenance = match fact.provenance {
+        FactProvenance::Documentary => "Retained documentation",
+        FactProvenance::ImportedReport => "Imported report (not independent verification)",
+    };
+    let mut text = format!(
+        "- {provenance}: {} [{}] ({}; {}; scope: {})\n",
+        display_text(&record.statement),
+        record.evidence_ids.join(", "),
+        display_text(&record.kind),
+        display_text(&record.lifecycle),
+        display_text(&record.scope)
+    );
+    for qualification in &record.qualifications {
+        text.push_str(&format!("  {}\n", display_text(qualification)));
+    }
+    text
+}
+
 fn render_constraints(brief: &DecisionBrief) -> String {
     let mut text = String::new();
     if !brief.constraints.is_empty() {
         text.push_str("### Constraints to preserve\n\n");
         for constraint in &brief.constraints {
+            if let Some(fact) = brief
+                .facts
+                .iter()
+                .find(|fact| fact.record.record_id == constraint.knowledge_id)
+            {
+                text.push_str(&render_fact(fact));
+            }
+            let disposition = match constraint.disposition {
+                ConstraintDisposition::Preserved => "Proposed preservation",
+                ConstraintDisposition::NeedsVerification => "Check applicability",
+                ConstraintDisposition::ProposedDeviation => "Proposed deviation",
+            };
             text.push_str(&format!(
-                "- {}: {:?}. {}{}\n",
-                constraint.knowledge_id,
-                constraint.disposition,
+                "  {disposition}: {}{}\n",
                 display_text(&constraint.explanation),
                 refs(&constraint.evidence_ids, &constraint.observation_ids)
             ));
@@ -1186,7 +1226,7 @@ fn render_constraints(brief: &DecisionBrief) -> String {
     text
 }
 
-pub(crate) fn render_brief(brief: &DecisionBrief) -> String {
+pub(crate) fn render_brief(brief: &DecisionBrief, inspection: &InspectionReport) -> String {
     let mut text = format!("## {}\n\n", brief.readiness.label());
     text.push_str(&advice_line(
         "Preferred approach",
@@ -1194,9 +1234,8 @@ pub(crate) fn render_brief(brief: &DecisionBrief) -> String {
     ));
     text.push_str(&advice_line("Next action", &brief.next_action));
     if brief.generation_basis == GenerationBasis::DeterministicFallback {
-        text.push_str("This is deterministic fallback guidance; readiness has not received a model assessment.\n\n");
+        text.push_str("This is deterministic fallback guidance; readiness is unassessed. Only the stated check is justified before choosing an implementation.\n\n");
     }
-    text.push_str(&render_constraints(brief));
     if !brief.material_blockers.is_empty() {
         text.push_str("### Decisions required\n\n");
         for blocker in &brief.material_blockers {
@@ -1209,30 +1248,68 @@ pub(crate) fn render_brief(brief: &DecisionBrief) -> String {
         }
         text.push('\n');
     }
-    text.push_str(&advice_line("Why", &brief.rationale));
-    text.push_str(&advice_line("Main trade-off", &brief.main_tradeoff));
-    if !brief.facts.is_empty() {
-        text.push_str("### Retained project evidence\n\n");
-        for fact in &brief.facts {
-            let record = &fact.record;
-            let provenance = match fact.provenance {
-                FactProvenance::Documentary => "Documented",
-                FactProvenance::ImportedReport => "Imported report",
-            };
-            text.push_str(&format!(
-                "- {provenance}: {} [{}] ({}; {}; scope: {})\n",
-                display_text(&record.statement),
-                record.evidence_ids.join(", "),
-                display_text(&record.kind),
-                display_text(&record.lifecycle),
-                display_text(&record.scope)
-            ));
-            for qualification in &record.qualifications {
-                text.push_str(&format!("  {}\n", display_text(qualification)));
-            }
+    text.push_str(&render_constraints(brief));
+    let other_facts: Vec<_> = brief
+        .facts
+        .iter()
+        .filter(|fact| {
+            !brief
+                .constraints
+                .iter()
+                .any(|constraint| constraint.knowledge_id == fact.record.record_id)
+        })
+        .collect();
+    if !other_facts.is_empty() {
+        text.push_str("### Retained evidence, exceptions and alternatives\n\n");
+        for fact in other_facts {
+            text.push_str(&render_fact(fact));
         }
         text.push('\n');
     }
+    text.push_str(&format!(
+        "**Local checks:** inspection {}; {} static observations. Tests and runtime checks: not run.\n\n",
+        display_text(&inspection.status), inspection.observations.len()
+    ));
+    for check in &inspection.checkout_freshness {
+        text.push_str(&format!(
+            "OpenWiki freshness [{}]: {} — {}{}\nChecked path: {}; digest: {}.\n{}\n\n",
+            display_text(&check.evidence_id),
+            display_text(&check.resource),
+            serde_json::to_value(check.status)
+                .unwrap()
+                .as_str()
+                .unwrap(),
+            check
+                .reason
+                .map(|reason| format!(
+                    " ({})",
+                    serde_json::to_value(reason).unwrap().as_str().unwrap()
+                ))
+                .unwrap_or_default(),
+            display_text(check.checked_path.as_deref().unwrap_or("unchecked")),
+            display_text(check.content_hash.as_deref().unwrap_or("unknown")),
+            display_text(&check.qualification)
+        ));
+    }
+    if !brief.counterevidence.is_empty() {
+        text.push_str("### Counterevidence\n\n");
+        for item in &brief.counterevidence {
+            text.push_str(&format!(
+                "- Initial hypothesis: {}\n  {}{}{}\n",
+                display_text(&item.hypothesis),
+                display_text(&item.explanation),
+                refs(&item.evidence_ids, &item.observation_ids),
+                if item.material {
+                    " This changes the preferred action."
+                } else {
+                    ""
+                }
+            ));
+        }
+        text.push('\n');
+    }
+    text.push_str(&advice_line("Why", &brief.rationale));
+    text.push_str(&advice_line("Main trade-off", &brief.main_tradeoff));
     if !brief.implementation_seams.is_empty() {
         text.push_str("### Inspected implementation seams\n\n");
         for seam in &brief.implementation_seams {
@@ -1295,7 +1372,7 @@ pub(crate) fn render_brief(brief: &DecisionBrief) -> String {
         text.push('\n');
     }
     if !brief.checks.is_empty() {
-        text.push_str("### Prioritized checks\n\n");
+        text.push_str("### Checks still to run\n\n");
         for check in &brief.checks {
             text.push_str(&format!(
                 "- **{}:** {}{}\n  Decision impact: {}\n",
@@ -1303,23 +1380,6 @@ pub(crate) fn render_brief(brief: &DecisionBrief) -> String {
                 display_text(&check.action),
                 refs(&check.evidence_ids, &check.observation_ids),
                 display_text(&check.decision_impact)
-            ));
-        }
-        text.push('\n');
-    }
-    if !brief.counterevidence.is_empty() {
-        text.push_str("### Counterevidence\n\n");
-        for item in &brief.counterevidence {
-            text.push_str(&format!(
-                "- Initial hypothesis: {}. {}{}{}\n",
-                display_text(&item.hypothesis),
-                display_text(&item.explanation),
-                refs(&item.evidence_ids, &item.observation_ids),
-                if item.material {
-                    " This changes the preferred action."
-                } else {
-                    ""
-                }
             ));
         }
         text.push('\n');
@@ -1335,7 +1395,7 @@ pub(crate) fn render_brief(brief: &DecisionBrief) -> String {
         }
         text.push('\n');
     }
-    text.push_str("### Completion criteria\n\n");
+    text.push_str("### Completion criteria (not yet verified)\n\n");
     for criterion in &brief.completion_criteria {
         text.push_str(&format!(
             "- {}{}\n",
@@ -1343,16 +1403,57 @@ pub(crate) fn render_brief(brief: &DecisionBrief) -> String {
             refs(&criterion.evidence_ids, &criterion.observation_ids)
         ));
     }
-    text.push_str(&format!(
-        "\nInterpretation revision: {}. Static inspection does not prove runtime behavior.\n",
-        display_text(&brief.revision_key)
-    ));
+    text.push_str("\nAdvice is not approval. Static inspection does not prove runtime behavior.\n");
     text
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn fallback_does_not_promote_reports_or_rejected_history_to_adopted_rules() {
+        for (basis, lifecycle) in [("observed", "reported"), ("documented", "rejected")] {
+            let retained = EvidenceCatalog {
+                evidence: BTreeMap::new(),
+                known: BTreeMap::from([(
+                    "record".into(),
+                    KnownContext {
+                        record_id: "record".into(),
+                        basis: basis.into(),
+                        statement: "Production queues are unbounded.".into(),
+                        kind: "implementation".into(),
+                        lifecycle: lifecycle.into(),
+                        scope: "production".into(),
+                        evidence_ids: vec!["ev_report".into()],
+                        qualifications: vec![],
+                    },
+                )]),
+                constraints: BTreeMap::new(),
+                inspection_paths: BTreeSet::new(),
+                applicable_evidence: BTreeSet::new(),
+                required_records: BTreeSet::new(),
+            };
+            let catalog = DecisionCatalog::new(&retained, &[]).unwrap();
+            let brief = deterministic_fallback("Refactor queues", &catalog, "provider unavailable");
+            assert_eq!(brief.readiness, ActionReadiness::ProceedAfterCheck);
+            assert!(brief.constraints.is_empty());
+            assert!(brief.material_blockers.is_empty());
+            assert!(
+                brief
+                    .next_action
+                    .text
+                    .contains("establish which constraints apply")
+            );
+            assert!(
+                !brief
+                    .next_action
+                    .text
+                    .contains("preserve the retained rule")
+            );
+            assert_eq!(brief.next_action.evidence_ids, ["ev_report"]);
+        }
+    }
 
     #[test]
     fn generated_inline_references_are_collected_but_raw_fact_literals_are_not() {

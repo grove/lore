@@ -940,3 +940,51 @@ async fn hosted_reasoning_without_checkout_egress_does_not_receive_freshness() {
         false
     );
 }
+
+#[tokio::test]
+async fn default_budget_keeps_a_supported_action_and_complete_evidence() {
+    let server = ModelServer::new();
+    let (_temp, config) = fixture(&server).await;
+    let output = adaptive_invocation(&config, TASK, &["--no-cache"], false);
+    let value = adaptive_json(&output);
+    assert_eq!(value["budget"]["max_tokens"], 3000);
+    assert_eq!(value["intelligence"]["mode"], "intelligent", "{value:#}");
+    let result: lore::context::adaptive::AdaptiveResult = serde_json::from_value(value).unwrap();
+    let human = Command::new(env!("CARGO_BIN_EXE_lore"))
+        .arg("--config")
+        .arg(&config.config_path)
+        .args(["context", TASK, "--no-cache"])
+        .env_remove("OPENAI_API_KEY")
+        .env_remove("LORE_USAGE_LEDGER")
+        .env_remove("LORE_INSPECTION_ROOT")
+        .env_remove("LORE_ALLOW_HOSTED_EGRESS")
+        .env_remove("LORE_ALLOW_CHECKOUT_EGRESS")
+        .output()
+        .unwrap();
+    assert!(
+        human.status.success(),
+        "{}",
+        String::from_utf8_lossy(&human.stderr)
+    );
+    assert!(human.stderr.is_empty());
+    for markdown in [
+        lore::context::adaptive::render(&result),
+        String::from_utf8(human.stdout).unwrap(),
+    ] {
+        let first_screen = markdown.lines().take(24).collect::<Vec<_>>().join("\n");
+        for required in [
+            "**Preferred approach:**",
+            "**Next action:**",
+            "Worker events use one durable queue.",
+            "accepted",
+            "ev_",
+        ] {
+            assert!(
+                first_screen.contains(required),
+                "missing {required}: {markdown}"
+            );
+        }
+        assert!(count_tokens(&markdown) <= 3000);
+    }
+    assert!(count_tokens(std::str::from_utf8(&output.stdout).unwrap()) <= 3000);
+}

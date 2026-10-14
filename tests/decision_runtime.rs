@@ -519,6 +519,12 @@ async fn missing_policy_requires_evidence_without_inventing_a_policy_blocker() {
         .await;
     assert_eq!(result["mode"], "fast_fallback");
     assert_eq!(result["investigation"]["stop_reason"], "no_evidence");
+    assert!(
+        result["brief"]["next_action"]["text"]
+            .as_str()
+            .unwrap()
+            .contains("No relevant retained evidence")
+    );
     assert_eq!(result["model_calls"], 0);
     assert_eq!(model.calls.load(Ordering::SeqCst), 0);
     assert_eq!(result["brief"]["readiness"], "proceed_after_check");

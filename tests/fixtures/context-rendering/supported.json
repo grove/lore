@@ -1,0 +1,245 @@
+{
+  "schema_version": 5,
+  "snapshot": {
+    "project_id": "project",
+    "registry_revision": "registry-revision"
+  },
+  "capabilities": {
+    "inspection": "not_granted",
+    "hosted_egress": false,
+    "checkout_egress": false,
+    "execution": false,
+    "source_write": false
+  },
+  "intelligence": {
+    "schema_version": 4,
+    "task": "Refactor queue allocation",
+    "paths": [],
+    "mode": "intelligent",
+    "model_calls": 2,
+    "model": "fixture",
+    "cache_status": "miss",
+    "revision_key": "decision-revision",
+    "budget": {
+      "max_tokens": 2600,
+      "used_tokens": 2200,
+      "tokenizer": "cl100k_base"
+    },
+    "brief": {
+      "readiness": "proceed",
+      "change_kind": "behavior_preserving",
+      "preferred_approach": {
+        "text": "Extract queue allocation while preserving per-key order and the 128-entry production bound.",
+        "evidence_ids": [
+          "ev_rule"
+        ],
+        "observation_ids": []
+      },
+      "rationale": {
+        "text": "The accepted bound protects production latency; the staging exception does not extend to production.",
+        "evidence_ids": [
+          "ev_rule"
+        ],
+        "observation_ids": []
+      },
+      "main_tradeoff": {
+        "text": "Keeping per-key order limits parallelism for a single key.",
+        "evidence_ids": [
+          "ev_rule"
+        ],
+        "observation_ids": []
+      },
+      "next_action": {
+        "text": "Extract the allocation helper behind the existing queue admission check.",
+        "evidence_ids": [
+          "ev_rule"
+        ],
+        "observation_ids": []
+      },
+      "completion_criteria": [
+        {
+          "text": "Repeated-key tests preserve ordering and reject production queue overflow.",
+          "evidence_ids": [
+            "ev_rule"
+          ],
+          "observation_ids": []
+        }
+      ],
+      "facts": [
+        {
+          "provenance": "documentary",
+          "record_id": "rule",
+          "basis": "documented",
+          "statement": "Production queues hold at most 128 entries.",
+          "kind": "constraint",
+          "lifecycle": "accepted",
+          "scope": "production",
+          "evidence_ids": [
+            "ev_rule"
+          ],
+          "qualifications": [
+            "Staging alone may use 256 entries under the accepted experiment.",
+            "Source documentation; not checkout verification."
+          ]
+        },
+        {
+          "provenance": "documentary",
+          "record_id": "exception",
+          "basis": "documented",
+          "statement": "Staging may use 256 entries during the bounded experiment.",
+          "kind": "decision",
+          "lifecycle": "accepted",
+          "scope": "staging",
+          "evidence_ids": [
+            "ev_exception"
+          ],
+          "qualifications": [
+            "Expires when the experiment ends; production remains capped at 128."
+          ]
+        },
+        {
+          "provenance": "documentary",
+          "record_id": "rejected",
+          "basis": "documented",
+          "statement": "Unbounded production queues were rejected because they caused latency spikes.",
+          "kind": "decision",
+          "lifecycle": "rejected",
+          "scope": "production",
+          "evidence_ids": [
+            "ev_rejected"
+          ],
+          "qualifications": [
+            "Historical rationale, not an approved alternative."
+          ]
+        }
+      ],
+      "hypotheses": [],
+      "heuristics": [],
+      "constraints": [
+        {
+          "knowledge_id": "rule",
+          "disposition": "preserved",
+          "explanation": "Keep the production bound; apply the exception only in staging.",
+          "evidence_ids": [
+            "ev_rule",
+            "ev_exception"
+          ],
+          "observation_ids": []
+        }
+      ],
+      "checks": [
+        {
+          "priority": "recommended_during_implementation",
+          "action": "Run repeated-key ordering and production overflow tests.",
+          "decision_impact": "Reordering or accepting entry 129 would violate the accepted contract.",
+          "inexpensive": true,
+          "evidence_ids": [
+            "ev_rule"
+          ],
+          "observation_ids": []
+        }
+      ],
+      "implementation_seams": [],
+      "risks": [],
+      "material_blockers": [],
+      "counterevidence": [],
+      "remaining_uncertainty": [],
+      "revision_key": "decision-revision",
+      "generation_basis": "model_assessed"
+    },
+    "evidence": [
+      {
+        "id": "ev_rule",
+        "source": "docs/queue.md",
+        "revision_id": "source-revision",
+        "content_hash": "sha256:source",
+        "basis": "documentary",
+        "current": true
+      },
+      {
+        "id": "ev_exception",
+        "source": "docs/staging.md",
+        "revision_id": "source-revision",
+        "content_hash": "sha256:source",
+        "basis": "documentary",
+        "current": true
+      },
+      {
+        "id": "ev_rejected",
+        "source": "docs/history.md",
+        "revision_id": "source-revision",
+        "content_hash": "sha256:source",
+        "basis": "documentary",
+        "current": false
+      }
+    ],
+    "inspection": {
+      "status": "disabled",
+      "root": null,
+      "index_digest": "",
+      "index_complete": false,
+      "observations": [],
+      "budget": {
+        "max_files": 6,
+        "files_read": 0,
+        "max_file_bytes": 65536,
+        "max_total_bytes": 262144,
+        "bytes_read": 0,
+        "ignore_files_read": 0,
+        "max_index_entries": 2000,
+        "index_entries": 0,
+        "max_elapsed_ms": 1000,
+        "elapsed_ms": 0,
+        "exhausted": []
+      },
+      "warnings": []
+    },
+    "investigation": {
+      "enabled": false,
+      "steps": [],
+      "remaining_uncertainty": [],
+      "stop_reason": "not_requested",
+      "budget": {
+        "max_rounds": 1,
+        "rounds": 0,
+        "max_model_calls": 6,
+        "model_calls": 2,
+        "timeout_seconds": 60,
+        "elapsed_ms": 0
+      }
+    },
+    "checkout_egress": {
+      "allowed": false,
+      "model_received_checkout": false,
+      "reason": "No checkout egress grant."
+    },
+    "retrieval_truncated": false,
+    "omissions": {
+      "knowledge_units": 0,
+      "critical_groups": 0,
+      "unsupported_units": 0,
+      "imported_observations": 0,
+      "discrepancies": 0,
+      "source_warnings": 0
+    },
+    "brief_items_omitted": 0,
+    "warnings": []
+  },
+  "budget": {
+    "max_tokens": 3000,
+    "used_tokens": 2600,
+    "tokenizer": "cl100k_base"
+  },
+  "usage": {
+    "schema_version": 1,
+    "model_calls": 2,
+    "provider_request_count": 2,
+    "input_tokens": null,
+    "output_tokens": null,
+    "total_tokens": null,
+    "billed_cost_usd": null,
+    "billing_source": null,
+    "cache_hits": 0,
+    "event_count": 2
+  }
+}
