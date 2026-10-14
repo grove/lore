@@ -721,6 +721,7 @@ pub(crate) fn finish_brief(
         .known_record_ids
         .iter()
         .chain(catalog.retained.constraints.keys())
+        .chain(catalog.retained.required_records.iter())
         .collect();
     let facts = ids
         .into_iter()
@@ -766,6 +767,10 @@ pub fn validate_decision(
     draft: &DraftDecision,
     revision_key: &str,
 ) -> Result<DecisionBrief> {
+    ensure!(
+        !selected.decision_incomplete(),
+        "Incomplete task retrieval cannot support decision readiness; resolve retrieval bounds and omissions first."
+    );
     let retained = EvidenceCatalog::validate(conn, selected)?;
     let catalog = DecisionCatalog::new(&retained, observations)?;
     validate_draft(&catalog, draft)?;
@@ -1132,7 +1137,7 @@ pub(crate) fn deterministic_fallback(
         main_tradeoff: advice("Preserving established outcomes narrows the change, while any intended policy change still needs an explicit decision.".into()),
         next_action: advice(check.clone()),
         completion_criteria: vec![advice(format!("The requested outcome for {task} is implemented without silently changing the retained rules."))],
-        facts: catalog.retained.constraints.keys().chain(catalog.retained.known.keys().take(24)).collect::<BTreeSet<_>>().into_iter().filter_map(|id| catalog.retained.known.get(id)).map(|record| ProjectFact { provenance: if record.basis == "documented" { FactProvenance::Documentary } else { FactProvenance::ImportedReport }, record: record.clone() }).collect(),
+        facts: catalog.retained.constraints.keys().chain(catalog.retained.required_records.iter()).chain(catalog.retained.known.keys().take(24)).collect::<BTreeSet<_>>().into_iter().filter_map(|id| catalog.retained.known.get(id)).map(|record| ProjectFact { provenance: if record.basis == "documented" { FactProvenance::Documentary } else { FactProvenance::ImportedReport }, record: record.clone() }).collect(),
         hypotheses: vec![], heuristics: vec![EngineeringHeuristic { provenance: HeuristicProvenance::GeneralEngineering, principle: "Separate a reversible implementation change from an alteration to an adopted policy.".into(), application: "Use the existing contract as the initial boundary until the task's intended scope is clear.".into() }],
         constraints,
         checks: vec![PrioritizedCheck { priority: CheckPriority::RequiredBeforeProceeding, action: check, decision_impact: "A preserving implementation can start; an incompatible policy change needs a stated decision before that part proceeds.".into(), inexpensive: true, evidence_ids: evidence_ids.clone(), observation_ids: observation_ids.clone() }],

@@ -357,6 +357,32 @@ fn shares_source(a: &KnowledgeView, b: &KnowledgeView) -> bool {
     })
 }
 
+pub(super) fn same_scope(a: &KnowledgeView, b: &KnowledgeView) -> bool {
+    let scope = normalized_words(&a.scope);
+    !scope.is_empty() && scope == normalized_words(&b.scope)
+}
+
+pub(super) fn expandable(view: &KnowledgeView) -> bool {
+    view.support_state == "current_documentary_support"
+        && view.lifecycle != "superseded"
+        && view.evidence.iter().any(|evidence| evidence.active)
+}
+
+pub(super) fn same_family(a: &KnowledgeView, b: &KnowledgeView) -> bool {
+    let subject = normalized_words(&a.subject);
+    expandable(a)
+        && expandable(b)
+        && a.topic == b.topic
+        && !subject.is_empty()
+        && subject == normalized_words(&b.subject)
+        && same_scope(a, b)
+        && a.evidence.iter().filter(|e| e.active).any(|left| {
+            b.evidence
+                .iter()
+                .any(|right| right.active && left.source_id == right.source_id)
+        })
+}
+
 fn subject_overlap(a: &KnowledgeView, b: &KnowledgeView) -> bool {
     let left = query_terms(&a.subject);
     let right = query_terms(&b.subject);
@@ -394,11 +420,20 @@ fn expand_concepts(
             .filter_map(|evidence| evidence.source.split_once(':').map(|(root, _)| root))
             .collect::<BTreeSet<_>>();
         let subject = normalized_words(&seed.subject);
-        let subject_group = (seed.topic.clone(), subject.clone(), roots.clone());
+        let subject_group = (
+            seed.topic.clone(),
+            subject.clone(),
+            normalized_words(&seed.scope),
+            roots.clone(),
+        );
         let same_topic: Vec<_> = knowledge
             .values()
             .filter(|view| {
-                view.id != seed.id && view.topic == seed.topic && shares_root(seed, view)
+                view.id != seed.id
+                    && view.topic == seed.topic
+                    && shares_root(seed, view)
+                    && same_scope(seed, view)
+                    && expandable(view)
             })
             .collect();
         if !subject.is_empty() && visited_subjects.insert(subject_group) {

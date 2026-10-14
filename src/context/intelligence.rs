@@ -76,6 +76,8 @@ pub(crate) struct EvidenceCatalog {
     pub(crate) constraints: BTreeMap<String, BTreeSet<String>>,
     pub(crate) inspection_paths: BTreeSet<String>,
     pub(crate) applicable_evidence: BTreeSet<String>,
+    /// Complete qualification/history groups must survive optional prose packing.
+    pub(crate) required_records: BTreeSet<String>,
 }
 
 impl EvidenceCatalog {
@@ -121,7 +123,32 @@ impl EvidenceCatalog {
             constraints: BTreeMap::new(),
             inspection_paths: BTreeSet::new(),
             applicable_evidence: BTreeSet::new(),
+            required_records: BTreeSet::new(),
         };
+        for relation in &selected.relations {
+            if super::complete_relation(
+                facts
+                    .iter()
+                    .find(|f| f.id == relation.id)
+                    .context("selected relationship disappeared")?,
+                &stored[&relation.from],
+                &stored[&relation.to],
+            ) {
+                catalog
+                    .required_records
+                    .extend([relation.from.clone(), relation.to.clone()]);
+            }
+        }
+        let selected_records: Vec<_> = selected_ids.iter().map(|id| &stored[*id]).collect();
+        for (index, record) in selected_records.iter().enumerate() {
+            for other in &selected_records[index + 1..] {
+                if super::retrieval::same_family(record, other) {
+                    catalog
+                        .required_records
+                        .extend([record.id.clone(), other.id.clone()]);
+                }
+            }
+        }
         for evidence in &selected.evidence {
             let archived = storage::evidence_snapshot(conn, &evidence.id)?;
             ensure!(

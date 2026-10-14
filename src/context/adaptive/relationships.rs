@@ -140,6 +140,7 @@ impl SourceRelationships {
                 constraints: BTreeMap::new(),
                 inspection_paths: BTreeSet::new(),
                 applicable_evidence: BTreeSet::new(),
+                required_records: BTreeSet::new(),
             });
         }
         ensure!(

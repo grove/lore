@@ -156,6 +156,50 @@ These bounds control response construction and presentation. Registry retrieval
 still uses the existing registry-wide retrieval implementation; this feature
 does not introduce a new storage-scale performance guarantee.
 
+Task context retains at most 32 distinct query terms, 48 initial seeds and 128
+candidates. Subject and topic expansion is one pass, with at most 12 additions
+per subject/scope/root group and 8 per topic/root group; explicit relationships
+expand at most two hops. Concept expansion requires matching recorded scope
+and current documentary support. It does not promote withdrawn, unsupported or
+superseded neighbors. Rejected alternatives retain their rejected lifecycle.
+
+Within that candidate set, same-source, same-topic, same-subject, same-scope
+families are budgeted together. Current evidence-bound `elaborates` links, and
+`related_to` links involving an adopted constraint or a rejected alternative,
+also bind retrieved endpoints into complete groups. Existing conflict, review
+and supersession groups retain their complete endpoints. Mere document or topic
+overlap does not create a complete family. A standalone adopted constraint or
+decision counts as a critical group when omitted.
+Qualification/history records in these documentary families and relationship
+groups also survive decision synthesis and optional prose packing. If the
+complete facts and evidence cannot fit, the runtime returns bounded context with
+an explicit fallback instead of slicing away a negative case or endpoint.
+
+`retrieval_truncated` means records were **not selected or assessed** because a
+query, candidate, expansion or semantic-index bound was reached. `omissions`
+counts retrieved records/groups that could not be retained under the output
+budget, including separately counted unsupported evidence. Neither establishes
+that no applicable constraint exists. Incomplete task retrieval returns an
+explicit `fast_fallback` with `investigation_status: incomplete_retrieval` in
+adaptive context; it cannot take the exact-reference shortcut or produce a
+decision-ready recommendation. This conservative guard also covers singleton
+and diagnostic omissions. Increase the budget or narrow the task/path before
+requesting readiness. Both complete JSON and Markdown remain within the declared
+token budget; an envelope that cannot fit returns `invalid_budget`.
+
+The decision runtime keeps its existing 30-second default query deadline
+(configurable from 1 to 60 seconds), two investigation rounds and six default
+model attempts (configurable up to eight). Fast retrieval performs zero model
+calls and no checkout scan. Its registry reads are synchronous, so the retrieval
+bounds are work/response bounds rather than a storage-scale wall-clock guarantee.
+
+`tests/fixtures/critical-retrieval/manifest.json` pins source SHA-256 digests,
+critical record IDs, exact evidence IDs, task/path queries and token budgets for
+five recall regressions and two negative controls. `tests/critical_retrieval.rs`
+loads immutable source evidence without extraction inference, exercises the
+actual `--fast` CLI, checks whole-group budget omission and truncated-query/index
+abstention, and applies the same authority controls to supplied semantic hits.
+
 ## Validation and remaining outcome gates
 
 `tests/decision_lenses.rs` exercises real retained SQLite records and source
