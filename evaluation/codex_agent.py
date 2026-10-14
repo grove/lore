@@ -130,7 +130,13 @@ def stop(process) -> None:
     # A separate group allows killing descendants even after the leader exits.
     try:
         if os.name == "posix":
-            os.killpg(process.pid, signal.SIGKILL)
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except PermissionError:
+                # macOS can report EPERM for a group containing only an unreaped leader.
+                if process.poll() is None:
+                    raise
+                os.killpg(process.pid, signal.SIGKILL)
         elif process.poll() is None:
             process.kill()
     except ProcessLookupError:
