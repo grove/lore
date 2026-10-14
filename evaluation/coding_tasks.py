@@ -106,6 +106,9 @@ def bundled_fingerprints() -> set[str]:
     if decision_cases.is_file():
         for case in cross.read_json(decision_cases)["cases"]:
             fingerprints.add(cross.fingerprint(decision_cases.parent / case["source_root"])["sha256"])
+    real_decisions = ROOT / "corpora" / "real-decisions-v1" / "manifest.json"
+    for project in cross.read_json(real_decisions)["projects"].values():
+        fingerprints.add(cross.fingerprint(real_decisions.parent / project["source_root"])["sha256"])
     candidates = ROOT / "corpora" / "coding-real-v1" / "manifest.json"
     if candidates.is_file():
         fingerprints.update(candidate_fingerprints(hash_file(candidates)))
