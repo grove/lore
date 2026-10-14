@@ -1,5 +1,7 @@
 # Lore autonomous assistance and user empowerment
 
+> **Context compatibility:** Schema-3/4 selection described here is historical and was removed in 0.10.0. See the [current contract matrix](CONTEXT_MIGRATION.md). Shared decision/retrieval internals remain in use.
+
 **Status:** Proposed, not implemented. **Design revision:** 3 — shared adaptive assistance for human and agent experiences. **Date:** 2026-10-09. **Implementation baseline:** Lore 0.6 at `51b62ebe6d44ca4ff5162ff7758408c3e85ec548`.
 
 **Companions:** [Developer Onboarding](DEVELOPER_ONBOARDING_DESIGN.md) (**human learning flagship**), [Coding-Agent Intelligence](CODING_AGENT_INTELLIGENCE_DESIGN.md) (**agent flagship**), [Knowledge Experience](KNOWLEDGE_EXPERIENCE_DESIGN.md), and [implementation roadmap](KNOWLEDGE_EXPERIENCE_ROADMAP.md). This document specifies the operating policy, user experience, investigation loop, reusable investigation records and acceptance tests for that architecture. It is not a new runtime contract already accepted by Lore 0.6.

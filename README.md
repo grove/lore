@@ -39,9 +39,9 @@ lore status
 
 **Product contract:** [What Lore owns, the retained command map, and migration policy](docs/PRODUCT_SCOPE.md). The focus is task guidance, not a tutorial platform, web browser, code wiki or project monitoring product. The focused development line has retired interactive learning ([#66](https://github.com/grove/lore/issues/66)) and the embedded browser visualizer ([#67](https://github.com/grove/lore/issues/67)). See the [learning migration](docs/LEARNING_MIGRATION.md), [visualizer migration](docs/VISUALIZER_MIGRATION.md), [Guardian migration](docs/GUARDIAN_MIGRATION.md) and [feedback migration](docs/FEEDBACK_MIGRATION.md). The standalone Guardian and task-feedback products are now retired; remaining reductions are tracked in [#70](https://github.com/grove/lore/issues/70)–[#73](https://github.com/grove/lore/issues/73).
 
-**Release reality:** 0.9.0-rc.1 is an engineering release candidate, **not** stable 0.9.0. Source binding, privacy and CLI behavior have deterministic/fixture checks; real-model coding improvements, human learning outcomes and Guardian alert usefulness are **not measured**. See the [0.9 guide](docs/V09.md), [engineering scorecard](evaluation/PRODUCT_QUALITY_09.md), and deferred [independent decision-task evaluation](https://github.com/grove/lore/issues/2).
+**Release reality:** 0.10.0 is an intentional breaking engineering release: explicit context schemas 3/4 are removed. Schema 5, model-free fast retrieval and uninitialized first contact remain; see the [compatibility matrix and migration guide](docs/CONTEXT_MIGRATION.md). Source binding, privacy and CLI behavior have deterministic/fixture checks; real-model coding improvements are **not measured**. See the [engineering scorecard](evaluation/PRODUCT_QUALITY_09.md) and deferred [independent decision-task evaluation](https://github.com/grove/lore/issues/2).
 
-**Learn the CLI:** [static first-run task guide](docs/tutorial/README.md). **Need operational details?** Start below for installation, evidence provenance, provider configuration and current compatibility. New projects are registry-only; see the [mode and migration guide](docs/HEADLESS_MIGRATION.md) for optional Markdown publication. Legacy reader, Guardian advice and feedback commands mentioned below remain in the 0.9.0-rc.1 product; interactive learning has been removed from the focused development line. Planned removals are mapped in [product scope](docs/PRODUCT_SCOPE.md).
+**Learn the CLI:** [static first-run task guide](docs/tutorial/README.md). **Need operational details?** Start below for installation, evidence provenance, provider configuration and current compatibility. New projects are registry-only; see the [mode and migration guide](docs/HEADLESS_MIGRATION.md) for optional Markdown publication. Retired surfaces and their migrations are mapped in [product scope](docs/PRODUCT_SCOPE.md).
 
 ## Why a project needs more than a summary
 
@@ -92,7 +92,7 @@ in interactive terminals. When stderr is redirected, it writes progress messages
 there instead; `--json` keeps progress output disabled so stdout remains valid
 JSON.
 
-**In 0.9.0-rc.1**, the result is ordinary Markdown under `lore/`, with an index and topic pages. Registry-only initialization is planned in [#70](https://github.com/grove/lore/issues/70), not available yet. Lore keeps its database, exact evidence snapshots, and reusable inference results under `.lore/`. Add `.lore/` to your project's `.gitignore`; it contains potentially sensitive copied project material. Review generated pages before publishing them, just as you would review other documentation.
+New projects compile a registry without requiring Markdown publication. Set `output.mode: markdown` to opt into an export under `lore/`; existing Markdown projects retain their output until an explicit migration. Lore keeps its database, exact evidence snapshots, and reusable inference results under `.lore/`. Add `.lore/` to your project's `.gitignore`; it contains potentially sensitive copied project material. Review exported pages before publishing them.
 
 ## Retrieve context for your next change
 
@@ -108,10 +108,10 @@ lore context "Implement payment retries" --no-cache
 lore context "Implement payment retries" --inspect
 lore context "Implement payment retries" --investigate --max-tokens 8000
 lore context "Implement payment retries" --no-inspect
-lore --json context "Implement payment retries" --schema-version 3
-lore --json context "Implement payment retries" --schema-version 4
 lore --json context "Implement payment retries" --schema-version 5
 ```
+
+Explicit schemas 3/4 were removed in 0.10.0; see the [contract migration matrix](docs/CONTEXT_MIGRATION.md).
 
 Initialized `context` combines relevant retained knowledge with the configured model when permitted. Its default schema-5 envelope includes a complete registry snapshot identity, actual capabilities, source relationship groups, and a decision or honest deterministic fallback under `intelligence`. Markdown leads with the preferred approach, next action and critical constraints. The decision retains readiness, rationale, trade-off, implementation seams, prioritized checks and future completion criteria. Facts are copied from retained records; hypotheses keep their support, alternatives and applicability, and general engineering principles remain separate. Exact supported symbolic queries can use a zero-call reference result. Context preserves the registry, original sources and generated wiki.
 

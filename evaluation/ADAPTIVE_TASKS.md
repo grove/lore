@@ -1,5 +1,10 @@
 # Adaptive coding-task comparison
 
+> **Historical comparison contracts:** Schema-3/4 arms require a supporting
+> binary and matching harness (last supporting release: 0.9.0-rc.1). Lore
+> 0.10.0 rejects those selectors; do not substitute schema 5 into a legacy arm.
+> See [context migration](../docs/CONTEXT_MIGRATION.md).
+
 `adaptive_tasks.py` connects the explicit schema-5 experience to the existing
 actual coding-task runner. It invokes the operator's coding-agent command,
 applies its proposed changes to a separate source copy, and runs the selected

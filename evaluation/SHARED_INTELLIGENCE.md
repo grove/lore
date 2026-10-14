@@ -1,7 +1,7 @@
 # Shared intelligence and learning-transfer evaluation
 
 `shared_intelligence.py` extends the existing evaluation machinery for the
-explicit schema-5 agent experience and schema-1 human orientation. It uses
+schema-5 agent and onboarding experiences (protocol `shared-intelligence-v2`). It uses
 `coding_tasks.py` source snapshots, `cross_source.py` registry fingerprints and
 evidence resolution, and `decision_tasks.py` exact static-observation checking.
 The human and agent outputs are collected from the same prepared project.
@@ -9,6 +9,11 @@ The human and agent outputs are collected from the same prepared project.
 This is an integration and source-contract evaluation. It does not establish
 that a human learned a project, that a coding agent made a better change, or
 that source-backed generated prose is semantically correct.
+
+Schemas 3/4 are removed from the current collector. Historical v1 captures and
+six-arm comparisons require their original harness and a supporting binary
+(last release: 0.9.0-rc.1). They are not silently reinterpreted as v2. See the
+[context migration inventory](../docs/CONTEXT_MIGRATION.md).
 
 ## Prepare without inference
 
@@ -42,9 +47,7 @@ and invokes each of these experiences twice:
 
 | Experience | Actual invocation |
 | --- | --- |
-| Legacy fast | `lore --json context TASK --fast` |
-| Legacy intelligent | `lore --json context TASK --schema-version 3` |
-| Legacy decision | `lore --json context TASK --schema-version 4` |
+| Model-free fast | `lore --json context TASK --fast` |
 | Shared agent | `lore --json context TASK --schema-version 5` |
 | Shared human | `lore --json onboard --topic TASK` |
 | Agent restriction | Schema 5 with `--no-inspect` |

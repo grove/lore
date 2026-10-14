@@ -7,8 +7,8 @@ use lore::{
     engine::{self, UpdateOptions},
     http::HttpModel,
     inference::{
-        DecisionModel, DecisionQuestion, DecisionRequest, EgressPolicy, EmbeddingModel,
-        EmbeddingRequest, GenerationRequest, GenerativeModel, QuestionKind,
+        DecisionModel, DecisionQuestion, DecisionRequest, EmbeddingModel, EmbeddingRequest,
+        GenerationRequest, GenerativeModel, QuestionKind,
     },
     publish, storage, util,
 };
@@ -19,6 +19,16 @@ use std::{
     path::{Path, PathBuf},
     time::Duration,
 };
+
+fn context_schema(value: &str) -> std::result::Result<u32, String> {
+    match value {
+        "5" => Ok(5),
+        "3" | "4" => Err(format!(
+            "context schema {value} was removed in 0.10.0. Use --schema-version 5 (or omit the pin) and read the decision under intelligence; --fast retains model-free schema 2. See docs/CONTEXT_MIGRATION.md."
+        )),
+        _ => Err("supported context schema: 5; use --fast for schema 2".into()),
+    }
+}
 
 #[derive(Parser)]
 #[command(
@@ -162,8 +172,8 @@ enum Command {
         #[arg(long, conflicts_with_all = ["fast", "no_inspect"],
             help = "Explicitly permit checkout content in the configured hosted model for this query")]
         allow_checkout_egress: bool,
-        #[arg(long, conflicts_with = "fast", value_parser = clap::value_parser!(u32).range(3..=5),
-            help = "JSON contract: 5 (default, adaptive shared intelligence), or explicit 3/4 for compatibility")]
+        #[arg(long, conflicts_with = "fast", value_parser = context_schema,
+            help = "JSON contract: 5 (default); schemas 3/4 were removed in 0.10.0")]
         schema_version: Option<u32>,
     },
     /// Retired: use context, search, decisions, cases and evidence.
@@ -756,7 +766,7 @@ async fn run(cli: Cli) -> Result<i32> {
             investigate,
             no_inspect,
             allow_checkout_egress,
-            schema_version,
+            schema_version: _,
         } => {
             let conn = storage::read_only(&config.state.join("state.db"))
                 .context("open knowledge registry (run lore init or lore update first)")?;
@@ -774,7 +784,7 @@ async fn run(cli: Cli) -> Result<i32> {
                 } else {
                     print!("{}", context::render_context(&fast_result));
                 }
-            } else if schema_version.is_none() || schema_version == Some(5) {
+            } else {
                 let result = context::adaptive::run(
                     &config,
                     &conn,
@@ -792,39 +802,6 @@ async fn run(cli: Cli) -> Result<i32> {
                     println!("{}", serde_json::to_string(&result)?);
                 } else {
                     print!("{}", context::adaptive::render(&result));
-                }
-            } else if schema_version == Some(3) {
-                ensure!(
-                    !inspect && !investigate && !allow_checkout_egress,
-                    "checkout inspection and investigation require schema 4"
-                );
-                let result = intelligent_context(&config, &conn, &options, no_cache).await?;
-                if cli.json {
-                    println!("{}", serde_json::to_string(&result)?);
-                } else {
-                    print!(
-                        "{}",
-                        context::intelligence::render_intelligent_context(&result)
-                    );
-                }
-            } else {
-                let result = context::decision::runtime::run(
-                    &config,
-                    &conn,
-                    &options,
-                    &context::decision::runtime::RunOptions {
-                        inspect,
-                        investigate,
-                        no_inspect,
-                        no_cache,
-                        allow_checkout_egress,
-                    },
-                )
-                .await?;
-                if cli.json {
-                    println!("{}", serde_json::to_string(&result)?);
-                } else {
-                    print!("{}", context::decision::runtime::render(&result));
                 }
             }
         }
@@ -1162,132 +1139,6 @@ fn bootstrap(
     file.write_all(bytes.as_bytes())?;
     file.sync_all()?;
     Ok(())
-}
-async fn intelligent_context(
-    config: &ResolvedConfig,
-    conn: &rusqlite::Connection,
-    options: &ContextOptions,
-    no_cache: bool,
-) -> Result<context::intelligence::IntelligentContextResult> {
-    let mut config = config.clone();
-    config.config.context.cache &= !no_cache;
-    // Construction enforces provider and egress configuration without a
-    // network request. Read-only commands still work with retired providers.
-    let model = HttpModel::new(&config, &config.config.models.generative).ok();
-    conn.execute_batch("SAVEPOINT lore_intelligent_context")?;
-    let result = async {
-        if model.is_some() && config.config.processing.max_context_bytes < 14_048 {
-            let selected = context::build_context(conn, options)?;
-            return context::intelligence::fast_fallback(
-                conn, options, &selected, 0,
-                "The configured inference input budget is too small for task guidance; using deterministic context without fresh reasoning.",
-            );
-        }
-        let mut retrieval_warnings = Vec::new();
-        let mut retrieval_calls = 0;
-        let mut semantic = None;
-        if model.is_some()
-            && let Some(role) = config.config.models.embedding.as_ref().filter(|r| r.enabled)
-        {
-                match HttpModel::new(&config, role) {
-                    Ok(embedding) => {
-                        let cache = if config.config.context.cache {
-                            context::semantic::open_cache(&config.state.join("semantic.sqlite3"))
-                                .or_else(|_| {
-                                    retrieval_warnings.push(
-                                        "Semantic cache unavailable; this query uses a temporary index.".into(),
-                                    );
-                                    Ok::<_, anyhow::Error>(rusqlite::Connection::open_in_memory()?)
-                                })?
-                        } else {
-                            rusqlite::Connection::open_in_memory()?
-                        };
-                        let policy = if config.config.privacy.local_only {
-                            EgressPolicy::LocalOnly
-                        } else {
-                            EgressPolicy::ExplicitHosted
-                        };
-                        let search = context::semantic::search(
-                            conn, &cache, &embedding, policy, &options.task, &options.paths,
-                            config.config.processing.max_context_bytes,
-                        );
-                        match tokio::time::timeout(
-                            std::time::Duration::from_secs(config.config.processing.timeout_seconds),
-                            search,
-                        ).await {
-                            Ok(Ok(report)) => {
-                                retrieval_calls = report.model_calls;
-                                retrieval_warnings.extend(report.warnings.iter().cloned());
-                                semantic = Some(report);
-                            }
-                            outcome => {
-                                retrieval_calls = u32::try_from(embedding.embedding_calls.load(
-                                    std::sync::atomic::Ordering::Relaxed,
-                                )).unwrap_or(u32::MAX);
-                                retrieval_warnings.push(if outcome.is_err() {
-                                    "Semantic indexing timed out; valid cached progress is reusable. Using lexical and recorded relationship retrieval."
-                                } else {
-                                    "Semantic retrieval unavailable; using lexical and recorded relationship retrieval."
-                                }.into());
-                            }
-                        }
-                    }
-                    Err(_) => retrieval_warnings.push(
-                        "Embedding configuration unavailable or disallowed; using lexical and recorded relationship retrieval.".into(),
-                    ),
-                }
-        }
-        // Input evidence has its own bound. The user's --max-tokens is the
-        // complete output budget, and should primarily accommodate guidance.
-        let input_bytes = config.config.processing.max_context_bytes.saturating_sub(12_000);
-        let mut input_options = options.clone();
-        if model.is_some() {
-            input_options.max_tokens = (input_bytes / 4)
-                .clamp(context::MIN_MAX_TOKENS, context::MAX_MAX_TOKENS.min(16_000));
-        }
-        let mut selected = loop {
-            let candidate = match &semantic {
-                Some(report) => context::build_context_with_semantic(conn, &input_options, report),
-                None => context::build_context(conn, &input_options),
-            };
-            let candidate = match candidate {
-                Ok(candidate) => candidate,
-                Err(error) if error.downcast_ref::<context::ContextError>()
-                    .is_some_and(|error| error.code == "invalid_budget") => {
-                    let mut selected = context::build_context(conn, options)?;
-                    selected.warnings.extend(retrieval_warnings);
-                    return context::intelligence::fast_fallback(
-                        conn, options, &selected, retrieval_calls,
-                        "The task and retained evidence do not fit the inference input budget; using deterministic context without fresh reasoning.",
-                    );
-                }
-                Err(error) => return Err(error),
-            };
-            if model.is_none() || serde_json::to_vec(&candidate)?.len() <= input_bytes
-                || input_options.max_tokens <= 512
-            {
-                break candidate;
-            }
-            input_options.max_tokens = (input_options.max_tokens * 3 / 4).max(512);
-        };
-        selected.model_calls = retrieval_calls;
-        selected.warnings.extend(retrieval_warnings);
-        context::intelligence::build_intelligent_context(
-            conn, &config, options, selected,
-            model.as_ref().map(|model| model as &dyn GenerativeModel),
-        ).await
-    }.await;
-    let released = conn.execute_batch("RELEASE lore_intelligent_context");
-    match result {
-        Ok(value) => {
-            released?;
-            Ok(value)
-        }
-        Err(error) => {
-            let _ = released;
-            Err(error)
-        }
-    }
 }
 
 struct CompileProgress {

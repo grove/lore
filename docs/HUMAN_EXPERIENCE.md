@@ -1,5 +1,7 @@
 > **Archived 0.9.0-rc.1 design/behavior record — not current CLI documentation.** Interactive lessons, modes, hints, assessment, transfer activities, `lore.human_experience` output and `lore.bootstrap_onboard` were retired in [#66](https://github.com/grove/lore/issues/66). Current `onboard` uses the shared `context` pipeline. See [migration](LEARNING_MIGRATION.md) and [getting started](tutorial/README.md). Historical examples below intentionally describe the old implementation.
 
+> **Context compatibility:** Schema-3/4 selection described here is historical and was removed in 0.10.0. See the [current contract matrix](CONTEXT_MIGRATION.md). Shared decision/retrieval internals remain in use.
+
 # Understand a project, then work on it
 
 `lore onboard` gives a person a first view of the project. In a fresh checkout it reads bounded original documentation and returns exact source excerpts, qualifications and navigation without setup. When compiled project knowledge is available, it presents the same retained evidence and bounded investigations used by adaptive task context as an explanation: purpose, important concepts, architectural responsibilities, a documented or statically inferred workflow, and conditions that matter when changing it. There is no questionnaire or required learning profile.

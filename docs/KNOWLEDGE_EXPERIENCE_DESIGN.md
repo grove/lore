@@ -1,5 +1,7 @@
 # Lore Knowledge Experience — design proposal
 
+> **Context compatibility:** Schema-3/4 selection described here is historical and was removed in 0.10.0. See the [current contract matrix](CONTEXT_MIGRATION.md). Shared decision/retrieval internals remain in use.
+
 **Status:** Proposed, not implemented. **Design revision:** 4 — shared project intelligence for humans and agents. **Date:** 2026-10-09. **Baseline:** Lore 0.6 on `main` at `51b62ebe6d44ca4ff5162ff7758408c3e85ec548`.
 
 **Companions:** [Developer Onboarding](DEVELOPER_ONBOARDING_DESIGN.md) (**flagship human learning experience**), [Coding-Agent Intelligence](CODING_AGENT_INTELLIGENCE_DESIGN.md) (**coequal agent experience**), [Autonomous Assistance](AUTONOMOUS_ASSISTANCE_DESIGN.md) and [roadmap](KNOWLEDGE_EXPERIENCE_ROADMAP.md).

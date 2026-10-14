@@ -30,16 +30,15 @@ read-command intervals. One capture includes an intermediate `.rsync-tmp` path;
 the writer was not independently identified. These are failed full integrity
 captures. No unavailable provider is scored as a successful quiet guardian.
 
-Initialized projects now use adaptive context schema 5 by default. Explicit
-schema 4, schema 3 and deterministic `--fast` schema 2 remain compatibility
-controls; consuming agents can pin `--schema-version 5`. Uncompiled context and
+Initialized projects now use adaptive context schema 5 by default. Deterministic `--fast` schema 2 remains supported; explicit schemas 3/4
+were removed in 0.10.0 ([migration](../docs/CONTEXT_MIGRATION.md)); consuming agents can pin `--schema-version 5`. Uncompiled context and
 onboarding historically used distinct `lore.bootstrap_context`/`lore.bootstrap_onboard`
 contracts. Exploration schemas 1/2 and their browser comparison tests were retired in 0.9 ([navigation migration](../docs/NAVIGATION_MIGRATION.md)); the retained measurements below describe historical revisions. Frozen
 baseline captures are retained rather than rewritten for the new default.
 
 ## Existing shared, coding, and synthesis protocols
 
-For the explicit schema-5 shared agent experience and schema-1 human orientation,
+For the schema-5 shared agent and onboarding experiences,
 see [Shared intelligence and learning-transfer evaluation](SHARED_INTELLIGENCE.md).
 It collects both actual CLI outputs on the same source snapshot, rechecks
 legacy and permission contracts, and provides an external same-project transfer

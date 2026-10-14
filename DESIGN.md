@@ -1,5 +1,7 @@
 # Lore — Technical Design
 
+> **Context compatibility:** Explicit schemas 3/4 described here are historical and were removed in 0.10.0. See the [current contract matrix](docs/CONTEXT_MIGRATION.md). Schema 5 retains its nested decision structure.
+
 **Status:** Draft v0.7 · **Date:** 2026-10-08 · **Implementation status:** Initial end-to-end CLI implemented; see implementation guide for boundaries
 
 **Future design companions (not implemented):** Lore is a shared project intelligence layer serving **newcomers, experienced developers, maintainers and coding agents**. [Developer Onboarding](docs/DEVELOPER_ONBOARDING_DESIGN.md) defines its flagship human learning journey; [Coding-Agent Intelligence](docs/CODING_AGENT_INTELLIGENCE_DESIGN.md) defines its coequal machine-readable task/decision experience. [Knowledge Experience](docs/KNOWLEDGE_EXPERIENCE_DESIGN.md) covers adaptive-depth Zoom, Diátaxis, cases and decision conditions; [Autonomous Assistance](docs/AUTONOMOUS_ASSISTANCE_DESIGN.md) specifies shared permitted investigation. The [shared-intelligence roadmap](docs/KNOWLEDGE_EXPERIENCE_ROADMAP.md) starts with a small common engine and two assessed examples, then measures human learning and agent outcomes separately. **These are proposals, not shipped Lore 0.6 commands or schemas.**

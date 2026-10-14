@@ -1,4 +1,5 @@
-//! Schema 4 orchestration. Inspection and inference are bounded separately;
+//! Shared decision orchestration with the nested schema-4 result.
+//! Inspection and inference are bounded separately;
 //! their results and caches never become accepted registry knowledge.
 
 use super::*;
@@ -191,24 +192,8 @@ fn checkout_permission(
     }
 }
 
-/// CLI entry point: bounded hybrid retrieval, then schema 4 reasoning. The
-/// savepoint supplies one consistent registry snapshot without writing it.
-pub async fn run(
-    config: &ResolvedConfig,
-    conn: &Connection,
-    options: &ContextOptions,
-    run: &RunOptions,
-) -> Result<DecisionContextResult> {
-    run_prepared(config, conn, options, run, |options, _| {
-        Ok((options.clone(), ()))
-    })
-    .await
-    .map(|(result, ())| result)
-}
-
-/// Shared schema adapters can retain source-owned metadata from the exact
-/// selection and reserve its output space before any decision synthesis.
-/// Legacy callers use the identity preparation above and keep schema 4.
+/// Reserve the schema-5 envelope and source-owned metadata from the exact
+/// evidence selection before decision synthesis.
 pub(crate) async fn run_prepared<T>(
     config: &ResolvedConfig,
     conn: &Connection,
@@ -1430,16 +1415,6 @@ fn fit(mut result: DecisionResult) -> Result<Option<DecisionResult>> {
 }
 
 pub fn render(result: &DecisionContextResult) -> String {
-    render_ordered(result, false)
-}
-
-/// Adaptive presentation leads with the action and constraints while explicit
-/// schema 4 keeps its established Markdown order and complete public contract.
-pub(crate) fn render_action_first(result: &DecisionContextResult) -> String {
-    render_ordered(result, true)
-}
-
-fn render_ordered(result: &DecisionContextResult, action_first: bool) -> String {
     match result {
         DecisionContextResult::FastFallback(result) => format!(
             "# Decision context\n\n{}\n\nInspection: {}. Investigation: {}.\n\n{}",
@@ -1449,11 +1424,7 @@ fn render_ordered(result: &DecisionContextResult, action_first: bool) -> String 
             context::render_context(&result.context)
         ),
         DecisionContextResult::Brief(result) => {
-            let mut text = if action_first {
-                super::render_brief_action_first(&result.brief)
-            } else {
-                render_brief(&result.brief)
-            };
+            let mut text = render_brief(&result.brief);
             if let Some(reason) = &result.fallback_reason {
                 text.push_str(&format!("\nFallback: {}\n", display_text(reason)));
             }

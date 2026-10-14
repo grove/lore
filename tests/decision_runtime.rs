@@ -1,4 +1,4 @@
-//! End-to-end schema 4 tests with retained SQLite evidence, real checkout files,
+//! Shared nested-decision tests with retained SQLite evidence, real checkout files,
 //! and an explicit provider double. No test or source command is ever executed.
 use lore::{
     config::{Config, ResolvedConfig},
