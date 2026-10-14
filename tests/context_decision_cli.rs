@@ -159,6 +159,9 @@ fn read_request(stream: &mut TcpStream) -> Option<(String, Value)> {
 }
 
 fn response_for(input: &Value) -> Value {
+    if input["task"] == "context_investigation" {
+        return json!({"uncertainty":"", "hypothesis":"", "candidate_id":"", "expected_discriminator":"", "stop":true});
+    }
     let source = &input["source_context"];
     let record = &source["knowledge"][0];
     let evidence = record["evidence_ids"].clone();
@@ -238,19 +241,11 @@ async fn fixture(server: &ModelServer) -> (tempfile::TempDir, ResolvedConfig) {
 }
 
 fn invoke(config: &ResolvedConfig, extra: &[&str]) -> Output {
-    // These historical tests continue to exercise the explicit schema-4
-    // contract after 0.8 promotes the separate adaptive entry point.
-    let legacy_pin: &[&str] = if extra.contains(&"--fast") || extra.contains(&"--schema-version") {
-        &[]
-    } else {
-        &["--schema-version", "4"]
-    };
     Command::new(env!("CARGO_BIN_EXE_lore"))
         .arg("--config")
         .arg(&config.config_path)
         .args(["--json", "context", TASK])
         .args(extra)
-        .args(legacy_pin)
         .env_remove("OPENAI_API_KEY")
         .env_remove("LORE_INSPECTION_ROOT")
         .env_remove("LORE_ALLOW_HOSTED_EGRESS")
@@ -276,22 +271,50 @@ fn run(config: &ResolvedConfig, extra: &[&str]) -> (Value, String) {
     (serde_json::from_str(&text).unwrap(), text)
 }
 
+fn run_hosted(config: &ResolvedConfig, extra: &[&str]) -> (Value, String) {
+    let output = Command::new(env!("CARGO_BIN_EXE_lore"))
+        .arg("--config")
+        .arg(&config.config_path)
+        .args(["--json", "context", TASK])
+        .args(extra)
+        .env_remove("OPENAI_API_KEY")
+        .env_remove("LORE_INSPECTION_ROOT")
+        .env_remove("LORE_ALLOW_CHECKOUT_EGRESS")
+        .env("LORE_ALLOW_HOSTED_EGRESS", "1")
+        .env(
+            "LORE_CONTEXT_DECISION_TEST_KEY",
+            "synthetic-loopback-test-key",
+        )
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+    assert!(output.stderr.is_empty());
+    let text = String::from_utf8(output.stdout).unwrap();
+    (serde_json::from_str(&text).unwrap(), text)
+}
+
 #[tokio::test]
-async fn explicit_schema_four_keeps_verified_cache_and_fast_compatibility() {
+async fn schema_five_keeps_verified_cache_and_fast_compatibility() {
     let server = ModelServer::new();
     let (_temp, config) = fixture(&server).await;
     let registry = fs::read(config.state.join("state.db")).unwrap();
     let source = fs::read(config.base.join("docs/design.md")).unwrap();
-    let (first, text) = run(&config, &[]);
-    assert_eq!(first["schema_version"], 4);
+    let (first, text) = run(&config, &["--max-tokens", "6000"]);
+    assert_eq!(first["schema_version"], 5);
+    let first = &first["intelligence"];
     assert_eq!(first["mode"], "intelligent", "{text}");
     assert_eq!(first["brief"]["readiness"], "proceed");
     assert_eq!(first["model_calls"], 2);
     assert_eq!(first["inspection"]["status"], "disabled");
     assert_eq!(first["cache_status"], "miss");
-    assert!(count_tokens(&text) <= 3000);
-    let (second, _) = run(&config, &[]);
-    assert_eq!(second["schema_version"], 4);
+    assert!(count_tokens(&text) <= 6000);
+    let (second, _) = run(&config, &["--max-tokens", "6000"]);
+    assert_eq!(second["schema_version"], 5);
+    let second = &second["intelligence"];
     assert_eq!(second["cache_status"], "hit");
     assert_eq!(second["model_calls"], 0);
     assert_eq!(second["brief"], first["brief"]);
@@ -318,6 +341,7 @@ async fn inspection_is_opt_in_and_no_inspect_overrides_configured_inspection() {
     let server = ModelServer::new();
     let (_temp, config) = fixture(&server).await;
     let (inspected, text) = run(&config, &["--inspect", "--max-tokens", "6000"]);
+    let inspected = &inspected["intelligence"];
     assert_eq!(inspected["mode"], "intelligent", "{text}");
     assert!(
         !inspected["inspection"]["observations"]
@@ -338,7 +362,8 @@ async fn inspection_is_opt_in_and_no_inspect_overrides_configured_inspection() {
     )
     .unwrap();
     server.requests.lock().unwrap().clear();
-    let (retained, text) = run(&config, &["--no-inspect"]);
+    let (retained, text) = run(&config, &["--no-inspect", "--max-tokens", "6000"]);
+    let retained = &retained["intelligence"];
     assert_eq!(retained["mode"], "intelligent", "{text}");
     assert_eq!(retained["inspection"]["status"], "disabled");
     assert_eq!(
@@ -364,7 +389,8 @@ async fn hosted_documentary_permission_does_not_send_checkout_until_separately_a
         },
     );
     fs::write(&config.config_path, serde_yaml::to_string(&hosted).unwrap()).unwrap();
-    let (withheld, text) = run(&config, &["--inspect", "--max-tokens", "6000"]);
+    let (withheld, text) = run_hosted(&config, &["--inspect", "--max-tokens", "6000"]);
+    let withheld = &withheld["intelligence"];
     assert_eq!(withheld["mode"], "intelligent", "{text}");
     assert_eq!(withheld["checkout_egress"]["allowed"], false);
     assert_eq!(
@@ -380,7 +406,7 @@ async fn hosted_documentary_permission_does_not_send_checkout_until_separately_a
     assert!(!server.captured().contains("CHECKOUT_ONLY_WORKER_SENTINEL"));
     assert!(!server.captured().contains("src/worker.rs"));
     assert!(server.captured().contains("one durable queue"));
-    let (allowed, text) = run(
+    let (allowed, text) = run_hosted(
         &config,
         &[
             "--inspect",
@@ -389,15 +415,16 @@ async fn hosted_documentary_permission_does_not_send_checkout_until_separately_a
             "6000",
         ],
     );
+    let allowed = &allowed["intelligence"];
     assert_eq!(allowed["mode"], "intelligent", "{text}");
     assert_eq!(allowed["checkout_egress"]["allowed"], true);
     assert_eq!(allowed["checkout_egress"]["model_received_checkout"], true);
     assert!(server.captured().contains("CHECKOUT_ONLY_WORKER_SENTINEL"));
-    assert_eq!(server.calls.load(Ordering::SeqCst), 4);
+    assert_eq!(server.calls.load(Ordering::SeqCst), 5);
 }
 
 #[tokio::test]
-async fn unavailable_or_disallowed_models_keep_schema_four_fallback_without_egress() {
+async fn unavailable_or_disallowed_models_keep_schema_five_fallback_without_egress() {
     let server = ModelServer::new();
     let (_temp, config) = fixture(&server).await;
     for (provider, model, enabled) in [
@@ -416,12 +443,13 @@ async fn unavailable_or_disallowed_models_keep_schema_four_fallback_without_egre
             serde_yaml::to_string(&changed).unwrap(),
         )
         .unwrap();
-        let (result, text) = run(&config, &["--max-tokens", "512"]);
-        assert_eq!(result["schema_version"], 4);
+        let (result, text) = run(&config, &["--max-tokens", "1024"]);
+        assert_eq!(result["schema_version"], 5);
+        let result = &result["intelligence"];
         assert_eq!(result["mode"], "fast_fallback", "{text}");
         assert_eq!(result["model_calls"], 0);
         assert_eq!(result["checkout_egress"]["model_received_checkout"], false);
-        assert!(count_tokens(&text) <= 512);
+        assert!(count_tokens(&text) <= 1024);
         assert!(!result["fallback_reason"].as_str().unwrap().is_empty());
     }
     assert_eq!(server.calls.load(Ordering::SeqCst), 0);
@@ -442,6 +470,8 @@ async fn incompatible_flags_are_typed_json_errors_before_model_calls() {
         vec!["--no-inspect", "--investigate"],
         vec!["--no-inspect", "--allow-checkout-egress"],
         vec!["--schema-version", "2"],
+        vec!["--schema-version", "3"],
+        vec!["--schema-version", "4"],
         vec!["--schema-version", "6"],
     ] {
         let output = invoke(&config, &arguments);
@@ -449,14 +479,6 @@ async fn incompatible_flags_are_typed_json_errors_before_model_calls() {
         assert!(output.stderr.is_empty());
         let result: Value = serde_json::from_slice(&output.stdout).unwrap();
         assert_eq!(result["code"], "invalid_arguments");
-    }
-    for flag in ["--inspect", "--investigate", "--allow-checkout-egress"] {
-        let output = invoke(&config, &["--schema-version", "3", flag]);
-        assert_eq!(output.status.code(), Some(1));
-        assert!(output.stderr.is_empty());
-        let result: Value = serde_json::from_slice(&output.stdout).unwrap();
-        assert_eq!(result["code"], "operation_failed");
-        assert!(result["error"].as_str().unwrap().contains("schema 4"));
     }
     assert_eq!(server.calls.load(Ordering::SeqCst), 0);
 }

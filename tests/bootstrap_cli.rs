@@ -503,16 +503,14 @@ fn explicit_missing_and_invalid_config_never_fall_back_to_cwd() {
 fn pinned_context_requires_initialization_and_removed_learning_flags_fail_explicitly() {
     let (_temp, root) = root();
     put(&root, "README.md", "# Purpose\nA tiny project.\n");
-    for schema in ["3", "4", "5"] {
-        let result = error(
-            &invoke(
-                &root,
-                &["--json", "context", "read docs", "--schema-version", schema],
-            ),
-            "uninitialized_project",
-        );
-        assert!(result["error"].as_str().unwrap().contains("lore init"));
-    }
+    let result = error(
+        &invoke(
+            &root,
+            &["--json", "context", "read docs", "--schema-version", "5"],
+        ),
+        "uninitialized_project",
+    );
+    assert!(result["error"].as_str().unwrap().contains("lore init"));
     error(
         &invoke(&root, &["--json", "context", "read docs", "--fast"]),
         "uninitialized_project",

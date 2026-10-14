@@ -49,10 +49,9 @@ their own grants within the configured privacy ceiling.
 A nested fast_fallback has an explicit reason. It may include a brief tagged
 generation_basis: deterministic_fallback, or the deterministic retrieval
 fields directly in intelligence when the complete briefing does not fit.
-It has no fresh model assessment. Explicit --schema-version 4 retains the
-legacy decision shape without the schema-5 envelope.
-Use --schema-version 3 during migration if your integration requires the 0.5
-preferred_approach/known/inferred/constraint_checks/next_steps contract.
+It has no fresh model assessment. Explicit schemas 3/4 were removed in 0.10.0.
+Use schema 5 and read the decision under intelligence; use --fast for model-free
+schema-2 retrieval. See [contract migration](CONTEXT_MIGRATION.md).
 
 Use the result as evidence-backed context. Read its status, warnings, and
 omission counts. Preserve the distinctions between accepted decisions,
@@ -97,7 +96,7 @@ unavailable or returns an error, report that limitation and use the original
 sources rather than inventing a result.
 ```
 
-Initialized, unpinned context uses schema 5. First contact before compilation uses the separate ephemeral source-only contract. `context --fast` and `evidence` remain model-free and read-only. Context guidance and embeddings use separate disposable local caches; `--no-cache` bypasses them. See [shared intelligence](SHARED_INTELLIGENCE.md) for the current grants and envelope, [the historical v0.6 guide](V06.md) for pinned schema-4 decisions, and [the v0.4 guide](V04.md) for native records.
+Initialized, unpinned context uses schema 5. First contact before compilation uses the separate ephemeral source-only contract. `context --fast` and `evidence` remain model-free and read-only. Context guidance and embeddings use separate disposable local caches; `--no-cache` bypasses them. See [shared intelligence](SHARED_INTELLIGENCE.md) for the current grants and envelope, [contract migration](CONTEXT_MIGRATION.md) for removed schema-3/4 selectors, and [the v0.4 guide](V04.md) for native records.
 
 Lore also provides evidence-bound [review adjudication](REVIEW_ADJUDICATION.md).
 Preview an adjudication before applying it and use its exact digest.

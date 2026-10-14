@@ -1,5 +1,7 @@
 # Lore 0.8 — Implementation Plan
 
+> **Context compatibility:** Schema-3/4 selection described here is historical and was removed in 0.10.0. See the [current contract matrix](CONTEXT_MIGRATION.md). Shared decision/retrieval internals remain in use.
+
 **Release:** 0.8.0  
 **Theme:** From project intelligence to proven practical value  
 **Repository:** <https://github.com/grove/lore>  

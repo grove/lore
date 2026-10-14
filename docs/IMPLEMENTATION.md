@@ -1,5 +1,7 @@
 # Lore implementation guide
 
+> **Context compatibility:** Schema-3/4 selection described here is historical and was removed in 0.10.0. See the [current contract matrix](CONTEXT_MIGRATION.md). Shared decision/retrieval internals remain in use.
+
 Native Engram intake described in this historical guide is retired in the focused development line. Existing evidence stays readable; see [migration and rollback](ENGRAM_MIGRATION.md). OpenWiki, Beads and ordinary Markdown remain supported.
 
 ## Status and execution model

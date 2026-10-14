@@ -22,8 +22,8 @@ import coding_tasks as coding
 import cross_source as cross
 import decision_tasks as decision
 
-PROTOCOL = "shared-intelligence-v1"
-EXPERIENCES = ("fast", "schema3", "schema4", "adaptive", "onboard", "adaptive_no_inspect", "onboard_no_inspect")
+PROTOCOL = "shared-intelligence-v2"
+EXPERIENCES = ("fast", "adaptive", "onboard", "adaptive_no_inspect", "onboard_no_inspect")
 HUMAN_CRITERIA = ("decision_accuracy", "applicable_scope", "critical_conditions_preserved",
                   "history_and_alternatives", "source_attribution", "useful_next_step")
 
@@ -53,8 +53,7 @@ def arguments(experience: str, task: str, max_tokens: int) -> list[str]:
         if experience == "fast":
             result.append("--fast")
         else:
-            schema = "3" if experience == "schema3" else "4" if experience == "schema4" else "5"
-            result.extend(["--schema-version", schema])
+            result.extend(["--schema-version", "5"])
     if experience.endswith("_no_inspect"):
         result.append("--no-inspect")
     return result

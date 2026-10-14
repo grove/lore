@@ -1,5 +1,10 @@
 # Lore 0.8 real coding study
 
+> **Historical comparison contracts:** Schema-3/4 arms require a supporting
+> binary and matching harness (last supporting release: 0.9.0-rc.1). Lore
+> 0.10.0 rejects those selectors; do not substitute schema 5 into a legacy arm.
+> See [context migration](../docs/CONTEXT_MIGRATION.md).
+
 The experiment_08.py wrapper prepares, seals, checks and launches the existing
 adaptive_tasks.py runner. It adds no coding agent, scoring algorithm or model
 simulation. Its six arms remain baseline, fast, lore05, lore06,

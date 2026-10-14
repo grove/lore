@@ -160,11 +160,15 @@ class SharedIntelligenceTests(unittest.TestCase):
 
     def test_explicit_schema_and_restriction_arguments_never_enable_execution(self):
         self.assertIn("--fast", shared.arguments("fast", "task", 6000))
-        for experience, schema in (("schema3", "3"), ("schema4", "4"), ("adaptive", "5")):
-            arguments = shared.arguments(experience, "task", 6000)
-            self.assertEqual(arguments[arguments.index("--schema-version") + 1], schema)
-            self.assertNotIn("--inspect", arguments)
-            self.assertNotIn("--investigate", arguments)
+        arguments = shared.arguments("adaptive", "task", 6000)
+        self.assertEqual(arguments[arguments.index("--schema-version") + 1], "5")
+        self.assertNotIn("--inspect", arguments)
+        self.assertNotIn("--investigate", arguments)
+        for retired in ("schema3", "schema4"):
+            with self.assertRaises(ValueError):
+                shared.arguments(retired, "task", 6000)
+        self.assertNotIn("schema3", shared.EXPERIENCES)
+        self.assertNotIn("schema4", shared.EXPERIENCES)
         for experience in ("adaptive_no_inspect", "onboard_no_inspect"):
             self.assertIn("--no-inspect", shared.arguments(experience, "task", 6000))
         with self.assertRaises(ValueError):
@@ -184,6 +188,11 @@ class SharedIntelligenceTests(unittest.TestCase):
             for review in (directory / "reviews").glob("*.json"):
                 record = cross.read_json(review)
                 self.assertTrue(all(slot["complete"] is False for slot in record["assessments"]))
+            historical = cross.read_json(directory / "metrics.json")
+            historical["protocol"] = "shared-intelligence-v1"
+            cross.write_json(directory / "metrics.json", historical)
+            with self.assertRaisesRegex(ValueError, "Not a completed shared-intelligence collection"):
+                shared.assess(directory)
 
     def test_onboard_uses_the_context_contract_without_a_second_presentation(self):
         with tempfile.TemporaryDirectory() as temporary:

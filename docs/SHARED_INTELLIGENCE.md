@@ -3,8 +3,8 @@
 The default initialized-project context uses schema 5 and reuses Lore's evidence registry, lexical and
 semantic retrieval, decision validation, static checkout inspector and bounded
 investigation controller. It adds automatic initiative within caller grants and
-a source-selection-independent registry revision. Schemas 2, 3 and 4 keep their
-existing explicitly selected command behavior. Pin schema 5 in agent integrations
+a source-selection-independent registry revision. Model-free `--fast` keeps
+schema 2; explicit schemas 3/4 were removed in 0.10.0 ([migration](CONTEXT_MIGRATION.md)). Pin schema 5 in agent integrations
 to keep the contract stable; ordinary human requests need no schema selection.
 
 ```bash
@@ -44,8 +44,8 @@ execution, network transmission or a wider checkout root by itself.
 
 Embedders can construct `adaptive::HostGrants` and apply `adaptive::authorize`
 without reading environment variables. No command executes repository code or
-changes accepted policy. Existing schema-3/4 grant behavior is preserved for
-compatibility when explicitly pinned. The default does not create new grants:
+changes accepted policy. Migrating schema-3/4 consumers must supply these
+caller-owned grants. The default does not create new grants:
 an unavailable capability leaves the best permitted evidence and honest fallback
 usable. It does not become an invented policy or technical blocker.
 
@@ -70,12 +70,12 @@ capability is reported separately from a real authority blocker.
 Markdown starts with the preferred approach, next action and complete critical
 constraints before the supporting rationale and detail. JSON retains the full
 decision structure, evidence, provenance, omissions and source relationships.
-Both presentations are measured within the same requested token bound. Explicit
-schema 4 retains its existing rendering and response shape.
+Both presentations are measured within the same requested token bound. The
+nested decision retains schema 4; top-level schema-4 selection is removed.
 
 Before compilation, an unpinned context request can instead return the distinct
 `lore.bootstrap_context` schema-1 `bootstrap_source_only` contract. Its ephemeral
-source digest is not a registry revision. Explicit schema 3/4/5 and `--fast`
+source digest is not a registry revision. Explicit schema 5 and `--fast`
 return `uninitialized_project` until a registry exists; they never silently
 switch to the bootstrap shape.
 

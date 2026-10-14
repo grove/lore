@@ -76,7 +76,7 @@ Every listed command has a core purpose or an explicit migration owner. This map
 
 **Retired:** `lore explore` and `lore read`, their browsing schemas, rendering and navigation caches under [#71](https://github.com/grove/lore/issues/71) ([navigation migration](NAVIGATION_MIGRATION.md)); `lore visualize`, its HTTP routes and browser assets under [#67](https://github.com/grove/lore/issues/67), standalone `lore guard` advice under [#68](https://github.com/grove/lore/issues/68), and `lore feedback draft` receipts/output/write path under [#69](https://github.com/grove/lore/issues/69). See [visualizer migration](VISUALIZER_MIGRATION.md), [Guardian migration](GUARDIAN_MIGRATION.md) and [task-feedback migration](FEEDBACK_MIGRATION.md). The source-integrity/Guardian **CI** gate remains mandatory and independent; no new advice or UI path was created.
 
-**Compatibility-specific forms** are tracked separately in [#72](https://github.com/grove/lore/issues/72): uninitialized bootstrap schema 1, `--fast` schema 2, initialized default schema 5, and currently explicit legacy schemas 3/4. No new response framework or schema is called for. `--json`, `--config` and task flags are options, not separate products.
+**Context contracts:** uninitialized bootstrap schema 1, model-free `--fast` schema 2 and initialized default/explicit schema 5 are retained. Explicit schemas 3/4 were removed in the breaking 0.10.0 release under [#72](https://github.com/grove/lore/issues/72); see the [complete compatibility matrix, consumer inventory and migration](CONTEXT_MIGRATION.md). No new response framework or schema is introduced. `--json`, `--config` and task flags are options, not separate products.
 
 ## What is enforced, and what is not yet measured
 

@@ -1,5 +1,7 @@
 # Lore Coding-Agent Intelligence — product and technical design
 
+> **Context compatibility:** Schema-3/4 selection described here is historical and was removed in 0.10.0. See the [current contract matrix](CONTEXT_MIGRATION.md). Shared decision/retrieval internals remain in use.
+
 **Status:** Proposed, not implemented. **Date:** 2026-10-10. **Baseline:** Lore 0.6. **Audience:** Coding agents and the developers who operate them.
 
 **Companions:** [Knowledge Experience](KNOWLEDGE_EXPERIENCE_DESIGN.md), [Autonomous Assistance](AUTONOMOUS_ASSISTANCE_DESIGN.md), [Developer Onboarding](DEVELOPER_ONBOARDING_DESIGN.md), [roadmap](KNOWLEDGE_EXPERIENCE_ROADMAP.md), [existing 0.6 contract](V06.md), [current decision evaluator](../evaluation/DECISION_INTELLIGENCE.md).
