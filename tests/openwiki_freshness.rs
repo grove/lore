@@ -11,7 +11,7 @@ use lore::{
     storage, util,
 };
 use rusqlite::Connection;
-use std::{fs, path::Path, time::Duration};
+use std::{fs, path::Path};
 
 const SOURCE: &[u8] = include_bytes!("fixtures/openwiki-freshness/src/worker.rs");
 
@@ -374,7 +374,7 @@ fn permission_exclusion_and_all_io_budgets_fail_closed() {
 #[cfg(unix)]
 #[test]
 fn symlinks_concurrent_replacement_and_tampered_observations_cannot_certify_a_match() {
-    use std::os::unix::fs::symlink;
+    use std::{os::unix::fs::symlink, time::Duration};
     let (_temp, config, _conn, evidence) = fixture();
     let outside = tempfile::tempdir().unwrap();
     fs::write(outside.path().join("worker.rs"), "OUTSIDE_SECRET_SENTINEL").unwrap();
