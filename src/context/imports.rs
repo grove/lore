@@ -515,7 +515,7 @@ pub(super) fn qualifications(observation: &ImportedObservation) -> Vec<String> {
     }
     match observation.record.kind {
         ObservationKind::Implementation => qualifications.push(
-            "Implementation observation reported by the upstream tool; Lore has not inspected the currently checked-out implementation.".into()),
+            "Implementation observation reported by the upstream tool; this import alone does not verify the currently checked-out implementation.".into()),
         ObservationKind::WorkState => qualifications.push(
             "Workflow status describes the source issue only; closed or completed work does not verify implementation behavior or approve a decision.".into()),
         ObservationKind::Recollection => qualifications.push(
@@ -524,7 +524,7 @@ pub(super) fn qualifications(observation: &ImportedObservation) -> Vec<String> {
             "Imported documentation retains its upstream meaning; adoption or policy authority must not be inferred.".into()),
     }
     if observation.record.verification == ObservationVerification::UpstreamVerifiedAtRevision {
-        qualifications.push("Upstream verification applies only to the recorded evidence revision. Its opaque revision token has not been compared with the current checkout.".into());
+        qualifications.push("Upstream verification applies only to the recorded evidence revision. Any ephemeral checkout freshness check is separate and does not verify the claim's behavior or documentary authority.".into());
     }
     qualifications
 }

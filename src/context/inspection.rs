@@ -2,6 +2,10 @@
 //! changes a source file, or invokes a model. Paths supplied by a model are
 //! resolved exclusively against the catalog built by `discover`.
 use super::InspectionPath;
+use super::{
+    freshness::{self, CheckoutFreshness, FreshnessReason, FreshnessStatus},
+    imports::ContextImportedEvidence,
+};
 use crate::{config::ResolvedConfig, util};
 use anyhow::{Context, Result, bail, ensure};
 use globset::{Glob, GlobSet, GlobSetBuilder};
@@ -151,6 +155,8 @@ pub struct InspectionReport {
     /// Incomplete catalogs must never authorize an intelligence cache hit.
     pub index_complete: bool,
     pub observations: Vec<CodeObservation>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub checkout_freshness: Vec<CheckoutFreshness>,
     pub budget: InspectionBudget,
     pub warnings: Vec<String>,
 }
@@ -197,6 +203,7 @@ impl InspectionSession {
                 index_digest: String::new(),
                 index_complete: false,
                 observations: Vec::new(),
+                checkout_freshness: Vec::new(),
                 budget: InspectionBudget {
                     max_files: settings.max_files,
                     files_read: 0,
@@ -278,8 +285,102 @@ impl InspectionSession {
     pub fn report(&self) -> InspectionReport {
         let mut report = self.report.clone();
         report.observations = self.observations.clone();
+        for check in &mut report.checkout_freshness {
+            if let Some(path) = &check.checked_path {
+                if let Some(observed) = self.observations.iter().find(|o| &o.path == path) {
+                    check.content_hash = Some(observed.content_hash.clone());
+                    check.observation_id = Some(observed.id.clone());
+                    check.status = if freshness::whole_file_digest(&check.version)
+                        == Some(observed.content_hash.as_str())
+                    {
+                        FreshnessStatus::MatchesCheckout
+                    } else {
+                        FreshnessStatus::ChangedSinceSnapshot
+                    };
+                    check.reason = (check.status == FreshnessStatus::ChangedSinceSnapshot)
+                        .then_some(FreshnessReason::ContentChanged);
+                } else {
+                    check.status = FreshnessStatus::UnknownOrUnchecked;
+                    check.reason = Some(if self.report.budget.exhausted.is_empty() {
+                        FreshnessReason::InspectionFailed
+                    } else {
+                        FreshnessReason::BudgetExhausted
+                    });
+                    check.checked_path = None;
+                    check.content_hash = None;
+                    check.observation_id = None;
+                }
+            }
+        }
         report.budget.elapsed_ms = self.elapsed.as_millis().min(u64::MAX as u128) as u64;
         report
+    }
+
+    /// Selected, archive-validated native evidence only. Uses the existing
+    /// authorized catalog and I/O limits; imports never grant inspection.
+    pub fn check_openwiki(&mut self, evidence: &[ContextImportedEvidence]) {
+        self.report.checkout_freshness.clear();
+        let mut checked = BTreeSet::new();
+        for evidence in evidence
+            .iter()
+            .filter(|e| e.origin == crate::domain::ImportKind::Openwiki)
+        {
+            for locator in evidence.locators.iter().filter(|l| l.revision.is_some()) {
+                if self.report.checkout_freshness.len() >= 48 {
+                    self.warn("OpenWiki freshness checks reached the 48-resource limit; additional resources remain unchecked.");
+                    return;
+                }
+                let version = locator.revision.as_deref().unwrap();
+                let mut check = CheckoutFreshness {
+                    evidence_id: evidence.id.clone(),
+                    resource: locator.locator.clone(),
+                    version: version.into(),
+                    status: FreshnessStatus::UnknownOrUnchecked,
+                    reason: None,
+                    checked_path: None,
+                    content_hash: None,
+                    observation_id: None,
+                    qualification: freshness::QUALIFICATION.into(),
+                };
+                let result = (|| -> Result<String, FreshnessReason> {
+                    if !self.settings.enabled {
+                        return Err(FreshnessReason::InspectionNotAuthorized);
+                    }
+                    if self.root.is_none() {
+                        return Err(FreshnessReason::CheckoutUnavailable);
+                    }
+                    let path = freshness::whole_file_path(&locator.locator)?;
+                    if freshness::whole_file_digest(version).is_none() {
+                        return Err(FreshnessReason::UnsupportedVersion);
+                    }
+                    if !self.candidates.iter().any(|c| c.path == path) {
+                        return Err(if self.report.index_complete {
+                            FreshnessReason::PathUnavailableOrExcluded
+                        } else {
+                            FreshnessReason::BudgetExhausted
+                        });
+                    }
+                    if checked.insert(path.clone()) {
+                        self.inspect(&path).map_err(|_| {
+                            if self.report.budget.exhausted.is_empty() {
+                                FreshnessReason::InspectionFailed
+                            } else {
+                                FreshnessReason::BudgetExhausted
+                            }
+                        })?;
+                    }
+                    if !self.observations.iter().any(|o| o.path == path) {
+                        return Err(FreshnessReason::InspectionFailed);
+                    }
+                    Ok(path)
+                })();
+                match result {
+                    Ok(path) => check.checked_path = Some(path),
+                    Err(reason) => check.reason = Some(reason),
+                }
+                self.report.checkout_freshness.push(check);
+            }
+        }
     }
 
     /// Read at most three task-relevant files, favoring an implementation and
@@ -289,6 +390,7 @@ impl InspectionSession {
             .candidates
             .iter()
             .filter(|c| c.score > 0)
+            .filter(|c| !self.observations.iter().any(|o| o.path == c.path))
             .take(self.settings.max_files.min(3))
             .map(|c| c.path.clone())
             .collect();
@@ -305,6 +407,9 @@ impl InspectionSession {
         let phase = Instant::now();
         let result = self.inspect_impl(path, &phase);
         self.elapsed += phase.elapsed();
+        if result.is_err() {
+            self.observations.retain(|o| o.path != path);
+        }
         if result.is_err() && self.report.status == "complete" {
             self.report.status = "partial".into();
         }
@@ -716,7 +821,7 @@ fn portable(path: &Path) -> Result<String> {
     Ok(text.to_owned())
 }
 
-fn valid_relative(path: &str) -> bool {
+pub(super) fn valid_relative(path: &str) -> bool {
     !path.is_empty()
         && path.len() <= 4096
         && !path.contains('\\')

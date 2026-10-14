@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:42770ba1c1f681dcb5d28b00c3f96d0d69c693f0487a0fb8c34e5dab0578664d",
+  "verification": {
+    "by": "openwiki/0.7.1",
+    "at": "2026-10-01T12:00:00Z"
+  },
+  "claims": [
+    {
+      "id": "worker-queue",
+      "statement": "Worker events use one durable queue",
+      "evidence": [
+        {
+          "resource": "repo://src/worker.rs",
+          "version": "repo-file-v1:sha256:8b116fc555fff367da1b41ca88a32bcade0bcf42e5de1104261f78aa86033090"
+        }
+      ]
+    }
+  ]
+}

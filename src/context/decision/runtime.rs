@@ -397,6 +397,9 @@ fn inspection_report(session: &InspectionSession, config: &ResolvedConfig) -> In
     let mut report = session.report();
     if config.config.context.inspection.enabled && report.status == "disabled" {
         report.status = "unavailable".into();
+        for check in &mut report.checkout_freshness {
+            check.reason = Some(context::freshness::FreshnessReason::CheckoutUnavailable);
+        }
         report.warnings.push("Checkout inspection is unavailable or its settings failed validation; using retained knowledge.".into());
     }
     report
@@ -657,9 +660,13 @@ async fn build(
             );
         }
     };
-    let sources = intelligence::evidence_input(&selected, &retained);
+    let mut sources = intelligence::evidence_input(&selected, &retained);
     let mut session = discover(config, options, &selected)?;
+    session.check_openwiki(&selected.imported_evidence);
     let mut inspection = inspection_report(&session, config);
+    if egress.allowed && !inspection.checkout_freshness.is_empty() {
+        sources["checkout_freshness"] = serde_json::to_value(&inspection.checkout_freshness)?;
+    }
     let mut investigation = InvestigationReport::new(run.investigate && !run.no_inspect, &budget);
     let identity = model.map(|m| m.cache_identity()).unwrap_or_default();
     let registry_revision = crate::storage::registry_revision(conn)?;
@@ -775,6 +782,10 @@ async fn build(
     if config.config.context.inspection.enabled {
         session.inspect_initial();
         inspection = inspection_report(&session, config);
+    }
+    // A failed cache probe may have reread changed or now-unavailable files.
+    if egress.allowed && !inspection.checkout_freshness.is_empty() {
+        sources["checkout_freshness"] = serde_json::to_value(&inspection.checkout_freshness)?;
     }
     let mut observations = if egress.allowed {
         inspection.observations.clone()
@@ -933,6 +944,10 @@ async fn build(
                 };
                 inspection = inspection_report(&session, config);
                 observations = inspection.observations.clone();
+                if !inspection.checkout_freshness.is_empty() {
+                    sources["checkout_freshness"] =
+                        serde_json::to_value(&inspection.checkout_freshness)?;
+                }
                 let (next_draft, next_brief) = match synthesize(
                     model,
                     config,
@@ -1070,6 +1085,13 @@ async fn build(
         investigation.finish("evidence_changed", &budget);
         let mut current = inspection_report(&session, config);
         current.observations.clear();
+        for check in &mut current.checkout_freshness {
+            check.status = context::freshness::FreshnessStatus::UnknownOrUnchecked;
+            check.reason = Some(context::freshness::FreshnessReason::InspectionFailed);
+            check.checked_path = None;
+            check.content_hash = None;
+            check.observation_id = None;
+        }
         current.warnings.push("Inspected evidence changed or could not be revalidated within its I/O budget; generated interpretations were discarded.".into());
         return fallback(
             conn,
@@ -1359,6 +1381,10 @@ pub(crate) fn measure(result: &mut DecisionContextResult) -> Result<()> {
 fn fit(mut result: DecisionResult) -> Result<Option<DecisionResult>> {
     loop {
         let (mut evidence, mut observations) = referenced_ids(&result.brief);
+        for check in &result.inspection.checkout_freshness {
+            evidence.insert(check.evidence_id.clone());
+            observations.extend(check.observation_id.iter().cloned());
+        }
         let (trace_evidence, trace_observations) = trace_references(&result.investigation)?;
         evidence.extend(trace_evidence);
         observations.extend(trace_observations);
@@ -1427,6 +1453,27 @@ pub fn render(result: &DecisionContextResult) -> String {
             let mut text = render_brief(&result.brief);
             if let Some(reason) = &result.fallback_reason {
                 text.push_str(&format!("\nFallback: {}\n", display_text(reason)));
+            }
+            for check in &result.inspection.checkout_freshness {
+                text.push_str(&format!(
+                    "\nOpenWiki freshness [{}]: {} — {}{}\nChecked path: {}; digest: {}.\n{}\n",
+                    display_text(&check.evidence_id),
+                    display_text(&check.resource),
+                    serde_json::to_value(check.status)
+                        .unwrap()
+                        .as_str()
+                        .unwrap(),
+                    check
+                        .reason
+                        .map(|reason| format!(
+                            " ({})",
+                            serde_json::to_value(reason).unwrap().as_str().unwrap()
+                        ))
+                        .unwrap_or_default(),
+                    display_text(check.checked_path.as_deref().unwrap_or("unchecked")),
+                    display_text(check.content_hash.as_deref().unwrap_or("unknown")),
+                    display_text(&check.qualification)
+                ));
             }
             for observation in &result.inspection.observations {
                 let fence = "`".repeat(
