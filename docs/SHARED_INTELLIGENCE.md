@@ -73,6 +73,18 @@ decision structure, evidence, provenance, omissions and source relationships.
 Both presentations are measured within the same requested token bound. The
 nested decision retains schema 4; top-level schema-4 selection is removed.
 
+The human view puts each decisive constraint's original statement, lifecycle,
+scope, qualifications and evidence pointers beside the action, followed by
+retained exceptions, rejected alternatives and conflict counterparts. A fact
+already shown as a constraint is not repeated in the rationale. Imported
+reports, hypotheses and local static reads keep their distinct labels. Checks
+and completion criteria are future work: reading a test never reports a pass.
+Provider fallback justifies a scoped evidence/compatibility check, not an
+assessed implementation choice. If the full brief cannot fit, the bounded
+retrieval fallback says **Decision not assessed** and exposes its omissions;
+an envelope that cannot fit returns `invalid_budget`. Use `--json` for the
+maintained structured statuses and `lore evidence <id>` for original snapshots.
+
 Before compilation, an unpinned context request can instead return the distinct
 `lore.bootstrap_context` schema-1 `bootstrap_source_only` contract. Its ephemeral
 source digest is not a registry revision. Explicit schema 5 and `--fast`

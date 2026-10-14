@@ -370,6 +370,26 @@ async fn tight_budgets_keep_groups_whole_and_prevent_readiness() {
         )
         .await
         .unwrap();
+        let markdown = adaptive::render(&result);
+        assert!(markdown.starts_with("## Decision not assessed"));
+        assert!(context::count_tokens(&markdown) <= options.max_tokens);
+        let rendered_group = case
+            .required
+            .iter()
+            .filter(|id| {
+                let record = manifest
+                    .records
+                    .iter()
+                    .find(|record| &record.id == *id)
+                    .unwrap();
+                markdown.contains(&record.quote)
+            })
+            .count();
+        assert!(
+            rendered_group == 0 || rendered_group == case.required.len(),
+            "{}: partial human evidence group",
+            case.name
+        );
         let result = serde_json::to_value(result).unwrap();
         assert_eq!(
             result["intelligence"]["investigation_status"],

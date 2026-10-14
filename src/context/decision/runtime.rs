@@ -1459,38 +1459,27 @@ fn fit(
 
 pub fn render(result: &DecisionContextResult) -> String {
     match result {
-        DecisionContextResult::FastFallback(result) => format!(
-            "# Decision context\n\n{}\n\nInspection: {}. Investigation: {}.\n\n{}",
-            display_text(&result.fallback_reason),
-            display_text(&result.inspection_status),
-            display_text(&result.investigation_status),
-            context::render_context(&result.context)
-        ),
+        DecisionContextResult::FastFallback(result) => {
+            let guidance = if result.mode == "reference" {
+                "## Retained reference\n\nThis answers the symbol lookup from retained documentation; it does not establish implementation readiness."
+            } else if result.context.empty && !result.context.decision_incomplete() {
+                "## Decision not assessed\n\nNo relevant retained evidence was included.\n\n**Next action:** Add a precise path or project source, then retrieve context again before choosing an implementation."
+            } else {
+                "## Decision not assessed\n\n**Next action:** Resolve retrieval or budget gaps and check complete constraints, exceptions and conflicts before choosing an implementation."
+            };
+            format!(
+                "{guidance}\n\n{}\n\nInspection: {}. Investigation: {}. Tests and runtime checks: not run. Cache: {}.\n\n{}",
+                display_text(&result.fallback_reason),
+                display_text(&result.inspection_status),
+                display_text(&result.investigation_status),
+                display_text(&result.cache_status),
+                context::render_context(&result.context)
+            )
+        }
         DecisionContextResult::Brief(result) => {
-            let mut text = render_brief(&result.brief);
+            let mut text = render_brief(&result.brief, &result.inspection);
             if let Some(reason) = &result.fallback_reason {
                 text.push_str(&format!("\nFallback: {}\n", display_text(reason)));
-            }
-            for check in &result.inspection.checkout_freshness {
-                text.push_str(&format!(
-                    "\nOpenWiki freshness [{}]: {} — {}{}\nChecked path: {}; digest: {}.\n{}\n",
-                    display_text(&check.evidence_id),
-                    display_text(&check.resource),
-                    serde_json::to_value(check.status)
-                        .unwrap()
-                        .as_str()
-                        .unwrap(),
-                    check
-                        .reason
-                        .map(|reason| format!(
-                            " ({})",
-                            serde_json::to_value(reason).unwrap().as_str().unwrap()
-                        ))
-                        .unwrap_or_default(),
-                    display_text(check.checked_path.as_deref().unwrap_or("unchecked")),
-                    display_text(check.content_hash.as_deref().unwrap_or("unknown")),
-                    display_text(&check.qualification)
-                ));
             }
             for observation in &result.inspection.observations {
                 let fence = "`".repeat(
@@ -1504,8 +1493,9 @@ pub fn render(result: &DecisionContextResult) -> String {
                         .max(3),
                 );
                 text.push_str(&format!(
-                    "\n## Static observation {}\n\n{}:{}–{} ({})\n\n{fence}\n{}\n{fence}\n\n{}\n",
+                    "\n## Local observation {} ({})\n\n{}:{}–{} ({})\n\n{fence}\n{}\n{fence}\n\n{}\n",
                     display_text(&observation.id),
+                    if observation.kind == "static_test" { "test declaration read" } else { "static source read" },
                     display_text(&observation.path),
                     observation.start_line,
                     observation.end_line,
@@ -1522,6 +1512,27 @@ pub fn render(result: &DecisionContextResult) -> String {
             text.push_str(&format!("\nInspection: {}. Investigation: {}. Cache: {}. Model calls: {} / {}. Output: {} / {} tokens.\n",
                 result.inspection.status, result.investigation.stop_reason, result.cache_status, result.model_calls,
                 result.investigation.budget.max_model_calls, result.budget.used_tokens, result.budget.max_tokens));
+            if result.brief_items_omitted > 0 {
+                text.push_str(&format!("\nOmitted lower-priority brief items: {}. Full source snapshots: lore evidence <id>; structured status: --json.\n", result.brief_items_omitted));
+            }
+            if result.retrieval_truncated
+                || [
+                    result.omissions.knowledge_units,
+                    result.omissions.critical_groups,
+                    result.omissions.unsupported_units,
+                    result.omissions.imported_observations,
+                    result.omissions.discrepancies,
+                    result.omissions.source_warnings,
+                ]
+                .iter()
+                .any(|count| *count > 0)
+            {
+                text.push_str(&format!(
+                    "\nRetrieval truncated: {}. Omissions: {}.\n",
+                    result.retrieval_truncated,
+                    serde_json::to_string(&result.omissions).unwrap()
+                ));
+            }
             for warning in result.warnings.iter().chain(&result.inspection.warnings) {
                 text.push_str(&format!("\n{}\n", display_text(warning)));
             }
