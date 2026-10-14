@@ -3,7 +3,7 @@
 mod common;
 
 use lore::{
-    config::{Config, ImportSource, ResolvedConfig},
+    config::{Config, ImportSource, OutputMode, ResolvedConfig},
     context::{self, ContextOptions},
     domain::ImportKind,
     engine::{self, UpdateOptions},
@@ -117,6 +117,42 @@ fn project() -> (tempfile::TempDir, ResolvedConfig, Model) {
         ResolvedConfig::load(&config_path).unwrap(),
         Model::new(),
     )
+}
+
+#[tokio::test]
+async fn changed_reconciliation_contract_invalidates_an_unchanged_import() {
+    for mode in [OutputMode::Markdown, OutputMode::RegistryOnly] {
+        let (_dir, mut config, model) = project();
+        config.config.output.mode = Some(mode);
+        engine::update(&config, &model, None, UpdateOptions::default())
+            .await
+            .unwrap();
+        let conn = rusqlite::Connection::open(config.state.join("state.db")).unwrap();
+        storage::set_meta(&conn, "cross_source_contract", "cross-source-v1").unwrap();
+        drop(conn);
+        let updated = engine::update(&config, &model, None, UpdateOptions::default())
+            .await
+            .unwrap();
+        assert!(
+            !updated.no_op,
+            "an old interpretation contract must bypass the no-op shortcut"
+        );
+        assert_eq!(updated.processed_sections, 0);
+        let conn = storage::read_only(&config.state.join("state.db")).unwrap();
+        assert_eq!(
+            storage::meta(&conn, "cross_source_contract")
+                .unwrap()
+                .as_deref(),
+            Some("cross-source-v2")
+        );
+        drop(conn);
+        assert!(
+            engine::update(&config, &model, None, UpdateOptions::default())
+                .await
+                .unwrap()
+                .no_op
+        );
+    }
 }
 
 #[tokio::test]

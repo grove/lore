@@ -203,6 +203,12 @@ fn make_plan(
         }
         None => !inventory.imports.sources.is_empty(),
     };
+    let cross_source_changed = match conn {
+        Some(c) if !inventory.imports.sources.is_empty() => {
+            storage::meta(c, "cross_source_contract")?.as_deref() != Some(cross_source::CONTRACT)
+        }
+        _ => false,
+    };
     let stored_mode = if initialized {
         publish::stored_mode(conn.unwrap())?
     } else {
@@ -258,6 +264,7 @@ fn make_plan(
             || migration_needed
             || configuration_changed
             || imports_changed
+            || cross_source_changed
             || presentation_changed
             || mode_change_required
             || pending
@@ -724,6 +731,7 @@ where
         ("config_digest", config.fingerprint.as_str()),
         ("inventory_digest", inventory.digest.as_str()),
         ("import_inventory_digest", inventory.imports.digest.as_str()),
+        ("cross_source_contract", cross_source::CONTRACT),
         ("generation", generation.as_str()),
     ] {
         storage::set_meta(&conn, k, v)?;

@@ -1,0 +1,50 @@
+[
+  {
+    "name": "production versus staging exception",
+    "before": ["Production releases require a signature.", "constraint", "accepted", "production"],
+    "after": ["Staging releases may omit the signature for isolated replay.", "constraint", "accepted", "staging"],
+    "suggested": "contradicts", "relation": "related_to", "old_lifecycle": "accepted"
+  },
+  {
+    "name": "component A versus component B",
+    "before": ["Component A releases require a signature.", "constraint", "accepted", "component: A; environment: production"],
+    "after": ["Component B releases may omit the signature.", "constraint", "accepted", "component: B; environment: production"],
+    "suggested": "contradicts", "relation": "related_to", "old_lifecycle": "accepted"
+  },
+  {
+    "name": "accepted ADR versus later explicit proposal",
+    "before": ["Releases require a signature.", "decision", "accepted", "production"],
+    "after": ["Proposal: ADR-002 supersedes ADR-001; releases may omit signatures.", "decision", "proposed", "production"],
+    "suggested": "supersedes", "relation": null, "old_lifecycle": "accepted"
+  },
+  {
+    "name": "closed work is not replacement policy",
+    "before": ["Releases require a signature.", "decision", "accepted", "production"],
+    "after": ["Closed release work reports that ADR-002 supersedes ADR-001 and omits signatures.", "reported_outcome", "completed", "production"],
+    "suggested": "supersedes", "relation": null, "old_lifecycle": "accepted"
+  },
+  {
+    "name": "rejected approach resurfacing as a new issue",
+    "before": ["Releases without signatures are rejected because provenance would be lost.", "decision", "rejected", "production"],
+    "after": ["Open issue: allow releases without signatures.", "issue_state", "unknown", "production"],
+    "suggested": "contradicts", "relation": "related_to", "old_lifecycle": "rejected"
+  },
+  {
+    "name": "explicit grounded replacement",
+    "before": ["Releases require a signature.", "decision", "accepted", "production"],
+    "after": ["ADR-002 supersedes ADR-001: releases now require two signatures.", "decision", "accepted", "production"],
+    "suggested": "supersedes", "relation": "supersedes", "old_lifecycle": "superseded"
+  },
+  {
+    "name": "recency without replacement evidence",
+    "before": ["Releases require a signature.", "decision", "accepted", "production"],
+    "after": ["Releases now require two signatures.", "decision", "accepted", "production"],
+    "suggested": "supersedes", "relation": null, "old_lifecycle": "accepted"
+  },
+  {
+    "name": "actual same-scope documentary contradiction",
+    "before": ["Releases require a signature.", "constraint", "accepted", "production"],
+    "after": ["Releases must never carry a signature.", "constraint", "accepted", "production"],
+    "suggested": "contradicts", "relation": "contradicts", "old_lifecycle": "accepted"
+  }
+]

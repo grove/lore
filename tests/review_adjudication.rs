@@ -389,6 +389,28 @@ async fn ambiguous_and_proposed_inputs_cannot_manufacture_accepted_supersession(
     let conn = storage::read_only(&cfg.state.join("state.db")).unwrap();
     assert_eq!(before, original(&conn));
     assert!(storage::relation_facts(&conn).unwrap().is_empty());
+    let context = context::build_context(
+        &conn,
+        &context::ContextOptions {
+            task: "ledger database".into(),
+            paths: vec![],
+            max_tokens: 12_000,
+        },
+    )
+    .unwrap();
+    let rendered = serde_json::to_string(&context).unwrap();
+    assert!(rendered.contains("human_advisory_interpretation"));
+    let views = storage::views(&conn).unwrap();
+    assert!(
+        views
+            .iter()
+            .any(|view| view.kind == "decision" && view.lifecycle == "accepted")
+    );
+    assert!(
+        views
+            .iter()
+            .any(|view| view.kind == "proposal" && view.lifecycle == "proposed")
+    );
 }
 
 #[tokio::test]

@@ -503,6 +503,47 @@ fn complete_and_bounded(result: &DecisionContextResult) {
 }
 
 #[tokio::test]
+async fn missing_policy_requires_evidence_without_inventing_a_policy_blocker() {
+    let mut fixture = Fixture::new();
+    fixture.options.task = "Introduce quasar ingress".into();
+    let model = FakeModel::new(Behavior::Good);
+    let result = fixture
+        .run(
+            &model,
+            RunOptions {
+                no_inspect: true,
+                no_cache: true,
+                ..Default::default()
+            },
+        )
+        .await;
+    assert_eq!(result["mode"], "fast_fallback");
+    assert_eq!(result["investigation"]["stop_reason"], "no_evidence");
+    assert_eq!(result["model_calls"], 0);
+    assert_eq!(model.calls.load(Ordering::SeqCst), 0);
+    assert_eq!(result["brief"]["readiness"], "proceed_after_check");
+    assert!(
+        result["brief"]["checks"][0]["action"]
+            .as_str()
+            .unwrap()
+            .contains("quasar ingress")
+    );
+    assert!(result["brief"]["facts"].as_array().unwrap().is_empty());
+    assert!(
+        result["brief"]["material_blockers"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+    );
+    assert!(
+        !result["brief"]["remaining_uncertainty"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+    );
+}
+
+#[tokio::test]
 async fn normal_schema_four_has_independent_support_check_and_revision_bound_cache_hit() {
     let fixture = Fixture::new();
     let model = FakeModel::new(Behavior::Good);
