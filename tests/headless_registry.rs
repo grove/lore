@@ -400,11 +400,7 @@ async fn headless_review_disposition_commits_registry_without_publication() {
 #[tokio::test]
 async fn interrupted_headless_journal_rolls_forward_only_the_validated_database() {
     let (_dir, cfg, model) = headless_project();
-    put(
-        &cfg,
-        "queue.md",
-        "DECISION queue: Preserve queue order.\n",
-    );
+    put(&cfg, "queue.md", "DECISION queue: Preserve queue order.\n");
     engine::update(&cfg, &model, None, UpdateOptions::default())
         .await
         .unwrap();
@@ -453,9 +449,5 @@ async fn interrupted_headless_journal_rolls_forward_only_the_validated_database(
         !publish::recover(&cfg).unwrap(),
         "recovery must be idempotent"
     );
-    assert!(
-        !cfg.state
-            .join(format!("previous-{generation}.db"))
-            .exists()
-    );
+    assert!(!cfg.state.join(format!("previous-{generation}.db")).exists());
 }
