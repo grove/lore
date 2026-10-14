@@ -1,0 +1,432 @@
+{
+  "schema_version": 1,
+  "purpose": "source-pinned real-project development controls",
+  "fixture_only": true,
+  "held_out": false,
+  "independent_labels": false,
+  "projects": {
+    "python": {
+      "repository": "https://github.com/python/peps",
+      "revision": "145bee803f08ed68c225c185dc40d4f40a089e1c",
+      "source_root": "upstream/python",
+      "license": "CC0-1.0 or public domain (each PEP Copyright section)",
+      "files_sha256": {
+        "peps/pep-0622.rst": "d1a904f26bc1a2a074746d8185bb2b5a0960bb1cae9dba0301db90779d7956a4",
+        "peps/pep-0634.rst": "352927baffdbb0fdaba34cf059e95fe2a464a604fdba167a41c6257c90e10e5e",
+        "peps/pep-0640.rst": "0d3fc3b35206809ad197c687cc6d09f8f5eb90a37aa0db69a1e096db0ab9ed56"
+      }
+    },
+    "go": {
+      "repository": "https://github.com/golang/website",
+      "revision": "e27b2f73fde2565bc4a18dcb6a5a71db27769757",
+      "source_root": "upstream/go",
+      "license": "BSD-3-Clause; retained LICENSE",
+      "files_sha256": {
+        "_content/doc/go1compat.html": "b04b42e4f5e5fbf1d1a1f86bd1b6d2d8c04f0997bfd35776e3ddb00e604f25ed",
+        "LICENSE": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad"
+      }
+    }
+  },
+  "review": {
+    "source_label_author": "Codex implementation agent for grove/lore#86",
+    "separate_human_review": "pending; no separate human reviewer available during implementation",
+    "reviewer_notes": [],
+    "disagreements": [],
+    "label_notes": [
+      "Final maps to accepted documentary specification, not runtime verification.",
+      "Go published policy is active; no separate formal acceptance vote is asserted.",
+      "Superseded PEP 622 is not labeled previously accepted; the pinned source does not establish that history."
+    ]
+  },
+  "records": [
+    {
+      "id": "pep622",
+      "project": "python",
+      "source": "peps/pep-0622.rst",
+      "lines": [
+        1,
+        23
+      ],
+      "quote": "PEP: 622\nTitle: Structural Pattern Matching\nAuthor: Brandt Bucher <brandt@python.org>,\n        Daniel F Moisset <dfmoisset@gmail.com>,\n        Tobias Kohn <kohnt@tobiaskohn.ch>,\n        Ivan Levkivskyi <levkivskyi@gmail.com>,\n        Guido van Rossum <guido@python.org>,\n        Talin <viridia@gmail.com>\nBDFL-Delegate:\nDiscussions-To: python-dev@python.org\nStatus: Superseded\nType: Standards Track\nCreated: 23-Jun-2020\nPython-Version: 3.10\nPost-History: 23-Jun-2020, 08-Jul-2020\nSuperseded-By: 634\n\n\nAbstract\n========\n\nThis PEP proposes to add a **pattern matching statement** to Python,\ninspired by similar syntax found in Scala, Erlang, and other languages.",
+      "sha256": "cd8f726d60706064b7d3b0da480a2792588f01aaa2b1bc7945a887c1e4a906a7",
+      "statement": "PEP 622 proposed structural pattern matching and is explicitly superseded by PEP 634.",
+      "subject": "Python pattern matching specification",
+      "kind": "decision",
+      "lifecycle": "superseded",
+      "scope": "Python structural pattern matching; historical PEP 622",
+      "status_evidence": {
+        "source": "peps/pep-0622.rst",
+        "lines": [
+          11,
+          16
+        ],
+        "quote": "Status: Superseded\nType: Standards Track\nCreated: 23-Jun-2020\nPython-Version: 3.10\nPost-History: 23-Jun-2020, 08-Jul-2020\nSuperseded-By: 634",
+        "sha256": "4ed65cf94ca0a206b306ed6fd2069da521cf189359d68aa53d17fd4ce2d57021"
+      }
+    },
+    {
+      "id": "pep634",
+      "project": "python",
+      "source": "peps/pep-0634.rst",
+      "lines": [
+        1,
+        25
+      ],
+      "quote": "PEP: 634\nTitle: Structural Pattern Matching: Specification\nAuthor: Brandt Bucher <brandt@python.org>,\n        Guido van Rossum <guido@python.org>\nBDFL-Delegate:\nDiscussions-To: python-dev@python.org\nStatus: Final\nType: Standards Track\nCreated: 12-Sep-2020\nPython-Version: 3.10\nPost-History: 22-Oct-2020, 08-Feb-2021\nReplaces: 622\nResolution: https://mail.python.org/archives/list/python-committers@python.org/message/SQC2FTLFV5A7DV7RCEAR2I2IKJKGK7W3\n\n.. canonical-doc:: :external+python:ref:`match`\n\nAbstract\n========\n\nThis PEP provides the technical specification for the match\nstatement.  It replaces :pep:`622`, which is hereby split in three parts:\n\n- :pep:`634`: Specification\n- :pep:`635`: Motivation and Rationale\n- :pep:`636`: Tutorial",
+      "sha256": "530aecc2dbeaf687c6cf017b83144a3e40de6f5b08b616a33696a86e51d050cc",
+      "statement": "PEP 634 is the final structural pattern matching specification and explicitly replaces PEP 622.",
+      "subject": "Python pattern matching specification",
+      "kind": "decision",
+      "lifecycle": "accepted",
+      "scope": "Python structural pattern matching specification, Python 3.10",
+      "status_evidence": {
+        "source": "peps/pep-0634.rst",
+        "lines": [
+          7,
+          13
+        ],
+        "quote": "Status: Final\nType: Standards Track\nCreated: 12-Sep-2020\nPython-Version: 3.10\nPost-History: 22-Oct-2020, 08-Feb-2021\nReplaces: 622\nResolution: https://mail.python.org/archives/list/python-committers@python.org/message/SQC2FTLFV5A7DV7RCEAR2I2IKJKGK7W3",
+        "sha256": "c2ef01eb978d9476976094a4fe5587301e371286a8569854e0d20200fb1e591a"
+      }
+    },
+    {
+      "id": "pep640",
+      "project": "python",
+      "source": "peps/pep-0640.rst",
+      "lines": [
+        1,
+        22
+      ],
+      "quote": "PEP: 640\nTitle: Unused variable syntax\nAuthor: Thomas Wouters <thomas@python.org>\nStatus: Rejected\nType: Standards Track\nCreated: 04-Oct-2020\nPython-Version: 3.10\nPost-History: 19-Oct-2020\nResolution: https://mail.python.org/archives/list/python-dev@python.org/message/SQC2FTLFV5A7DV7RCEAR2I2IKJKGK7W3/\n\nRejection Note\n==============\n\nRejected by the Steering Council:\nhttps://mail.python.org/archives/list/python-dev@python.org/message/SQC2FTLFV5A7DV7RCEAR2I2IKJKGK7W3/\n\nAbstract\n========\n\nThis PEP proposes new syntax for *unused variables*, providing a pseudo-name\nthat can be assigned to but not otherwise used. The assignment doesn't\nactually happen, and the value is discarded instead.",
+      "sha256": "1ee8b5b8e35cdc34c725651b841400b64f8b6158f08f75891677278bfa0c1858",
+      "statement": "PEP 640 unused-variable syntax was rejected by the Steering Council; its proposed syntax is not an accepted choice.",
+      "subject": "Python unused variable wildcard syntax",
+      "kind": "decision",
+      "lifecycle": "rejected",
+      "scope": "Python PEP 640 unused variable syntax proposal",
+      "status_evidence": {
+        "source": "peps/pep-0640.rst",
+        "lines": [
+          4,
+          15
+        ],
+        "quote": "Status: Rejected\nType: Standards Track\nCreated: 04-Oct-2020\nPython-Version: 3.10\nPost-History: 19-Oct-2020\nResolution: https://mail.python.org/archives/list/python-dev@python.org/message/SQC2FTLFV5A7DV7RCEAR2I2IKJKGK7W3/\n\nRejection Note\n==============\n\nRejected by the Steering Council:\nhttps://mail.python.org/archives/list/python-dev@python.org/message/SQC2FTLFV5A7DV7RCEAR2I2IKJKGK7W3/",
+        "sha256": "c26c57835f1a1ff8994b12ea27ba54825971d2c64aa530ed6d26341ef15a5642"
+      }
+    },
+    {
+      "id": "wildcard",
+      "project": "python",
+      "source": "peps/pep-0634.rst",
+      "lines": [
+        265,
+        298
+      ],
+      "quote": "^^^^^^^^^^^^^^^^\n\nSyntax::\n\n  capture_pattern: !\"_\" NAME\n\nThe single underscore (``_``) is not a capture pattern (this is what\n``!\"_\"`` expresses).  It is treated as a `wildcard pattern`_.\n\nA capture pattern always succeeds.  It binds the subject value to the\nname using the scoping rules for name binding established for the\nwalrus operator in :pep:`572`.  (Summary: the name becomes a local\nvariable in the closest containing function scope unless there's an\napplicable ``nonlocal`` or ``global`` statement.)\n\nIn a given pattern, a given name may be bound only once.  This\ndisallows for example ``case x, x: ...`` but allows ``case [x] | x:\n...``.\n\n\n.. _634-wildcard_pattern:\n\nWildcard Pattern\n^^^^^^^^^^^^^^^^\n\nSyntax::\n\n    wildcard_pattern: \"_\"\n\nA wildcard pattern always succeeds.  It binds no name.\n\n\nValue Patterns\n^^^^^^^^^^^^^^",
+      "sha256": "9ccd66a92d56906d85e4b4765763cad1cb7c94b69a0148d10f53140c515824a3",
+      "statement": "A Python wildcard pattern always succeeds and binds no name; underscore is not a capture pattern.",
+      "subject": "Python wildcard pattern bindings",
+      "kind": "constraint",
+      "lifecycle": "accepted",
+      "scope": "Python match patterns; not ordinary underscore assignments",
+      "status_evidence": {
+        "source": "peps/pep-0634.rst",
+        "lines": [
+          7,
+          13
+        ],
+        "quote": "Status: Final\nType: Standards Track\nCreated: 12-Sep-2020\nPython-Version: 3.10\nPost-History: 22-Oct-2020, 08-Feb-2021\nReplaces: 622\nResolution: https://mail.python.org/archives/list/python-committers@python.org/message/SQC2FTLFV5A7DV7RCEAR2I2IKJKGK7W3",
+        "sha256": "c2ef01eb978d9476976094a4fe5587301e371286a8569854e0d20200fb1e591a"
+      }
+    },
+    {
+      "id": "partial",
+      "project": "python",
+      "source": "peps/pep-0634.rst",
+      "lines": [
+        116,
+        129
+      ],
+      "quote": "Name bindings made during a successful pattern match outlive the\nexecuted block and can be used after the match statement.\n\nDuring failed pattern matches, some subpatterns may succeed. For\nexample, while matching the pattern ``(0, x, 1)`` with the value ``[0,\n1, 2]``, the subpattern ``x`` may succeed if the list elements are\nmatched from left to right.  The implementation may choose to either\nmake persistent bindings for those partial matches or not. User code\nincluding a match statement should not rely on the bindings being\nmade for a failed match, but also shouldn't assume that variables are\nunchanged by a failed match.  This part of the behavior is left\nintentionally unspecified so different implementations can add\noptimizations, and to prevent introducing semantic restrictions that\ncould limit the extensibility of this feature.",
+      "sha256": "aa5fc650d6bf2991c5be9f6621b63ed4627ae4f534bd7783fd4b74fb706bf977",
+      "statement": "Failed Python pattern matches leave partial name bindings intentionally unspecified: assume neither binding nor preservation.",
+      "subject": "Python failed pattern bindings",
+      "kind": "constraint",
+      "lifecycle": "accepted",
+      "scope": "Python failed match statements; partial bindings only",
+      "status_evidence": {
+        "source": "peps/pep-0634.rst",
+        "lines": [
+          7,
+          13
+        ],
+        "quote": "Status: Final\nType: Standards Track\nCreated: 12-Sep-2020\nPython-Version: 3.10\nPost-History: 22-Oct-2020, 08-Feb-2021\nReplaces: 622\nResolution: https://mail.python.org/archives/list/python-committers@python.org/message/SQC2FTLFV5A7DV7RCEAR2I2IKJKGK7W3",
+        "sha256": "c2ef01eb978d9476976094a4fe5587301e371286a8569854e0d20200fb1e591a"
+      }
+    },
+    {
+      "id": "source_binary",
+      "project": "go",
+      "source": "_content/doc/go1compat.html",
+      "lines": [
+        21,
+        35
+      ],
+      "quote": "<p>\nIt is intended that programs written to the Go 1 specification will\ncontinue to compile and run correctly, unchanged, over the lifetime\nof that specification. At some indefinite point, a Go 2 specification\nmay arise, but until that time, Go programs that work today should\ncontinue to work even as future \"point\" releases of Go 1 arise (Go\n1.1, Go 1.2, etc.).\n</p>\n\n<p>\nCompatibility is at the source level. Binary compatibility for\ncompiled packages is not guaranteed between releases. After a point\nrelease, Go source will need to be recompiled to link against the\nnew release.\n</p>",
+      "sha256": "c59178dfc049cf91fc3f8bd24422d1c687c6e275e7083169847e4dd506384f4c",
+      "statement": "Go 1 compatibility is intended at source level; binary compatibility between releases is not guaranteed and relinking requires recompilation.",
+      "subject": "Go source binary compatibility",
+      "kind": "constraint",
+      "lifecycle": "active",
+      "scope": "Go 1 specification and standard packages; source compatibility between releases",
+      "status_evidence": {
+        "source": "_content/doc/go1compat.html",
+        "lines": [
+          21,
+          35
+        ],
+        "quote": "<p>\nIt is intended that programs written to the Go 1 specification will\ncontinue to compile and run correctly, unchanged, over the lifetime\nof that specification. At some indefinite point, a Go 2 specification\nmay arise, but until that time, Go programs that work today should\ncontinue to work even as future \"point\" releases of Go 1 arise (Go\n1.1, Go 1.2, etc.).\n</p>\n\n<p>\nCompatibility is at the source level. Binary compatibility for\ncompiled packages is not guaranteed between releases. After a point\nrelease, Go source will need to be recompiled to link against the\nnew release.\n</p>",
+        "sha256": "c59178dfc049cf91fc3f8bd24422d1c687c6e275e7083169847e4dd506384f4c"
+      }
+    },
+    {
+      "id": "security",
+      "project": "go",
+      "source": "_content/doc/go1compat.html",
+      "lines": [
+        44,
+        59
+      ],
+      "quote": "<p>\nAlthough we expect that the vast majority of programs will maintain\nthis compatibility over time, it is impossible to guarantee that\nno future change will break any program. This document is an attempt\nto set expectations for the compatibility of Go 1 software in the\nfuture. There are a number of ways in which a program that compiles\nand runs today may fail to do so after a future point release. They\nare all unlikely but worth recording.\n</p>\n\n<ul>\n<li>\nSecurity. A security issue in the specification or implementation\nmay come to light whose resolution requires breaking compatibility.\nWe reserve the right to address such security issues.\n</li>",
+      "sha256": "076157339ce691cbe56754538dab8ea3238249d9099f38d4d5815f5cb2a8841c",
+      "statement": "Go compatibility expectations allow breaking compatibility to address security issues; they cannot guarantee every program.",
+      "subject": "Go security compatibility exception",
+      "kind": "constraint",
+      "lifecycle": "active",
+      "scope": "Go specification or implementation security issues requiring incompatible resolution",
+      "status_evidence": {
+        "source": "_content/doc/go1compat.html",
+        "lines": [
+          56,
+          59
+        ],
+        "quote": "Security. A security issue in the specification or implementation\nmay come to light whose resolution requires breaking compatibility.\nWe reserve the right to address such security issues.\n</li>",
+        "sha256": "db1f753c220d674e9e28565e53c82be036849a3d3668e99328c78a1bd11a5a8d"
+      }
+    },
+    {
+      "id": "struct_literals",
+      "project": "go",
+      "source": "_content/doc/go1compat.html",
+      "lines": [
+        83,
+        96
+      ],
+      "quote": "<li>\nStruct literals. For the addition of features in later point\nreleases, it may be necessary to add fields to exported structs in\nthe API. Code that uses unkeyed struct literals (such as pkg.T{3,\n\"x\"}) to create values of these types would fail to compile after\nsuch a change. However, code that uses keyed literals (pkg.T{A:\n3, B: \"x\"}) will continue to compile after such a change. We will\nupdate such data structures in a way that allows keyed struct\nliterals to remain compatible, although unkeyed literals may fail\nto compile. (There are also more intricate cases involving nested\ndata structures or interfaces, but they have the same resolution.)\nWe therefore recommend that composite literals whose type is defined\nin a separate package should use the keyed notation.\n</li>",
+      "sha256": "525ef49dedfe5121a973d301195bb32ac3a197bab811031cb7cda5f7b20a234f",
+      "statement": "Go exported structs may gain fields: unkeyed literals can fail, while keyed literals remain compatible with such additions.",
+      "subject": "Go keyed unkeyed struct literals",
+      "kind": "constraint",
+      "lifecycle": "active",
+      "scope": "Go exported API structs defined in another package; added fields",
+      "status_evidence": {
+        "source": "_content/doc/go1compat.html",
+        "lines": [
+          83,
+          96
+        ],
+        "quote": "<li>\nStruct literals. For the addition of features in later point\nreleases, it may be necessary to add fields to exported structs in\nthe API. Code that uses unkeyed struct literals (such as pkg.T{3,\n\"x\"}) to create values of these types would fail to compile after\nsuch a change. However, code that uses keyed literals (pkg.T{A:\n3, B: \"x\"}) will continue to compile after such a change. We will\nupdate such data structures in a way that allows keyed struct\nliterals to remain compatible, although unkeyed literals may fail\nto compile. (There are also more intricate cases involving nested\ndata structures or interfaces, but they have the same resolution.)\nWe therefore recommend that composite literals whose type is defined\nin a separate package should use the keyed notation.\n</li>",
+        "sha256": "525ef49dedfe5121a973d301195bb32ac3a197bab811031cb7cda5f7b20a234f"
+      }
+    },
+    {
+      "id": "performance",
+      "project": "go",
+      "source": "_content/doc/go1compat.html",
+      "lines": [
+        150,
+        156
+      ],
+      "quote": "Finally, although it is not a correctness issue, it is possible\nthat the performance of a program may be affected by\nchanges in the implementation of the compilers or libraries upon\nwhich it depends.\nNo guarantee can be made about the performance of a\ngiven program between releases.\n</p>",
+      "sha256": "47987e5960b2e1806bc8299a6b6843d5e912511ed20215af6877c1641be4e502",
+      "statement": "Go makes no guarantee about a given program performance between releases.",
+      "subject": "Go performance compatibility guarantee",
+      "kind": "constraint",
+      "lifecycle": "active",
+      "scope": "Performance of a given Go program across releases",
+      "status_evidence": {
+        "source": "_content/doc/go1compat.html",
+        "lines": [
+          150,
+          156
+        ],
+        "quote": "Finally, although it is not a correctness issue, it is possible\nthat the performance of a program may be affected by\nchanges in the implementation of the compilers or libraries upon\nwhich it depends.\nNo guarantee can be made about the performance of a\ngiven program between releases.\n</p>",
+        "sha256": "47987e5960b2e1806bc8299a6b6843d5e912511ed20215af6877c1641be4e502"
+      }
+    }
+  ],
+  "relations": [
+    {
+      "from": "pep634",
+      "to": "pep622",
+      "kind": "supersedes",
+      "witness": "pep634"
+    }
+  ],
+  "cases": [
+    {
+      "id": "explicit-supersession",
+      "project": "python",
+      "task": "Which Python pattern matching specification replaces PEP 622?",
+      "required": [
+        "pep622",
+        "pep634"
+      ],
+      "included_conditions": [
+        "Retain both the superseded source and its explicit replacement; Final is mapped to documentary acceptance."
+      ],
+      "negative_cases": [
+        "Do not promote PEP 622 to current policy."
+      ],
+      "must_remain_unknown": [
+        "Interpreter behavior, deployment and compliance."
+      ],
+      "max_tokens": 24000
+    },
+    {
+      "id": "rejected-unused-syntax",
+      "project": "python",
+      "task": "May Python use the PEP 640 unused variable syntax instead of wildcard patterns?",
+      "required": [
+        "pep640",
+        "wildcard"
+      ],
+      "included_conditions": [
+        "Steering Council rejection survives alongside the final wildcard specification."
+      ],
+      "negative_cases": [
+        "A prototype is not acceptance; underscore is special only as a wildcard pattern."
+      ],
+      "must_remain_unknown": [
+        "Whether any fork implements the rejected syntax."
+      ],
+      "max_tokens": 24000
+    },
+    {
+      "id": "unspecified-partial-bindings",
+      "project": "python",
+      "task": "Can Python failed pattern matches guarantee that partial bindings are unchanged?",
+      "required": [
+        "partial"
+      ],
+      "included_conditions": [
+        "Assume neither persistent partial bindings nor unchanged variables after failure."
+      ],
+      "negative_cases": [
+        "Do not generalize successful match binding behavior to failed matches."
+      ],
+      "must_remain_unknown": [
+        "Which bindings a particular interpreter preserves on a failed match."
+      ],
+      "max_tokens": 24000
+    },
+    {
+      "id": "source-versus-binary",
+      "project": "go",
+      "task": "Does Go source compatibility guarantee binary compatibility between releases?",
+      "required": [
+        "source_binary"
+      ],
+      "included_conditions": [
+        "Retain intended source compatibility and the binary/recompilation qualification together."
+      ],
+      "negative_cases": [
+        "Source compatibility is not a binary ABI promise."
+      ],
+      "must_remain_unknown": [
+        "Whether a particular binary links or runs."
+      ],
+      "max_tokens": 24000
+    },
+    {
+      "id": "security-exception",
+      "project": "go",
+      "task": "Does Go compatibility prevent a breaking security fix?",
+      "required": [
+        "source_binary",
+        "security"
+      ],
+      "included_conditions": [
+        "Security issues may justify incompatible fixes; the general expectation is qualified."
+      ],
+      "negative_cases": [
+        "The exception does not authorize arbitrary unrelated breaking changes."
+      ],
+      "must_remain_unknown": [
+        "Whether a particular fix is necessary or deployed."
+      ],
+      "max_tokens": 24000
+    },
+    {
+      "id": "keyed-struct-exception",
+      "project": "go",
+      "task": "Can Go add exported struct fields without preserving unkeyed literals?",
+      "required": [
+        "struct_literals"
+      ],
+      "included_conditions": [
+        "Retain both keyed compatibility and unkeyed failure under field additions."
+      ],
+      "negative_cases": [
+        "Do not claim every composite literal is incompatible or every unkeyed literal protected."
+      ],
+      "must_remain_unknown": [
+        "Whether a specific upstream struct gained a field."
+      ],
+      "max_tokens": 24000
+    },
+    {
+      "id": "no-performance-promise",
+      "project": "go",
+      "task": "Does Go performance compatibility guarantee unchanged latency between releases?",
+      "required": [
+        "performance"
+      ],
+      "included_conditions": [
+        "No guarantee of performance for a given program between releases."
+      ],
+      "negative_cases": [
+        "A compatibility policy is not a measured latency regression."
+      ],
+      "must_remain_unknown": [
+        "Performance, measurements and causation for any concrete program."
+      ],
+      "max_tokens": 24000
+    }
+  ],
+  "negative_queries": [
+    {
+      "project": "python",
+      "task": "vuvuzela quasar calibration"
+    },
+    {
+      "project": "go",
+      "task": "vuvuzela quasar calibration"
+    }
+  ],
+  "excluded_uncertain_cases": [
+    {
+      "case": "accepted policy versus later unaccepted proposal",
+      "reason": "Not selected: would require a separate pinned proposal and acceptance history; rejection and explicit supersession are covered instead."
+    },
+    {
+      "case": "documentation versus implementation or OpenWiki disagreement",
+      "reason": "No matching source-code/OpenWiki snapshot curated; no implementation, freshness or discrepancy truth is asserted."
+    },
+    {
+      "case": "independent human source-label review",
+      "reason": "Pending; source labels remain author annotations and cannot establish independent gold."
+    }
+  ],
+  "explorations": []
+}

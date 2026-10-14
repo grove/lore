@@ -6,6 +6,13 @@ start with [Empirical usefulness](EMPIRICAL_USEFULNESS_09.md). Read-only status
 delegates to the existing sealed protocol; public controls do not establish
 model usefulness or authorize stable 0.9.
 
+[Real-project decision controls](corpora/real-decisions-v1/README.md) add seven
+source-pinned Python/Go documentary cases for offline selection, evidence,
+lifecycle, scope and omission regressions. Their labels await separate human
+review. These public development controls are excluded from the independent
+held-out pool and do not establish task success or productivity gains in
+[#2](https://github.com/grove/lore/issues/2).
+
 Lore 0.8 adds source-only first contact, the adaptive context default, nullable
 per-attempt provider usage, a controlled Guardian integrity gate and stricter
 coding/human study preparation and retention. The [0.8 product guide](../docs/V08.md)

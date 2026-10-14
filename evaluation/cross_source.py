@@ -88,6 +88,9 @@ def bundled_fingerprints() -> set[str]:
             changed = fingerprint(mutation)
             known.add(changed["sha256"])
             known.add(digest(initial["files_sha256"] | changed["files_sha256"]))
+    real_decisions = ROOT / "corpora" / "real-decisions-v1" / "manifest.json"
+    for project in read_json(real_decisions)["projects"].values():
+        known.add(fingerprint(real_decisions.parent / project["source_root"])["sha256"])
     return known
 
 

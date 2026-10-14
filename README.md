@@ -328,6 +328,11 @@ Deleting a source is not the same as deleting its retained history. To intention
 
 ## Development and current boundaries
 
+[Seven source-pinned real-project decision controls](evaluation/corpora/real-decisions-v1/README.md)
+exercise offline evidence mechanics on Python and Go documents. They are public
+development fixtures with author-supplied labels pending human review, separate
+from independently measured task success in [#2](https://github.com/grove/lore/issues/2).
+
 Run `cargo test --all-targets --locked` for the offline compiler, provider, database, source-boundary, retrieval, context-budget, and CLI tests. No real API credentials or installed model weights are needed for these tests. The implementation deliberately favors correctness and inspectable history over maximum throughput: source processing is sequential, candidate comparisons are exhaustive in bounded batches, and topic pages are regenerated as coherent units. These choices can make large first-time compilations expensive. The current automatic supersession guard recognizes explicit English replacement wording and predecessor references; less explicit or differently worded cases remain reviewable instead of being guessed.
 
 Lore reads local Markdown and optional native snapshots from OpenWiki and
