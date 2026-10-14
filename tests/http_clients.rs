@@ -477,7 +477,7 @@ fn real_cli_compiles_over_http_then_updates_with_server_offline() {
     assert!(run(true, &["status"]).status.success());
     assert!(run(true, &["audit"]).status.success());
     assert!(run(true, &["search", "MySQL"]).status.success());
-    assert!(run(true, &["read", "database"]).status.success());
+    assert!(run(true, &["decisions", "database"]).status.success());
 }
 
 #[tokio::test]

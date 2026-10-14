@@ -1,5 +1,7 @@
 # Measure direct retrieval against Knowledge Zoom
 
+> **Historical evaluation record.** The exploration command, its response schemas, and the comparison/CLI/compact replay tests described below were removed in 0.9 under #71. These commands require a historical revision and no longer run against the current tree. The containment graph tests remain in `tests/knowledge_zoom.rs`; current context, decision/case and evidence regressions run in CI. Preserved measurements are not new measurements of the focused product. See [navigation migration](../docs/NAVIGATION_MIGRATION.md).
+
 `tests/knowledge_zoom_comparison.rs` executes both existing retrieval entry points against the same compiled SQLite snapshot and the same query and token budget:
 
 | Arm | Executed code | Included retrieval work |
@@ -74,7 +76,7 @@ Interpret negative or inconclusive results directly:
 - A faster or slower local median is a measurement of that build and fixture. It is not a general performance claim or a reason to loosen source-preservation requirements.
 - A successful test with zero model calls verifies a deterministic local retrieval path. It establishes no improvement in model reasoning, user learning or task completion.
 
-The structural [Knowledge Zoom contract tests](../tests/knowledge_zoom.rs) and [CLI tests](../tests/knowledge_zoom_cli.rs) answer different questions: graph invariants, original-evidence integrity, bounded selection, cache behavior and actual command contracts. Keep those results separate from this comparison's measured recall, size and latency.
+The structural [Knowledge Zoom contract tests](../tests/knowledge_zoom.rs) and historical CLI tests answer different questions: graph invariants, original-evidence integrity, bounded selection, cache behavior and actual command contracts. Keep those results separate from this comparison's measured recall, size and latency.
 
 ## Recorded synthetic diagnostic
 
@@ -260,7 +262,7 @@ LORE_ZOOM_REVIEWED_OUTPUT=/absolute/new-reviewed-report.json \
   source_corpus::measured_source_pinned_three_repository_cases -- --exact
 ```
 
-The [focused replay](../tests/knowledge_zoom_reviewed.rs) rechecks all 24
+The historical focused replay rechecks all 24
 unchanged conditions at 1,500 tokens without timing repeats. It complements,
 and does not replace, the full raw report and causal comparison.
 
