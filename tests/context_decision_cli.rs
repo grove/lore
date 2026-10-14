@@ -758,3 +758,185 @@ async fn default_is_action_first_and_does_not_send_checkout_without_a_grant() {
     assert!(count_tokens(&markdown) <= 8000);
     assert!(!server.captured().contains("CHECKOUT_ONLY_WORKER_SENTINEL"));
 }
+
+async fn openwiki_fixture(server: &ModelServer) -> (tempfile::TempDir, ResolvedConfig) {
+    let (temp, mut config) = fixture(server).await;
+    let root =
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/openwiki-freshness");
+    fs::create_dir_all(config.base.join("openwiki/.claims")).unwrap();
+    for path in ["index.md", "worker.md", ".claims/worker.json"] {
+        fs::copy(root.join(path), config.base.join("openwiki").join(path)).unwrap();
+    }
+    fs::copy(
+        root.join("src/worker.rs"),
+        config.base.join("src/worker.rs"),
+    )
+    .unwrap();
+    config.config.schema_version = 2;
+    config.config.imports.push(lore::config::ImportSource {
+        id: "worker-wiki".into(),
+        kind: lore::domain::ImportKind::Openwiki,
+        path: "openwiki".into(),
+        project: None,
+        include_memories: false,
+    });
+    fs::write(
+        &config.config_path,
+        serde_yaml::to_string(&config.config).unwrap(),
+    )
+    .unwrap();
+    let config = ResolvedConfig::load(&config.config_path).unwrap();
+    let conn = rusqlite::Connection::open(config.state.join("state.db")).unwrap();
+    lore::imports::storage::persist(
+        &conn,
+        &config.project_id,
+        &lore::imports::scan(&config).unwrap(),
+    )
+    .unwrap();
+    (temp, config)
+}
+
+#[tokio::test]
+async fn openwiki_freshness_rechecks_context_cache_and_preserves_native_and_documentary_authority()
+{
+    let server = ModelServer::new();
+    let (_temp, config) = openwiki_fixture(&server).await;
+    let registry = fs::read(config.state.join("state.db")).unwrap();
+    let source = fs::read(config.base.join("src/worker.rs")).unwrap();
+    let args = ["--inspect", "--max-tokens", "12000"];
+    let (first, text) = run(&config, &args);
+    let first = &first["intelligence"];
+    assert_eq!(first["mode"], "intelligent", "{text}");
+    assert_eq!(
+        first["inspection"]["checkout_freshness"][0]["status"],
+        "matches_checkout"
+    );
+    assert_eq!(
+        first["inspection"]["checkout_freshness"][0]["checked_path"],
+        "src/worker.rs"
+    );
+    assert_eq!(first["cache_status"], "miss");
+    assert!(server.captured().contains("checkout_freshness"));
+    assert!(server.captured().contains("upstream_verified_at_revision"));
+    assert!(server.captured().contains("Documented decision (accepted)"));
+    assert!(
+        first["brief"]["facts"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|fact| fact["basis"] == "documented")
+    );
+    let (second, _) = run(&config, &args);
+    assert_eq!(second["intelligence"]["cache_status"], "hit");
+    assert!(
+        second["intelligence"]["inspection"]["budget"]["bytes_read"]
+            .as_u64()
+            .unwrap()
+            >= source.len() as u64 * 2
+    );
+    // Preserve size and mtime so a metadata-only cache would miss the change.
+    let path = config.base.join("src/worker.rs");
+    let modified = fs::metadata(&path).unwrap().modified().unwrap();
+    fs::write(
+        &path,
+        String::from_utf8(source.clone())
+            .unwrap()
+            .replace("= 1", "= 2"),
+    )
+    .unwrap();
+    fs::File::options()
+        .write(true)
+        .open(&path)
+        .unwrap()
+        .set_times(fs::FileTimes::new().set_modified(modified))
+        .unwrap();
+    server.requests.lock().unwrap().clear();
+    let (changed, _) = run(&config, &args);
+    assert_ne!(changed["intelligence"]["cache_status"], "hit");
+    assert_eq!(
+        changed["intelligence"]["inspection"]["checkout_freshness"][0]["status"],
+        "changed_since_snapshot"
+    );
+    assert!(server.captured().contains("changed_since_snapshot"));
+    fs::write(&path, &source).unwrap();
+    let (restored, _) = run(&config, &args);
+    assert_eq!(
+        restored["intelligence"]["inspection"]["checkout_freshness"][0]["status"],
+        "matches_checkout"
+    );
+    assert!(
+        restored["intelligence"]["inspection"]["budget"]["bytes_read"]
+            .as_u64()
+            .unwrap()
+            >= source.len() as u64
+    );
+    fs::remove_file(&path).unwrap();
+    let (deleted, _) = run(&config, &args);
+    assert_eq!(
+        deleted["intelligence"]["inspection"]["checkout_freshness"][0]["status"],
+        "unknown_or_unchecked"
+    );
+    let (denied, _) = run(&config, &["--no-inspect", "--max-tokens", "12000"]);
+    assert_eq!(
+        denied["intelligence"]["inspection"]["checkout_freshness"][0]["reason"],
+        "inspection_not_authorized"
+    );
+    assert_eq!(
+        denied["intelligence"]["inspection"]["budget"]["bytes_read"],
+        0
+    );
+    let calls = server.calls.load(Ordering::SeqCst);
+    let (fast, _) = run(&config, &["--fast", "--max-tokens", "12000"]);
+    assert_eq!(fast["model_calls"], 0);
+    assert_eq!(server.calls.load(Ordering::SeqCst), calls);
+    assert_eq!(
+        fast["imported_evidence"][0]["metadata"]["current_checkout_verified"],
+        false
+    );
+    assert_eq!(
+        fast["imported_observations"][0]["verification"],
+        "upstream_verified_at_revision"
+    );
+    assert_eq!(fs::read(config.state.join("state.db")).unwrap(), registry);
+}
+
+#[tokio::test]
+async fn hosted_reasoning_without_checkout_egress_does_not_receive_freshness() {
+    let server = ModelServer::new();
+    let (_temp, mut config) = openwiki_fixture(&server).await;
+    config.config.privacy.local_only = false;
+    config.config.providers.insert(
+        "openai".into(),
+        ProviderSettings {
+            base_url: Some(format!("{}/v1", server.address)),
+            api_key_env: Some("LORE_CONTEXT_DECISION_TEST_KEY".into()),
+        },
+    );
+    config.config.models.generative.provider = "openai".into();
+    fs::write(
+        &config.config_path,
+        serde_yaml::to_string(&config.config).unwrap(),
+    )
+    .unwrap();
+    let (result, _) = run_hosted(&config, &["--inspect", "--max-tokens", "12000"]);
+    assert_eq!(
+        result["intelligence"]["inspection"]["checkout_freshness"][0]["status"],
+        "matches_checkout"
+    );
+    // Imported resource/version tokens remain source data. The actual checkout
+    // status, observation ID, bytes and checked digest cannot cross this grant.
+    let captured = server
+        .requests
+        .lock()
+        .unwrap()
+        .iter()
+        .map(|body| body["input"][1]["content"].as_str().unwrap().to_owned())
+        .collect::<String>();
+    assert!(!captured.contains("checkout_freshness"));
+    assert!(!captured.contains("matches_checkout"));
+    assert!(!captured.contains("co_"));
+    assert_eq!(
+        result["intelligence"]["checkout_egress"]["model_received_checkout"],
+        false
+    );
+}

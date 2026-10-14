@@ -2,6 +2,7 @@
 //! Selection never changes knowledge, generates claims, or invokes a model.
 pub mod adaptive;
 pub mod decision;
+pub mod freshness;
 pub mod imports;
 pub mod inspection;
 pub mod intelligence;

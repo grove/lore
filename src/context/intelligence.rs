@@ -292,7 +292,13 @@ impl EvidenceCatalog {
                     "selected native observation changed"
                 );
             }
-            if observation.current && !historical_lifecycle(&observation.lifecycle) {
+            // A current import, even with matching resource bytes, cannot by
+            // itself support a hypothesis about the current implementation.
+            if observation.current
+                && !(observation.origin == crate::domain::ImportKind::Openwiki
+                    && observation.kind == imports::adapters::ObservationKind::Implementation)
+                && !historical_lifecycle(&observation.lifecycle)
+            {
                 catalog
                     .applicable_evidence
                     .extend(observation.evidence_ids.iter().cloned());
