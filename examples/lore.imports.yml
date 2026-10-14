@@ -10,10 +10,6 @@ imports:
   - id: implementation
     kind: openwiki
     path: ./openwiki
-  - id: agent-memory
-    kind: engram
-    path: ./imports/engram.json
-    project: payments
   - id: work-history
     kind: beads
     path: ./imports/beads.jsonl

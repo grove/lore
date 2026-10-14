@@ -1,5 +1,7 @@
 # Lore 0.4 cross-source evaluation
 
+Native Engram intake is now retired ([compatibility guide](../docs/ENGRAM_MIGRATION.md)). New collector runs import OpenWiki and Beads only and record that boundary in their result metadata. Engram fixture exports and older results remain unchanged for historical comparisons and upstream-tool baselines; new runs do not measure native Engram interoperability and must not be pooled with the earlier intake setup without accounting for that difference.
+
 On Lore 0.5 this collector explicitly invokes `lore context --fast`, retaining
 the schema 2, deterministic, model-free contract evaluated here. For the new
 baseline / fast / intelligent comparison with executable coding tasks, see

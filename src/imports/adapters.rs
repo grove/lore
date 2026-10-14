@@ -7,8 +7,6 @@
 //! Contracts checked against their upstream implementations:
 //! - OpenWiki `src/claims/brains/code/{types,store}.ts`, `src/okf/frontmatter.ts`:
 //!   <https://github.com/langchain-ai/openwiki/tree/0b1f07cc622156ac0efe8e28437029bc9427e826/src>
-//! - Engram `internal/store/store.go` (`ExportData`, `BackupRelation`):
-//!   <https://github.com/Gentleman-Programming/engram/blob/a36d4e150cc5d3a17877aedfd81ea5eaf5cc6f94/internal/store/store.go>
 //! - Beads `cmd/bd/export.go`, `internal/types/types.go` (unversioned JSONL):
 //!   <https://github.com/gastownhall/beads/blob/f21e3a80f7ed3b3b572b329e6f847971e78890ba/cmd/bd/export.go>
 
@@ -129,10 +127,11 @@ pub struct ImportBatch {
 }
 
 pub fn read(source: &ImportSource, path: &Path, max_file_bytes: usize) -> Result<ImportBatch> {
+    ensure!(source.kind != ImportKind::Engram, super::ENGRAM_RETIRED);
     util::reject_symlinks(path)?;
     let mut batch = match source.kind {
         ImportKind::Openwiki => read_openwiki(source, path, max_file_bytes),
-        ImportKind::Engram => read_engram(source, path, max_file_bytes),
+        ImportKind::Engram => bail!(super::ENGRAM_RETIRED),
         ImportKind::Beads => read_beads(source, path, max_file_bytes),
     }
     .with_context(|| format!("import {} from {}", source.id, path.display()))?;
@@ -488,159 +487,6 @@ fn openwiki_files(root: &Path) -> Result<Vec<(String, PathBuf)>> {
     Ok(files)
 }
 
-fn read_engram(source: &ImportSource, path: &Path, limit: usize) -> Result<ImportBatch> {
-    ensure!(
-        path.is_file(),
-        "Engram export is missing or not a regular file (not treated as deletion)"
-    );
-    let text = util::read_limited(path, limit)?;
-    let export: Value = serde_json::from_str(&text).context("invalid Engram JSON export")?;
-    object(&export, "Engram export")?;
-    let version = string(&export, "version")?;
-    ensure!(
-        matches!(version, "0.1.0" | "0.2.0"),
-        "unsupported Engram export version {version:?}; supported versions: 0.1.0, 0.2.0"
-    );
-    let observations = required_array(&export, "observations")?;
-    let sessions = optional_array(&export, "sessions")?;
-    let mut project_by_session = BTreeMap::new();
-    for session in sessions {
-        object(session, "Engram session")?;
-        let id = identifier(session, "id")?;
-        let project = optional_string(session, "project")?.filter(|p| !p.trim().is_empty());
-        ensure!(
-            project_by_session
-                .insert(id.to_owned(), project.map(str::to_owned))
-                .is_none(),
-            "duplicate Engram session id {id}"
-        );
-    }
-    let mut batch = ImportBatch {
-        format: format!("engram-json/{version}"),
-        ..ImportBatch::default()
-    };
-    let mut by_native_id = BTreeMap::new();
-    for (index, native) in observations.iter().enumerate() {
-        object(native, "Engram observation")?;
-        let session_id = optional_string(native, "session_id")?;
-        let own_project = optional_string(native, "project")?.filter(|s| !s.trim().is_empty());
-        let project = own_project.or_else(|| {
-            session_id
-                .and_then(|id| project_by_session.get(id))
-                .and_then(|p| p.as_deref())
-        });
-        if source
-            .project
-            .as_deref()
-            .is_some_and(|filter| project != Some(filter))
-        {
-            continue;
-        }
-        let native_id =
-            if let Some(sync_id) = optional_string(native, "sync_id")?.filter(|s| !s.is_empty()) {
-                valid_id(sync_id)?;
-                sync_id.to_owned()
-            } else {
-                let id = native
-                    .get("id")
-                    .and_then(Value::as_i64)
-                    .filter(|id| *id > 0)
-                    .context("Engram observations without sync_id require a positive integer id")?;
-                format!("observation:{id}")
-            };
-        let title = nonempty_string(native, "title")?;
-        let content = nonempty_string(native, "content")?;
-        let mut record = AdapterRecord::new(&native_id, content, native.clone());
-        record.kind = ObservationKind::Recollection;
-        record.title = title.to_owned();
-        record.subject = optional_string(native, "topic_key")?
-            .filter(|s| !s.trim().is_empty())
-            .unwrap_or(title)
-            .to_owned();
-        record.scope.repository = project.map(str::to_owned);
-        record.lifecycle = if optional_string(native, "deleted_at")?.is_some_and(|s| !s.is_empty())
-        {
-            "deleted"
-        } else {
-            "active"
-        }
-        .into();
-        record.observed_at = optional_string(native, "updated_at")?
-            .or(optional_string(native, "created_at")?)
-            .map(str::to_owned);
-        record.evidence.push(NativeEvidence {
-            locator: native_locator("engram", &native_id),
-            revision: None,
-            field: Some("/content".into()),
-        });
-        if let Some(kind) = optional_string(native, "type")?.filter(|s| !s.trim().is_empty()) {
-            record.tags.push(kind.to_owned());
-        }
-        if let Some(key) = optional_string(native, "topic_key")?.filter(|s| !s.trim().is_empty()) {
-            record.tags.push(key.to_owned());
-        }
-        record.links = markdown_links(content);
-        record.metadata = json!({
-            "export_version": version,
-            "session_id": session_id,
-            "effective_project": project,
-            "source_scope": optional_string(native, "scope")?,
-            "review_after": native.get("review_after"),
-        });
-        ensure!(
-            by_native_id
-                .insert(native_id.clone(), batch.records.len())
-                .is_none(),
-            "duplicate Engram native id {native_id} at observation {index}"
-        );
-        batch.records.push(record);
-    }
-    let mut relation_ids = BTreeSet::new();
-    for relation in optional_array(&export, "relations")? {
-        object(relation, "Engram relation")?;
-        let source_id = identifier(relation, "source_id")?;
-        let target_id = identifier(relation, "target_id")?;
-        let Some(&source_index) = by_native_id.get(source_id) else {
-            continue;
-        };
-        // Engram's project export closes relations over both endpoints. Apply
-        // the same rule when filtering an unscoped export locally.
-        if source.project.is_some() && !by_native_id.contains_key(target_id) {
-            continue;
-        }
-        let native_id = identifier(relation, "sync_id")?;
-        ensure!(
-            relation_ids.insert(native_id.to_owned()),
-            "duplicate Engram relation id {native_id}"
-        );
-        let kind = nonempty_string(relation, "relation")?;
-        let status = nonempty_string(relation, "judgment_status")?;
-        let active = status == "judged"
-            && kind != "pending"
-            && optional_string(relation, "superseded_at")?.is_none_or(str::is_empty);
-        batch.records[source_index]
-            .relationships
-            .push(NativeRelationship {
-                native_id: Some(native_id.into()),
-                target_native_id: target_id.into(),
-                kind: kind.into(),
-                upstream_status: Some(status.into()),
-                active,
-                native_record: relation.clone(),
-            });
-    }
-    for record in &mut batch.records {
-        record.relationships.sort_by(|a, b| {
-            (&a.native_id, &a.target_native_id, &a.kind).cmp(&(
-                &b.native_id,
-                &b.target_native_id,
-                &b.kind,
-            ))
-        });
-    }
-    Ok(batch)
-}
-
 fn read_beads(source: &ImportSource, path: &Path, limit: usize) -> Result<ImportBatch> {
     ensure!(
         path.is_file(),
@@ -842,14 +688,6 @@ fn valid_id(id: &str) -> Result<()> {
         "native identity must be a nonempty canonical string without control characters"
     );
     Ok(())
-}
-
-fn required_array<'a>(value: &'a Value, field: &str) -> Result<&'a [Value]> {
-    ensure!(
-        value.get(field).is_some(),
-        "required array {field:?} is missing"
-    );
-    optional_array(value, field)
 }
 
 fn optional_array<'a>(value: &'a Value, field: &str) -> Result<&'a [Value]> {

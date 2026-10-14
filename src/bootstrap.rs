@@ -296,7 +296,22 @@ pub fn run(
             config.config_path.strip_prefix(root)?.to_owned(),
             snapshot.file_revision.clone(),
         );
-        if !config.imports.is_empty() {
+        if config
+            .config
+            .imports
+            .iter()
+            .any(|source| source.kind == crate::domain::ImportKind::Engram)
+        {
+            scanner
+                .warnings
+                .insert(crate::imports::ENGRAM_RETIRED.into());
+        }
+        if config
+            .config
+            .imports
+            .iter()
+            .any(|source| source.kind != crate::domain::ImportKind::Engram)
+        {
             scanner.warnings.insert(
                 "Native imports require lore init; first contact reads configured Markdown only."
                     .into(),
