@@ -34,7 +34,7 @@ Initialized projects now use adaptive context schema 5 by default. Explicit
 schema 4, schema 3 and deterministic `--fast` schema 2 remain compatibility
 controls; consuming agents can pin `--schema-version 5`. Uncompiled context and
 onboarding historically used distinct `lore.bootstrap_context`/`lore.bootstrap_onboard`
-contracts. Compact exploration schema 2 still requires `--compact`. Frozen
+contracts. Exploration schemas 1/2 and their browser comparison tests were retired in 0.9 ([navigation migration](../docs/NAVIGATION_MIGRATION.md)); the retained measurements below describe historical revisions. Frozen
 baseline captures are retained rather than rewritten for the new default.
 
 ## Existing shared, coding, and synthesis protocols

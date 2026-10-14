@@ -3,21 +3,9 @@
 //! The containment DAG is a navigation hypothesis. Original records and exact
 //! evidence remain independently retrievable; neither a group nor its summary
 //! creates a new authority. All default operations are deterministic and local.
-mod cache;
-mod compact;
 mod graph;
-mod selection;
 
-pub use cache::{CacheUpdate, RefreshWork, build_cached, purge_cache};
-pub use compact::{
-    COMPACT_ZOOM_SCHEMA_VERSION, CompactEvidence, CompactExploreResult, CompactKnowledge,
-    CompactRelation, CompactSourceRevision, render_compact_markdown,
-};
 pub use graph::validate;
-pub use selection::{
-    BundleDependency, EvidenceBundle, SelectionMode, inspect_bundles, render_markdown, select,
-    select_compact, select_compact_controlled, select_controlled,
-};
 
 use crate::{domain::KnowledgeView, storage, util};
 use anyhow::{Result, ensure};
@@ -45,25 +33,6 @@ impl Default for ZoomOptions {
             max_work: 500_000,
             max_records: 10_000,
             max_input_bytes: 32 * 1024 * 1024,
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct ExploreOptions {
-    pub query: String,
-    pub node: Option<String>,
-    pub max_tokens: usize,
-    pub max_nodes: usize,
-}
-
-impl Default for ExploreOptions {
-    fn default() -> Self {
-        Self {
-            query: String::new(),
-            node: None,
-            max_tokens: 8_000,
-            max_nodes: 24,
         }
     }
 }
@@ -156,45 +125,6 @@ pub struct KnowledgeGraph {
     pub report: BuildReport,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NavigationNode {
-    pub id: String,
-    pub revision: String,
-    pub title: String,
-    pub kind: String,
-    pub summary: String,
-    pub summary_knowledge_ids: Vec<String>,
-    pub parent_view_ids: Vec<String>,
-    pub child_view_ids: Vec<String>,
-    pub omitted_parent_nodes: usize,
-    pub omitted_child_nodes: usize,
-    pub eligible_units: usize,
-    pub critical_units: usize,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExploreResult {
-    pub schema_version: u32,
-    pub snapshot_revision: String,
-    pub query: String,
-    pub selected_node_id: Option<String>,
-    pub retrieval: String,
-    pub status: String,
-    pub model_calls: u32,
-    pub nodes: Vec<NavigationNode>,
-    pub edges: Vec<ViewEdge>,
-    pub knowledge: Vec<KnowledgeView>,
-    pub evidence: Vec<storage::EvidenceSnapshot>,
-    pub relations: Vec<EvidenceRelation>,
-    pub source_revisions: Vec<SourceRevision>,
-    pub coverage: Coverage,
-    pub critical_groups_omitted: usize,
-    pub navigation_truncated: bool,
-    pub max_tokens: usize,
-    pub used_tokens: usize,
-    pub warnings: Vec<String>,
-}
-
 /// Build one coherent, read-only SQLite snapshot. No schema migration, source
 /// read, network call, model invocation or authoritative write is performed.
 pub fn build(conn: &Connection, options: &ZoomOptions) -> Result<KnowledgeGraph> {
@@ -206,9 +136,7 @@ pub fn build(conn: &Connection, options: &ZoomOptions) -> Result<KnowledgeGraph>
     })
 }
 
-/// Both the full builder and the incremental cache start from the same
-/// authoritative read snapshot. A cache can replace derived work, never this
-/// input loading, evidence checking, or resource preflight.
+/// Load and validate authoritative inputs within one bounded read snapshot.
 fn with_inputs<T>(
     conn: &Connection,
     options: &ZoomOptions,
@@ -347,74 +275,6 @@ fn load_inputs(conn: &Connection, options: &ZoomOptions) -> Result<KnowledgeGrap
             ..BuildReport::default()
         },
     })
-}
-
-pub fn explore(conn: &Connection, options: &ExploreOptions) -> Result<ExploreResult> {
-    with_exploration(conn, options, None, |graph, candidates| {
-        selection::select_with_candidates(graph, options, candidates)
-    })
-}
-
-/// Revalidate a disposable graph publication and combine its navigation with
-/// the same direct retrieval signals as the nonpersistent experience.
-pub fn explore_cached(
-    conn: &Connection,
-    options: &ExploreOptions,
-    directory: &std::path::Path,
-) -> Result<ExploreResult> {
-    with_exploration(conn, options, Some(directory), |graph, candidates| {
-        selection::select_with_candidates(graph, options, candidates)
-    })
-}
-
-/// Explicit opt-in to normalized schema 2; schema-1 callers remain unchanged.
-pub fn explore_compact(
-    conn: &Connection,
-    options: &ExploreOptions,
-) -> Result<CompactExploreResult> {
-    with_exploration(conn, options, None, |graph, candidates| {
-        selection::select_compact_with_candidates(graph, options, candidates)
-    })
-}
-
-pub fn explore_compact_cached(
-    conn: &Connection,
-    options: &ExploreOptions,
-    directory: &std::path::Path,
-) -> Result<CompactExploreResult> {
-    with_exploration(conn, options, Some(directory), |graph, candidates| {
-        selection::select_compact_with_candidates(graph, options, candidates)
-    })
-}
-
-fn with_exploration<T>(
-    conn: &Connection,
-    options: &ExploreOptions,
-    directory: Option<&std::path::Path>,
-    select: impl FnOnce(&KnowledgeGraph, &[String]) -> Result<T>,
-) -> Result<T> {
-    conn.execute_batch("SAVEPOINT lore_exploration")?;
-    let result = (|| {
-        let graph = if let Some(directory) = directory {
-            build_cached(conn, &ZoomOptions::default(), directory)?.graph
-        } else {
-            build(conn, &ZoomOptions::default())?
-        };
-        let candidates = if options.query.trim().is_empty() {
-            Vec::new()
-        } else {
-            crate::context::retrieval::retrieve_with_report(conn, &options.query, &[])?
-                .hits
-                .into_iter()
-                .map(|hit| hit.knowledge.id)
-                .collect()
-        };
-        select(&graph, &candidates)
-    })();
-    let released = conn.execute_batch("RELEASE lore_exploration");
-    let result = result?;
-    released?;
-    Ok(result)
 }
 
 pub(crate) fn stable_id(kind: &str, value: &str) -> String {

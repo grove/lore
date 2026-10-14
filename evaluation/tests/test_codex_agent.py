@@ -6,7 +6,7 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import codex_agent as agent
@@ -51,6 +51,28 @@ def fake(root, stream=None, *, suffix="", help_text=None, version="codex-cli 0.1
 
 @unittest.skipUnless(os.name == "posix", "Real process doubles use the supported POSIX execution boundary")
 class CodexProcessTests(unittest.TestCase):
+    def test_cleanup_reaps_exited_leader_before_retrying_group_permission_error(self):
+        for retry in (None, ProcessLookupError(), PermissionError()):
+            with self.subTest(retry=retry):
+                process = Mock(pid=123, poll=Mock(return_value=0))
+                with patch.object(agent.os, "killpg", side_effect=[PermissionError(), retry]) as kill:
+                    if isinstance(retry, PermissionError):
+                        with self.assertRaises(PermissionError):
+                            agent.stop(process)
+                        process.wait.assert_not_called()
+                    else:
+                        agent.stop(process)
+                        process.wait.assert_called_once_with()
+                    process.poll.assert_called_once_with()
+                    self.assertEqual(kill.call_count, 2)
+                    kill.assert_called_with(process.pid, agent.signal.SIGKILL)
+        process = Mock(pid=123, poll=Mock(return_value=None))
+        with patch.object(agent.os, "killpg", side_effect=PermissionError()) as kill:
+            with self.assertRaises(PermissionError):
+                agent.stop(process)
+            kill.assert_called_once_with(process.pid, agent.signal.SIGKILL)
+            process.wait.assert_not_called()
+
     def run_double(self, root, args, value=None):
         ledger = root / "usage.json"
         with patch.dict(os.environ, {"LORE_USAGE_LEDGER": str(ledger), "CODEX_PROFILE": "untrusted",

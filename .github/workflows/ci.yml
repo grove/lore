@@ -56,14 +56,6 @@ jobs:
           python evaluation/experiment_08.py prepare --cases /tmp/lore-v07-pilot/cases.json --output /tmp/lore-v08-study
           python evaluation/human_onboarding.py prepare --output /tmp/lore-v07-human-pilot
           python evaluation/guardian_longitudinal.py prepare --output /tmp/lore-v07-guardian
-          python evaluation/restore_zoom_fixture.py --output /tmp/lore-v07-frozen
-      - name: Compare the exact frozen Zoom registry (no inference)
-        if: runner.os == 'Linux'
-        env:
-          LORE_ZOOM_COMPARISON_CONFIG: /tmp/lore-v07-frozen/lore.yml
-          LORE_ZOOM_COMPARISON_CASES: /tmp/lore-v07-frozen/cases.json
-          LORE_ZOOM_COMPARISON_OUTPUT: /tmp/lore-v07-frozen-comparison.json
-        run: cargo test --locked --test knowledge_zoom_comparison measured_existing_compiled_project -- --ignored --exact
       - name: Decision and case CLI help
         run: |
           cargo run --release --locked -- decisions --help
@@ -85,7 +77,5 @@ jobs:
         run: cargo run --release --locked -- context --help
       - name: Onboarding CLI help
         run: cargo run --release --locked -- onboard --help
-      - name: Exploration CLI help
-        run: cargo run --release --locked -- explore --help
       - name: CLI version
         run: cargo run --release --locked -- --version

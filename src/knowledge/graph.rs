@@ -3,10 +3,8 @@ use anyhow::{Context, ensure};
 use std::collections::VecDeque;
 
 mod dependencies;
-mod reuse;
 mod summary;
 pub(super) use dependencies::Dependencies;
-pub(super) use reuse::{grouping_signature, validate_reusable_topology};
 pub(super) use summary::Summaries;
 
 #[derive(Clone)]
@@ -36,8 +34,7 @@ pub(super) fn assemble(graph: &mut KnowledgeGraph, dependencies: &Dependencies) 
     assemble_from_layout(graph, layout, dependencies)
 }
 
-/// The canonical navigation plan contains no summary text or view revisions.
-/// Cache validation derives this same bounded plan before reusing view objects.
+/// The bounded containment plan is independent of summary text and revisions.
 pub(super) struct Layout {
     nodes: Vec<LayoutNode>,
     edges: Vec<ViewEdge>,
@@ -392,27 +389,6 @@ fn make_node(
     }
 }
 
-pub(super) fn refresh_node(
-    node: &mut ViewNode,
-    summaries: &Summaries<'_>,
-    dependencies: &Dependencies,
-) -> Result<()> {
-    let ids = node.knowledge_ids.iter().cloned().collect();
-    let mut updated = make_node(
-        node.id.clone(),
-        &node.kind,
-        node.title.clone(),
-        node.grouping_basis.clone(),
-        &ids,
-        summaries,
-    );
-    updated.child_view_ids = node.child_view_ids.clone();
-    updated.parent_view_ids = node.parent_view_ids.clone();
-    updated.revision = dependencies.revision(&updated)?;
-    *node = updated;
-    Ok(())
-}
-
 /// Validate containment separately from documentary relationships. The latter
 /// may legitimately contain cycles; view dependencies may not.
 pub fn validate(graph: &KnowledgeGraph) -> Result<()> {
@@ -423,14 +399,10 @@ pub(super) fn validate_with_dependencies(
     graph: &KnowledgeGraph,
     dependencies: &Dependencies,
 ) -> Result<()> {
-    validate_inner(graph, Some(dependencies))
+    validate_inner(graph, dependencies)
 }
 
-pub(super) fn validate_structure(graph: &KnowledgeGraph) -> Result<()> {
-    validate_inner(graph, None)
-}
-
-fn validate_inner(graph: &KnowledgeGraph, dependencies: Option<&Dependencies>) -> Result<()> {
+fn validate_inner(graph: &KnowledgeGraph, dependencies: &Dependencies) -> Result<()> {
     ensure!(
         graph.schema_version == ZOOM_SCHEMA_VERSION,
         "unknown zoom schema"
@@ -576,12 +548,10 @@ fn validate_inner(graph: &KnowledgeGraph, dependencies: Option<&Dependencies>) -
                     == Some(node.summary_coverage.eligible_units),
             "summary coverage manifest mismatch"
         );
-        if let Some(dependencies) = dependencies {
-            ensure!(
-                node.revision == dependencies.revision(node)?,
-                "view dependency fingerprint does not match its inputs"
-            );
-        }
+        ensure!(
+            node.revision == dependencies.revision(node)?,
+            "view dependency fingerprint does not match its inputs"
+        );
         let expected_children: Vec<_> = graph
             .edges
             .iter()

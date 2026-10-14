@@ -166,8 +166,12 @@ enum Command {
             help = "JSON contract: 5 (default, adaptive shared intelligence), or explicit 3/4 for compatibility")]
         schema_version: Option<u32>,
     },
-    /// Read a generated topic by slug, or index.
-    Read { topic: String },
+    /// Retired: use context, search, decisions, cases and evidence.
+    #[command(hide = true, disable_help_flag = true)]
+    Read {
+        #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
+        args: Vec<std::ffi::OsString>,
+    },
     /// Inspect an immutable, verbatim source evidence snapshot.
     Evidence { id: String },
     /// List reusable investigation leads, or clear disposable decision findings.
@@ -206,23 +210,11 @@ enum Command {
         #[arg(long)]
         allow_checkout_egress: bool,
     },
-    /// Explore project concepts, then drill down to original knowledge and evidence.
+    /// Retired: use context, search, decisions, cases and evidence.
+    #[command(hide = true, disable_help_flag = true)]
     Explore {
-        #[arg(value_name = "QUERY", value_parser = human_goal)]
-        query: Option<String>,
-        #[arg(long, help = "Continue from a view ID in the current graph")]
-        node: Option<String>,
-        #[arg(long, default_value_t = 8_000, value_parser = view_budget)]
-        max_tokens: usize,
-        #[arg(long, default_value_t = 24, value_parser = clap::value_parser!(u16).range(1..=256))]
-        max_nodes: u16,
-        #[arg(long, help = "Do not read or write the disposable navigation cache")]
-        no_cache: bool,
-        #[arg(
-            long,
-            help = "Use explicit schema 2 with reversible normalized evidence tables"
-        )]
-        compact: bool,
+        #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
+        args: Vec<std::ffi::OsString>,
     },
     /// Explain recorded choices, conditions, alternatives and historical transitions.
     Decisions {
@@ -359,6 +351,25 @@ async fn main() {
             error.exit();
         }
     };
+    let retired = match &cli.command {
+        Command::Read { .. } => Some("read"),
+        Command::Explore { .. } => Some("explore"),
+        _ => None,
+    };
+    if let Some(command) = retired {
+        let message = format!(
+            "lore {command} was retired in 0.9. Use lore context TASK for task guidance, lore search QUERY for discovery, lore decisions QUERY or lore cases QUERY for why/history, and lore evidence ID for exact original support. Browse schemas 1/2, view IDs and the read page/content response are no longer supported. See docs/NAVIGATION_MIGRATION.md."
+        );
+        if json_requested {
+            println!(
+                "{}",
+                json!({"error":message,"code":"command_retired","command":command})
+            );
+        } else {
+            eprintln!("Lore: {message}");
+        }
+        std::process::exit(2);
+    }
     let json = cli.json;
     let result = async {
         let meter = lore::inference::usage::UsageSession::from_environment()?;
@@ -863,58 +874,6 @@ async fn run(cli: Cli) -> Result<i32> {
                 print!("{}", context::adaptive::render(&result));
             }
         }
-        Command::Explore {
-            query,
-            node,
-            max_tokens,
-            max_nodes,
-            no_cache,
-            compact,
-        } => {
-            let conn = storage::read_only(&config.state.join("state.db"))
-                .context("open project knowledge (run lore init or lore update first)")?;
-            let options = lore::knowledge::ExploreOptions {
-                query: query.unwrap_or_default(),
-                node,
-                max_tokens,
-                max_nodes: usize::from(max_nodes),
-            };
-            if compact {
-                let result = if no_cache || !config.config.context.cache {
-                    lore::knowledge::explore_compact(&conn, &options)?
-                } else {
-                    lore::knowledge::explore_compact_cached(
-                        &conn,
-                        &options,
-                        &config.state.join("knowledge-zoom"),
-                    )
-                    .or_else(|_| lore::knowledge::explore_compact(&conn, &options))?
-                };
-                if cli.json {
-                    println!("{}", serde_json::to_string(&result)?);
-                } else {
-                    print!("{}", lore::knowledge::render_compact_markdown(&result)?);
-                }
-            } else {
-                let result = if no_cache || !config.config.context.cache {
-                    lore::knowledge::explore(&conn, &options)?
-                } else {
-                    lore::knowledge::explore_cached(
-                        &conn,
-                        &options,
-                        &config.state.join("knowledge-zoom"),
-                    )
-                    // Cache persistence is optional. A read-only or unmanaged
-                    // cache directory must not prevent original-source guidance.
-                    .or_else(|_| lore::knowledge::explore(&conn, &options))?
-                };
-                if cli.json {
-                    println!("{}", serde_json::to_string(&result)?);
-                } else {
-                    print!("{}", lore::knowledge::render_markdown(&result));
-                }
-            }
-        }
         Command::Decisions { query, max_tokens } => {
             let conn = storage::read_only(&config.state.join("state.db"))?;
             let result = lore::insights::decisions(&conn, &query, max_tokens)?;
@@ -1015,30 +974,7 @@ async fn run(cli: Cli) -> Result<i32> {
                 }
             }
         }
-        Command::Read { topic } => {
-            ensure!(
-                config.config.output.mode() == OutputMode::Markdown,
-                "lore read is available only for an active Markdown project; use context, evidence, decisions or cases in registry_only mode"
-            );
-            let conn = storage::read_only(&config.state.join("state.db"))?;
-            ensure!(
-                publish::stored_mode(&conn)? == OutputMode::Markdown,
-                "lore read requires a committed Markdown publication; complete output migration before reading pages"
-            );
-            drop(conn);
-            let path = if topic == "index" || topic == "reviews" {
-                format!("{topic}.md")
-            } else {
-                util::safe_slug(&topic)?;
-                format!("topics/{topic}.md")
-            };
-            let text = util::read_limited(&publish::page_path(&config.wiki, &path)?, 4_000_000)?;
-            if cli.json {
-                emit(json!({"page":path,"content":text}), true)?;
-            } else {
-                print!("{text}");
-            }
-        }
+        Command::Read { .. } | Command::Explore { .. } => unreachable!("retired before dispatch"),
         Command::Evidence { id } => emit(engine::evidence(&config, &id)?, cli.json)?,
         Command::Review { action } => match action {
             Some(ReviewCommand::Adjudicate {

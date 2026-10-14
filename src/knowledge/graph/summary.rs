@@ -1,13 +1,11 @@
-//! Share original-record formatting and token counts across overlapping views.
-//! A cached summary is checked against the exact deterministic source plan;
-//! checking streams its fragments instead of rebuilding a summary string.
+//! Share original-record formatting and token counts across overlapping groups.
 
 use super::*;
 use std::cell::RefCell;
 
 const OMITTED: &str =
-    "Representative summary; full critical records are required during answer selection.";
-const FOOTER: &str = "\n\nThis is an extractive documentary view; related conditions outside this concept are included during answer selection.";
+    "Representative summary; consult complete original records for critical conditions.";
+const FOOTER: &str = "\n\nThis is an extractive documentary group, not independent evidence or a completeness guarantee.";
 
 pub(in crate::knowledge) struct Summaries<'a> {
     pub records: BTreeMap<&'a str, &'a KnowledgeView>,
@@ -162,18 +160,6 @@ impl<'a> Summaries<'a> {
             eligible: ids.len(),
         }
     }
-
-    pub fn validate(&self, node: &ViewNode) -> Result<()> {
-        let ids = node.knowledge_ids.iter().cloned().collect();
-        let plan = self.plan(&node.kind, &ids, &node.critical_knowledge_ids);
-        ensure!(
-            plan.knowledge_ids == node.summary_knowledge_ids
-                && plan.coverage() == node.summary_coverage
-                && plan.matches(&node.summary),
-            "cached summary differs from its complete original-source plan"
-        );
-        Ok(())
-    }
 }
 
 impl SummaryPlan<'_> {
@@ -194,17 +180,5 @@ impl SummaryPlan<'_> {
         let mut text = self.parts.join("\n\n");
         text.push_str(&self.suffix);
         text
-    }
-
-    fn matches(&self, text: &str) -> bool {
-        let mut expected = blake3::Hasher::new();
-        for (index, part) in self.parts.iter().enumerate() {
-            if index > 0 {
-                expected.update(b"\n\n");
-            }
-            expected.update(part.as_bytes());
-        }
-        expected.update(self.suffix.as_bytes());
-        expected.finalize() == blake3::hash(text.as_bytes())
     }
 }
