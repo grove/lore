@@ -29,6 +29,7 @@ fn preview_apply_status_reapply_and_remove_preserve_original_bytes() {
         let (ok, preview) = invoke(&root, &["integrate", agent]);
         assert!(ok, "{preview}");
         assert_eq!(preview["contract"], "lore.agent_integration");
+        assert_eq!(preview["managed_version"], 2);
         assert_eq!(preview["source_write"], false);
         assert_eq!(fs::read(root.join(name)).unwrap(), original.as_bytes());
         assert_eq!(fs::read_dir(&root).unwrap().count(), 1);
@@ -148,6 +149,75 @@ fn symlink_target_is_never_followed() {
 }
 
 #[test]
+fn installation_ignores_configuration_sources_grants_and_providers() {
+    let (_temp, config, _model) = common::project();
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    listener.set_nonblocking(true).unwrap();
+    let mut settings = config.config.clone();
+    settings.providers.insert(
+        "ollama".into(),
+        lore::config::ProviderSettings {
+            base_url: Some(format!("http://{}", listener.local_addr().unwrap())),
+            api_key_env: None,
+        },
+    );
+    fs::write(
+        &config.config_path,
+        serde_yaml::to_string(&settings).unwrap(),
+    )
+    .unwrap();
+    // These are deliberately unusable source/checkout inputs, not install inputs.
+    fs::write(config.base.join("docs/private.md"), [0xff]).unwrap();
+    fs::write(config.base.join("private.rs"), [0xff]).unwrap();
+    let configuration = fs::read(&config.config_path).unwrap();
+    let ledger = config.base.join("usage.jsonl");
+    for agent in ["codex", "claude-code"] {
+        for args in [
+            vec!["integrate", agent],
+            vec!["integrate", agent, "--apply"],
+            vec!["integrate", agent, "--apply"],
+            vec!["integrate", agent, "--status"],
+            vec!["integrate", agent, "--remove", "--apply"],
+        ] {
+            let output = Command::new(env!("CARGO_BIN_EXE_lore"))
+                .current_dir(&config.base)
+                .arg("--json")
+                .args(&args)
+                .env("LORE_USAGE_LEDGER", &ledger)
+                .env_remove("LORE_INSPECTION_ROOT")
+                .env_remove("LORE_ALLOW_HOSTED_EGRESS")
+                .env_remove("LORE_ALLOW_CHECKOUT_EGRESS")
+                .output()
+                .unwrap();
+            assert!(
+                output.status.success(),
+                "{}",
+                String::from_utf8_lossy(&output.stdout)
+            );
+            let usage: Value = serde_json::from_slice(&fs::read(&ledger).unwrap()).unwrap();
+            assert_eq!(usage["summary"]["model_calls"], 0);
+            assert_eq!(usage["summary"]["provider_request_count"], 0);
+            assert_eq!(usage["events"], serde_json::json!([]));
+            fs::remove_file(&ledger).unwrap();
+            assert!(!config.state.exists());
+            assert_eq!(fs::read(&config.config_path).unwrap(), configuration);
+            assert_eq!(
+                fs::read(config.base.join("docs/private.md")).unwrap(),
+                [0xff]
+            );
+            assert_eq!(fs::read(config.base.join("private.rs")).unwrap(), [0xff]);
+            assert_eq!(
+                listener.accept().unwrap_err().kind(),
+                std::io::ErrorKind::WouldBlock
+            );
+        }
+    }
+    // Integration even works when loading any configuration would fail.
+    fs::write(&config.config_path, [0xff]).unwrap();
+    assert!(invoke(&config.base, &["integrate", "codex", "--apply"]).0);
+}
+
+#[test]
 fn command_capable_test_double_consumes_bootstrap_and_unavailable_fallback() {
     // This is a deterministic command adapter, not a real Codex/Claude experiment.
     let temp = tempfile::tempdir().unwrap();
@@ -168,8 +238,10 @@ fn command_capable_test_double_consumes_bootstrap_and_unavailable_fallback() {
     assert_eq!(result["contract"], "lore.bootstrap_context");
     assert_eq!(result["model_calls"], 0);
     assert!(Command::new(root.join("missing-lore")).output().is_err());
-    assert!(block.contains("use the original sources"));
-    assert!(block.contains("Missing, stale, denied or omitted context is not evidence of safety"));
+    assert!(block.contains("use original"));
+    assert!(block.contains(
+        "Missing, stale, denied or omitted evidence does not prove constraints are absent"
+    ));
 }
 
 #[tokio::test]
