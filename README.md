@@ -20,7 +20,8 @@ Without initialization, ordinary unpinned `context` returns **bounded, source-on
 ```sh
 lore integrate codex               # preview AGENTS.md instructions; no writes
 lore integrate codex --apply       # explicitly install the managed block
-# Or: lore integrate claude-code --apply  (CLAUDE.md)
+lore integrate claude-code         # preview CLAUDE.md instructions
+# Then: lore integrate claude-code --apply
 ```
 
 The installed instructions ask the agent to consult `lore context TASK` before meaningful edits. They do not run an agent, initialize Lore, grant permission to inspect or edit code, or guarantee compliance. See the [agent integration contract](docs/AGENT_INTEGRATION.md).
@@ -37,9 +38,9 @@ lore status
 
 `init`/`update` can invoke the configured model. `--inspect` explicitly permits bounded read-only checkout inspection; it never executes tests. Existing compiled projects support model-free `lore context "TASK" --fast`. **OpenWiki is optional**: its local exports can provide implementation observations, but it is not a mandatory service, accepted-decision authority, or a hidden dependency. Markdown alone is enough.
 
-**Product contract:** [What Lore owns, the retained command map, and migration policy](docs/PRODUCT_SCOPE.md). The focus is task guidance, not a tutorial platform, web browser, code wiki or project monitoring product. The focused development line has retired interactive learning ([#66](https://github.com/grove/lore/issues/66)) and the embedded browser visualizer ([#67](https://github.com/grove/lore/issues/67)). See the [learning migration](docs/LEARNING_MIGRATION.md), [visualizer migration](docs/VISUALIZER_MIGRATION.md), [Guardian migration](docs/GUARDIAN_MIGRATION.md) and [feedback migration](docs/FEEDBACK_MIGRATION.md). The standalone Guardian and task-feedback products are now retired; remaining reductions are tracked in [#70](https://github.com/grove/lore/issues/70)–[#73](https://github.com/grove/lore/issues/73).
+**Product contract:** [What Lore owns, the retained command map, and migration policy](docs/PRODUCT_SCOPE.md). The focus is task guidance, not a tutorial platform, web browser, code wiki or project monitoring product. The focused development line has retired interactive learning ([#66](https://github.com/grove/lore/issues/66)) and the embedded browser visualizer ([#67](https://github.com/grove/lore/issues/67)). See the [learning migration](docs/LEARNING_MIGRATION.md), [visualizer migration](docs/VISUALIZER_MIGRATION.md), [Guardian migration](docs/GUARDIAN_MIGRATION.md) and [feedback migration](docs/FEEDBACK_MIGRATION.md). The standalone Guardian and task-feedback products are now retired; registry-only defaults, navigation/schema retirement and native Engram retirement are implemented ([#70](https://github.com/grove/lore/issues/70)–[#73](https://github.com/grove/lore/issues/73)).
 
-**Release reality:** 0.10.0 is an intentional breaking engineering release: explicit context schemas 3/4 are removed. Schema 5, model-free fast retrieval and uninitialized first contact remain; see the [compatibility matrix and migration guide](docs/CONTEXT_MIGRATION.md). Source binding, privacy and CLI behavior have deterministic/fixture checks; real-model coding improvements are **not measured**. See the [engineering scorecard](evaluation/PRODUCT_QUALITY_09.md) and deferred [independent decision-task evaluation](https://github.com/grove/lore/issues/2).
+**Release reality:** The source package version is 0.10.0, an intentional breaking engineering line: explicit context schemas 3/4 are removed. Schema 5, model-free fast retrieval and uninitialized first contact remain; see the [compatibility matrix and migration guide](docs/CONTEXT_MIGRATION.md). Source binding, privacy and CLI behavior have deterministic/fixture checks; real-model coding improvements are **not measured**. The version does not establish a published tag or GitHub Release. See the [0.10 engineering checks and publish checklist](docs/RELEASE_010.md), [historical 0.9 acceptance scorecard](evaluation/PRODUCT_QUALITY_09.md) and deferred [independent decision-task evaluation](https://github.com/grove/lore/issues/2).
 
 **Learn the CLI:** [static first-run task guide](docs/tutorial/README.md). **Need operational details?** Start below for installation, evidence provenance, provider configuration and current compatibility. New projects are registry-only; see the [mode and migration guide](docs/HEADLESS_MIGRATION.md) for optional Markdown publication. Retired surfaces and their migrations are mapped in [product scope](docs/PRODUCT_SCOPE.md).
 
@@ -57,7 +58,10 @@ Build and install from the repository using a current stable Rust toolchain. Lor
 git clone https://github.com/grove/lore.git
 cd lore
 cargo install --path . --locked
+lore --version                       # lore 0.10.0
 ```
+
+Ensure Cargo’s binary directory (normally `$HOME/.cargo/bin`) is on `PATH`. With all locked dependencies already cached, `cargo install --offline --path . --locked` is the network-free equivalent. The [installation receipt](docs/RELEASE_010.md#installation-and-first-use-receipt) records the environment and limits actually checked.
 
 For an uninitialized project, start with local documentary assistance:
 
@@ -130,7 +134,7 @@ compilation stores non-sensitive accounting through SQLite schema 8 without
 backfilling historical costs. See [provider usage](docs/PROVIDER_USAGE.md) and
 the [0.8 migration notes](docs/V08.md#provider-usage-and-sqlite-schema-8).
 
-Unchanged queries reuse guidance bound to the task, selected evidence revisions, endpoint/model identity, reasoning settings, privacy, prompt version, and budgets. Schema 4 also binds the checkout index and rehashes every inspected file, including deeper investigation files. Changed evidence is re-evaluated on the next query. `--no-cache` bypasses both guidance and embedding caches for one call; `context.cache: false` disables their persistence in configuration. Refresh explicitly after changing the weights behind an unchanged model alias.
+Unchanged queries reuse guidance bound to the task, selected evidence revisions, endpoint/model identity, reasoning settings, privacy, prompt version, and budgets. Schema 5’s nested decision cache also binds the checkout index and rehashes every inspected file, including deeper investigation files. Changed evidence is re-evaluated on the next query. `--no-cache` bypasses both guidance and embedding caches for one call; `context.cache: false` disables their persistence in configuration. Refresh explicitly after changing the weights behind an unchanged model alias.
 
 ### Optional semantic retrieval
 
@@ -148,7 +152,7 @@ models:
 
 Install the selected embedding model in Ollama, then run `lore doctor --inference` to check it. [The complete local example](examples/lore.intelligent.yml) includes the default privacy and reasoning settings. Hosted embeddings require `privacy.local_only: false`, an explicit embedding provider/model, and that provider's credentials; enabling a chat model never implicitly enables embeddings.
 
-Lore stores embeddings for original knowledge units and imported observations in a separate SQLite cache, combines semantic and lexical ranks, and retrieves their recorded relationship groups. No vector extension, Node.js process, or separate search service is required. The first semantic query builds the index; later queries reuse unchanged record and query vectors. Schema 4 limits each query to two embedding calls while reserving synthesis and verification capacity; larger indexes can populate incrementally across queries. Schema 3 retains its previous indexing behavior. Indexing, record text, and candidate counts are bounded and reported when truncated. If embeddings are unavailable, guidance can still use lexical retrieval.
+Lore stores embeddings for original knowledge units and imported observations in a separate SQLite cache, combines semantic and lexical ranks, and retrieves their recorded relationship groups. No vector extension, Node.js process, or separate search service is required. The first semantic query builds the index; later queries reuse unchanged record and query vectors. Schema 5 limits each query to at most two embedding calls while reserving synthesis and verification capacity; larger indexes can populate incrementally across queries. Indexing, record text, and candidate counts are bounded and reported when truncated. If embeddings are unavailable, guidance can still use lexical retrieval.
 
 For Codex, Claude Code, and other command-capable agents, use the [optional agent instruction snippet](docs/AGENTS.example.md). Agents can inspect any returned snapshot with `lore --json evidence EVIDENCE_ID` and should verify implementation details in the actual code and tests.
 
@@ -316,7 +320,7 @@ OpenWiki supplies its existing `openwiki/` directory. Lore never starts these to
 
 An accepted ADR can say three retries while OpenWiki reports five at a captured evidence revision. Lore can retain a **potential discrepancy**, attach both evidence records, connect relevant work history, and recommend checking the current implementation and policy. A completed Beads task remains work history; an Engram memory remains a reported recollection. Neither becomes an accepted architectural decision or independently verified implementation. Opaque OpenWiki revision tokens are retained without assuming that they identify a Git commit or the current checkout.
 
-Native evidence uses stable `ne_…` IDs resolved by `lore --json evidence ID`; the returned record includes its original parsed payload, content hash, source references, verification metadata, and current-import status. Human readers can start from the generated `imports.md` page. [The 0.4 guide](docs/V04.md) explains version support, authority, history, and failure behavior. [Cross-source evaluation](evaluation/CROSS_SOURCE.md) defines the four-system comparison and release gates.
+Native evidence uses stable `ne_…` IDs resolved by `lore --json evidence ID`; the returned record includes its original parsed payload, content hash, source references, verification metadata, and current-import status. In optional Markdown mode, human readers can also start from the generated `imports.md` page. [The 0.4 guide](docs/V04.md) explains version support, authority, history, and failure behavior. [Cross-source evaluation](evaluation/CROSS_SOURCE.md) defines the four-system comparison and release gates.
 
 ## Evidence and failure safety
 

@@ -1,3 +1,5 @@
+> **Historical acceptance record — 0.9.0-rc.1.** Counts, compatibility captures and gates below describe the dated source/binary revisions, including now-retired interfaces. They are not 0.10 test totals or publication status. See the [current 0.10 engineering and publish checklist](../docs/RELEASE_010.md). Original acceptance ledgers and receipts remain unchanged.
+
 # Lore 0.9.0-rc.1 acceptance
 
 All eight engineering packages are implemented. This is a **release candidate**;
