@@ -1,10 +1,10 @@
 # Migration: retired interactive onboarding
 
-Issue [#66](https://github.com/grove/lore/issues/66) removes the separate learning engine in the focused post-0.9.0-rc.1 development line. **This is an intentional breaking change**, not a silent compatibility alias. Refer to the release's published notes before upgrading a pinned consumer; 0.9.0-rc.1 remains the last documented release candidate with the old `lore.human_experience` and interactive lesson features.
+Issue [#66](https://github.com/grove/lore/issues/66) removes the separate learning engine in the focused post-0.9.0-rc.1 development line. **This is an intentional breaking change**, not a silent compatibility alias. Review the [0.10 compatibility and publication checklist](RELEASE_010.md) before upgrading a pinned consumer; 0.9.0-rc.1 remains the last documented release candidate with the old `lore.human_experience` and interactive lesson features.
 
 ## What still works
 
-- `lore context "TASK"` is unchanged: model-free, source-only first contact when uninitialized; the schema-5 context contract when compiled. Explicit legacy context schemas and `--fast` keep their current behavior under separate [#72](https://github.com/grove/lore/issues/72).
+- `lore context "TASK"` is unchanged: model-free, source-only first contact when uninitialized; the schema-5 context contract when compiled. Model-free `--fast` schema 2 remains available after initialization; explicit schemas 3/4 are removed in 0.10.0 ([compatibility matrix](CONTEXT_MIGRATION.md)).
 - `lore onboard`, `lore onboard GOAL`, `lore onboard --topic TOPIC` and `lore onboard --task TASK` remain convenient ways to request **source-grounded orientation**; they now use the same context assembler, privacy ceiling and evidence/inspection pipeline as `context`. `--path`, `--max-tokens`, `--no-cache`, `--inspect`, `--no-inspect` and `--allow-checkout-egress` remain. No learning graph, lesson cache, assessor, synthesized exercises or tutorial model calls remain.
 - `lore integrate codex` / `claude-code` remain optional agent entry points. Source files and retained versioned evidence, reviews and authority are untouched.
 

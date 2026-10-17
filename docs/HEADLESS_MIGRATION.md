@@ -1,6 +1,6 @@
 # Registry-only compilation and Markdown publication migration
 
-[Issue #70](https://github.com/grove/lore/issues/70) separates Lore's **source-backed decision registry** from optional generated Markdown pages. On the focused development line, the standard `lore init` path creates **registry-only** new projects. Existing projects keep their previous Markdown publication behavior until an explicit mode change. This is a breaking-default migration; 0.9.0-rc.1 and earlier generated a Markdown wiki on every successful compile.
+[Issue #70](https://github.com/grove/lore/issues/70) separates Lore's **source-backed decision registry** from optional generated Markdown pages. In the 0.10.0 source line, the standard `lore init` path creates **registry-only** new projects. Existing projects keep their previous Markdown publication behavior until an explicit mode change. This is a breaking-default migration; 0.9.0-rc.1 and earlier generated a Markdown wiki on every successful compile.
 
 ## Choose a mode
 

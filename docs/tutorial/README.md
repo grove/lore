@@ -8,8 +8,10 @@ Build from the Lore repository using a stable Rust toolchain:
 
 ```sh
 cargo install --path . --locked
-lore --version
+lore --version                       # lore 0.10.0
 ```
+
+Ensure Cargo’s binary directory (normally `$HOME/.cargo/bin`) is on `PATH`. With the locked dependencies already cached, add `--offline` for a network-free install. See the [actual clean-source install and first-use receipt](../RELEASE_010.md#installation-and-first-use-receipt); it does not establish model availability or a published release.
 
 ## First contact (no configuration, model or write)
 
@@ -68,7 +70,8 @@ A call to `lore update` may invoke configured models; `lore status` is read-only
 ```sh
 lore integrate codex                 # preview instructions, no writes
 lore integrate codex --apply         # explicit install into AGENTS.md
-# Or: lore integrate claude-code --apply
+lore integrate claude-code           # preview CLAUDE.md instructions
+# Then: lore integrate claude-code --apply
 ```
 
 Integration gives no additional filesystem, network, model-cost or code-edit authority. The agent still owns changes and actual tests. [Agent integration details](../AGENT_INTEGRATION.md).

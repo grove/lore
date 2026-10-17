@@ -6,6 +6,7 @@ From the project root, preview a short Lore block, then explicitly apply it:
 lore integrate codex
 lore integrate codex --apply
 lore --json integrate codex --status
+lore integrate claude-code            # preview first
 lore integrate claude-code --apply
 lore integrate claude-code --remove --apply
 ```

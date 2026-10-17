@@ -1,6 +1,8 @@
-# Evaluating Lore 0.8
+# Evaluating Lore
 
-> **Historic evaluation inventory:** interactive human-learning protocols and retired onboarding contracts remain preserved for traceability, not claimed as current features after [#66](https://github.com/grove/lore/issues/66). See [migration](../docs/LEARNING_MIGRATION.md).\n
+> **Historic evaluation inventory:** interactive human-learning protocols and retired onboarding contracts remain preserved for traceability, not claimed as current features after [#66](https://github.com/grove/lore/issues/66). See [migration](../docs/LEARNING_MIGRATION.md).
+
+Current source is 0.10.0: see the [installation, compatibility and engineering checklist](../docs/RELEASE_010.md). The 0.8/0.9 inventories and dated receipts below are historical; passing engineering controls do not establish real-agent efficacy or release publication.
 For the 0.9 engineering workflow and the still-unrun independent coding study,
 start with [Empirical usefulness](EMPIRICAL_USEFULNESS_09.md). Read-only status
 delegates to the existing sealed protocol; public controls do not establish

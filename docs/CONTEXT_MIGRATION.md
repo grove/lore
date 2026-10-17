@@ -1,9 +1,10 @@
 # Context contracts in Lore 0.10.0
 
 Issue [#72](https://github.com/grove/lore/issues/72) removes public context
-schemas 3 and 4. **0.10.0 is an intentional breaking release.** The last
-supporting release candidate is **0.9.0-rc.1**. Stay on that
-version while migrating a legacy consumer. This release removes the selectors
+schemas 3 and 4. **The 0.10.0 source line intentionally breaks these contracts.** The crate version does not establish a published tag or GitHub Release; see the [release checklist](RELEASE_010.md). The last
+supporting source version is **0.9.0-rc.1**. Keep the matching historical
+binary/source revision while migrating a legacy consumer; do not assume a
+published tag or installable registry package exists. This release removes the selectors
 immediately; it does not ship an intermediate warning-only deprecation release.
 The earlier schema-3/4 compatibility paths described in the 0.6–0.9 guides are
 historical. No schema 6 is introduced.
@@ -19,7 +20,7 @@ historical. No schema 6 is introduced.
 | `context TASK --schema-version 3` | Schema-3 brief or explicit fallback | Exit 2, `invalid_arguments`, migration guidance | Rejected before config, source, registry, usage ledger or model access |
 | `context TASK --schema-version 4` | Schema-4 decision or explicit fallback | Exit 2, `invalid_arguments`, migration guidance | Rejected before config, source, registry, usage ledger or model access |
 | Schema 5 pin or `--fast`, uninitialized | `uninitialized_project` | Same error | Explicit initialized contracts never silently switch shape |
-| `onboard` / `onboard --topic TOPIC` | Schema-5 context, or source-only first contact on the focused development line | Same retained context pipeline | Same caller grants and budgets; no separate reasoning engine |
+| `onboard` / `onboard --topic TOPIC` | Separate `lore.human_experience` / `lore.bootstrap_onboard` contracts | Schema-5 context, or schema-1 `lore.bootstrap_context` first contact | Same caller grants and budgets; no separate reasoning engine; [learning migration](LEARNING_MIGRATION.md) |
 
 Schema numbers on configuration, evidence storage, usage and other named
 contracts are unrelated and unchanged. `--fast` still conflicts with a schema

@@ -1,10 +1,16 @@
+# Current implementation: Lore 0.10.0
+
+The source package is 0.10.0. The focused reductions #66–#73 are implemented: task-context onboarding, retired visualizer/Guardian advice/feedback/navigation, registry-only new projects, schema-3/4 selector removal and historical-only Engram retention. See [product scope](PRODUCT_SCOPE.md), [context compatibility](CONTEXT_MIGRATION.md), [output migration/recovery](HEADLESS_MIGRATION.md), and the [current installation, engineering CI and publish checklist](RELEASE_010.md). Passing fixtures/CI do not establish real-agent efficacy; [#2](https://github.com/grove/lore/issues/2) remains open. This source version does not establish a published release.
+
+The remainder is historical implementation evidence. Its version numbers, counts and former product contracts describe their own revisions; original acceptance ledgers remain immutable.
+
 > **Historical implementation tracker.** Rows documenting `src/experience`, lesson contracts, learning modes, human_experience test suites and the old onboarding schema describe 0.9.0-rc.1 development, **not the focused post-[#66](https://github.com/grove/lore/issues/66) implementation**. The dedicated learning engine and those tests are removed; `onboard` uses schema-5 context or model-free bootstrap context. See [migration](LEARNING_MIGRATION.md) and [current product scope](PRODUCT_SCOPE.md).
 
 > **Context compatibility:** Schema-3/4 selection described here is historical and was removed in 0.10.0. See the [current contract matrix](CONTEXT_MIGRATION.md). Shared decision/retrieval internals remain in use.
 
-# Lore implementation tracker
+# Historical Lore implementation tracker
 
-## 0.9 release candidate
+## Historical 0.9 release candidate
 
 All eight packages are implemented as `0.9.0-rc.1`; see the [guide](V09.md),
 [scorecard](../evaluation/PRODUCT_QUALITY_09.md) and
@@ -33,8 +39,8 @@ The [0.8 implementation plan](V08_IMPLEMENTATION_PLAN.md) begins at
 [0.8 guide](V08.md) describes the implemented behavior and migration; the
 [0.8 scorecard](../evaluation/PRODUCT_QUALITY_08.md) and
 [reproducible evidence](../evaluation/results/README-08.md) own the final source
-revisions, merge receipts, platform results and artifact hashes. The package
-version is 0.8.0; release readiness requires those engineering gates to pass.
+revisions, merge receipts, platform results and artifact hashes. The historical package
+version was 0.8.0; release readiness requires those engineering gates to pass.
 The sections following this 0.8 record preserve historical 0.7 and 0.6 evidence.
 
 | Package | Implemented behavior | Review/evidence boundary |
@@ -48,7 +54,7 @@ The sections following this 0.8 record preserve historical 0.7 and 0.6 evidence.
 | 7 — Human first contribution | Initial compiled orientation limited to three grounded concepts; unchanged targeted explanations/tutorials; exact session/submission/checker bindings and enforceable consent withdrawal | [PR #46](https://github.com/grove/lore/pull/46), [human protocol](../evaluation/HUMAN_ONBOARDING.md) and [actual zero-enrollment receipt](../evaluation/evidence/human-onboarding-08-not-run.json). Twelve planned positions are not participants: zero real people and unmeasured contribution time, transfer and observed human usefulness. |
 | 8 — Release integration | Package version 0.8.0, migration and agent guidance, release-mode builds and CLI smoke checks in the three-platform matrix | Final required gates and exact-head evidence are maintained in the [scorecard](../evaluation/PRODUCT_QUALITY_08.md); no outcome is inferred from a version bump. |
 
-### Current engineering and empirical boundaries
+### Historical 0.8 engineering and empirical boundaries
 
 The original Guardian source-hash oracle is unchanged. A managed-workspace
 control reproduced deleted-file restoration without starting Lore or another
@@ -73,7 +79,7 @@ pilot, and provider token counts are distinct from response-budget tokens.
 
 ## 0.7 historical implementation
 
-Current implementation: **Lore 0.7 — evidence-driven usefulness**. The
+Historical implementation: **Lore 0.7 — evidence-driven usefulness**. The
 [0.7 guide](V07.md) describes the available commands and compatibility boundaries;
 the [release scorecard](../evaluation/PRODUCT_QUALITY_07.md) is the current record
 of integrated validation, release receipts, and measured versus unmeasured
